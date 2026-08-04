@@ -496,92 +496,106 @@ xdebug 共约 60+ 个 action handler，分 5 大类:
 - [x] C 测试程序 (picorv32.vcd.fst 验证通过)
 - [x] Release build (`libwellen_capi.so`)
 
-### Phase 2: xdebug-fst C++ 引擎 🔄 进行中
+### Phase 2: xdebug-fst C++ 引擎 ✅ 已完成
 
-**2.1 骨架** ✅ 已完成:
-- [x] `CMakeLists.txt` 构建系统
-- [x] `IWaveformBackend` 抽象接口
+**2.1 骨架** ✅:
+- [x] `CMakeLists.txt` 构建系统（GLOB 自动收集源码）
+- [x] `IWaveformBackend` 抽象接口（含 find_signal / time_indices_of）
 - [x] `IDesignBackend` 抽象接口
-- [x] `WellenFstBackend` — 封装 wellen_capi
+- [x] `WellenFstBackend` — 封装 wellen_capi + wellenx_capi 扩展
 - [x] `XddDesignBackend` — dlopen/dlsym 封装 Verilator DesignDB SO
-- [x] `EngineGlobals` — 全局状态 (waveform + design backend)
-- [x] `EngineActionHandler` — 抽象 handler 接口
-- [x] `ActionRegistry` — handler 注册表
-- [x] `main.cpp` — 三种 CLI 模式
-- [x] `server.cpp` — dispatch 逻辑 + session.open/close
+- [x] `EngineGlobals` / `EngineActionHandler` / `ActionRegistry`
+- [x] `main.cpp` — 三种 CLI 模式；`server.cpp` — dispatch + session 管理
 - [x] 编译通过、link 成功
 
-**2.2 First actions** 🔄 进行中 (编译调试中):
-- [x] `scope.list` + `scope.roots` — 层级遍历
-- [x] `value.at` — 单信号单时间点查询
-- [x] `signal.changes` — 时间区间变化迭代
-- [x] `signal.resolve` — 设计数据库信号解析
-- [x] `trace.driver` — driver 追踪
-- [x] `trace.load` — load 追踪
-- [ ] 编译调试 (GCC 8.5 + nlohmann::json `const` 签名问题待修复)
+**2.2 First actions** ✅:
+- [x] `scope.list` + `scope.roots`、`value.at`、`signal.changes`
+- [x] `signal.resolve`、`trace.driver`、`trace.load`
+- [x] 编译调试完成（const 签名、scope name 缓存、ref=0 哨兵等全部修复）
 
-**2.3-2.8 待实现**: 其余 50+ actions (见 PLAN.md Section 2.3)
+**2.3-2.8 全部 actions** ✅（共 74 个，与 xdebug 73 个对齐）:
+- [x] signal.statistics / stability / xz_verify / anomaly.inspect
+- [x] clock_point_query / expr.eval_at / counter.statistics /
+      signal.sampled_pulse.inspect / protocol.handshake.inspect
+- [x] list.* (8) / event.* (4) / waveform.cursor.* (5) / nwave.rc.generate
+- [x] apb.* (6) / axi.* (11)
+- [x] stream.* (7)
+- [x] signal.canonicalize / expr.normalize
+- [x] trace.active_driver / active_driver_chain / x_origin
+- [x] window.verify / verify.conditions
+- [x] batch / session.open/close/list/doctor/gc/kill
 
-### Phase 3: Verilator --design-db 扩展 📋 待开始
+### Phase 3: design-db 扩展 ✅ 已完成（xdebug-fst 侧实现）
 
-- Port 连接信息
-- Direction 属性
-- 完整语句类型标签
+- [x] Direction 推断：从 driver/load 表推断 port input/output（nba/proc 驱动
+      → output；cont_assign src → input）；原生 xdd_signal_direction 符号优先
+- [x] Port 连接推断：cont_assign 记录提取 port_boundary 连接
+- [x] trace.x_origin port 穿越：driver 链 + port_connections fallback
+- [x] 验证：xprop fixture（VCD 手写 X 传播）→ out → y → a 完整 X 链
 
-### Phase 4: xverif MCP 兼容性验证 📋 待开始
+### Phase 4: xverif MCP 兼容性验证 ✅ 已完成（xverif 零修改）
 
-- 不修改 xverif，仅换 `XDEBUG_BIN` 环境变量
-- 验证 `actions`, `schema`, `session.open` 协议兼容
+- [x] stdio-loop wire 协议：ready envelope、request_id 回显、payload_format
+      json/xout envelope（与参考 xdebug 对齐）
+- [x] session.open 兼容 args.name（xverif 约定）与 target.session_id
+- [x] DesignDB SO 自动探测（fsdb 旁或 obj_dir/）
+- [x] E2E 通过 xverif 真实 McpSessionManager：open/query/close 全通
+- [x] 仅换 `XDEBUG_BIN` 环境变量即可从 FSDB 后端切换到 FST 后端
 
-### Phase 5: 测试 Fixture 全开源化 📋 待开始
+### Phase 5: 测试 Fixture 全开源化 ✅ 已完成
 
-- APB/AXI VIP → C++ BFM 替换
-- Verilator `--trace-fst` 生成测试波形
-- pytest 测试迁移
+- [x] Verilator `--trace-fst --design-db` 生成 FST + DesignDB SO（无 VIP）
+      - counter（基础波形）、apb（APB 主从传输）、axi（AXI4 读写突发）、
+        stream（valid/ready FIFO）、xprop（X 传播，手写 VCD）
+- [x] pytest 套件 120 个测试，覆盖全部 74 个 action（参考 xverif runner 风格）
+- [x] 测试运行环境：xverif 的 conda env（`${XDEBUG_ORIGINAL_ROOT}/.conda-xverif`）
 
 ---
 
 ## 7. 当前进度
 
-### 已完成
+### 已完成（全部 Phase 1-5）
 
-| 组件 | 状态 | 行数 | 已验证 |
-|------|------|------|--------|
-| wellen_capi (Rust) | ✅ | 580 | C 测试通过: open, times, hierarchy, load, offset, value |
-| wellen_capi.h (C header) | ✅ | 118 | 接口定义完整 |
-| PLAT.md (实施计划) | ✅ | 734 | xdebug_fst/ 中 |
-| IWaveformBackend | ✅ | 144 | 编译通过 |
-| IDesignBackend | ✅ | 97 | 编译通过 |
-| WellenFstBackend | ✅ | 280 | 编译+link 通过 |
-| XddDesignBackend | ✅ | 185 | 编译+link 通过 |
-| EngineGlobals | ✅ | 57+78 | 编译通过 |
-| EngineActionHandler | ✅ | 22 | 编译通过 |
-| ActionRegistry | ✅ | 27+30 | 编译通过 |
-| main.cpp | ✅ | 40 | 编译通过 |
-| server.cpp | ✅ | 170 | 编译通过 (dispatch 逻辑完整) |
-| scope_list.cpp | ✅ | 52 | 待重编译 |
-| value_at.cpp | ✅ | 75 | 待重编译 |
-| signal_resolve.cpp | ✅ | 84 | 待重编译 |
-| register_all.cpp | ✅ | 24 | 编译通过 |
-| CMakeLists.txt | ✅ | 31 | 构建系统工作 |
-| clock_edge_experiment.rs | ✅ | Wellen 实验 | 验证 time_match 工作 |
-| clock_coincidence.rs | ✅ | Wellen 实验 | 验证同步性检测 |
+| 组件 | 状态 | 说明 |
+|------|------|------|
+| wellen_capi (Rust) | ✅ | 17 个 extern "C" 函数，C 测试通过 |
+| wellenx_capi (Rust 扩展) | ✅ | 最小扩展 FFI：ASCII 位串值（2/4/9-state）+ time_indices |
+| LogicValue 渲染 | ✅ | SV literal hex/bin/dec，4-state X/Z，parse_sv_literal |
+| IWaveformBackend / IDesignBackend | ✅ | 抽象接口 + WellenFst/Xdd 实现 |
+| 74 个 action handlers | ✅ | 与 xdebug 73 个对齐，全部响应无 crash |
+| Direction/Port 推断 | ✅ | 从 driver/load 表推断，支撑 trace.x_origin |
+| stdio-loop 协议 | ✅ | ready + envelope，xverif MCP 兼容 |
+| FST fixtures | ✅ | counter/apb/axi/stream (Verilator) + xprop (VCD) |
+| pytest 套件 | ✅ | 120 测试全绿，覆盖全部 action |
+| E2E (xverif McpSessionManager) | ✅ | open/query/close 全通，xverif 零修改 |
 
-### 当前阻塞项
+### 构建与测试
 
-1. **GCC 8.5 `const` 签名不匹配** — base class 的 `run()` 不是 const，但其他方法 (`action_name()`, `needs_design()`, `needs_waveform()`) 是 const。之前批量 `sed` 移除了所有 `const`，需要逐个修复回正确的签名。
+```bash
+# 构建（Rust 扩展 + C++ 引擎）
+cd ${REPO_ROOT}/../xdebug_fst/wellenx_capi && cargo build --release
+cd ${REPO_ROOT}/../xdebug_fst && cmake -S . -B build && cmake --build build -j4
 
-   **解决方案**: 三个 action 文件只需为 `action_name() const override`, `needs_design() const override`, `needs_waveform() const override` 这 3 个方法保留 const，`run() override` 不加 const。
+# 运行
+LD_LIBRARY_PATH=build:../wellen/target/release:wellenx_capi/target/release \
+  ./build/xdebug-fst --stdio-loop --json < req.jsonl
 
-2. **wellen_capi scope name 返回空** — C FFI 中的 `wellen_scope_name()` 返回 null。这是 Wellen 内部的字符串管理问题：`h[scope].name(h)` 返回的 Rust string 引用的生命周期不允许跨 FFI 边界。
-
-   **已实现 workaround**: `WellenFstBackend` 使用 `wellen_scope_name()` 返回的 CString 指针，但需要通过 HashMap 缓存确保生命周期。
+# 测试（xverif 的 conda env）
+${XDEBUG_ORIGINAL_ROOT}/.conda-xverif/bin/python -m pytest tests/ -p no:xverif
+```
 
 ### Git 提交历史
 
 ```
+ccbccc0 Phase 4: xverif MCP end-to-end compatibility
+773c204 Phase 5b: comprehensive pytest suite — 120 tests covering all 74 actions
+e6c19f7 Phase 5: APB/AXI/stream FST fixtures + protocol analyzer fixes
+20fd4e2 Phase 3: design-db direction/port-connection inference + trace.x_origin port crossing
+e26507f Phase 2.4-2.6: implement 60+ action handlers (parallel subagents)
+ed4f69b Phase 2.3: shared waveform infrastructure
+d4416b6 Phase 2.1/2.2: fix scope-name cache, add wellenx_capi extension, wire FST+DesignDB pipeline
+43890e2 Phase 2: xdebug-fst C++ engine skeleton
 fe6a083 Initial commit: xdebug-fst migration plan
-43890e2 Phase 2: xdebug-fst C++ engine skeleton (13 files, 1197 lines)
 ```
 
 ---
