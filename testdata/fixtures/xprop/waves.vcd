@@ -1,0 +1,113 @@
+$date
+  Mon Aug  4 20:50:00 2026
+$end
+$version
+  xdebug-fst x-propagation fixture (hand-written VCD, names aligned with DesignDB)
+$end
+$timescale 1ps $end
+$scope module top $end
+  $var wire 1 % clk $end
+  $var wire 1 & reset $end
+  $var wire 8 $ out $end
+  $scope module xprop_top $end
+    $var wire 1 " clk $end
+    $var wire 1 # reset $end
+    $var reg 8 ' a $end
+    $var reg 8 ( y $end
+    $scope module u_child $end
+      $var wire 1 ) clk $end
+      $var reg 8 * y $end
+    $upscope $end
+  $upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+1%
+0&
+bxxxxxxxx '
+bxxxxxxxx (
+bxxxxxxxx $
+bxxxxxxxx *
+#10
+0%
+#20
+1%
+#30
+0%
+#40
+1%
+#50
+0%
+#60
+1&
+b00000000 '
+#70
+0%
+#80
+1%
+#90
+0%
+#100
+1%
+#110
+0%
+#120
+1%
+0&
+b00000000 (
+b00000000 $
+b00000000 *
+#130
+0%
+#140
+1%
+#150
+0%
+#160
+1%
+#170
+0%
+#180
+1%
+#190
+0%
+#200
+1%
+#210
+0%
+#220
+1%
+#230
+0%
+#240
+1%
+#250
+0%
+#260
+1%
+#270
+0%
+#280
+1%
+#290
+0%
+#300
+1%
+#310
+0%
+#320
+1%
+#330
+0%
+#340
+1%
+#350
+0%
+#360
+1%
+#370
+0%
+#380
+1%
+#390
+0%

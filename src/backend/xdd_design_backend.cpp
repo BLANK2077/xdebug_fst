@@ -109,7 +109,8 @@ int XddDesignBackend::signal_line(int idx) const {
 }
 
 int XddDesignBackend::signal_direction(int idx) const {
-    return fn_dir_ ? fn_dir_(db_, idx) : 0;
+    // Native symbol first, then inferred (see inference below)
+    return signal_direction_inferred(idx);
 }
 
 // ── Driver tracing ──
@@ -168,9 +169,97 @@ int XddDesignBackend::trace_load(int signal_idx,
     return n;
 }
 
-// ── Port connections (to be implemented when Verilator --design-db supports it) ──
+// ── Direction inference (Phase 3) ──
+//
+// The Verilator --design-db .so does not (yet) export xdd_signal_direction.
+// We infer port direction from the driver/load tables:
+//   * a port that drives an internal wire via cont_assign (i.e. it appears as
+//     the src of a cont_assign whose target is an internal signal) is an
+//     input (value flows into the design)
+//   * a port whose driver table contains a non-cont_assign entry (nba /
+//     proc_assign) or a src from an internal signal is an output (value flows
+//     out of the design)
+//   * both → inout; neither → unknown (keep the native symbol when present)
 
-int XddDesignBackend::port_conn_count(int) const { return 0; }
-int XddDesignBackend::port_connections(int, std::vector<PortConnection>&) const { return 0; }
+static bool is_port_type(const char* type) {
+    return type && std::strcmp(type, "port") == 0;
+}
+
+int XddDesignBackend::signal_direction_inferred(int idx) const {
+    // Prefer a native symbol when the .so provides it
+    if (fn_dir_) {
+        int d = fn_dir_(db_, idx);
+        if (d != 0) return d;
+    }
+    if (!is_port_type(signal_type(idx))) return 0;
+
+    // Output feature: the port is driven by internal sequential/process
+    // logic (nba / proc_assign records in its own driver table).
+    bool has_proc_driver = false;
+    std::vector<DriverRecord> drivers;
+    trace_driver(idx, drivers);
+    for (const auto& d : drivers) {
+        if (d.kind == "nba" || d.kind == "proc_assign") has_proc_driver = true;
+    }
+
+    // Input feature: the port drives an internal wire via cont_assign
+    // (value flows from the port into the design).
+    bool drives_internal = false;
+    int n = signal_count();
+    for (int i = 0; i < n; ++i) {
+        if (i == idx) continue;
+        std::vector<DriverRecord> ds;
+        trace_driver(i, ds);
+        for (const auto& d : ds) {
+            if (d.src_signal == idx && d.kind == "cont_assign" &&
+                !is_port_type(signal_type(i))) {
+                drives_internal = true;
+            }
+        }
+    }
+
+    if (has_proc_driver) return 2;                     // output (aliasing cont_assign entries are the same net)
+    if (drives_internal) return 1;                     // input
+    return 0;                                          // unknown
+}
+
+// ── Port connections (Phase 3) ──
+//
+// The .so does not export port connections yet; infer them from the driver
+// table: a cont_assign entry linking a port to an internal signal is a port
+// boundary connection.
+
+int XddDesignBackend::port_conn_count(int signal_idx) const {
+    return port_connections(signal_idx, conn_cache_);
+}
+
+int XddDesignBackend::port_connections(int signal_idx,
+                                       std::vector<PortConnection>& out) const {
+    out.clear();
+    if (!is_port_type(signal_type(signal_idx))) return 0;
+
+    // 1. this port drives internal wires (input connections)
+    int n = signal_count();
+    for (int i = 0; i < n; ++i) {
+        std::vector<DriverRecord> ds;
+        trace_driver(i, ds);
+        for (const auto& d : ds) {
+            if (d.src_signal == signal_idx && d.kind == "cont_assign" &&
+                !is_port_type(signal_type(i))) {
+                out.push_back({signal_idx, i, "port_boundary"});
+            }
+        }
+    }
+    // 2. internal signals drive this port (output connections)
+    std::vector<DriverRecord> drivers;
+    trace_driver(signal_idx, drivers);
+    for (const auto& d : drivers) {
+        if (d.src_signal >= 0 && d.kind == "cont_assign" &&
+            !is_port_type(signal_type(d.src_signal))) {
+            out.push_back({signal_idx, d.src_signal, "port_boundary"});
+        }
+    }
+    return static_cast<int>(out.size());
+}
 
 } // namespace xdebug_fst

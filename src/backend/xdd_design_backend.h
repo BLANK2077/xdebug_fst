@@ -61,6 +61,12 @@ private:
     int   (*fn_ld_cnt_)(void*, int) = nullptr;
     void  (*fn_ld_)(void*, int, int, int*, const char**, const char**, int*) = nullptr;
 
+    /// Scratch buffer for port_conn_count()
+    mutable std::vector<PortConnection> conn_cache_;
+
+    /// Direction lookup: native symbol first, then driver/load-table inference.
+    int signal_direction_inferred(int idx) const;
+
     void load_symbols();
 };
 

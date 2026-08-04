@@ -445,6 +445,34 @@ struct TraceXOriginHandler : public EngineActionHandler {
                         break;
                     }
                 }
+
+                // Phase 3: port-boundary crossing fallback — if no x upstream
+                // driver was found and this signal is port-connected, follow
+                // the port connection to the other side of the boundary.
+                if (!found_upstream_x) {
+                    std::vector<IDesignBackend::PortConnection> conns;
+                    design->port_connections(idx, conns);
+                    for (auto& c : conns) {
+                        int other = (c.port_signal == idx) ? c.connected_signal
+                                                           : c.port_signal;
+                        if (other < 0) continue;
+                        std::string other_name = design->signal_name(other);
+                        if (other_name.empty() || visited.count(other_name)) continue;
+                        uint32_t other_ref = wf->find_signal(other_name);
+                        if (other_ref == IWaveformBackend::kInvalidSignalRef) continue;
+                        if (!wf->is_loaded(other_ref)) wf->load_signals({other_ref});
+                        IWaveformBackend::SignalOffset other_off;
+                        if (!wf->signal_offset_at(other_ref, cur_ti, other_off)) continue;
+                        std::string other_bits =
+                            wf->signal_value_str(other_ref, other_off.start, 0);
+                        if (has_x_bit(other_bits)) {
+                            cur_sig = other_name;
+                            cur_bits = other_bits;
+                            found_upstream_x = true;
+                            break;
+                        }
+                    }
+                }
             }
 
             if (!found_upstream_x) {
