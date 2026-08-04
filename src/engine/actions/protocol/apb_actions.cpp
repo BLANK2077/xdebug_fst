@@ -34,7 +34,7 @@ struct ApbSignalMap {
 
 static ApbSignalMap default_apb_signals() {
     return {
-        "TOP.clk", "TOP.psel", "TOP.penable", "TOP.pwrite",
+        "TOP.pclk", "TOP.psel", "TOP.penable", "TOP.pwrite",
         "TOP.paddr", "TOP.pwdata", "TOP.prdata", "TOP.pready", "TOP.pslverr"
     };
 }

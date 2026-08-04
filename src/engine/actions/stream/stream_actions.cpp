@@ -56,6 +56,12 @@ static std::map<std::string, StreamConfig>& config_store() {
     return store;
 }
 
+/// Clear all user-loaded stream configs (called on session.open).
+void clear_stream_configs() {
+    config_store().clear();
+}
+
+
 // ── Helpers ──
 
 /// True if bits represent a logic "high" (not all zero, no x/z/X/Z).

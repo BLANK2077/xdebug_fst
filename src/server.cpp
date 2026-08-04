@@ -6,6 +6,8 @@
 #include "engine/action_registry.h"
 #include "backend/wellen_fst_backend.h"
 #include "backend/xdd_design_backend.h"
+#include "waveform/list/list_manager.h"
+#include "waveform/cursor/cursor_manager.h"
 #include "api/json_types.h"
 
 #include <cstdio>
@@ -79,7 +81,27 @@ static Json dispatch(const Json& request) {
         auto& g = engine_globals();
         g.session_id = session_id;
 
-        if (!fsdb_path.empty() && !g.has_waveform) {
+        // Session-scoped state is reset for the new session
+        ListManager::instance().clear();
+        CursorManager::instance().clear();
+        extern void clear_stream_configs();
+        clear_stream_configs();
+
+        // A new session.open replaces any previous session resources
+        // (xdebug session semantics: open creates a fresh session).
+        if (!fsdb_path.empty() || !design_db.empty()) {
+            if (g.waveform) {
+                g.waveform->close();
+                g.waveform.reset();
+                g.has_waveform = false;
+            }
+            if (g.design) {
+                g.design->close();
+                g.design.reset();
+                g.has_design = false;
+            }
+        }
+        if (!fsdb_path.empty()) {
             g.waveform = std::make_unique<WellenFstBackend>();
             g.has_waveform = g.waveform->open(fsdb_path);
             g.waveform_path = fsdb_path;
@@ -91,7 +113,7 @@ static Json dispatch(const Json& request) {
             }
         }
 
-        if (!design_db.empty() && !g.has_design) {
+        if (!design_db.empty()) {
             g.design = std::make_unique<XddDesignBackend>();
             g.has_design = g.design->open(design_db);
             g.design_path = design_db;

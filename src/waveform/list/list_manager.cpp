@@ -67,6 +67,10 @@ bool ListManager::remove(const std::string& name,
     return true;
 }
 
+bool ListManager::erase(const std::string& name) {
+    return lists_.erase(name) > 0;
+}
+
 bool ListManager::load(const std::string& name, const std::string& file_path,
                        std::string& error) {
     std::ifstream in(file_path);

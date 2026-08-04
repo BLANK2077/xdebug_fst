@@ -166,13 +166,8 @@ struct ListDeleteHandler : public EngineActionHandler {
         if (!ListManager::instance().exists(name))
             return make_error("LIST_NOT_FOUND", "list not found: " + name);
 
-        // Remove all signals from the list (effectively delete it)
-        const SignalList* lst = ListManager::instance().get(name);
-        std::string error;
-        if (lst && !lst->signals.empty()) {
-            if (!ListManager::instance().remove(name, lst->signals, error))
-                return make_error("ACTION_FAILED", error);
-        }
+        // Delete the list entirely
+        ListManager::instance().erase(name);
 
         Json out;
         out["ok"] = true;
@@ -283,7 +278,7 @@ struct ListValidateHandler : public EngineActionHandler {
         int valid_count = 0, missing_count = 0;
 
         for (const auto& s : lst->signals) {
-            if (wf->find_signal(s)) {
+            if (wf->find_signal(s) != IWaveformBackend::kInvalidSignalRef) {
                 ++valid_count;
             } else {
                 ++missing_count;

@@ -482,8 +482,14 @@ uint64_t to_u64(const LogicValue& v) {
 }
 
 LogicValue arith(const LogicValue& a, const LogicValue& b, const std::string& op) {
-    int w = std::max(a.width > 0 ? a.width : static_cast<int>(a.bits.size()),
-                     b.width > 0 ? b.width : static_cast<int>(b.bits.size()));
+    // Prefer declared widths; only fall back to bit length when neither side
+    // carries a width (e.g. a bare decimal constant).
+    int w = 0;
+    if (a.width > 0 && b.width > 0) w = std::max(a.width, b.width);
+    else if (a.width > 0) w = a.width;
+    else if (b.width > 0) w = b.width;
+    else w = std::max(static_cast<int>(a.bits.size()),
+                      static_cast<int>(b.bits.size()));
     if (!a.known || !b.known) {
         LogicValue v;
         v.width = w;

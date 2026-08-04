@@ -24,6 +24,8 @@ public:
              std::string& error);
     bool remove(const std::string& name, const std::vector<std::string>& signals,
                 std::string& error);
+    /// Delete a list entirely. Returns false if it does not exist.
+    bool erase(const std::string& name);
     bool load(const std::string& name, const std::string& file_path,
               std::string& error);
     bool validate(const std::string& name, std::string& error);

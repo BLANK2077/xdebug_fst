@@ -39,7 +39,7 @@ struct AxiSignalMap {
 
 static AxiSignalMap default_axi_signals() {
     return {
-        "TOP.clk", "TOP.rst_n",
+        "TOP.aclk", "TOP.aresetn",
         "TOP.awid", "TOP.awaddr", "TOP.awlen", "TOP.awvalid", "TOP.awready",
         "TOP.wdata", "TOP.wlast", "TOP.wvalid", "TOP.wready",
         "TOP.bid", "TOP.bvalid", "TOP.bready",
@@ -178,6 +178,10 @@ static void scan_channel_handshakes(
 {
     if (ref_valid == IWaveformBackend::kInvalidSignalRef ||
         ref_ready == IWaveformBackend::kInvalidSignalRef) return;
+    if (ref_clk != IWaveformBackend::kInvalidSignalRef &&
+        !wf.is_loaded(ref_clk)) {
+        wf.load_signals({ref_clk});
+    }
 
     uint32_t ti_begin = wf.time_idx_of(t_begin);
     uint32_t ti_end = wf.time_idx_of(t_end);

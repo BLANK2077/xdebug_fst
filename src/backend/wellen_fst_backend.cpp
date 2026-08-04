@@ -7,6 +7,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <sys/stat.h>
 
 // Link against wellen_capi (core) and wellenx_capi (extension)
 extern "C" {
@@ -24,8 +25,21 @@ WellenFstBackend::~WellenFstBackend() {
 
 // ── Lifecycle ──
 
+namespace {
+// wellen panics (rather than returning an error) when the input file does not
+// exist; guard all opens with an existence check.
+bool file_exists(const std::string& path) {
+    struct stat st;
+    return stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode);
+}
+}  // namespace
+
 bool WellenFstBackend::open(const std::string& path) {
     close();
+    if (!file_exists(path)) {
+        fprintf(stderr, "wellen_open: file not found: %s\n", path.c_str());
+        return false;
+    }
     db_ = wellen_open(path.c_str());
     if (!db_) {
         const char* err = wellen_open_error(nullptr);
