@@ -1,8 +1,8 @@
 build/
-*.o
-*.so
-*.d
 .ref/
 wellenx_capi/target/
-testdata/fixtures/*/obj_dir/
-testdata/fixtures/*/waves.fst
+*.o
+*.d
+__pycache__/
+.pytest_cache/
+.xverif-*/
