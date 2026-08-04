@@ -9,6 +9,7 @@
 #include "api/json_types.h"
 
 #include <cstdio>
+#include <unistd.h>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -48,8 +49,13 @@ static Json dispatch(const Json& request) {
         // Add meta actions
         list.push_back({{"action", "actions"}, {"category", "common"}, {"requires", "none"}});
         list.push_back({{"action", "schema"}, {"category", "common"}, {"requires", "none"}});
+        list.push_back({{"action", "batch"}, {"category", "common"}, {"requires", "none"}});
         list.push_back({{"action", "session.open"}, {"category", "session"}, {"requires", "session"}});
         list.push_back({{"action", "session.close"}, {"category", "session"}, {"requires", "session"}});
+        list.push_back({{"action", "session.list"}, {"category", "session"}, {"requires", "session"}});
+        list.push_back({{"action", "session.doctor"}, {"category", "session"}, {"requires", "session"}});
+        list.push_back({{"action", "session.gc"}, {"category", "session"}, {"requires", "session"}});
+        list.push_back({{"action", "session.kill"}, {"category", "session"}, {"requires", "session"}});
         return Json{{"ok", true}, {"actions", list}};
     }
 
@@ -115,6 +121,76 @@ static Json dispatch(const Json& request) {
         g.has_waveform = false;
         g.has_design = false;
         return Json{{"ok", true}, {"session", {{"state", "closed"}}}};
+    }
+
+    // ── Session management (single-session process semantics) ──
+
+    if (action == "session.list") {
+        auto& g = engine_globals();
+        Json sessions = Json::array();
+        sessions.push_back({
+            {"session_id", g.session_id},
+            {"state", g.has_waveform ? "alive" : "idle"},
+            {"has_waveform", g.has_waveform},
+            {"has_design", g.has_design},
+            {"waveform_path", g.waveform_path},
+            {"design_path", g.design_path},
+        });
+        return Json{{"ok", true},
+                    {"summary", {{"session_count", sessions.size()}}},
+                    {"data", {{"sessions", sessions}}}};
+    }
+
+    if (action == "session.doctor") {
+        auto& g = engine_globals();
+        Json checks = Json::array();
+        auto add_check = [&](const std::string& name, bool ok, const std::string& detail) {
+            checks.push_back({{"check", name}, {"ok", ok}, {"detail", detail}});
+        };
+        add_check("waveform_loaded", g.has_waveform,
+                  g.has_waveform ? g.waveform_path : "no waveform file loaded");
+        add_check("design_loaded", g.has_design,
+                  g.has_design ? g.design_path : "no design db loaded");
+        bool healthy = g.has_waveform || true;  // waveform optional for design-only sessions
+        return Json{{"ok", true},
+                    {"summary", {{"session_id", g.session_id}, {"healthy", healthy}}},
+                    {"data", {{"checks", checks}}}};
+    }
+
+    if (action == "session.gc" || action == "session.kill") {
+        // Single-session process: nothing else to collect. Kill closes the
+        // session (same as session.close for this process model).
+        auto& g = engine_globals();
+        if (action == "session.kill" && g.waveform) g.waveform->close();
+        if (action == "session.kill" && g.design) g.design->close();
+        if (action == "session.kill") {
+            g.has_waveform = false;
+            g.has_design = false;
+        }
+        return Json{{"ok", true},
+                    {"summary", {{"action", action},
+                                 {"reclaimed", 0},
+                                 {"session_id", g.session_id}}}};
+    }
+
+    // ── batch: run multiple requests in one call ──
+
+    if (action == "batch") {
+        auto args = request.value("args", Json::object());
+        if (!args.contains("requests") || !args["requests"].is_array()) {
+            return error_response("MISSING_FIELD", "batch requires args.requests[]");
+        }
+        Json responses = Json::array();
+        for (auto& sub : args["requests"]) {
+            if (!sub.is_object()) {
+                responses.push_back(error_response("MISSING_ACTION", "batch item must be an object"));
+                continue;
+            }
+            responses.push_back(dispatch(sub));
+        }
+        return Json{{"ok", true},
+                    {"summary", {{"request_count", responses.size()}}},
+                    {"data", {{"responses", responses}}}};
     }
 
     // Dispatch to registered handlers
@@ -195,6 +271,12 @@ int stdio_loop_main(int argc, char** argv) {
         fprintf(stderr, "[xdebug-fst] failed to initialize engine\n");
         return 1;
     }
+
+    // Ready handshake (xdebug-stdio-loop protocol): the launcher waits for
+    // this line on stdout before sending session.open.
+    fprintf(stdout, "{\"type\":\"ready\",\"protocol\":\"xdebug-stdio-loop\",\"version\":1,\"pid\":%ld}\n",
+            static_cast<long>(getpid()));
+    fflush(stdout);
 
     std::string line;
     while (std::getline(std::cin, line)) {

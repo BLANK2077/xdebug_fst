@@ -29,6 +29,10 @@ LogicValue logic_value_from_bits(const std::string& bits, int width = 0);
 /// Build a LogicValue from an unsigned integer (2-state).
 LogicValue logic_value_from_u64(uint64_t value, int width);
 
+/// Parse a SystemVerilog literal ("8'h0b", "4'b1010", "42", "1010", "0x1f")
+/// into a LogicValue. Returns false on parse failure.
+bool parse_sv_literal(const std::string& text, LogicValue& out);
+
 /// Render as SV literal: "<width>'h<hex>" / "'b<bits>" / "'d<dec>".
 std::string sv_literal(const LogicValue& v, char radix);
 

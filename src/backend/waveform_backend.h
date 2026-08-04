@@ -12,6 +12,10 @@ namespace xdebug_fst {
 /// Implementations: WellenFstBackend (wellen_capi), NpiFsdbBackend (future).
 class IWaveformBackend {
 public:
+    /// Sentinel returned by find_signal() when a signal is not found.
+    /// (0 is a VALID signal ref in wellen, so it cannot be used as "not found".)
+    static constexpr uint32_t kInvalidSignalRef = 0xFFFFFFFFu;
+
     virtual ~IWaveformBackend() = default;
 
     // ── Lifecycle ──

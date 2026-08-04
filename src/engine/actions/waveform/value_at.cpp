@@ -46,7 +46,7 @@ struct ValueAtHandler : public EngineActionHandler {
 
         auto* wf = g.waveform.get();
         uint32_t ref = wf->find_signal(sig);
-        if (!ref) {
+        if (ref == IWaveformBackend::kInvalidSignalRef) {
             return Json{{"ok", false},
                         {"error", {{"code", "SIGNAL_NOT_FOUND"},
                                    {"message", "signal not found in waveform: " + sig}}}};
@@ -107,7 +107,7 @@ struct SignalChangesHandler : public EngineActionHandler {
         }
         auto* wf = g.waveform.get();
         uint32_t ref = wf->find_signal(sig);
-        if (!ref) {
+        if (ref == IWaveformBackend::kInvalidSignalRef) {
             return Json{{"ok", false},
                         {"error", {{"code", "SIGNAL_NOT_FOUND"},
                                    {"message", "signal not found in waveform: " + sig}}}};

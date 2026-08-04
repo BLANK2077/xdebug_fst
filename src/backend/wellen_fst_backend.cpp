@@ -380,7 +380,7 @@ void WellenFstBackend::build_signal_index() const {
 }
 
 uint32_t WellenFstBackend::find_signal(const std::string& path) const {
-    if (path.empty() || !db_) return 0;
+    if (path.empty() || !db_) return kInvalidSignalRef;
     build_signal_index();
     std::string key = normalize_path(path);
     auto it = signal_index_.find(key);
@@ -398,7 +398,7 @@ uint32_t WellenFstBackend::find_signal(const std::string& path) const {
             if (full && normalize_path(full) == key) return wellen_var_signal_ref(db_, vr);
         }
     }
-    return 0;
+    return kInvalidSignalRef;
 }
 
 bool WellenFstBackend::value_at(const std::string& path, uint64_t time,

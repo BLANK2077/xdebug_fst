@@ -155,4 +155,86 @@ std::string bits_to_decimal(const std::string& bits) {
     return s;
 }
 
+
+bool parse_sv_literal(const std::string& text, LogicValue& out) {
+    std::string t;
+    for (char c : text) t.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
+    // strip underscores
+    std::string clean;
+    for (char c : t) if (c != '_') clean.push_back(c);
+    if (clean.empty()) return false;
+
+    // <width>'<base><digits> or '<base><digits>
+    size_t tick = clean.find('\'');
+    if (tick != std::string::npos) {
+        int width = 0;
+        std::string wstr = clean.substr(0, tick);
+        if (!wstr.empty()) {
+            for (char c : wstr) if (!std::isdigit(static_cast<unsigned char>(c))) return false;
+            width = atoi(wstr.c_str());
+        }
+        if (tick + 1 >= clean.size()) return false;
+        char base = clean[tick + 1];
+        std::string digits = clean.substr(tick + 2);
+        if (digits.empty()) return false;
+        if (base != 'h' && base != 'b' && base != 'd' && base != 'o') return false;
+        // validate digits
+        for (char c : digits) {
+            bool ok = (base == 'b') ? (c == '0' || c == '1' || c == 'x' || c == 'z')
+                    : (base == 'h') ? (std::isdigit(static_cast<unsigned char>(c)) || (c >= 'a' && c <= 'f') || c == 'x' || c == 'z')
+                    : (base == 'o') ? (c >= '0' && c <= '7')
+                    : std::isdigit(static_cast<unsigned char>(c));
+            if (!ok) return false;
+        }
+        // build bit string
+        std::string bits;
+        bool unknown = false;
+        for (char c : digits) if (c == 'x' || c == 'z') unknown = true;
+        if (base == 'b') {
+            bits = digits;
+        } else if (base == 'h') {
+            for (char c : digits) {
+                if (c == 'x' || c == 'z') { bits += std::string(4, c); unknown = true; }
+                else {
+                    int nib = (c >= 'a') ? (c - 'a' + 10) : (c - '0');
+                    for (int i = 3; i >= 0; --i) bits.push_back(((nib >> i) & 1) ? '1' : '0');
+                }
+            }
+        } else if (base == 'o') {
+            for (char c : digits) {
+                int oct = c - '0';
+                for (int i = 2; i >= 0; --i) bits.push_back(((oct >> i) & 1) ? '1' : '0');
+            }
+        } else {  // dec
+            uint64_t v = strtoull(digits.c_str(), nullptr, 10);
+            out = logic_value_from_u64(v, width);
+            return true;
+        }
+        if (width > 0) {
+            if ((int)bits.size() > width) bits = bits.substr(bits.size() - width);
+            else if ((int)bits.size() < width) bits.insert(bits.begin(), width - bits.size(), unknown ? 'x' : '0');
+        }
+        out = logic_value_from_bits(bits, width);
+        return true;
+    }
+    // plain decimal or hex-with-0x or bare bit string
+    if (clean.size() > 2 && clean[0] == '0' && clean[1] == 'x') {
+        uint64_t v = strtoull(clean.c_str() + 2, nullptr, 16);
+        out = logic_value_from_u64(v, 0);
+        return true;
+    }
+    bool all_digits = true;
+    for (char c : clean) if (!std::isdigit(static_cast<unsigned char>(c))) { all_digits = false; break; }
+    if (all_digits) {
+        uint64_t v = strtoull(clean.c_str(), nullptr, 10);
+        out = logic_value_from_u64(v, 0);
+        return true;
+    }
+    // bare bit string of 0/1/x/z
+    for (char c : clean) {
+        if (c != '0' && c != '1' && c != 'x' && c != 'z') return false;
+    }
+    out = logic_value_from_bits(clean, static_cast<int>(clean.size()));
+    return true;
+}
 } // namespace xdebug_fst

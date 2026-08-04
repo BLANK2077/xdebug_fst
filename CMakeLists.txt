@@ -13,23 +13,9 @@ set(WELLEN_CAPI_LIB_DIR "${CMAKE_SOURCE_DIR}/../wellen/target/release" CACHE PAT
 set(WELLENX_CAPI_INCLUDE "${CMAKE_SOURCE_DIR}/wellenx_capi/include")
 set(WELLENX_CAPI_LIB_DIR "${CMAKE_SOURCE_DIR}/wellenx_capi/target/release" CACHE PATH "wellenx_capi build dir")
 
-# ── Sources ──
-set(SOURCES
-    src/main.cpp
-    src/server.cpp
-    src/engine/engine_globals.cpp
-    src/engine/action_registry.cpp
-    src/engine/actions/register_all.cpp
-    src/backend/wellen_fst_backend.cpp
-    src/backend/xdd_design_backend.cpp
-    src/core/value/logic_value.cpp
-    src/waveform/clock_sampling.cpp
-    src/waveform/list/list_manager.cpp
-    src/waveform/cursor/cursor_manager.cpp
-    src/waveform/expr/expr_eval.cpp
-    src/engine/actions/waveform/scope_list.cpp
-    src/engine/actions/waveform/value_at.cpp
-    src/engine/actions/design/signal_resolve.cpp
+# ── Sources (glob: new action files are picked up automatically) ──
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
+    ${CMAKE_SOURCE_DIR}/src/*.cpp
 )
 
 # ── Executable ──
