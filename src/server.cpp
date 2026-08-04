@@ -12,6 +12,7 @@
 
 #include <cstdio>
 #include <unistd.h>
+#include <dirent.h>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -58,7 +59,10 @@ static Json dispatch(const Json& request) {
         list.push_back({{"action", "session.doctor"}, {"category", "session"}, {"requires", "session"}});
         list.push_back({{"action", "session.gc"}, {"category", "session"}, {"requires", "session"}});
         list.push_back({{"action", "session.kill"}, {"category", "session"}, {"requires", "session"}});
-        return Json{{"ok", true}, {"actions", list}};
+        return Json{{"ok", true},
+                    {"summary", {{"action_count", list.size()},
+                                 {"total_action_count", list.size()}}},
+                    {"data", {{"actions", list}}}};
     }
 
     if (action == "schema") {
@@ -74,12 +78,43 @@ static Json dispatch(const Json& request) {
 
     if (action == "session.open") {
         auto target = request.value("target", Json::object());
-        std::string session_id = target.value("session_id", "default");
+        // session_id comes from args.name (xverif MCP convention) or
+        // target.session_id (xdebug-fst native convention)
+        auto args = request.value("args", Json::object());
+        std::string session_id = args.value("name",
+            target.value("session_id", "default"));
         std::string fsdb_path  = target.value("fsdb", "");
         std::string design_db  = target.value("design_db", "");
 
         auto& g = engine_globals();
         g.session_id = session_id;
+
+        // Auto-detect the Verilator DesignDB .so next to the waveform when
+        // design_db was not given explicitly (xverif MCP only passes fsdb).
+        // Verilator fixtures keep the .so either beside the .fst or under an
+        // obj_dir/ subdirectory.
+        if (design_db.empty() && !fsdb_path.empty()) {
+            size_t slash = fsdb_path.find_last_of('/');
+            std::string dir = (slash == std::string::npos)
+                ? "." : fsdb_path.substr(0, slash);
+            std::string candidates[2] = {dir, dir + "/obj_dir"};
+            for (const auto& cand : candidates) {
+                DIR* d = opendir(cand.c_str());
+                if (!d) continue;
+                struct dirent* e;
+                while ((e = readdir(d)) != nullptr) {
+                    std::string name = e->d_name;
+                    if (name.size() > 13 &&
+                        name.rfind("libV", 0) == 0 &&
+                        name.rfind("__DesignDb.so") == name.size() - 13) {
+                        design_db = cand + "/" + name;
+                        break;
+                    }
+                }
+                closedir(d);
+                if (!design_db.empty()) break;
+            }
+        }
 
         // Session-scoped state is reset for the new session
         ListManager::instance().clear();

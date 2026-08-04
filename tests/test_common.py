@@ -41,14 +41,14 @@ def test_actions_catalog(cli_runner: CliRunner) -> None:
     is present (xdebug parity)."""
     result = cli_runner.run({"api_version": "xdebug.v1", "action": "actions"})
     assert result.ok, result.stderr_raw
-    got = {a["action"] for a in result.response["actions"]}
+    got = {a["action"] for a in result.response["data"]["actions"]}
     assert set(ALL_ACTIONS) <= got, f"missing: {set(ALL_ACTIONS) - got}"
 
 
 def test_actions_entries_have_category_and_requires(cli_runner: CliRunner) -> None:
     result = cli_runner.run({"api_version": "xdebug.v1", "action": "actions"})
     assert result.ok
-    for entry in result.response["actions"]:
+    for entry in result.response["data"]["actions"]:
         assert entry["action"]
         assert entry["category"] in {"waveform", "design", "common", "session"}
         assert entry["requires"] in {"waveform", "design", "design+waveform",

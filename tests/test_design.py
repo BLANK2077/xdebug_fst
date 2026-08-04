@@ -27,12 +27,12 @@ def test_signal_resolve_not_found(loop_runner: StdioLoopRunner, counter_fst,
     assert rsp["error"]["code"] == "SIGNAL_NOT_FOUND"
 
 
-def test_signal_resolve_requires_design(loop_runner: StdioLoopRunner,
-                                        counter_fst) -> None:
-    open_session(loop_runner, counter_fst)  # waveform only
-    rsp = loop_runner.request("signal.resolve", args={"signal": "top.clk"})
-    assert not rsp.get("ok")
-    assert rsp["error"]["code"] == "DESIGN_NOT_LOADED"
+def test_signal_resolve_requires_design(cli_runner) -> None:
+    # one-shot without a session: design is never loaded
+    result = cli_runner.run({"api_version": "xdebug.v1", "action": "signal.resolve",
+                             "args": {"signal": "top.clk"}})
+    assert not result.ok
+    assert result.response["error"]["code"] == "DESIGN_NOT_LOADED"
 
 
 def test_signal_canonicalize(loop_runner: StdioLoopRunner, counter_fst,

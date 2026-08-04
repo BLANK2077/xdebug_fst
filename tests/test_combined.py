@@ -23,13 +23,14 @@ def test_trace_active_driver(loop_runner: StdioLoopRunner, counter_fst,
     assert first["value"]["value"] == "8'h0b"
 
 
-def test_trace_active_driver_requires_both(loop_runner: StdioLoopRunner,
-                                           counter_fst) -> None:
-    open_session(loop_runner, counter_fst)
-    rsp = loop_runner.request("trace.active_driver", args={
-        "signal": "top.clk", "time": "100"})
-    assert not rsp.get("ok")
-    assert rsp["error"]["code"] == "DESIGN_NOT_LOADED"
+def test_trace_active_driver_requires_both(cli_runner) -> None:
+    # one-shot without a session: neither backend is loaded
+    result = cli_runner.run({"api_version": "xdebug.v1",
+                             "action": "trace.active_driver",
+                             "args": {"signal": "top.clk", "time": "100"}})
+    assert not result.ok
+    assert result.response["error"]["code"] in ("WAVEFORM_NOT_LOADED",
+                                                "DESIGN_NOT_LOADED")
 
 
 def test_trace_active_driver_chain(loop_runner: StdioLoopRunner, counter_fst,
