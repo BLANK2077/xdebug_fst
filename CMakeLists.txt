@@ -23,6 +23,10 @@ set(SOURCES
     src/backend/wellen_fst_backend.cpp
     src/backend/xdd_design_backend.cpp
     src/core/value/logic_value.cpp
+    src/waveform/clock_sampling.cpp
+    src/waveform/list/list_manager.cpp
+    src/waveform/cursor/cursor_manager.cpp
+    src/waveform/expr/expr_eval.cpp
     src/engine/actions/waveform/scope_list.cpp
     src/engine/actions/waveform/value_at.cpp
     src/engine/actions/design/signal_resolve.cpp
