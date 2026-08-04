@@ -78,6 +78,10 @@ public:
     /// Get signal_ref for a variable. Returns 0 if no associated signal.
     virtual uint32_t var_signal_ref(uint32_t var_ref) const = 0;
 
+    /// Find a signal by hierarchical path (case-insensitive, "TOP." prefix
+    /// tolerant). Returns 0 if not found.
+    virtual uint32_t find_signal(const std::string& path) const = 0;
+
     /// Get signal encoding and width for a variable.
     /// encoding: 0=bitvector, 1=real, 2=string, 3=event
     virtual int var_encoding(uint32_t var_ref, uint32_t* out_width) const = 0;
@@ -145,6 +149,10 @@ public:
     /// Returns nullptr if signal not loaded.
     virtual const uint32_t* signal_time_indices(uint32_t signal_ref,
                                                 uint32_t* out_count) const = 0;
+
+    /// Copy of the sorted time indices at which a signal changes.
+    /// Empty if the signal is not loaded or has no changes.
+    virtual std::vector<uint32_t> time_indices_of(uint32_t signal_ref) const = 0;
 
     /// Get raw data pointer for a loaded signal.
     virtual const uint8_t* signal_data_ptr(uint32_t signal_ref) const = 0;

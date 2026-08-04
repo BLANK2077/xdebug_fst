@@ -1,8 +1,12 @@
-// server.cpp — Server mode and one-shot CLI implementation
+// server.cpp — Server, stdio-loop, and one-shot CLI modes
 // BSD-3-Clause License
 
 #include "engine/engine_globals.h"
 #include "engine/engine_action_handler.h"
+#include "engine/action_registry.h"
+#include "backend/wellen_fst_backend.h"
+#include "backend/xdd_design_backend.h"
+#include "api/json_types.h"
 
 #include <cstdio>
 #include <cstring>
@@ -12,43 +16,147 @@
 
 namespace xdebug_fst {
 
+// ── Helpers ──
+
+static Json error_response(const std::string& code, const std::string& msg) {
+    return Json{{"ok", false}, {"error", {{"code", code}, {"message", msg}}}};
+}
+
+static Json dispatch(const Json& request) {
+    std::string action = request.value("action", "");
+    if (action.empty()) {
+        return error_response("MISSING_ACTION", "request must contain 'action'");
+    }
+
+    // Built-in stateless actions
+    if (action == "actions") {
+        auto& reg = ActionRegistry::instance();
+        Json list = Json::array();
+        for (auto& name : reg.list_actions()) {
+            auto* h = reg.find(name);
+            Json item;
+            item["action"] = name;
+            item["category"] = "waveform";
+            item["requires"] = "waveform";
+            if (h) {
+                if (h->needs_design()) item["requires"] = "design+waveform";
+                else if (!h->needs_waveform()) item["requires"] = "design";
+                else if (!h->needs_design()) item["requires"] = "waveform";
+            }
+            list.push_back(item);
+        }
+        // Add meta actions
+        list.push_back({{"action", "actions"}, {"category", "common"}, {"requires", "none"}});
+        list.push_back({{"action", "schema"}, {"category", "common"}, {"requires", "none"}});
+        list.push_back({{"action", "session.open"}, {"category", "session"}, {"requires", "session"}});
+        list.push_back({{"action", "session.close"}, {"category", "session"}, {"requires", "session"}});
+        return Json{{"ok", true}, {"actions", list}};
+    }
+
+    if (action == "schema") {
+        std::string schema_action = request.value("args", Json::object()).value("action", "");
+        return Json{
+            {"ok", true},
+            {"schema", {
+                {"action", schema_action},
+                {"kind", request.value("args", Json::object()).value("kind", "request")},
+            }}
+        };
+    }
+
+    if (action == "session.open") {
+        auto target = request.value("target", Json::object());
+        std::string session_id = target.value("session_id", "default");
+        std::string fsdb_path  = target.value("fsdb", "");
+        std::string design_db  = target.value("design_db", "");
+
+        auto& g = engine_globals();
+        g.session_id = session_id;
+
+        if (!fsdb_path.empty() && !g.has_waveform) {
+            g.waveform = std::make_unique<WellenFstBackend>();
+            g.has_waveform = g.waveform->open(fsdb_path);
+            g.waveform_path = fsdb_path;
+            if (!g.has_waveform) {
+                g.waveform.reset();
+                return Json{{"ok", false},
+                            {"error", {{"code", "WAVEFORM_OPEN_FAILED"},
+                                       {"message", "failed to open waveform: " + fsdb_path}}}};
+            }
+        }
+
+        if (!design_db.empty() && !g.has_design) {
+            g.design = std::make_unique<XddDesignBackend>();
+            g.has_design = g.design->open(design_db);
+            g.design_path = design_db;
+            if (!g.has_design) {
+                g.design.reset();
+                return Json{{"ok", false},
+                            {"error", {{"code", "DESIGN_OPEN_FAILED"},
+                                       {"message", "failed to open design db: " + design_db}}}};
+            }
+        }
+
+        return Json{
+            {"ok", true},
+            {"session", {
+                {"session_id", session_id},
+                {"state", "alive"},
+                {"has_waveform", g.has_waveform},
+                {"has_design", g.has_design},
+            }}
+        };
+    }
+
+    if (action == "session.close") {
+        auto& g = engine_globals();
+        if (g.waveform) g.waveform->close();
+        if (g.design) g.design->close();
+        g.has_waveform = false;
+        g.has_design = false;
+        return Json{{"ok", true}, {"session", {{"state", "closed"}}}};
+    }
+
+    // Dispatch to registered handlers
+    auto& reg = ActionRegistry::instance();
+    auto* handler = reg.find(action);
+    if (!handler) {
+        return error_response("UNKNOWN_ACTION", "unknown action: " + action);
+    }
+
+    // Pre-flight checks
+    auto& g = engine_globals();
+    if (handler->needs_design() && !g.has_design) {
+        return error_response("DESIGN_NOT_LOADED", "action requires design database: " + action);
+    }
+    if (handler->needs_waveform() && !g.has_waveform) {
+        return error_response("WAVEFORM_NOT_LOADED", "action requires waveform file: " + action);
+    }
+
+    try {
+        return handler->run(request);
+    } catch (const std::exception& e) {
+        return error_response("INTERNAL_ERROR", std::string("handler threw: ") + e.what());
+    }
+}
+
 // ── One-shot mode ──
 
 int oneshot_main(bool json_mode) {
-    // Read entire stdin
     std::ostringstream oss;
     oss << std::cin.rdbuf();
     std::string input = oss.str();
 
-    // Parse action from input (simplified: just handle "actions" and "schema")
-    // In full implementation, use a proper JSON parser.
-    std::string action;
-    auto pos = input.find("\"action\"");
-    if (pos != std::string::npos) {
-        auto start = input.find('"', pos + 8);
-        if (start != std::string::npos) {
-            auto end = input.find('"', start + 1);
-            if (end != std::string::npos) {
-                action = input.substr(start + 1, end - start - 1);
-            }
-        }
+    Json request;
+    try {
+        request = Json::parse(input);
+    } catch (const std::exception& e) {
+        fprintf(stdout, "{\"ok\":false,\"error\":{\"code\":\"PARSE_ERROR\",\"message\":\"%s\"}}\n", e.what());
+        return 1;
     }
 
-    // Handle built-in actions
-    if (action == "actions") {
-        fprintf(stdout, "{\"ok\":true,\"actions\":["
-                "{\"action\":\"actions\",\"category\":\"common\",\"requires\":\"none\"},"
-                "{\"action\":\"schema\",\"category\":\"common\",\"requires\":\"none\"},"
-                "{\"action\":\"session.open\",\"category\":\"session\",\"requires\":\"session\"}"
-                "]}\n");
-    } else if (action == "schema") {
-        fprintf(stdout, "{\"ok\":true,\"schema\":{\"action\":\"schema\",\"kind\":\"request\"}}\n");
-    } else if (action == "session.open") {
-        fprintf(stdout, "{\"ok\":true,\"session\":{\"session_id\":\"test\",\"state\":\"alive\"}}\n");
-    } else {
-        fprintf(stdout, "{\"ok\":false,\"error\":{\"code\":\"UNKNOWN_ACTION\",\"message\":\"unknown action\"}}\n");
-    }
-
+    Json response = dispatch(request);
+    fprintf(stdout, "%s\n", response.dump().c_str());
     return 0;
 }
 
@@ -62,22 +170,19 @@ int server_main(int argc, char** argv) {
         return 1;
     }
 
-    auto& g = engine_globals();
-
-    fprintf(stderr, "[xdebug-fst] server ready: session=%s waveform=%d design=%d\n",
-            g.session_id.c_str(), g.has_waveform, g.has_design);
-
-    // In server mode, we'd set up a transport (UDS/TCP/file) and enter an accept loop.
-    // For now, just run one-shot processing on stdin.
+    // In full implementation: set up UDS/TCP transport, accept loop.
+    // For now: process stdin as one-shot.
     std::ostringstream oss;
     oss << std::cin.rdbuf();
     std::string input = oss.str();
 
     if (!input.empty()) {
-        return oneshot_main(true);
+        Json request = Json::parse(input);
+        Json response = dispatch(request);
+        fprintf(stdout, "%s\n", response.dump().c_str());
     }
 
-    fprintf(stderr, "[xdebug-fst] server idle (no stdin input, exiting)\n");
+    fprintf(stderr, "[xdebug-fst] server exiting\n");
     return 0;
 }
 
@@ -91,13 +196,21 @@ int stdio_loop_main(int argc, char** argv) {
         return 1;
     }
 
-    // stdio-loop mode: read JSON-line-delimited requests, respond with JSON lines.
     std::string line;
     while (std::getline(std::cin, line)) {
         if (line.empty()) continue;
-        fprintf(stdout, "{\"ok\":true,\"session_id\":\"test\",\"state\":\"ready\"}\n");
+        Json request;
+        try {
+            request = Json::parse(line);
+        } catch (...) {
+            fprintf(stdout, "{\"ok\":false,\"error\":{\"code\":\"PARSE_ERROR\"}}\n");
+            fflush(stdout);
+            continue;
+        }
+
+        Json response = dispatch(request);
+        fprintf(stdout, "%s\n", response.dump().c_str());
         fflush(stdout);
-        break;
     }
 
     return 0;

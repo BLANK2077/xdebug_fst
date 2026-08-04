@@ -1,0 +1,19 @@
+# wellenx_capi — Minimal extension FFI over Wellen for xdebug-fst
+# BSD-3-Clause License
+#
+# Provides only the small set of queries missing from wellen_capi:
+#   * ASCII bit-string value reads (2/4/9-state: '0','1','x','z',...)
+#   * change-time index iteration
+[package]
+name = "wellenx-capi"
+version = "0.1.0"
+edition = "2021"
+license = "BSD-3-Clause"
+description = "Minimal C FFI extension over Wellen for xdebug-fst"
+
+[lib]
+name = "wellenx_capi"
+crate-type = ["cdylib"]
+
+[dependencies]
+wellen = { path = "../../wellen/wellen" }
