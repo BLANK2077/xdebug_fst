@@ -228,9 +228,19 @@ static std::vector<HandshakeEvent> scan_handshakes(
 
         if (!rising) continue;
 
-        // Check valid and ready at this clock edge
-        if (!signal_is_high_at(wf, vld_ref, ti)) continue;
-        if (!signal_is_high_at(wf, rdy_ref, ti)) continue;
+        // Check valid and ready at this clock edge. Handshakes are level
+        // sampled at the edge, but wave dumps record the post-edge state
+        // (the slave may deassert ready in the same cycle it samples).
+        // Accept cross combinations only when valid or ready just rose.
+        bool v_now = signal_is_high_at(wf, vld_ref, ti);
+        bool r_now = signal_is_high_at(wf, rdy_ref, ti);
+        bool v_prev = ti > 0 && signal_is_high_at(wf, vld_ref, ti - 1);
+        bool r_prev = ti > 0 && signal_is_high_at(wf, rdy_ref, ti - 1);
+        bool v_rise = v_now && !v_prev;
+        bool r_rise = r_now && !r_prev;
+        bool hs = (v_now && r_now) || (v_now && v_rise && r_prev) ||
+                  (r_now && r_rise && v_prev);
+        if (!hs) continue;
 
         HandshakeEvent ev;
         ev.time_idx = ti;
@@ -297,10 +307,13 @@ static void count_handshake_stats(
 
         bool vh = signal_is_high_at(wf, vld_ref, ti);
         bool rh = signal_is_high_at(wf, rdy_ref, ti);
+        bool vp = ti > 0 && signal_is_high_at(wf, vld_ref, ti - 1);
+        bool rp = ti > 0 && signal_is_high_at(wf, rdy_ref, ti - 1);
+        bool hs = (vh && rh) || (vh && !vp && rp) || (rh && !rp && vp);
 
         if (vh) valid_high_count++;
         if (rh) ready_high_count++;
-        if (vh && rh) handshake_count++;
+        if (hs) handshake_count++;
     }
 }
 
@@ -443,7 +456,9 @@ struct StreamDescribeHandler : public EngineActionHandler {
         uint32_t rdy_ref = load_signal(wf, cfg.ready);
         uint32_t data_ref = cfg.data.empty() ? 0 : load_signal(wf, cfg.data);
 
-        if (!clk_ref || !vld_ref || !rdy_ref) {
+        if (clk_ref == IWaveformBackend::kInvalidSignalRef ||
+            vld_ref == IWaveformBackend::kInvalidSignalRef ||
+            rdy_ref == IWaveformBackend::kInvalidSignalRef) {
             std::vector<std::string> missing;
             if (clk_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.clock);
             if (vld_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.valid);
@@ -518,7 +533,9 @@ struct StreamQueryHandler : public EngineActionHandler {
         uint32_t rdy_ref = load_signal(wf, cfg.ready);
         uint32_t data_ref = cfg.data.empty() ? 0 : load_signal(wf, cfg.data);
 
-        if (!clk_ref || !vld_ref || !rdy_ref) {
+        if (clk_ref == IWaveformBackend::kInvalidSignalRef ||
+            vld_ref == IWaveformBackend::kInvalidSignalRef ||
+            rdy_ref == IWaveformBackend::kInvalidSignalRef) {
             std::vector<std::string> missing;
             if (clk_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.clock);
             if (vld_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.valid);
@@ -624,7 +641,9 @@ struct StreamExportHandler : public EngineActionHandler {
         uint32_t rdy_ref = load_signal(wf, cfg.ready);
         uint32_t data_ref = cfg.data.empty() ? 0 : load_signal(wf, cfg.data);
 
-        if (!clk_ref || !vld_ref || !rdy_ref) {
+        if (clk_ref == IWaveformBackend::kInvalidSignalRef ||
+            vld_ref == IWaveformBackend::kInvalidSignalRef ||
+            rdy_ref == IWaveformBackend::kInvalidSignalRef) {
             std::vector<std::string> missing;
             if (clk_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.clock);
             if (vld_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.valid);

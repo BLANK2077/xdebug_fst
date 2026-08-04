@@ -162,43 +162,53 @@ static std::string read_signal_at(IWaveformBackend& wf, uint32_t ref, uint32_t t
 
 // Collect handshake events on a valid/ready pair within time range.
 // When valid=1 AND ready=1, record an event at that time.
+// Scan a channel for handshake events, sampled at clock edges.
+// ref_clk: 0 (kInvalidSignalRef) disables clock-edge gating (fallback).
+// multi_beat: true for W/R channels where every clock cycle with valid&&ready
+// is a new data beat; false for AW/AR/B (single-beat) where a handshake is
+// counted only on the entry edge (valid or ready rising while the other is high).
 static void scan_channel_handshakes(
     IWaveformBackend& wf,
     uint32_t ref_valid, uint32_t ref_ready,
     const std::string& channel,
     uint64_t t_begin, uint64_t t_end,
-    std::vector<AxiHandshakeEvent>& events)
+    std::vector<AxiHandshakeEvent>& events,
+    uint32_t ref_clk = IWaveformBackend::kInvalidSignalRef,
+    bool multi_beat = false)
 {
-    if (!ref_valid || !ref_ready) return;
+    if (ref_valid == IWaveformBackend::kInvalidSignalRef ||
+        ref_ready == IWaveformBackend::kInvalidSignalRef) return;
 
-    // Merge change points from valid and ready
-    std::set<uint32_t> ti_set;
-    for (uint32_t ti : wf.time_indices_of(ref_valid)) {
-        uint64_t t = wf.time_at(ti);
-        if (t >= t_begin && t <= t_end) ti_set.insert(ti);
-    }
-    for (uint32_t ti : wf.time_indices_of(ref_ready)) {
-        uint64_t t = wf.time_at(ti);
-        if (t >= t_begin && t <= t_end) ti_set.insert(ti);
-    }
-    // Add boundaries
     uint32_t ti_begin = wf.time_idx_of(t_begin);
-    if (ti_begin > 0) ti_set.insert(ti_begin);
-
-    std::vector<uint32_t> tis(ti_set.begin(), ti_set.end());
-    for (uint32_t ti : tis) {
+    uint32_t ti_end = wf.time_idx_of(t_end);
+    std::string prev_v, prev_r;
+    for (uint32_t ti = ti_begin; ti <= ti_end && ti < wf.time_count(); ++ti) {
+        // Optional clock-edge gate: only sample on rising edges of the clock
+        if (ref_clk != IWaveformBackend::kInvalidSignalRef && ti > 0) {
+            std::string ck = read_signal_at(wf, ref_clk, ti);
+            std::string ck_prev = read_signal_at(wf, ref_clk, ti - 1);
+            bool rising = (!ck.empty() && ck.back() == '1') &&
+                          (!ck_prev.empty() && ck_prev.back() == '0');
+            if (!rising) continue;
+        }
         std::string v = read_signal_at(wf, ref_valid, ti);
         std::string r = read_signal_at(wf, ref_ready, ti);
         bool valid_high = (!v.empty() && v.back() == '1');
         bool ready_high = (!r.empty() && r.back() == '1');
         if (valid_high && ready_high) {
-            AxiHandshakeEvent ev;
-            ev.channel = channel;
-            ev.time = wf.time_at(ti);
-            ev.time_idx = ti;
-            ev.kind = "handshake";
-            events.push_back(ev);
+            bool prev_high = (!prev_v.empty() && prev_v.back() == '1') &&
+                             (!prev_r.empty() && prev_r.back() == '1');
+            if (multi_beat || !prev_high) {
+                AxiHandshakeEvent ev;
+                ev.channel = channel;
+                ev.time = wf.time_at(ti);
+                ev.time_idx = ti;
+                ev.kind = "handshake";
+                events.push_back(ev);
+            }
         }
+        prev_v = v;
+        prev_r = r;
     }
 }
 
@@ -209,7 +219,7 @@ static void augment_aw_events(IWaveformBackend& wf,
     uint32_t ref_id = wf.find_signal(sm.awid);
     uint32_t ref_addr = wf.find_signal(sm.awaddr);
     uint32_t ref_len = wf.find_signal(sm.awlen);
-    if (!ref_id) return;
+    if (ref_id == IWaveformBackend::kInvalidSignalRef) return;
     wf.load_signals({ref_id, ref_addr, ref_len});
     for (auto& ev : events) {
         ev.id = read_signal_at(wf, ref_id, ev.time_idx);
@@ -223,7 +233,7 @@ static void augment_w_events(IWaveformBackend& wf,
 {
     uint32_t ref_data = wf.find_signal(sm.wdata);
     uint32_t ref_last = wf.find_signal(sm.wlast);
-    if (!ref_data) return;
+    if (ref_data == IWaveformBackend::kInvalidSignalRef) return;
     wf.load_signals({ref_data, ref_last});
     for (auto& ev : events) {
         ev.data = read_signal_at(wf, ref_data, ev.time_idx);
@@ -251,7 +261,7 @@ static void augment_ar_events(IWaveformBackend& wf,
     uint32_t ref_id = wf.find_signal(sm.arid);
     uint32_t ref_addr = wf.find_signal(sm.araddr);
     uint32_t ref_len = wf.find_signal(sm.arlen);
-    if (!ref_id) return;
+    if (ref_id == IWaveformBackend::kInvalidSignalRef) return;
     wf.load_signals({ref_id, ref_addr, ref_len});
     for (auto& ev : events) {
         ev.id = read_signal_at(wf, ref_id, ev.time_idx);
@@ -266,7 +276,7 @@ static void augment_r_events(IWaveformBackend& wf,
     uint32_t ref_id = wf.find_signal(sm.rid);
     uint32_t ref_data = wf.find_signal(sm.rdata);
     uint32_t ref_last = wf.find_signal(sm.rlast);
-    if (!ref_id) return;
+    if (ref_id == IWaveformBackend::kInvalidSignalRef) return;
     wf.load_signals({ref_id, ref_data, ref_last});
     for (auto& ev : events) {
         ev.id = read_signal_at(wf, ref_id, ev.time_idx);
@@ -528,12 +538,13 @@ static AxiScanResult scan_axi(IWaveformBackend& wf, const AxiSignalMap& sm,
                      ref_bvalid, ref_bready, ref_arvalid, ref_arready,
                      ref_rvalid, ref_rready});
 
-    // Scan each channel for handshakes
-    scan_channel_handshakes(wf, ref_awvalid, ref_awready, "aw", t_begin, t_end, result.aw_events);
-    scan_channel_handshakes(wf, ref_wvalid, ref_wready, "w", t_begin, t_end, result.w_events);
-    scan_channel_handshakes(wf, ref_bvalid, ref_bready, "b", t_begin, t_end, result.b_events);
-    scan_channel_handshakes(wf, ref_arvalid, ref_arready, "ar", t_begin, t_end, result.ar_events);
-    scan_channel_handshakes(wf, ref_rvalid, ref_rready, "r", t_begin, t_end, result.r_events);
+    // Scan each channel for handshakes (sampled at clock edges)
+    uint32_t ref_clk = wf.find_signal(sm.aclk);
+    scan_channel_handshakes(wf, ref_awvalid, ref_awready, "aw", t_begin, t_end, result.aw_events, ref_clk);
+    scan_channel_handshakes(wf, ref_wvalid, ref_wready, "w", t_begin, t_end, result.w_events, ref_clk, true);
+    scan_channel_handshakes(wf, ref_bvalid, ref_bready, "b", t_begin, t_end, result.b_events, ref_clk);
+    scan_channel_handshakes(wf, ref_arvalid, ref_arready, "ar", t_begin, t_end, result.ar_events, ref_clk);
+    scan_channel_handshakes(wf, ref_rvalid, ref_rready, "r", t_begin, t_end, result.r_events, ref_clk, true);
 
     // Augment with data payloads
     augment_aw_events(wf, sm, result.aw_events);

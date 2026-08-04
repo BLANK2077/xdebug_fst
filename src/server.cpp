@@ -263,6 +263,22 @@ int server_main(int argc, char** argv) {
 }
 
 // ── Stdio-loop mode ──
+//
+// xdebug-stdio-loop wire protocol (xverif MCP compatible):
+//   1. on startup, emit the ready line on stdout
+//   2. each request line is a JSON object; the response is an envelope:
+//      {"id": <request id>, "ok": bool, "api_version": "xdebug.v1",
+//       "action": <action>, "payload_format": "json"|"xout",
+//       "json": <response> | "xout": <text>}
+//   3. "stdio.quit" terminates the loop
+
+static std::string simple_xout(const std::string& action, const Json& response) {
+    // Compact xout rendering: header line + pretty JSON body.
+    std::string out = "@xdebug." + action + ".v1\n";
+    out += response.dump(2);
+    out += "\n";
+    return out;
+}
 
 int stdio_loop_main(int argc, char** argv) {
     fprintf(stderr, "[xdebug-fst] stdio-loop mode starting...\n");
@@ -272,12 +288,18 @@ int stdio_loop_main(int argc, char** argv) {
         return 1;
     }
 
+    bool json_mode = false;
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--json") == 0) json_mode = true;
+    }
+
     // Ready handshake (xdebug-stdio-loop protocol): the launcher waits for
     // this line on stdout before sending session.open.
     fprintf(stdout, "{\"type\":\"ready\",\"protocol\":\"xdebug-stdio-loop\",\"version\":1,\"pid\":%ld}\n",
             static_cast<long>(getpid()));
     fflush(stdout);
 
+    int req_seq = 0;
     std::string line;
     while (std::getline(std::cin, line)) {
         if (line.empty()) continue;
@@ -285,13 +307,40 @@ int stdio_loop_main(int argc, char** argv) {
         try {
             request = Json::parse(line);
         } catch (...) {
-            fprintf(stdout, "{\"ok\":false,\"error\":{\"code\":\"PARSE_ERROR\"}}\n");
+            Json err = error_response("PARSE_ERROR", "failed to parse JSON request line");
+            Json env{{"id", "req-" + std::to_string(++req_seq)},
+                     {"ok", false},
+                     {"api_version", "xdebug.v1"},
+                     {"action", ""},
+                     {"payload_format", "json"},
+                     {"json", err}};
+            fprintf(stdout, "%s\n", env.dump().c_str());
             fflush(stdout);
             continue;
         }
 
+        std::string action = request.value("action", "");
+        if (action == "stdio.quit") break;
+
+        std::string rid = request.value("request_id",
+                          request.value("id", "req-" + std::to_string(++req_seq)));
+
         Json response = dispatch(request);
-        fprintf(stdout, "%s\n", response.dump().c_str());
+        bool ok = response.value("ok", false);
+
+        Json env;
+        env["id"] = rid;
+        env["ok"] = ok;
+        env["api_version"] = "xdebug.v1";
+        env["action"] = action;
+        if (json_mode) {
+            env["payload_format"] = "json";
+            env["json"] = response;
+        } else {
+            env["payload_format"] = "xout";
+            env["xout"] = simple_xout(action, response);
+        }
+        fprintf(stdout, "%s\n", env.dump().c_str());
         fflush(stdout);
     }
 
