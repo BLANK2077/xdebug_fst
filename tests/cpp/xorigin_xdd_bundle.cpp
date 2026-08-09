@@ -11,27 +11,38 @@ const XddSignalInfo kSignals[] = {
     {"GCD.io_z", "port", 32, "gcd_xorigin.sv", 7},
     {"GCD.x", "wire", 32, "gcd_xorigin.sv", 5},
     {"GCD.io_a", "port", 32, "gcd_xorigin.sv", 2},
+    {"GCD.GEN_0", "wire", 32, "gcd_xorigin.sv", 9},
+    {"GCD.y", "wire", 32, "gcd_xorigin.sv", 5},
+    {"GCD.GEN_1", "wire", 32, "gcd_xorigin.sv", 11},
 };
 
-const int kDirections[] = {2, 0, 1};
+const int kDirections[] = {2, 0, 1, 0, 0, 0};
 
 const XddDriverRec kDrivers[] = {
     {0, 1, "cont_assign", "rhs", "gcd_xorigin.sv", 7},
     {1, 2, "cont_assign", "rhs", "gcd_xorigin.sv", 6},
+    {3, 1, "cont_assign", "rhs", "gcd_xorigin.sv", 9},
+    {3, 4, "cont_assign", "rhs", "gcd_xorigin.sv", 9},
+    {5, 1, "cont_assign", "rhs", "gcd_xorigin.sv", 10},
+    {5, 4, "cont_assign", "rhs", "gcd_xorigin.sv", 11},
 };
 
-const int kDriverStart[] = {0, 1, 2};
+const int kDriverStart[] = {0, 1, 2, 2, 4, 4};
 
 const XddLoadRec kLoads[] = {
     {1, 0, "rhs_use", "gcd_xorigin.sv", 7},
+    {1, 3, "rhs_use", "gcd_xorigin.sv", 9},
+    {1, 5, "rhs_use", "gcd_xorigin.sv", 10},
     {2, 1, "rhs_use", "gcd_xorigin.sv", 6},
+    {4, 3, "rhs_use", "gcd_xorigin.sv", 9},
+    {4, 5, "rhs_use", "gcd_xorigin.sv", 11},
 };
 
-const int kLoadStart[] = {0, 0, 1};
+const int kLoadStart[] = {0, 0, 3, 4, 4, 6};
 
-constexpr int kSignalCount = 3;
-constexpr int kDriverCount = 2;
-constexpr int kLoadCount = 2;
+constexpr int kSignalCount = 6;
+constexpr int kDriverCount = 6;
+constexpr int kLoadCount = 6;
 
 }  // namespace
 

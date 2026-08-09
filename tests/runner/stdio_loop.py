@@ -85,7 +85,8 @@ class StdioLoopRunner:
                 continue
 
     def request(self, action: str, args: Optional[Json] = None,
-                target: Optional[Json] = None) -> Json:
+                target: Optional[Json] = None,
+                limits: Optional[Json] = None) -> Json:
         assert self.proc is not None
         self._seq += 1
         req: Json = {
@@ -95,6 +96,8 @@ class StdioLoopRunner:
         }
         if args is not None:
             req["args"] = args
+        if limits is not None:
+            req["limits"] = limits
         if target is not None:
             req["target"] = target
         elif self._session_id is not None and action not in {
