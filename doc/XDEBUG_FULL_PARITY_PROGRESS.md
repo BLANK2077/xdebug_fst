@@ -10,7 +10,7 @@
 - 2026-08-10 用户再次确认：项目只需要并且也必须完整适配 FST 波形；唯一波形事实路径是当前 session 中由 Wellen 直接按需读取原始 `.fst`。不得建立独立“FST 分析”数据库，不得转成 VCD/JSON/私有索引/离线库/全量内存快照后分析；显式 export 产物永不回灌。该约束已写入 Goal 权威任务书，覆盖旧 Goal 或历史文档中的相反表述
 - 2026-08-10 用户进一步锁定职责边界：FST 只是唯一波形输入容器，Wellen 只是保真按需访问层；分析能力属于冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合。禁止把“必须适配 FST”偷换成“由 FST 自身做分析”，也禁止据此简化 driver/load、active-driver、chain、X-origin、协议、表达式、完整性或错误合同。该定义已加入任务书与 Goal 权威附件，作为逐批门禁和 Goal 完成否决项
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
-- xdebug-fst 当前功能与验收提交：`f3b5143`；常量 NBA 修改前失败证据为 `7c5b0a2`，跨实例 output 修复为 `fc27f1d`；过程/常量、多级端口、固件、架构说明与全量门禁证据均已登记
+- xdebug-fst 当前功能与验收提交：`07bb94c`；复杂 output 表达式修改前失败证据为 `ae76785`，常量 NBA 修复为 `f3b5143`；过程/常量、多级端口、固件、架构说明与全量门禁证据均已登记
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `8a5523487eea12b5389dca978bf73397b1387b9c`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
@@ -108,6 +108,7 @@
 - `bac0886`：以真实 FST 覆盖双条件过程 NBA 的唯一活动与双活动歧义；全量 pytest 224/224、CTest 8/8 与基线门禁通过，三方实现和 ABI 无需修改。
 - `888de09`、`fc27f1d`：先冻结同源行跨实例 output driver 被合并的失败，再以 consumer-only 实例 identity 恢复两条活动候选；全量 pytest 225/225、CTest 8/8 与基线门禁通过，XDD ABI、Verilator/Wellen 未修改。
 - `7c5b0a2`、`f3b5143`：先冻结常量 NBA hop 源行丢失，再保留无 RHS 的活动 NBA statement 且禁止沿 control 继续；全量 pytest 226/226、CTest 8/8 与基线门禁通过，XDD ABI、Verilator/Wellen 未修改。
+- `ae76785`、`07bb94c`：先冻结复杂 output 双 RHS 在父 net 过早歧义，再恢复 child output hop 与同实例 input evidence；全量 pytest 227/227、CTest 8/8 与基线门禁通过，XDD ABI、Verilator/Wellen 未修改。
 
 ## 测试记录
 
