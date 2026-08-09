@@ -5,14 +5,14 @@
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
 - Goal 永久门禁：`GOAL-FST-DIRECT-001`；当前 session 原始 `.fst` → Wellen 按需访问 → action 查询/推理，是唯一允许的波形事实路径。该门禁已写入 Goal 权威任务书和架构文档，并作为每批提交审查及最终 `complete` 的否决条件
 - 当前阶段：P5 功能批次已覆盖；P6 进行中（Active Driver 与 X Origin）
-- 当前任务：继续补齐 P6 的 case matches、更多连续/过程/NBA 与常量组合、output/inout alias、多层跨端口，以及条件/过程/跨层多驱动原版差分；当前 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` pattern/range、lowering 后条件、同源行三元分支、基本常量叶子、input alias 上溯、NBA self-RHS 分类和基础双连续多驱动歧义已完成，但不得据此宣称 P6 全部关闭
+- 当前任务：继续补齐 P6 的 case matches、更多连续/过程/NBA 与常量组合、复杂 output/inout alias、多层跨端口，以及条件/过程/跨层多驱动原版差分；当前 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` pattern/range、lowering 后条件、同源行三元分支、基本常量叶子、input/inout alias 上溯、NBA self-RHS 分类和基础双连续多驱动歧义已完成，但不得据此宣称 P6 全部关闭
 - 全局硬门禁：生产、回归和最终验收只打开 FST 波形；VCD 仅可作为可重复生成 FST 的源文件，禁止作为输入或 fallback
 - 2026-08-10 用户再次确认：项目只需要并且也必须完整适配 FST 波形；唯一波形事实路径是当前 session 中由 Wellen 直接按需读取原始 `.fst`。不得建立独立“FST 分析”数据库，不得转成 VCD/JSON/私有索引/离线库/全量内存快照后分析；显式 export 产物永不回灌。该约束已写入 Goal 权威任务书，覆盖旧 Goal 或历史文档中的相反表述
 - 2026-08-10 用户进一步锁定职责边界：FST 只是唯一波形输入容器，Wellen 只是保真按需访问层；分析能力属于冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合。禁止把“必须适配 FST”偷换成“由 FST 自身做分析”，也禁止据此简化 driver/load、active-driver、chain、X-origin、协议、表达式、完整性或错误合同。该定义已加入任务书与 Goal 权威附件，作为逐批门禁和 Goal 完成否决项
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
 - xdebug-fst 当前功能与验收提交：`6d5adcd`；case inside 失败证据提交：`972c76d`；依赖锁、固件、架构说明与全量门禁证据均包含在当前功能提交中
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
-- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `3e7cca4f1d0bc6ed8e9e6ad3736077825f09d4d3`
+- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `8a5523487eea12b5389dca978bf73397b1387b9c`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
 - 原版 xdebug runtime build ID：`8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 原版 schema revision：`c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
@@ -93,6 +93,7 @@
 - Verilator `a91524d63`：递归拆分 V3Inst 合并的 `AstCond` RHS，恢复各叶子的源位置、RHS/control role 和 activation predicate；不移动 pass、不修改 V3Inst/调度/仿真、不扩展 ABI，8/8 DesignDB 与 2/2 分发门禁通过。
 - Verilator `5c19377e3`：仅在 `--design-db` 下于 V3Tristate 删除同强度非三态连续赋值前保存不可变静态描述，并在既有 scope/signal 表建立后通过原 driver/load ABI 重新关联；普通仿真、AST 删除、pass 顺序、ABI/capability 均不变，8/8 XDD、2/2 分发门禁与源码构建通过。
 - Verilator `3e7cca4f1`：在既有 predicate 字符串表中以 `==?i` 保留 case inside 的 item-side wildcard，并将 `AstInsideRange` 展开为闭区间上下界；普通仿真、case lowering、ABI/capability 均不变，8/8 XDD、2/2 分发门禁与源码构建通过。
+- Verilator `007f1aa5c`、`8a5523487`：先保存 always-driven inout net lowering 前的原始 RHS，再将该“替换型”描述与普通多驱动“追加型”描述分离，只替换同目标的内部 `__strong` driver/load；普通 inout/tristate 仿真、AST lowering、ABI/capability 均不变，8/8 XDD、2/2 分发门禁与源码构建通过。
 - `0188cd0`：锁定新 XDD header/revision，严格要求 predicate capability，并仅刷新五组 DesignDB 静态 fixture；所有 FST 保持原样。
 - `1529647`：修复括号内逻辑解析及 `!`、`&&`、`||` 的四态 X/Z 传播。
 - `e2870e9`：在 active time 由 Wellen 直接读取原始 FST 控制值，筛选 active-driver、chain 与 X-origin 语句；不可判定时 unresolved，不回退静态首项。
@@ -154,6 +155,7 @@
 - P6 第九批修改前证据：在同一真实 case FST 固件加入 `case (sel) inside`，分别要求 65ps 的 `sel=2'b10` 选中第 60 行 `2'b1?` 模式、45ps 的 `sel=2'b01` 选中第 61 行闭区间 `[0:1]`。冻结 Verilator `5c19377e3` 已发布两条 NBA 的 RHS/control/source line，但五条相关 driver predicate 全为 `nullptr`；xdebug 按既定安全合同返回 `analysis_complete=false`，定向用例真实失败。FST 已保真包含 `sel` 和 `inside_out` 的运行时值，现有 XDD predicate 字符串 ABI 也足以承载模式/范围表达式，缺失仅是 emitter 对 `caseInside()` 的静态匹配语义；下一步只允许在既有谓词表增加 RHS-only wildcard 与闭区间表达，不修改普通 case lowering、仿真、ABI/capability、Wellen 或 FST 数据路径。Verilator 当前明确不支持通用 `case matches` tagged pattern，不能把 inside 的有限修复冒充 matches 已完成。
 - P6 第九批实现：Verilator `3e7cca4f1` 仅在既有 DesignDB emitter 中为 pattern 发布 `==?i`、为 `AstInsideRange` 发布 `>= && <=`，default 谓词否定所有此前 item；xdebug 表达式求值器只把 RHS 的 X/Z 当 inside wildcard，LHS 的未知位不误作通配。真实 case FST 在 65ps/45ps 分别唯一选中第 60/61 行，额外 GCD 四态测试证明未知 LHS 对具体 RHS 为 false、对全 wildcard RHS 为 true。combined+clock/counter 47/47、全量 pytest 219/219、CTest 8/8、冻结基线与 CMake 依赖锁门禁通过。XDD header/ABI/capability、Wellen 和唯一原始 FST 按需读取链均未改变；通用 `case matches` 仍未完成。
 - P6 第十批修改前证据：在真实 case FST 固件加入 `assign inout_bus = data`，并把该 net 连接到子模块 `inout bus`。45ps 从 `top.case_top.u_inout.bus` 追踪时，冻结 Verilator `3e7cca4f1` 已发布子端口到父级 net 的原生 `port_boundary`，因此第一跳正确到 `top.case_top.inout_bus`；但 V3Tristate lowering 后该 net 的 DesignDB RHS 变成内部 `inout_bus__strong`，原始第 67 行 `data` 依赖消失，chain 提前以 `assignment/constant_or_no_rhs_signal` 终止而不是继续到 `top.case_top.data → top.data → primary_input`。真实 FST 已保真暴露子端口、父 net 和 data alias，现有 XDD driver ABI 足以表达该源；缺失是 inout lowering 前的静态原始连续赋值事实。下一步只允许复用已有 `--design-db` 旁路描述机制保存这种被改写的原始 RHS，不改变普通 tristate/inout 仿真、AST lowering、pass 顺序、ABI/capability、Wellen 或 FST 数据路径。
+- P6 第十批实现：Verilator `007f1aa5c` 先在 `--design-db` 下保存目标为 tristate、赋值本身非 tristate 的原始连续 RHS；真实集成随即揭示原始 `data` 与生成 `__strong` 同时存在会形成假双驱动，故 `8a5523487` 将 lowering 描述标为替换型，仅删除同一目标、同一实例下目标名 `__` 前缀的内部 source/load，再附加原始关系；普通多驱动描述仍为追加型。最终真实 case FST 的 chain 为 `u_inout.bus → inout_bus → case_top.data → top.data`，以 `primary_input` 终止且不折返、不误报歧义。全量 pytest 220/220、CTest 8/8、冻结基线与 CMake 依赖锁门禁通过。运行时四跳值全部由 Wellen 直接从原始 `.fst` 读取；XDD header/ABI/capability 和 Wellen 未改变。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 

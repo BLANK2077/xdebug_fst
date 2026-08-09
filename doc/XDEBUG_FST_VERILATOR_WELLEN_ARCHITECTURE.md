@@ -562,7 +562,8 @@ C++ adapter 同时持有：
   scope/signal action 中通过冻结 schema 和原版差分确认响应形状；
 - active-driver 已禁止选择第一条静态 driver，并能用真实 FST 控制值判定已覆盖的
   `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` 及 V3Inst 折叠后的
-  同目标嵌套条件分支，并能对基础双连续赋值报告两条活动候选；output/inout alias、
+  同目标嵌套条件分支，并能对基础双连续赋值报告两条活动候选；基本 input/inout alias
+  已覆盖，复杂 output/inout alias、
   条件/过程/跨层多 driver 和更多 NBA 边界仍须逐项差分，不能据当前用例宣称全部关闭；
 - XDD 已表达普通 `if/else`、普通 `case/default`、`casez/casex` predicate，并在当前
   emitter 内拆分 V3Inst 合并的 `AstCond` RHS，恢复叶子源位置与条件；case inside 已覆盖
@@ -610,6 +611,15 @@ Wellen 暴露为多个保真的层级 alias。对无 driver 的声明 input，ac
 只对 input 应用这一方向约束；已有 driver 和 inout 保持原行为，等待各自失败证据。
 DesignDB 仍只提供静态边，Wellen 仍只提供该 alias 在原始 FST 中的值，两者都不承担链路
 分析或方向推理。
+
+inout net 的 always-driven 连续赋值会被 V3Tristate 改写成内部 strength 网络。DesignDB
+若只观察 lowering 后 AST，就会把 `inout_bus__strong` 暴露为 RHS；若简单追加原始 RHS，
+又会制造两个活动 driver。为此 `007f1aa5c/8a5523487` 把旁路描述分为追加型与替换型：
+普通同强度多驱动使用追加型；非三态 RHS 驱动 tristate/inout net 使用替换型，在发射阶段
+只移除同一目标下以目标全名加 `__` 开头的内部生成 source/load，再附加原始 HDL RHS。
+目标声明位置和实例全名共同约束替换范围，不触碰其他真实 driver。Wellen 仍只读取原始
+FST 中子端口、父 net 与输入 alias 的值，端口方向和 RHS 来自 DesignDB，四跳链的选择与
+终止仍由 xdebug action 完成。
 
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
@@ -688,7 +698,7 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `3e7cca4f1d0bc6ed8e9e6ad3736077825f09d4d3`
+- revision `8a5523487eea12b5389dca978bf73397b1387b9c`
 
 对应提交：
 
@@ -709,6 +719,7 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 - Verilator `a91524d63`：仅在 emitter 内拆分 V3Inst 合并的条件 RHS，恢复叶子行号和谓词；
 - Verilator `5c19377e3`：仅为 `--design-db` 旁路保留 V3Tristate 删除的同强度连续多驱动静态描述，普通仿真与 XDD ABI 不变；
 - Verilator `3e7cca4f1`：在既有谓词字符串中发布 case inside 的 item-side wildcard 与闭区间语义，普通仿真与 XDD ABI 不变；
+- Verilator `007f1aa5c`、`8a5523487`：恢复 always-driven inout lowering 前原始 RHS，并替换而非叠加内部 strength 驱动；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
