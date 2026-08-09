@@ -31,6 +31,8 @@ xdebug-fst action 在请求期间查询、采样和推理
 - FST → export 文件 → 重新加载 → action；
 - Wellen/FST 失败 → 其他波形格式、backend、fixture 或 transport fallback。
 
+本 Goal 对职责边界作如下不可漂移定义：**FST 是唯一波形输入容器，不是分析引擎；Wellen 是 FST 的保真按需访问层，不是 xdebug 语义的替代实现；xdebug-fst action 与必要的 Verilator DesignDB 静态事实组合才承担调试分析。** 因此适配工作只把原版 action 所需的运行时波形事实接到 FST，不得把 driver/load、active-driver、chain、X-origin、协议、表达式、窗口、统计、完整性或错误语义降级成仅凭 FST 信号和值变化的简化分析。文档或代码中出现“FST 分析”时，只能指 action 使用原始 FST 波形事实，绝不表示由 FST 格式本身承担分析。
+
 VCD 只允许作为可读的 fixture 源描述来生成 FST；测试、差分和最终验收实际打开的波形必须是 `.fst`。如果 FST 缺失必要事实，必须修复 FST 生成链或 Wellen 的 FST 读取能力，并先保存失败证据，不得绕过。
 
 Verilator DesignDB 只提供 FST 不包含的源位置、driver/load、端口连接、控制依赖等静态 HDL 事实。它不得读取、保存、重建或替代运行时波形。对 Verilator 的任何修改仍须先有失败差分和现有 XDD ABI 不足的证据，并保持最小、附加、局部、向后兼容。
@@ -54,6 +56,7 @@ Verilator DesignDB 只提供 FST 不包含的源位置、driver/load、端口连
 5. 没有 backend、fixture、格式或 transport fallback。
 6. Verilator 修改若存在，具备修改前失败证据、必要性证明和独立回归。
 7. TCP/file 仍为明确拒绝的裁剪项。
+8. FST 仍只承担输入格式职责；没有 action 将原版调试语义降级或偷换为“FST 自身分析”。
 
 任一项不满足时，该批次不得提交，最终 Goal 也不得标记为 `complete`；即使 73 个 action 或现有测试已经通过也不例外。
 

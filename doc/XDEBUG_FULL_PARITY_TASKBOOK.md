@@ -24,6 +24,8 @@ Goal 不可漂移约束：[`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY
 
 “适配 FST 波形”只有一种允许的解释：FST 是 xdebug-fst 唯一且必须完整支持的波形输入容器，Wellen 在当前会话内直接、按需读取原始 `.fst` 中的层级、物理时间、delta、类型和值变化，action 在这些事实上完成查询与推理。这里的“分析 FST”不得被解释成建立一个独立的 FST 分析后端、预先扫描全文件、生成中间数据库，或先导出再分析。
 
+必须始终区分“波形格式适配”与“调试语义分析”：FST 仅承担运行时波形事实的输入与保存格式，Wellen 仅承担这些事实的保真按需访问；driver/load、active-driver、chain、X-origin、协议、表达式、窗口和统计等分析能力仍由冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合实现。不得把任何 action 的算法降级为“由 FST 格式本身完成分析”，不得以 FST 中已有的信号列表或值变化替代原版要求的设计关系、控制依赖、完整性判断和错误合同。本文后续出现的“FST 分析”“分析 FST”或类似简称，一律只能理解为“xdebug action 直接使用当前 session 原始 FST 提供的波形事实执行分析”，不能理解为另一套分析架构。
+
 因此以下规则同时成立，任何后续实现、测试、文档、提交和验收都不得改变：
 
 1. 只需要并且也必须完整适配 FST 波形；不扩展 VCD、FSDB、GHW 或其他波形输入。
@@ -32,6 +34,7 @@ Goal 不可漂移约束：[`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY
 4. Verilator DesignDB 只补充 FST 本身不包含的 HDL 静态关系，不是波形分析替代物，也不得缓存或重建整份 FST 波形。
 5. `list.export`、`event.export` 与 `nwave.rc.generate` 只产生用户明确请求的最终输出；这些输出永不回灌为输入，永不参与后续分析，永不成为 backend、transport、fixture 或 fallback。
 6. 如果 Wellen 不能从 FST 保真提供某项必要事实，任务是修复 FST 生成链或 Wellen/FST 访问能力并建立失败回归；不得以任何转换、替代格式或离线分析路径绕过。
+7. 每个分析 action 必须保持原版 xdebug 的语义责任边界；FST 只替换波形输入适配层，不替换、简化或重定义分析算法。
 
 本节是当前 active Goal 的不可撤销执行修正。Goal objective 首句明确引用本任务书，故本节与“零、不可漂移的 FST-only 输入边界”共同构成 Goal 的权威范围；旧 Goal 文本、旧交接材料或历史代码中的相反表述一律视为已废止，不得作为恢复旧方案的依据。
 
