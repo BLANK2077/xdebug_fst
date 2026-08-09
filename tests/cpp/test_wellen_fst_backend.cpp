@@ -16,7 +16,8 @@ void require(bool condition, const std::string& message) {
 }  // namespace
 
 int main(int argc, char** argv) {
-    require(argc == 3, "expected 1ns and 1ps waveform fixture paths");
+    require(argc == 6,
+            "expected 1ns, 1ps, string, real, and event fixtures");
 
     xdebug_fst::WellenFstBackend backend;
     require(backend.open(argv[1]), "fixture opens through WellenFstBackend");
@@ -107,6 +108,60 @@ int main(int argc, char** argv) {
     require(fine_backend.format_time(
                 500, xdebug_fst::TimeRenderUnit::Ns) == "0.5ns",
             "explicit ns rendering retains an exact decimal");
+
+    const uint32_t x_signal = fine_backend.find_signal("top.xprop_top.a");
+    require(x_signal != 0 && fine_backend.load_signals({x_signal}) == 1,
+            "four-state fixture signal loads");
+    xdebug_fst::IWaveformBackend::SignalOffset offset;
+    require(fine_backend.signal_offset_at(x_signal, 0, offset),
+            "four-state value has an initial offset");
+    xdebug_fst::IWaveformBackend::WaveformValue typed;
+    require(fine_backend.signal_typed_value_at(
+                x_signal, offset.start, 0, typed) &&
+                typed.kind == xdebug_fst::IWaveformBackend::ValueKind::BitVector &&
+                typed.text == "xxxxxxxx",
+            "four-state bit-vector preserves every X and its real width: '" +
+                typed.text + "' kind=" +
+                std::to_string(static_cast<int>(typed.kind)));
+
+    xdebug_fst::WellenFstBackend string_backend;
+    require(string_backend.open(argv[3]), "UTF-8 string fixture opens");
+    const uint32_t string_signal =
+        string_backend.find_signal("string_test.test_string.[1:50]");
+    require(string_signal != 0 &&
+                string_backend.load_signals({string_signal}) == 1,
+            "string signal resolves and loads");
+    require(string_backend.signal_offset_at(string_signal, 0, offset) &&
+                offset.elements >= 2,
+            "same-time string elements remain addressable");
+    require(string_backend.signal_typed_value_at(
+                string_signal, offset.start, 1, typed) &&
+                typed.kind == xdebug_fst::IWaveformBackend::ValueKind::String &&
+                typed.text.find("En lång röd räv") == 0,
+            "UTF-8 string payload is not collapsed into raw bytes");
+
+    xdebug_fst::WellenFstBackend real_backend;
+    require(real_backend.open(argv[4]), "real-value fixture opens");
+    const uint32_t real_signal = real_backend.find_signal("real_r");
+    require(real_signal != 0 && real_backend.load_signals({real_signal}) == 1,
+            "real signal resolves and loads");
+    require(real_backend.signal_offset_at(real_signal, 0, offset) &&
+                real_backend.signal_typed_value_at(
+                    real_signal, offset.start, 0, typed) &&
+                typed.kind == xdebug_fst::IWaveformBackend::ValueKind::Real,
+            "real payload remains a typed f64");
+
+    xdebug_fst::WellenFstBackend event_backend;
+    require(event_backend.open(argv[5]), "event fixture opens");
+    const uint32_t event_signal = event_backend.find_signal("event_example.event1");
+    require(event_signal != 0 && event_backend.load_signals({event_signal}) == 1,
+            "event signal resolves and loads");
+    require(event_backend.signal_offset_at(event_signal, 0, offset) &&
+                event_backend.signal_typed_value_at(
+                    event_signal, offset.start, 0, typed) &&
+                typed.kind == xdebug_fst::IWaveformBackend::ValueKind::Event &&
+                typed.text.empty(),
+            "event remains distinct from a missing or X value");
 
     std::cout << "WellenFstBackend hierarchy/sentinel tests passed\n";
     return 0;

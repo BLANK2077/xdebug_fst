@@ -175,7 +175,10 @@ if(BUILD_TESTING)
         NAME wellen-fst-backend
         COMMAND test-wellen-fst-backend
             ${WELLEN_REPOSITORY_DIR}/wellen/inputs/scope_with_comment.vcd.fst
-            ${CMAKE_SOURCE_DIR}/testdata/fixtures/xprop/waves.fst
+            ${CMAKE_SOURCE_DIR}/testdata/fixtures/xprop/waves.vcd
+            ${WELLEN_REPOSITORY_DIR}/wellen/inputs/nvc/shortstring.fst
+            ${WELLEN_REPOSITORY_DIR}/wellen/inputs/verilator/many_sv_datatypes.fst
+            ${WELLEN_REPOSITORY_DIR}/wellen/inputs/icarus/pull_67_event_example.fst
     )
 
     add_test(
