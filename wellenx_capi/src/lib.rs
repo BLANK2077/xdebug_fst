@@ -5,7 +5,7 @@
 // wellen_capi — ASCII bit-string value access (2/4/9-state) and
 // change-time index iteration.
 
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
 use std::os::raw::c_char;
 
 use wellen::simple::Waveform;
@@ -20,7 +20,11 @@ pub struct WellenxDb {
 // ── Helpers ──
 
 fn sig_from_u32(r: u32) -> Option<SignalRef> {
-    SignalRef::from_index(r as usize)
+    if r == 0 {
+        None
+    } else {
+        SignalRef::from_index((r - 1) as usize)
+    }
 }
 
 // ── FFI: Lifecycle ──
@@ -61,10 +65,7 @@ pub extern "C" fn wellenx_load_signals(db: *mut WellenxDb, refs: *const u32, cou
     }
     let db = unsafe { &mut *db };
     let refs_slice = unsafe { std::slice::from_raw_parts(refs, count as usize) };
-    let signal_refs: Vec<SignalRef> = refs_slice
-        .iter()
-        .filter_map(|&r| sig_from_u32(r))
-        .collect();
+    let signal_refs: Vec<SignalRef> = refs_slice.iter().filter_map(|&r| sig_from_u32(r)).collect();
     db.wave.load_signals(&signal_refs);
     signal_refs.len() as i32
 }
@@ -77,10 +78,7 @@ pub extern "C" fn wellenx_unload_signals(db: *mut WellenxDb, refs: *const u32, c
     }
     let db = unsafe { &mut *db };
     let refs_slice = unsafe { std::slice::from_raw_parts(refs, count as usize) };
-    let signal_refs: Vec<SignalRef> = refs_slice
-        .iter()
-        .filter_map(|&r| sig_from_u32(r))
-        .collect();
+    let signal_refs: Vec<SignalRef> = refs_slice.iter().filter_map(|&r| sig_from_u32(r)).collect();
     db.wave.unload_signals(&signal_refs);
 }
 
@@ -111,7 +109,9 @@ pub extern "C" fn wellenx_signal_value_bits_at_offset(
         Some(s) => s,
         None => return -1,
     };
-    let value = signal.data().get_value_at(start as usize + element as usize);
+    let value = signal
+        .data()
+        .get_value_at(start as usize + element as usize);
 
     match value {
         SignalValueRef::BitVec(bv) => {
@@ -170,4 +170,66 @@ pub extern "C" fn wellenx_signal_time_indices(
         std::ptr::copy_nonoverlapping(indices.as_ptr(), out, indices.len());
     }
     indices.len() as i32
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ffi::CString;
+    use std::path::PathBuf;
+
+    fn fixture(name: &str) -> CString {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../wellen/wellen/inputs")
+            .join(name);
+        CString::new(path.to_string_lossy().as_bytes()).expect("fixture path contains no NUL")
+    }
+
+    #[test]
+    fn rejects_null_lifecycle_and_query_arguments() {
+        assert!(wellenx_open(std::ptr::null()).is_null());
+        wellenx_close(std::ptr::null_mut());
+        assert_eq!(
+            wellenx_signal_time_indices(std::ptr::null(), 1, std::ptr::null_mut()),
+            -1
+        );
+    }
+
+    #[test]
+    fn uses_the_same_one_based_signal_reference_as_wellen_capi() {
+        let path = fixture("scope_with_comment.vcd.fst");
+        let db = wellenx_open(path.as_ptr());
+        assert!(!db.is_null());
+
+        let signal_ref = 1;
+        assert_eq!(wellenx_load_signals(db, &signal_ref, 1), 1);
+
+        let mut indices = vec![0_u32; 128];
+        let count = wellenx_signal_time_indices(db, signal_ref, indices.as_mut_ptr());
+        assert!(count > 0);
+        assert_eq!(indices[0], 0);
+
+        let mut value = vec![0_i8; 64];
+        let mut value_len = 0;
+        assert_eq!(
+            wellenx_signal_value_bits_at_offset(
+                db,
+                signal_ref,
+                0,
+                0,
+                value.as_mut_ptr(),
+                &mut value_len,
+            ),
+            0
+        );
+        assert_eq!(value_len, 1);
+        assert!(matches!(value[0] as u8, b'0' | b'1' | b'x' | b'z'));
+
+        wellenx_unload_signals(db, &signal_ref, 1);
+        assert_eq!(
+            wellenx_signal_time_indices(db, signal_ref, indices.as_mut_ptr()),
+            -1
+        );
+        wellenx_close(db);
+    }
 }

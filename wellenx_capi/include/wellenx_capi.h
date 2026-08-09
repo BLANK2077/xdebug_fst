@@ -26,7 +26,7 @@ void wellenx_close(WellenxDb* db);
 
 // ── Signal loading ──
 
-/// Load signals by ref. Returns number loaded.
+/// Load signals by 1-based C ref, matching wellen_capi. Returns number loaded.
 int32_t wellenx_load_signals(WellenxDb* db, const uint32_t* refs, uint32_t count);
 
 /// Unload signals to free memory.
