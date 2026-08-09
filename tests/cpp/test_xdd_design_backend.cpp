@@ -39,9 +39,22 @@ int main(int argc, char** argv) {
                 connections[0].connected_signal == nested_clk &&
                 connections[0].kind == "port_boundary",
             "native port connection avoids full-table inference");
+
+    const int top_count = design.resolve("top.overflow");
+    std::vector<xdebug_fst::IDesignBackend::DriverRecord> drivers;
+    require(design.trace_driver(top_count, drivers) > 0,
+            "count has native driver evidence");
+    bool saw_rhs = false;
+    bool saw_control = false;
+    for (const auto& driver : drivers) {
+        saw_rhs |= driver.dependency_role == "rhs";
+        saw_control |= driver.dependency_role == "control";
+    }
+    require(saw_rhs && saw_control,
+            "native driver evidence distinguishes RHS and control roles");
     design.close();
     require(!design.is_open(), "ABI-v2 XDD bundle closes cleanly");
 
-    std::cout << "XDD ABI/direction/connection tests passed\n";
+    std::cout << "XDD ABI/direction/connection/role tests passed\n";
     return 0;
 }
