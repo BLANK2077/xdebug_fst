@@ -1,506 +1,404 @@
-// combined_actions.cpp — trace.active_driver, trace.active_driver_chain, trace.x_origin (BSD-3-Clause)
+// combined_actions.cpp — trace.active_driver, trace.active_driver_chain,
+// trace.x_origin (BSD-3-Clause)
 #include "engine/engine_action_handler.h"
 #include "engine/engine_globals.h"
 #include "api/json_types.h"
 #include "core/value/logic_value.h"
+#include "waveform/clock_sampling.h"
 
 #include <algorithm>
-#include <memory>
+#include <deque>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
 
 namespace xdebug_fst {
 
-// ── shared helpers ──
+namespace {
 
-static Json render_val_json(const std::string& bits, int width, ValueRenderFormat fmt) {
-    LogicValue v = logic_value_from_bits(bits, width);
-    return logic_value_json(v, fmt);
+Json action_error(const std::string& code, const std::string& message) {
+    return {{"ok",false},{"error",{{"code",code},{"message",message}}}};
 }
 
-static bool has_x_bit(const std::string& bits) {
-    return bits.find('x') != std::string::npos || bits.find('X') != std::string::npos;
+bool has_x(const std::string& bits) {
+    return bits.find_first_of("xXhHuwUW-") != std::string::npos;
 }
 
-// Read a signal's value string at a given time (absolute).
-// Returns empty string on failure.
-static std::string read_signal_value_at_time(IWaveformBackend* wf, const std::string& sig_name,
-                                              uint64_t time, uint32_t* out_width = nullptr) {
-    uint32_t ref = wf->find_signal(sig_name);
-    if (ref == IWaveformBackend::kInvalidSignalRef) return "";
-    if (!wf->is_loaded(ref)) wf->load_signals({ref});
-    uint32_t ti = wf->time_idx_of(time);
-    IWaveformBackend::SignalOffset off;
-    if (!wf->signal_offset_at(ref, ti, off)) return "";
-    if (out_width) {
-        IWaveformBackend::SignalInfo info;
-        if (wf->signal_info(ref, info)) *out_width = info.width;
+std::string x_mask(const std::string& bits) {
+    std::string mask="'b";
+    for (char bit : bits)
+        mask += (bit=='x'||bit=='X'||bit=='h'||bit=='H'||bit=='u'||bit=='U'||
+                 bit=='w'||bit=='W'||bit=='-')?'1':'0';
+    return mask;
+}
+
+struct Sample {
+    bool ok=false;
+    uint32_t ref=0,time_idx=0,width=0;
+    uint64_t time=0;
+    std::string bits;
+};
+
+Sample sample_at(IWaveformBackend& waveform, const std::string& signal,
+                 uint64_t time) {
+    Sample sample;
+    sample.ref=waveform.find_signal(signal);
+    if (sample.ref==IWaveformBackend::kInvalidSignalRef) return sample;
+    if (!waveform.is_loaded(sample.ref)) waveform.load_signals({sample.ref});
+    sample.time_idx=waveform.time_idx_of(time);
+    IWaveformBackend::SignalOffset offset;
+    if (!waveform.signal_offset_at(sample.ref,sample.time_idx,offset)) return sample;
+    IWaveformBackend::SignalInfo info;
+    if (waveform.signal_info(sample.ref,info)) sample.width=info.width;
+    sample.time=waveform.time_at(sample.time_idx);
+    sample.bits=waveform.signal_value_str(sample.ref,offset.start,0);
+    sample.ok=!sample.bits.empty();
+    return sample;
+}
+
+uint64_t x_onset_time(IWaveformBackend& waveform, const Sample& query) {
+    uint64_t onset=query.time;
+    const auto indices=waveform.time_indices_of(query.ref);
+    for (auto it=indices.rbegin();it!=indices.rend();++it) {
+        if (*it>query.time_idx) continue;
+        IWaveformBackend::SignalOffset offset;
+        if (!waveform.signal_offset_at(query.ref,*it,offset)) continue;
+        const std::string bits=waveform.signal_value_str(query.ref,offset.start,0);
+        if (!has_x(bits)) break;
+        onset=waveform.time_at(*it);
     }
-    return wf->signal_value_str(ref, off.start, 0);
+    return onset;
 }
 
-// Determine termination reason from design context
-static std::string termination_reason(IDesignBackend* design, int sig_idx,
-                                       bool has_drivers, bool hit_max_depth) {
-    if (hit_max_depth) return "max_depth";
-    if (!has_drivers) {
-        if (sig_idx >= 0) {
-            int dir = design->signal_direction(sig_idx);
-            if (dir == 1) return "primary_input";   // input
-            const char* ty = design->signal_type(sig_idx);
-            if (ty && std::string(ty) == "port" && dir == 2) return "input_port";
-        }
-        return "no_driver";
+bool parse_common(const Json& request, IWaveformBackend& waveform,
+                  std::string& signal, uint64_t& time, TimeRenderUnit& unit,
+                  ValueRenderFormat& format, Json& error) {
+    const Json args=request.value("args",Json::object());
+    signal=args.at("signal");
+    std::string message;
+    if (!waveform.parse_time(args.at("time"),time,message)) {
+        error=action_error("INVALID_TIME",message); return false;
     }
-    if (sig_idx >= 0) {
-        int dir = design->signal_direction(sig_idx);
-        if (dir == 1) return "primary_input";
+    if (!parse_time_render_unit(args.value("render_time_unit","ns"),unit,message)) {
+        error=action_error("INVALID_FIELD",message); return false;
     }
-    return "no_driver";
+    if (!parse_value_render_format(args.value("value_format","hex"),format)) {
+        error=action_error("INVALID_FIELD","unsupported value_format"); return false;
+    }
+    return true;
 }
 
-// ── trace.active_driver ──
+std::vector<IDesignBackend::DriverRecord> drivers_for(IDesignBackend& design,
+                                                       int signal_index) {
+    std::vector<IDesignBackend::DriverRecord> drivers;
+    if (signal_index>=0) design.trace_driver(signal_index,drivers);
+    std::stable_sort(drivers.begin(),drivers.end(),[](const auto& left,const auto& right) {
+        const auto rank=[](const std::string& role) {
+            if (role=="rhs") return 0;
+            if (role=="control") return 1;
+            return 2;
+        };
+        return rank(left.dependency_role)<rank(right.dependency_role);
+    });
+    return drivers;
+}
+
+std::string signal_name(IDesignBackend& design, int index) {
+    const char* name=index>=0?design.signal_name(index):nullptr;
+    return name?std::string(name):std::string();
+}
+
+Json logic_json(const Sample& sample, ValueRenderFormat format) {
+    return logic_value_json(logic_value_from_bits(sample.bits,sample.width),format);
+}
+
+std::string logic_string(const Sample& sample, ValueRenderFormat format) {
+    return render_logic_value(logic_value_from_bits(sample.bits,sample.width),format);
+}
+
+Json source_path(const IDesignBackend::DriverRecord& driver,
+                 const std::string& source, const std::string& target) {
+    Json path=Json::array();
+    if (!source.empty()&&source!=target) path.push_back(source);
+    path.push_back(target);
+    return {{"file",driver.file.empty()?"<unknown>":driver.file},
+        {"line",std::max(1,driver.line)},{"source_context",Json::array()},
+        {"signal_path",path}};
+}
+
+Json trace_hop(size_t index, const std::string& signal, const Sample& sample,
+               const std::string& relation,
+               const IDesignBackend::DriverRecord* driver,
+               IDesignBackend& design, int signal_index,
+               IWaveformBackend& waveform, TimeRenderUnit unit,
+               ValueRenderFormat format) {
+    std::string file=driver&&!driver->file.empty()?driver->file:
+        (signal_index>=0&&design.signal_file(signal_index)?design.signal_file(signal_index):"<unknown>");
+    int line=driver&&driver->line>0?driver->line:
+        (signal_index>=0?design.signal_line(signal_index):1);
+    return {{"index",index},{"chain_id","c0"},{"signal",signal},
+        {"time",waveform.format_time(sample.time,unit)},
+        {"active_time",waveform.format_time(sample.time,unit)},
+        {"value",logic_string(sample,format)},{"relation",relation},
+        {"file",file.empty()?"<unknown>":file},{"line",std::max(1,line)},
+        {"source_context",Json::array()},{"signal_path",Json::array({signal})}};
+}
+
+Json x_hop(size_t index, const std::string& chain_id,
+           const std::string& signal, const Sample& sample, uint64_t onset,
+           const std::string& relation,
+           const IDesignBackend::DriverRecord* driver,
+           IDesignBackend& design, int signal_index,
+           IWaveformBackend& waveform, TimeRenderUnit unit,
+           ValueRenderFormat format) {
+    std::string file=driver&&!driver->file.empty()?driver->file:
+        (signal_index>=0&&design.signal_file(signal_index)?design.signal_file(signal_index):"");
+    int line=driver&&driver->line>0?driver->line:
+        (signal_index>=0?design.signal_line(signal_index):0);
+    return {{"index",index},{"chain_id",chain_id},{"signal",signal},
+        {"x_onset_time",waveform.format_time(onset,unit)},
+        {"active_time",waveform.format_time(sample.time,unit)},
+        {"value",logic_json(sample,format)},{"x_mask",x_mask(sample.bits)},
+        {"relation",relation},{"file",file},{"line",std::max(0,line)},
+        {"signal_path",Json::array({signal})}};
+}
+
+} // namespace
 
 struct TraceActiveDriverHandler : public EngineActionHandler {
     const char* action_name() const override { return "trace.active_driver"; }
     bool needs_design() const override { return true; }
     bool needs_waveform() const override { return true; }
 
-    Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_design || !g.design) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "DESIGN_NOT_LOADED"},
-                                   {"message", "action requires design database: trace.active_driver"}}}};
+    Json run(const Json& request) override {
+        auto& globals=engine_globals();
+        auto& waveform=*globals.waveform; auto& design=*globals.design;
+        std::string signal; uint64_t time=0; TimeRenderUnit unit;
+        ValueRenderFormat format; Json error;
+        if (!parse_common(request,waveform,signal,time,unit,format,error)) return error;
+        const int index=design.resolve(signal.c_str());
+        if (index<0) return action_error("SIGNAL_NOT_FOUND","signal not found in design: "+signal);
+        const Sample target=sample_at(waveform,signal,time);
+        if (!target.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST");
+        const Json limits=request.value("limits",Json::object());
+        const size_t max_results=limits.value("max_results",10u);
+        Json paths=Json::array();
+        std::set<std::pair<std::string,int>> statements;
+        for (const auto& driver : drivers_for(design,index)) {
+            if (driver.line<=0||driver.file.empty()) continue;
+            if (!statements.insert({driver.file,driver.line}).second) continue;
+            const std::string source=signal_name(design,driver.src_signal);
+            paths.push_back(source_path(driver,source,signal));
+            if (paths.size()>=max_results) break;
         }
-        if (!g.has_waveform || !g.waveform) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "WAVEFORM_NOT_LOADED"},
-                                   {"message", "action requires waveform file: trace.active_driver"}}}};
-        }
-
-        auto args = req.value("args", Json::object());
-        std::string sig = args.value("signal", "");
-        std::string ts = args.value("time", "");
-        if (sig.empty() || ts.empty()) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "MISSING_FIELD"},
-                                   {"message", "args.signal and args.time are required"}}}};
-        }
-
-        uint64_t t = 0;
-        try { t = std::stoull(ts); }
-        catch (...) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "INVALID_TIME"},
-                                   {"message", "args.time must be an integer"}}}};
-        }
-
-        int depth_limit = 20;
-        if (args.contains("depth") && args["depth"].is_number())
-            depth_limit = args["depth"].get<int>();
-
-        auto* wf = g.waveform.get();
-        auto* design = g.design.get();
-
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
-
-        Json chain = Json::array();
-        std::set<std::string> visited;
-        std::string cur_sig = sig;
-        int depth = 0;
-        std::string term_reason = "no_driver";
-
-        while (depth < depth_limit) {
-            if (visited.count(cur_sig)) {
-                term_reason = "max_depth";  // loop detected
-                break;
-            }
-            visited.insert(cur_sig);
-
-            int idx = design->resolve(cur_sig.c_str());
-            uint32_t width = 0;
-            std::string bits = read_signal_value_at_time(wf, cur_sig, t, &width);
-
-            Json drivers_arr = Json::array();
-            bool has_any_driver = false;
-            if (idx >= 0) {
-                std::vector<IDesignBackend::DriverRecord> drivers;
-                design->trace_driver(idx, drivers);
-                for (auto& d : drivers) {
-                    has_any_driver = true;
-                    drivers_arr.push_back({
-                        {"src_signal", d.src_signal >= 0 ? Json(design->signal_name(d.src_signal)) : Json(nullptr)},
-                        {"kind", d.kind},
-                        {"file", d.file},
-                        {"line", d.line}
-                    });
-                }
-            }
-
-            Json entry;
-            entry["signal"] = cur_sig;
-            entry["index"] = idx;
-            entry["type"] = (idx >= 0 && design->signal_type(idx)) ? Json(design->signal_type(idx)) : Json(nullptr);
-            entry["value"] = bits.empty() ? Json(nullptr) : render_val_json(bits, static_cast<int>(width), fmt);
-            entry["drivers"] = drivers_arr;
-            chain.push_back(entry);
-
-            // Find the active driver: first driver with src_signal whose value matches
-            bool found_next = false;
-            if (idx >= 0) {
-                std::vector<IDesignBackend::DriverRecord> drivers;
-                design->trace_driver(idx, drivers);
-                for (auto& d : drivers) {
-                    if (d.src_signal < 0) continue;
-                    std::string up_name = design->signal_name(d.src_signal);
-                    if (!up_name.empty() && up_name[0]) {
-                        std::string up_bits = read_signal_value_at_time(wf, up_name, t);
-                        if (!up_bits.empty()) {
-                            cur_sig = up_name;
-                            found_next = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!found_next) {
-                term_reason = termination_reason(design, idx, has_any_driver, false);
-                break;
-            }
-            depth++;
-        }
-
-        if (depth >= depth_limit) term_reason = "max_depth";
-
-        return Json{
-            {"ok", true},
-            {"summary", {{"signal", sig}, {"time", t}, {"depth", depth},
-                         {"termination_reason", term_reason}}},
-            {"data", {{"chain", chain}}}
-        };
+        const size_t total=statements.size();
+        const bool truncated=paths.size()<total;
+        const std::string rendered_time=waveform.format_time(target.time,unit);
+        Json summary{{"signal",signal},{"time",rendered_time},{"active_time",rendered_time},
+            {"termination",paths.empty()?"no_driver":"assignment"},
+            {"termination_detail",paths.empty()?"no_driver":"assignment"},
+            {"scan_complete",true},{"analysis_complete",true},
+            {"response_truncated",truncated},{"total_count",total},
+            {"returned_count",paths.size()},
+            {"truncation_scopes",truncated?Json::array({"response_paths"}):Json::array()}};
+        return {{"ok",true},{"summary",summary},{"data",{{"paths",paths}}}};
     }
 };
-
-// ── trace.active_driver_chain ──
 
 struct TraceActiveDriverChainHandler : public EngineActionHandler {
     const char* action_name() const override { return "trace.active_driver_chain"; }
     bool needs_design() const override { return true; }
     bool needs_waveform() const override { return true; }
 
-    Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_design || !g.design) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "DESIGN_NOT_LOADED"},
-                                   {"message", "action requires design database: trace.active_driver_chain"}}}};
-        }
-        if (!g.has_waveform || !g.waveform) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "WAVEFORM_NOT_LOADED"},
-                                   {"message", "action requires waveform file: trace.active_driver_chain"}}}};
-        }
-
-        auto args = req.value("args", Json::object());
-        std::string sig = args.value("signal", "");
-        std::string ts = args.value("time", "");
-        if (sig.empty() || ts.empty()) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "MISSING_FIELD"},
-                                   {"message", "args.signal and args.time are required"}}}};
-        }
-
-        uint64_t t = 0;
-        try { t = std::stoull(ts); }
-        catch (...) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "INVALID_TIME"},
-                                   {"message", "args.time must be an integer"}}}};
-        }
-
-        int max_depth = 20;
-        if (args.contains("max_depth") && args["max_depth"].is_number())
-            max_depth = args["max_depth"].get<int>();
-
-        auto* wf = g.waveform.get();
-        auto* design = g.design.get();
-
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
-
-        Json chain = Json::array();
+    Json run(const Json& request) override {
+        auto& globals=engine_globals();
+        auto& waveform=*globals.waveform; auto& design=*globals.design;
+        std::string root; uint64_t time=0; TimeRenderUnit unit;
+        ValueRenderFormat format; Json error;
+        if (!parse_common(request,waveform,root,time,unit,format,error)) return error;
+        const Json limits=request.value("limits",Json::object());
+        const size_t max_depth=limits.value("max_depth",8u);
+        Json hops=Json::array();
         std::set<std::string> visited;
-        std::string cur_sig = sig;
-        int depth = 0;
-
-        while (depth < max_depth) {
-            if (visited.count(cur_sig)) break;
-            visited.insert(cur_sig);
-
-            int idx = design->resolve(cur_sig.c_str());
-            uint32_t width = 0;
-            std::string bits = read_signal_value_at_time(wf, cur_sig, t, &width);
-
-            // Get the first driver info for this signal
-            std::string driver_kind;
-            std::string driver_file;
-            int driver_line = 0;
-            int next_src = -1;
-
-            if (idx >= 0) {
-                std::vector<IDesignBackend::DriverRecord> drivers;
-                design->trace_driver(idx, drivers);
-                // Find first driver that has a readable upstream signal
-                for (auto& d : drivers) {
-                    if (d.src_signal >= 0) {
-                        std::string up_name = design->signal_name(d.src_signal);
-                        if (!up_name.empty() && up_name[0]) {
-                            std::string up_bits = read_signal_value_at_time(wf, up_name, t);
-                            if (!up_bits.empty()) {
-                                driver_kind = d.kind;
-                                driver_file = d.file;
-                                driver_line = d.line;
-                                next_src = d.src_signal;
-                                break;
-                            }
-                        }
-                    }
-                    if (driver_kind.empty() && !d.kind.empty()) {
-                        driver_kind = d.kind;
-                        driver_file = d.file;
-                        driver_line = d.line;
-                    }
-                }
+        std::string current=root,termination="no_driver",detail="no_driver";
+        bool limited=false;
+        std::string frontier_signal; Sample frontier_sample;
+        for (size_t depth=0;depth<max_depth;++depth) {
+            if (!visited.insert(current).second) { termination="loop"; detail="loop_detected"; break; }
+            const int index=design.resolve(current.c_str());
+            if (index<0) return action_error("SIGNAL_NOT_FOUND","signal not found in design: "+current);
+            const Sample sample=sample_at(waveform,current,time);
+            if (!sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST: "+current);
+            auto drivers=drivers_for(design,index);
+            const IDesignBackend::DriverRecord* selected=nullptr;
+            std::string upstream;
+            for (const auto& driver : drivers) {
+                if (driver.dependency_role!="rhs"||driver.src_signal<0) continue;
+                const std::string candidate=signal_name(design,driver.src_signal);
+                if (candidate.empty()||candidate==current||!sample_at(waveform,candidate,time).ok) continue;
+                selected=&driver; upstream=candidate; break;
             }
-
-            Json entry;
-            entry["signal"] = cur_sig;
-            entry["value"] = bits.empty() ? Json(nullptr) : render_val_json(bits, static_cast<int>(width), fmt);
-            entry["driver_kind"] = driver_kind.empty() ? Json(nullptr) : Json(driver_kind);
-            entry["file"] = driver_file.empty() ? Json(nullptr) : Json(driver_file);
-            entry["line"] = driver_line > 0 ? Json(driver_line) : Json(nullptr);
-            chain.push_back(entry);
-
-            if (next_src < 0) break;
-            cur_sig = design->signal_name(next_src);
-            depth++;
+            hops.push_back(trace_hop(depth,current,sample,depth==0?"root":"driver",
+                selected,design,index,waveform,unit,format));
+            if (upstream.empty()) {
+                termination=drivers.empty()?"no_driver":"assignment";
+                detail=termination; break;
+            }
+            if (depth+1==max_depth) {
+                limited=true; termination="limit"; detail="max_depth";
+                frontier_signal=upstream; frontier_sample=sample_at(waveform,upstream,time); break;
+            }
+            current=upstream;
         }
-
-        return Json{
-            {"ok", true},
-            {"summary", {{"signal", sig}, {"time", t}, {"depth", depth}}},
-            {"data", {{"chain", chain}}}
-        };
+        Json data{{"hops",hops}};
+        Json truncation=Json::array();
+        if (limited) {
+            truncation.push_back("analysis_trace");
+            const std::string frontier_time=waveform.format_time(frontier_sample.time,unit);
+            data["depth_frontiers"]=Json::array({{{"chain_id","c0"},
+                {"signal",frontier_signal},{"time",frontier_time},
+                {"value",logic_string(frontier_sample,format)},
+                {"stopped_after_depth",max_depth}}});
+            data["suggested_next_actions"]=Json::array({{{"action","trace.active_driver_chain"},
+                {"reason","continue_from_depth_frontier"},{"chain_id","c0"},
+                {"args",{{"signal",frontier_signal},{"time",frontier_time}}},
+                {"limits",{{"max_depth",max_depth}}}}});
+        }
+        Json summary{{"signal",root},{"time",waveform.format_time(time,unit)},
+            {"termination",termination},{"termination_detail",detail},
+            {"scan_complete",!limited},{"analysis_complete",!limited},
+            {"response_truncated",false},{"total_count",hops.size()},
+            {"returned_count",hops.size()},{"truncation_scopes",truncation}};
+        return {{"ok",true},{"summary",summary},{"data",data}};
     }
 };
-
-// ── trace.x_origin ──
 
 struct TraceXOriginHandler : public EngineActionHandler {
     const char* action_name() const override { return "trace.x_origin"; }
     bool needs_design() const override { return true; }
     bool needs_waveform() const override { return true; }
 
-    Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_design || !g.design) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "DESIGN_NOT_LOADED"},
-                                   {"message", "action requires design database: trace.x_origin"}}}};
-        }
-        if (!g.has_waveform || !g.waveform) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "WAVEFORM_NOT_LOADED"},
-                                   {"message", "action requires waveform file: trace.x_origin"}}}};
-        }
-
-        auto args = req.value("args", Json::object());
-        std::string sig = args.value("signal", "");
-        std::string ts = args.value("time", "");
-        if (sig.empty() || ts.empty()) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "MISSING_FIELD"},
-                                   {"message", "args.signal and args.time are required"}}}};
-        }
-
-        uint64_t t = 0;
-        try { t = std::stoull(ts); }
-        catch (...) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "INVALID_TIME"},
-                                   {"message", "args.time must be an integer"}}}};
+    Json run(const Json& request) override {
+        auto& globals=engine_globals();
+        auto& waveform=*globals.waveform; auto& design=*globals.design;
+        std::string root; uint64_t time=0; TimeRenderUnit unit;
+        ValueRenderFormat format; Json error;
+        if (!parse_common(request,waveform,root,time,unit,format,error)) return error;
+        const int root_index=design.resolve(root.c_str());
+        if (root_index<0) return action_error("SIGNAL_NOT_FOUND","signal not found in design: "+root);
+        const Sample query_sample=sample_at(waveform,root,time);
+        if (!query_sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST");
+        const std::string query_time=waveform.format_time(query_sample.time,unit);
+        Json query{{"signal",root},{"query_time",query_time},
+            {"value",logic_json(query_sample,format)},{"x_mask",x_mask(query_sample.bits)}};
+        if (!has_x(query_sample.bits)) {
+            Json summary{{"signal",root},{"query_time",query_time},
+                {"termination","not_x_at_query_time"},{"evidence_status","proven"},
+                {"chain_count",0},{"completed_chain_count",0},{"limited_chain_count",0},
+                {"hop_count",0},{"origin_count",0},{"scan_complete",true},
+                {"analysis_complete",true},{"response_truncated",false},
+                {"total_count",0},{"returned_count",0},{"truncation_scopes",Json::array()}};
+            return {{"ok",true},{"summary",summary},
+                {"data",{{"query",query},{"chains",Json::array()},{"limitations",Json::array()}}}};
         }
 
-        int max_depth = 20;
-        if (args.contains("max_depth") && args["max_depth"].is_number())
-            max_depth = args["max_depth"].get<int>();
-
-        auto* wf = g.waveform.get();
-        auto* design = g.design.get();
-
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
-
-        // Step 1: read signal value at requested time
-        uint32_t ref = wf->find_signal(sig);
-        if (ref == IWaveformBackend::kInvalidSignalRef) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "SIGNAL_NOT_FOUND"},
-                                   {"message", "signal not found: " + sig}}}};
-        }
-        if (!wf->is_loaded(ref)) wf->load_signals({ref});
-
-        uint32_t query_ti = wf->time_idx_of(t);
-        IWaveformBackend::SignalOffset off;
-        if (!wf->signal_offset_at(ref, query_ti, off)) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "VALUE_NOT_AVAILABLE"},
-                                   {"message", "no value at requested time"}}}};
-        }
-        IWaveformBackend::SignalInfo info;
-        wf->signal_info(ref, info);
-        std::string bits = wf->signal_value_str(ref, off.start, 0);
-
-        // Step 2: if no x, return directly
-        if (!has_x_bit(bits)) {
-            return Json{
-                {"ok", true},
-                {"data", {{"is_x", false},
-                          {"value", render_val_json(bits, static_cast<int>(info.width), fmt)}}}
-            };
-        }
-
-        // Step 3: find x origin — walk time_indices_of backwards
-        std::vector<uint32_t> ti_vec = wf->time_indices_of(ref);
-        uint32_t origin_ti = query_ti;
-        uint64_t origin_time = t;
-        std::string origin_bits = bits;
-
-        // Find the last time_idx <= query_ti whose value has x
-        // Walk backwards to find the FIRST time where x appears (origin)
-        for (auto it = ti_vec.rbegin(); it != ti_vec.rend(); ++it) {
-            if (*it > query_ti) continue;
-            IWaveformBackend::SignalOffset o2;
-            if (!wf->signal_offset_at(ref, *it, o2)) continue;
-            std::string b2 = wf->signal_value_str(ref, o2.start, 0);
-            if (has_x_bit(b2)) {
-                origin_ti = *it;
-                origin_time = wf->time_at(origin_ti);
-                origin_bits = b2;
-            } else {
-                // Found the last non-x before x region; stop
-                break;
-            }
-        }
-
-        // Step 4: build propagation chain by following driver chain from origin
-        Json prop_chain = Json::array();
-        std::set<std::string> visited;
-        std::string cur_sig = sig;
-        uint64_t cur_time = origin_time;
-        uint32_t cur_ti = origin_ti;
-        std::string cur_bits = origin_bits;
-        int depth = 0;
-        std::string term_reason = "no_driver";
-
-        while (depth < max_depth) {
-            if (visited.count(cur_sig)) break;
-            visited.insert(cur_sig);
-
-            Json hop;
-            hop["signal"] = cur_sig;
-            hop["value"] = render_val_json(cur_bits, static_cast<int>(info.width), fmt);
-            hop["time"] = cur_time;
-            hop["time_idx"] = cur_ti;
-            prop_chain.push_back(hop);
-
-            // Look for upstream x source via design drivers
-            int idx = design->resolve(cur_sig.c_str());
-            bool found_upstream_x = false;
-            bool has_any_driver = false;
-
-            if (idx >= 0) {
-                std::vector<IDesignBackend::DriverRecord> drivers;
-                design->trace_driver(idx, drivers);
-                for (auto& d : drivers) {
-                    has_any_driver = true;
-                    if (d.src_signal < 0) continue;
-                    std::string up_name = design->signal_name(d.src_signal);
-                    if (up_name.empty() || !up_name[0]) continue;
-                    // Read upstream signal at same time
-                    uint32_t up_ref = wf->find_signal(up_name);
-                    if (up_ref == IWaveformBackend::kInvalidSignalRef) continue;
-                    if (!wf->is_loaded(up_ref)) wf->load_signals({up_ref});
-                    IWaveformBackend::SignalOffset up_off;
-                    if (!wf->signal_offset_at(up_ref, cur_ti, up_off)) continue;
-                    std::string up_bits = wf->signal_value_str(up_ref, up_off.start, 0);
-                    if (has_x_bit(up_bits)) {
-                        cur_sig = up_name;
-                        cur_bits = up_bits;
-                        found_upstream_x = true;
-                        break;
-                    }
-                }
-
-                // Phase 3: port-boundary crossing fallback — if no x upstream
-                // driver was found and this signal is port-connected, follow
-                // the port connection to the other side of the boundary.
-                if (!found_upstream_x) {
-                    std::vector<IDesignBackend::PortConnection> conns;
-                    design->port_connections(idx, conns);
-                    for (auto& c : conns) {
-                        int other = (c.port_signal == idx) ? c.connected_signal
-                                                           : c.port_signal;
-                        if (other < 0) continue;
-                        std::string other_name = design->signal_name(other);
-                        if (other_name.empty() || visited.count(other_name)) continue;
-                        uint32_t other_ref = wf->find_signal(other_name);
-                        if (other_ref == IWaveformBackend::kInvalidSignalRef) continue;
-                        if (!wf->is_loaded(other_ref)) wf->load_signals({other_ref});
-                        IWaveformBackend::SignalOffset other_off;
-                        if (!wf->signal_offset_at(other_ref, cur_ti, other_off)) continue;
-                        std::string other_bits =
-                            wf->signal_value_str(other_ref, other_off.start, 0);
-                        if (has_x_bit(other_bits)) {
-                            cur_sig = other_name;
-                            cur_bits = other_bits;
-                            found_upstream_x = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!found_upstream_x) {
-                if (idx >= 0) {
-                    int dir = design->signal_direction(idx);
-                    if (dir == 1) term_reason = "primary_input";
-                    else if (!has_any_driver) term_reason = "no_driver";
-                    else term_reason = "driver_x";
-                } else {
-                    term_reason = "no_driver";
-                }
-                break;
-            }
-            depth++;
-        }
-
-        if (depth >= max_depth) term_reason = "max_depth";
-
-        return Json{
-            {"ok", true},
-            {"summary", {{"termination_reason", term_reason}}},
-            {"data", {
-                {"is_x", true},
-                {"origin_time", origin_time},
-                {"origin_time_idx", origin_ti},
-                {"propagation_chain", prop_chain}
-            }}
+        const Json limits=request.value("limits",Json::object());
+        const size_t max_depth=limits.value("max_depth",8u),
+            max_chains=limits.value("max_chains",8u),max_nodes=limits.value("max_nodes",50u);
+        struct State {
+            std::string signal,chain_id,relation;
+            std::vector<std::string> visited;
+            Json hops=Json::array();
+            size_t depth=0;
+            IDesignBackend::DriverRecord incoming;
+            bool has_incoming=false;
         };
+        std::deque<State> pending;
+        pending.push_back({root,"c0","root",{},Json::array(),0,{},false});
+        Json chains=Json::array(),limitations=Json::array();
+        size_t nodes=0,chain_serial=1,hop_count=0,limited_count=0,origin_count=0;
+        while (!pending.empty()&&chains.size()<max_chains) {
+            State state=std::move(pending.front()); pending.pop_front();
+            const int index=design.resolve(state.signal.c_str());
+            const Sample sample=sample_at(waveform,state.signal,time);
+            const uint64_t onset=x_onset_time(waveform,sample);
+            state.hops.push_back(x_hop(state.hops.size(),state.chain_id,state.signal,sample,onset,
+                state.relation,state.has_incoming?&state.incoming:nullptr,
+                design,index,waveform,unit,format));
+            ++nodes; ++hop_count;
+            state.visited.push_back(state.signal);
+
+            std::vector<std::pair<std::string,IDesignBackend::DriverRecord>> x_sources;
+            for (const auto& driver : drivers_for(design,index)) {
+                if (driver.dependency_role!="rhs"||driver.src_signal<0) continue;
+                const std::string candidate=signal_name(design,driver.src_signal);
+                if (candidate.empty()||std::find(state.visited.begin(),state.visited.end(),candidate)!=state.visited.end()) continue;
+                const Sample upstream=sample_at(waveform,candidate,time);
+                if (upstream.ok&&has_x(upstream.bits)) x_sources.push_back({candidate,driver});
+            }
+            if (x_sources.empty()) {
+                std::vector<IDesignBackend::PortConnection> ports;
+                design.port_connections(index,ports);
+                for (const auto& port : ports) {
+                    const int other=port.port_signal==index?port.connected_signal:port.port_signal;
+                    const std::string candidate=signal_name(design,other);
+                    if (candidate.empty()||std::find(state.visited.begin(),state.visited.end(),candidate)!=state.visited.end()) continue;
+                    const Sample upstream=sample_at(waveform,candidate,time);
+                    if (!upstream.ok||!has_x(upstream.bits)) continue;
+                    IDesignBackend::DriverRecord relation;
+                    relation.src_signal=other; relation.kind=port.kind;
+                    relation.dependency_role="port";
+                    x_sources.push_back({candidate,relation});
+                }
+            }
+
+            const bool limited=state.depth+1>=max_depth||nodes>=max_nodes;
+            if (x_sources.empty()||limited) {
+                const std::string status=limited?"limit":"origin_found";
+                Json current{{"signal",state.signal},
+                    {"x_onset_time",waveform.format_time(onset,unit)},
+                    {"value",logic_json(sample,format)},{"x_mask",x_mask(sample.bits)}};
+                Json chain{{"chain_id",state.chain_id},{"status",status},
+                    {"termination_detail",limited?"max_depth_or_nodes":"candidate_x_source"},
+                    {"complete",!limited},{"current",current},{"hops",state.hops}};
+                if (!limited) {
+                    std::string file=index>=0&&design.signal_file(index)?design.signal_file(index):"";
+                    int line=index>=0?design.signal_line(index):0;
+                    chain["origin"]={{"signal",state.signal},
+                        {"x_onset_time",waveform.format_time(onset,unit)},
+                        {"kind","assignment"},{"reason","candidate_x_source"},
+                        {"evidence_status","best_effort"},{"file",file},{"line",std::max(0,line)}};
+                    ++origin_count;
+                } else ++limited_count;
+                chains.push_back(std::move(chain));
+                continue;
+            }
+            for (size_t source_index=0;source_index<x_sources.size();++source_index) {
+                if (pending.size()+chains.size()>=max_chains) break;
+                State next=state;
+                next.signal=x_sources[source_index].first;
+                next.relation=x_sources[source_index].second.dependency_role.empty()?"rhs":
+                    x_sources[source_index].second.dependency_role;
+                next.incoming=x_sources[source_index].second; next.has_incoming=true;
+                next.depth=state.depth+1;
+                if (source_index>0) next.chain_id="c"+std::to_string(chain_serial++);
+                pending.push_back(std::move(next));
+            }
+        }
+        const bool complete=limited_count==0&&pending.empty();
+        if (!pending.empty()) limitations.push_back("max_chains reached");
+        Json summary{{"signal",root},{"query_time",query_time},
+            {"termination",origin_count?"origin_found":(limited_count?"limit":"partial")},
+            {"evidence_status",origin_count?"best_effort":"unresolved"},
+            {"chain_count",chains.size()},{"completed_chain_count",chains.size()-limited_count},
+            {"limited_chain_count",limited_count},{"hop_count",hop_count},
+            {"origin_count",origin_count},{"scan_complete",complete},
+            {"analysis_complete",complete},{"response_truncated",false},
+            {"total_count",chains.size()},{"returned_count",chains.size()},
+            {"truncation_scopes",complete?Json::array():Json::array({"analysis_trace"})}};
+        return {{"ok",true},{"summary",summary},
+            {"data",{{"query",query},{"chains",chains},{"limitations",limitations}}}};
     }
 };
 
