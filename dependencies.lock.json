@@ -2,10 +2,10 @@
   "lock_version": 1,
   "wellen": {
     "repository": "../wellen",
-    "revision": "c5132ef6771459bef39402cc0f3a9635a8d595fb",
+    "revision": "76e5077677ab53c282902112be42d99f9e2bb5ea",
     "branch": "feature/xdebug-fst-capi",
     "crate_version": "0.25.6",
-    "capi_header_sha256": "17f431f09a860d9bf0b0a097cadbce3942df77228067e693b823f648a04d9d03",
+    "capi_header_sha256": "f8115f4112c8fc33481060d20912c9f78809fe26dcd34bc2f8ed7c0629f267a8",
     "signal_reference_base": 1
   },
   "wellenx_capi": {

@@ -32,8 +32,12 @@ public:
     uint64_t time_at(uint32_t idx) const override;
     uint64_t min_time() const override;
     uint64_t max_time() const override;
+    bool time_scale(WaveformTimeScale& out) const override;
+    bool parse_time(const std::string& text, uint64_t& ticks,
+                    std::string& error, bool allow_max = false) const override;
     uint32_t time_idx_of(uint64_t t) const override;
-    std::string format_time(uint64_t t) const override;
+    std::string format_time(
+        uint64_t t, TimeRenderUnit unit = TimeRenderUnit::Ns) const override;
 
     uint32_t scope_count() const override;
     uint32_t scope_at(uint32_t idx) const override;
@@ -87,6 +91,7 @@ private:
 
     // Cached time table for O(log N) binary search
     std::vector<uint64_t> time_table_;
+    WaveformTimeScale time_scale_;
 
     // String caches (owned by C FFI, valid for db_ lifetime)
     std::unordered_map<uint32_t, std::string> name_cache_;

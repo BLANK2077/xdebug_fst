@@ -62,6 +62,12 @@ bool WellenFstBackend::open(const std::string& path) {
     if (n > 0) {
         wellen_get_times(db_, time_table_.data(), 0, n);
     }
+    uint32_t factor = 0;
+    int32_t exponent = 0;
+    if (wellen_timescale(db_, &factor, &exponent) == 0) {
+        time_scale_.factor = factor;
+        time_scale_.exponent = exponent;
+    }
     return true;
 }
 
@@ -75,6 +81,7 @@ void WellenFstBackend::close() {
         db_ = nullptr;
     }
     time_table_.clear();
+    time_scale_ = {};
     name_cache_.clear();
     signal_index_.clear();
 }
@@ -98,6 +105,17 @@ uint64_t WellenFstBackend::max_time() const {
     return time_table_.empty() ? 0 : time_table_.back();
 }
 
+bool WellenFstBackend::time_scale(WaveformTimeScale& out) const {
+    out = time_scale_;
+    return out.valid();
+}
+
+bool WellenFstBackend::parse_time(const std::string& text, uint64_t& ticks,
+                                  std::string& error, bool allow_max) const {
+    return parse_waveform_time(
+        text, time_scale_, max_time(), allow_max, ticks, error);
+}
+
 uint32_t WellenFstBackend::time_idx_of(uint64_t t) const {
     if (time_table_.empty()) return 0;
     auto it = std::upper_bound(time_table_.begin(), time_table_.end(), t);
@@ -105,9 +123,9 @@ uint32_t WellenFstBackend::time_idx_of(uint64_t t) const {
     return static_cast<uint32_t>(std::distance(time_table_.begin(), it) - 1);
 }
 
-std::string WellenFstBackend::format_time(uint64_t t) const {
-    // Default: integer time with "ps" unit suffix (xdebug default unit).
-    return std::to_string(t);
+std::string WellenFstBackend::format_time(uint64_t t,
+                                         TimeRenderUnit unit) const {
+    return format_waveform_time(t, time_scale_, unit);
 }
 
 // ── Hierarchy ──

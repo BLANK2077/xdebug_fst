@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "waveform/time_contract.h"
+
 namespace xdebug_fst {
 
 /// Abstract interface for waveform data access.
@@ -43,12 +45,21 @@ public:
     /// Get the maximum time.
     virtual uint64_t max_time() const = 0;
 
+    /// Tick scale read from the waveform header.
+    virtual bool time_scale(WaveformTimeScale& out) const = 0;
+
+    /// Strict physical-time parsing. Unitless input defaults to ns.
+    virtual bool parse_time(const std::string& text, uint64_t& ticks,
+                            std::string& error,
+                            bool allow_max = false) const = 0;
+
     /// Binary search: find the largest time_idx such that time_at(idx) <= t.
     /// Returns the index, or 0 if t < min_time().
     virtual uint32_t time_idx_of(uint64_t t) const = 0;
 
-    /// Format a time value for display. Returns a human-readable string.
-    virtual std::string format_time(uint64_t t) const = 0;
+    /// Format a time value for display in ns, ps, us, or auto.
+    virtual std::string format_time(
+        uint64_t t, TimeRenderUnit unit = TimeRenderUnit::Ns) const = 0;
 
     // ── Hierarchy ──
 
