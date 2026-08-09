@@ -124,6 +124,10 @@ std::string signal_name(IDesignBackend& design, int index) {
     return name?std::string(name):std::string();
 }
 
+size_t hierarchy_depth(const std::string& signal) {
+    return static_cast<size_t>(std::count(signal.begin(),signal.end(),'.'));
+}
+
 Json logic_json(const Sample& sample, ValueRenderFormat format) {
     return logic_value_json(logic_value_from_bits(sample.bits,sample.width),format);
 }
@@ -468,10 +472,14 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                                       design.signal_direction(index)==3)) {
                     std::vector<IDesignBackend::PortConnection> connections;
                     design.port_connections(index,connections);
+                    const int direction=design.signal_direction(index);
+                    const size_t current_depth=hierarchy_depth(current);
                     for (const auto& connection : connections) {
                         const int other=connection.port_signal==index
                             ?connection.connected_signal:connection.port_signal;
                         const std::string candidate=signal_name(design,other);
+                        if (direction==1&&hierarchy_depth(candidate)>=current_depth)
+                            continue;
                         if (!candidate.empty()&&candidate!=current&&
                             sample_at(waveform,candidate,sample.active_time).ok) {
                             upstream=candidate;

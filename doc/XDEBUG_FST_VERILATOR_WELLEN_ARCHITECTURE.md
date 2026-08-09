@@ -603,6 +603,14 @@ activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为�
 波形数据源，也不会扫描 FST 来反推 HDL 语句。这个修复完全位于 xdebug-fst consumer，
 无需修改 Verilator/Wellen、XDD ABI 或 FST 文件格式。
 
+跨层端口边由 DesignDB 以可从两端查询的静态连接发布，FST 中同一物理信号则可能由
+Wellen 暴露为多个保真的层级 alias。对无 driver 的声明 input，active-driver chain 只能
+从更深层端口向更浅层父级连接上溯；到达父级 primary input 后终止，不能因为连接可从
+两端查询就反向折返并制造假环。xdebug-fst 在 consumer 侧比较规范信号路径的层级深度，
+只对 input 应用这一方向约束；已有 driver 和 inout 保持原行为，等待各自失败证据。
+DesignDB 仍只提供静态边，Wellen 仍只提供该 alias 在原始 FST 中的值，两者都不承担链路
+分析或方向推理。
+
 显式文件产物必须与“离线 FST 分析”严格区分：
 
 - `list.export` 按公共合同写出 `u64bin.v1`，用于调用者消费最终列表数据；
