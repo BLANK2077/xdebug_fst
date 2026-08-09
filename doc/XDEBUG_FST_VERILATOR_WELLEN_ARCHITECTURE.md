@@ -666,3 +666,6 @@ VCD/JSON/export，不建立 predicate-value cache 或离线 FST 索引，也不�
 - xdebug-fst `0188cd0`：锁定并严格消费 DesignDB driver predicate capability；
 - xdebug-fst `1529647`：修复 predicate 所需的括号逻辑与四态 X/Z 语义；
 - xdebug-fst `e2870e9`：在 active time 直接读取 FST 控制值并筛选 active-driver、chain 与 X-origin 分支。
+- xdebug-fst `a0b73bc`：以 APB 嵌套条件和普通 case/default 的真实 FST 回归扩展已证能力边界；
+- xdebug-fst `2815e61`：建立 casez/casex 静态匹配种类缺失的修改前失败证据；
+- xdebug-fst `9eac4a5`：按 `==?z`/`==?x` 与 Wellen 四态 FST 值判定 wildcard case 分支。
