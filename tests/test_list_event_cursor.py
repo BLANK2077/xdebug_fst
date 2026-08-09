@@ -202,33 +202,45 @@ def test_event_config_load_unknown(loop_runner: StdioLoopRunner, counter_fst) ->
 def test_event_find_rising_edge(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("event.find", args={
-        "signal": "top.clk", "event": "rising_edge",
-        "begin": "0", "end": "100"})
+        "clock": "top.clk", "edge": "posedge",
+        "signals": {"clk": "top.clk", "count": "top.counter_top.count"},
+        "expr": "clk === clk", "mode": "all", "line_limit": 10,
+        "time_range": {"begin": "0ps", "end": "100ps"},
+        "render_time_unit": "ps"})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["event_count"] == 5
-    # clk starts at 1 (initial value); first rising edge is at t=20
-    assert rsp["data"]["events"][0]["time"] == 20
-    assert [e["time"] for e in rsp["data"]["events"]] == [20, 40, 60, 80, 100]
+    assert rsp["summary"]["total_count"] == 5
+    assert rsp["summary"]["sampling_mode"] == "clock_edge"
+    assert [e["time"] for e in rsp["data"]["events"]] == [
+        "20ps", "40ps", "60ps", "80ps", "100ps"]
+    assert rsp["data"]["sampling"]["effective"] == {
+        "edge": "posedge", "sample_point": "before"}
 
 
 def test_event_find_value_equals(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("event.find", args={
-        "signal": "top.counter_top.count", "event": "value_equals",
-        "value": "8'h05", "begin": "0", "end": "500"})
+        "clock": "top.clk", "edge": "negedge",
+        "signals": {"count": "top.counter_top.count"},
+        "expr": "count == 8'h05", "mode": "all", "line_limit": 10,
+        "time_range": {"begin": "0ps", "end": "300ps"},
+        "render_time_unit": "ps"})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["event_count"] == 1
-    assert rsp["data"]["events"][0]["time"] == 180
+    assert rsp["summary"]["total_count"] == 1
+    assert rsp["data"]["events"][0]["time"] == "190ps"
 
 
-def test_event_find_x_occurrence(loop_runner: StdioLoopRunner, xprop_fst,
-                                 xprop_design_db) -> None:
-    open_session(loop_runner, xprop_fst, xprop_design_db)
+def test_event_find_limit_and_max_samples(loop_runner: StdioLoopRunner,
+                                          counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("event.find", args={
-        "signal": "top.xprop_top.a", "event": "x_occurrence",
-        "begin": "0", "end": "200"})
+        "clock": "top.clk", "edge": "dual", "signals": {"clk": "top.clk"},
+        "expr": "clk === clk", "mode": "all", "line_limit": 2,
+        "max_samples": 4, "time_range": {"begin": "0ps", "end": "200ps"}})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["event_count"] >= 1
+    assert rsp["summary"]["sample_count"] == 4
+    assert rsp["summary"]["analysis_complete"] is False
+    assert rsp["summary"]["response_truncated"] is True
+    assert rsp["summary"]["returned_count"] == 2
 
 
 def test_event_export(loop_runner: StdioLoopRunner, counter_fst) -> None:
