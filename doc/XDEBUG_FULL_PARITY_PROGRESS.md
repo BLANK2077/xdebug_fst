@@ -141,6 +141,7 @@
 - P6 第四批实现：Verilator `a91524d63` 仅在既有 emitter 内拆分条件 RHS 叶子；xdebug 使用 Wellen 从真实 case FST 在 40ps 直接读取的 `reset=0, sel=1`，已唯一返回 `nested_out <= data + 1` 的第 45 行。combined 定向测试 24/24、全量 pytest 214/214、CTest 8/8 与冻结基线检查均通过；依赖 revision 更新但 XDD header/ABI/capability 不变。
 - P6 第五批修改前证据：在同一最小 case 固件加入单行 `ternary_out <= sel[0] ? data : 8'h5a`，同时覆盖同源行不同谓词和常量 RHS 叶子。真实 FST 在 40ps 的 `sel[0]=1` 能选中 `data` 分支；60ps 的 `sel[0]=0` 应选中同源行常量分支，但 xdebug 按 `(file,line,kind)` 合并 DesignDB 语句并只保留首个 predicate，实际返回 `total_count=0`，定向回归真实失败。DesignDB 已为两片叶子提供独立谓词和依赖，缺陷局限在 xdebug 语句身份键；下一步只允许将 predicate 纳入聚合身份并补齐回归，不修改 Verilator/Wellen，不改变 FST-only 直接读取链。
 - P6 第五批实现：xdebug-fst 仅把 `activation_predicate` 纳入语句聚合身份，保持同源行三元表达式的信号与常量叶子分离。真实 case FST 在 40ps 以 `sel[0]=1` 唯一选择 `data`，在 60ps 以 `sel[0]=0` 唯一选择常量叶子并以 `sel` 控制依赖形成动态证据；combined 25/25、全量 pytest 215/215、CTest 8/8、冻结基线与 CMake 依赖锁门禁通过。Verilator/Wellen、XDD ABI/capability 和唯一 FST 直接读取架构均未修改。
+- P6 第六批修改前证据：counter DesignDB 已发布内部输入端口 `top.counter_top.clk` 与父级 `top.clk` 的对称 `port_boundary`，两条 FST 名称由 Wellen 解析为同一保真 alias 值。305ps 的 active-driver chain 应从内部端口上溯一跳并在顶层 primary input 终止；当前 xdebug 在到达 `top.clk` 后又沿对称边折返，形成三跳并误报 `loop_detected`。缺陷局限在 consumer 的跨层输入方向选择；下一步只允许优先向较浅父级遍历并禁止反向折返，不修改 Verilator/Wellen、XDD ABI 或 FST 数据路径。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
