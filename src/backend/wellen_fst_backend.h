@@ -65,6 +65,9 @@ public:
                                 uint32_t start, uint16_t element) const override;
     std::string signal_value_str(uint32_t signal_ref,
                                  uint32_t start, uint16_t element) const override;
+    bool signal_typed_value_at(uint32_t signal_ref,
+                               uint32_t start, uint16_t element,
+                               WaveformValue& out) const override;
 
     void values_at(const std::vector<uint32_t>& refs, uint32_t time_idx,
                    std::vector<std::string>& out_values,

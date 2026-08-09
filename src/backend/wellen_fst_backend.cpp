@@ -7,6 +7,8 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <iomanip>
+#include <sstream>
 #include <unordered_set>
 #include <sys/stat.h>
 
@@ -249,6 +251,13 @@ bool WellenFstBackend::signal_info(uint32_t signal_ref,
                                    SignalInfo& out) const {
     WellenSignalInfo info;
     if (wellen_signal_info(db_, signal_ref, &info) != 0) return false;
+    switch (info.encoding) {
+    case WELLEN_ENCODING_REAL: out.encoding = ValueKind::Real; break;
+    case WELLEN_ENCODING_STRING: out.encoding = ValueKind::String; break;
+    case WELLEN_ENCODING_EVENT: out.encoding = ValueKind::Event; break;
+    case WELLEN_ENCODING_BITVECTOR:
+    default: out.encoding = ValueKind::BitVector; break;
+    }
     out.num_changes = info.num_changes;
     out.max_states = info.max_states;
     out.width = info.width;
@@ -295,34 +304,54 @@ std::string WellenFstBackend::signal_value_at(uint32_t signal_ref,
 std::string WellenFstBackend::signal_value_str(uint32_t signal_ref,
                                                uint32_t start,
                                                uint16_t element) const {
-    // Prefer the ASCII bit string from the extension FFI (2/4/9-state).
-    if (xdb_) {
-        SignalInfo info;
-        if (signal_info(signal_ref, info) && info.width > 0 && info.width <= 4096) {
-            std::string bits(info.width, '\0');
-            uint32_t len = 0;
-            int rc = wellenx_signal_value_bits_at_offset(
-                xdb_, signal_ref, start, element, bits.data(), &len);
-            if (rc == 0 && len > 0) {
-                bits.resize(len);
-                return bits;
-            }
-            if (rc == -2 && len > 0) {  // string signal
-                bits.resize(len);
-                return bits;
-            }
-        }
+    WaveformValue value;
+    if (!signal_typed_value_at(signal_ref, start, element, value)) return {};
+    if (value.kind == ValueKind::Real) {
+        std::ostringstream stream;
+        stream << std::setprecision(17) << value.real;
+        return stream.str();
     }
-    // Fallback: raw big-endian bytes as hex
-    auto raw = signal_value_at(signal_ref, start, element);
-    if (raw.empty()) return "x";
-    std::string hex;
-    for (unsigned char c : raw) {
-        char buf[3];
-        snprintf(buf, sizeof(buf), "%02x", c);
-        hex += buf;
+    if (value.kind == ValueKind::Event) return "event";
+    return value.text;
+}
+
+bool WellenFstBackend::signal_typed_value_at(
+    uint32_t signal_ref, uint32_t start, uint16_t element,
+    WaveformValue& out) const {
+    out = {};
+    uint32_t length = 0;
+    double real = 0.0;
+    WellenSignalEncoding encoding = WELLEN_ENCODING_BITVECTOR;
+    int result = wellen_signal_typed_value_at_offset(
+        db_, signal_ref, start, element, nullptr, 0, &length, &real,
+        &encoding);
+    if (result != 0 && result != -2) return false;
+    std::string text(length, '\0');
+    result = wellen_signal_typed_value_at_offset(
+        db_, signal_ref, start, element,
+        text.empty() ? nullptr : text.data(), length, &length, &real,
+        &encoding);
+    if (result != 0) return false;
+    text.resize(length);
+    switch (encoding) {
+    case WELLEN_ENCODING_REAL:
+        out.kind = ValueKind::Real;
+        out.real = real;
+        break;
+    case WELLEN_ENCODING_STRING:
+        out.kind = ValueKind::String;
+        out.text = std::move(text);
+        break;
+    case WELLEN_ENCODING_EVENT:
+        out.kind = ValueKind::Event;
+        break;
+    case WELLEN_ENCODING_BITVECTOR:
+    default:
+        out.kind = ValueKind::BitVector;
+        out.text = std::move(text);
+        break;
     }
-    return hex;
+    return true;
 }
 
 // ── Batch ──

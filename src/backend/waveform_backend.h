@@ -120,7 +120,10 @@ public:
     virtual bool is_loaded(uint32_t signal_ref) const = 0;
 
     /// Signal metadata after loading.
+    enum class ValueKind { BitVector, Real, String, Event };
+
     struct SignalInfo {
+        ValueKind encoding = ValueKind::BitVector;
         uint32_t num_changes = 0;
         uint32_t max_states = 2;   // 2, 4, or 9
         uint32_t width = 0;
@@ -130,6 +133,12 @@ public:
 
     /// Get cached signal info. Returns false if not loaded.
     virtual bool signal_info(uint32_t signal_ref, SignalInfo& out) const = 0;
+
+    struct WaveformValue {
+        ValueKind kind = ValueKind::BitVector;
+        std::string text;
+        double real = 0.0;
+    };
 
     // ── Core queries ──
 
@@ -155,6 +164,11 @@ public:
     /// Read value as a string representation (for display).
     virtual std::string signal_value_str(uint32_t signal_ref,
                                          uint32_t start, uint16_t element) const = 0;
+
+    /// Read a typed value without collapsing real/string/event into bytes.
+    virtual bool signal_typed_value_at(uint32_t signal_ref,
+                                       uint32_t start, uint16_t element,
+                                       WaveformValue& out) const = 0;
 
     // ── Batch operations ──
 
