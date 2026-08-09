@@ -595,6 +595,14 @@ P6 的 active-driver 数据流同样没有增加第二套波形系统：DesignDB
 unresolved/ambiguity evidence；`casez/casex` 的 X/Z 则严格按对应通配语义求值。不读取
 VCD/JSON/export，不建立 predicate-value cache 或离线 FST 索引，也不回退到静态首项。
 
+同一源文件行也不能直接等同于同一条动态语句。lowering 后的三元表达式可能把信号 RHS
+叶子与常量 RHS 叶子保留在同一 `(file,line,kind)` 下，但每片叶子具有不同的静态
+activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为语句身份，
+先保持 DesignDB 叶子分离，再由 Wellen 在目标 `active_time` 直接读取 FST 控制值选择唯一
+活动叶子。常量叶子没有 RHS 信号时，路径使用其控制依赖作为动态证据；它不会伪造一个
+波形数据源，也不会扫描 FST 来反推 HDL 语句。这个修复完全位于 xdebug-fst consumer，
+无需修改 Verilator/Wellen、XDD ABI 或 FST 文件格式。
+
 显式文件产物必须与“离线 FST 分析”严格区分：
 
 - `list.export` 按公共合同写出 `u64bin.v1`，用于调用者消费最终列表数据；

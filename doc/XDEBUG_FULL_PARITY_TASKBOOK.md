@@ -611,7 +611,10 @@ Verilator。第三批在双重修改前失败证据后，以 XDD 内部 `==?z`/`
 `casez/casex` 静态匹配种类，并由 xdebug 使用 Wellen 读取的真实四态 FST 值求值；ABI
 仍为 v2，未修改普通 Verilator 行为。此检查点关闭已验证的 `if/else`、APB 嵌套条件、
 普通 `case/default`、`casez/casex` 以及 V3Inst 折叠后的同目标嵌套条件基础语义；
-case inside/matches、更多连续/过程/NBA、常量、alias、跨端口、多 driver 和原版差分
+第四批之后又以单行 NBA 三元赋值证明 `(file,line,kind)` 不足以区分 lowering 后的
+信号/常量叶子，并仅在 xdebug-fst consumer 将 predicate 纳入语句身份；真实 FST 已分别
+选中信号 RHS 和常量 RHS 分支。该用例关闭基本常量叶子与同源行分支身份，但
+case inside/matches、更多连续/过程/NBA 与常量组合、alias、跨端口、多 driver 和原版差分
 仍是 P6 必做项。
 
 #### trace.active_driver

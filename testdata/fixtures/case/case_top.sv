@@ -5,8 +5,7 @@ module case_top (
     input  wire [7:0] data,
     output reg  [7:0] out,
     output reg  [7:0] out_casez,
-    output reg  [7:0] out_casex,
-    output reg  [7:0] ternary_out
+    output reg  [7:0] out_casex
 );
     always @(posedge clk) begin
         if (reset) begin
@@ -48,5 +47,6 @@ module case_top (
             nested_out <= 8'hfc;
     end
 
+    reg [7:0] ternary_out;
     always @(posedge clk) ternary_out <= sel[0] ? data : 8'h5a;
 endmodule

@@ -169,10 +169,11 @@ struct StatementGroup {
 
 std::vector<StatementGroup> statement_groups(
     const std::vector<IDesignBackend::DriverRecord>& drivers) {
-    std::map<std::tuple<std::string,int,std::string>,StatementGroup> grouped;
+    std::map<std::tuple<std::string,int,std::string,std::string>,StatementGroup> grouped;
     for (const auto& driver : drivers) {
         if (driver.file.empty()||driver.line<=0) continue;
-        const auto key=std::make_tuple(driver.file,driver.line,driver.kind);
+        const auto key=std::make_tuple(driver.file,driver.line,driver.kind,
+                                       driver.activation_predicate);
         auto& statement=grouped[key];
         statement.kind=driver.kind;
         statement.file=driver.file;
