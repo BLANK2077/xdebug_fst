@@ -153,25 +153,48 @@ def test_list_first_change_no_difference(loop_runner: StdioLoopRunner,
 
 # ── event.* ──
 
-def test_event_config_list(loop_runner: StdioLoopRunner, counter_fst) -> None:
+def _load_event_config(loop_runner: StdioLoopRunner, tmp_path,
+                       name: str = "counter_event"):
+    config_path = tmp_path / f"{name}.json"
+    config_path.write_text(json.dumps({
+        "clock": "top.clk", "edge": "posedge",
+        "signals": {"count": "top.counter_top.count", "clk": "top.clk"},
+        "fields": {"low_nibble": {"signal": "count", "left": 3, "right": 0}},
+    }))
+    return loop_runner.request("event.config.load", args={
+        "name": name, "config_path": str(config_path)})
+
+
+def test_event_config_list(loop_runner: StdioLoopRunner, counter_fst,
+                           tmp_path) -> None:
     open_session(loop_runner, counter_fst)
+    loaded = _load_event_config(loop_runner, tmp_path)
+    assert loaded.get("ok"), loaded
     rsp = loop_runner.request("event.config.list")
     assert rsp.get("ok"), rsp
-    names = [c["name"] for c in rsp["data"]["configs"]]
-    assert {"rising_edge", "falling_edge", "any_change", "value_equals",
-            "x_occurrence"} <= set(names)
+    assert "counter_event" in rsp["data"]["events"]
+    named = loop_runner.request("event.config.list", args={"name": "counter_event"})
+    assert named.get("ok"), named
+    assert named["summary"] == {"status": "found"}
+    assert named["data"]["config"]["clock"] == "top.clk"
 
 
-def test_event_config_load(loop_runner: StdioLoopRunner, counter_fst) -> None:
+def test_event_config_load(loop_runner: StdioLoopRunner, counter_fst,
+                           tmp_path) -> None:
     open_session(loop_runner, counter_fst)
-    rsp = loop_runner.request("event.config.load", args={"name": "rising_edge"})
+    rsp = _load_event_config(loop_runner, tmp_path, "loaded_event")
     assert rsp.get("ok"), rsp
-    assert rsp["data"]["config"]["name"] == "rising_edge"
+    assert rsp["summary"] == {"status": "loaded"}
+    assert rsp["data"]["config"] == {
+        "name": "loaded_event", "clock": "top.clk", "edge": "posedge",
+        "signals": {"count": "top.counter_top.count", "clk": "top.clk"},
+        "fields": {"low_nibble": {
+            "signal": "count", "left": 3, "right": 0}}}
 
 
 def test_event_config_load_unknown(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
-    rsp = loop_runner.request("event.config.load", args={"name": "nope"})
+    rsp = loop_runner.request("event.config.list", args={"name": "nope"})
     assert not rsp.get("ok")
     assert rsp["error"]["code"] == "CONFIG_NOT_FOUND"
 
