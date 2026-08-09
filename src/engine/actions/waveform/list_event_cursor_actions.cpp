@@ -179,12 +179,27 @@ struct ListDeleteHandler : public EngineActionHandler {
         if (!ListManager::instance().exists(name))
             return make_error("LIST_NOT_FOUND", "list not found: " + name);
 
-        // Delete the list entirely
-        ListManager::instance().erase(name);
+        const SignalList* list = ListManager::instance().get(name);
+        std::string removed;
+        if (args.contains("signal")) {
+            removed = args.at("signal").get<std::string>();
+            if (std::find(list->signals.begin(), list->signals.end(), removed) ==
+                list->signals.end())
+                return make_error("SIGNAL_NOT_FOUND", "signal not found in list: " + removed);
+        } else {
+            const size_t index = args.at("index").get<size_t>();
+            if (index == 0 || index > list->signals.size())
+                return make_error("INDEX_OUT_OF_RANGE", "list index is out of range");
+            removed = list->signals[index - 1];
+        }
+        std::string error;
+        if (!ListManager::instance().remove(name, {removed}, error))
+            return make_error("ACTION_FAILED", error);
 
         Json out;
         out["ok"] = true;
-        out["summary"] = {{"name", name}, {"deleted", true}};
+        out["summary"] = {{"name", name}, {"deleted", true}, {"removed", removed}};
+        out["data"] = Json::object();
         return out;
     }
 };
@@ -203,26 +218,59 @@ struct ListLoadHandler : public EngineActionHandler {
         if (!err.is_null()) return err;
 
         auto args = req.value("args", Json::object());
-        std::string name = args.value("name", "");
-        std::string file = args.value("file", "");
-        if (name.empty())
-            return make_error("MISSING_FIELD", "args.name is required for list.load");
-        if (file.empty())
-            return make_error("MISSING_FIELD", "args.file is required for list.load");
-
+        Json config;
+        if (args.contains("config")) {
+            config = args.at("config");
+        } else {
+            std::ifstream input(args.at("config_path").get<std::string>());
+            if (!input) return make_error("CONFIG_READ_FAILED", "cannot open list config");
+            try { input >> config; }
+            catch (const std::exception& ex) {
+                return make_error("CONFIG_PARSE_FAILED", ex.what());
+            }
+        }
+        const std::string mode = args.value("mode", "replace");
+        auto* wf = engine_globals().waveform.get();
+        for (const auto& item : config.at("lists")) {
+            for (const auto& signal_json : item.at("signals")) {
+                const std::string signal = signal_json;
+                if (!wf->find_signal(signal))
+                    return make_error("SIGNAL_NOT_FOUND",
+                                      "signal not found in waveform: " + signal);
+            }
+        }
+        Json names = Json::array();
+        Json validation = Json::array();
         std::string error;
-        if (!ListManager::instance().load(name, file, error))
-            return make_error("ACTION_FAILED", error);
-
-        const SignalList* lst = ListManager::instance().get(name);
+        for (const auto& item : config.at("lists")) {
+            const std::string name = item.at("name");
+            std::vector<std::string> signals = item.at("signals");
+            if (mode == "replace" && ListManager::instance().exists(name))
+                ListManager::instance().erase(name);
+            if (!ListManager::instance().exists(name) &&
+                !ListManager::instance().create(name, error))
+                return make_error("ACTION_FAILED", error);
+            if (!ListManager::instance().add(name, signals, error))
+                return make_error("ACTION_FAILED", error);
+            names.push_back(name);
+            Json signal_rows = Json::array();
+            for (const auto& signal : signals)
+                signal_rows.push_back({{"signal", signal}, {"status", "ok"}});
+            validation.push_back({{"name", name}, {"status", "ok"},
+                                  {"signals", signal_rows}});
+        }
+        Json recommended = Json::array({
+            {{"action", "value.at"}, {"purpose", "读取命名列表在指定时间的值"}},
+            {{"action", "list.show"}, {"purpose", "显示信号列表内容"}},
+            {{"action", "list.validate"}, {"purpose", "验证列表信号存在性"}},
+            {{"action", "list.first_change"}, {"purpose", "查找窗口内首次差异"}},
+            {{"action", "list.export"}, {"purpose", "导出列表数据"}}
+        });
         Json out;
         out["ok"] = true;
-        out["summary"] = {
-            {"name", name},
-            {"loaded", true},
-            {"signal_count", lst ? static_cast<int>(lst->signals.size()) : 0},
-            {"file", file}
-        };
+        out["summary"] = {{"loaded", names.size()}, {"mode", mode}};
+        out["data"] = {{"lists", names}, {"validation", validation},
+                       {"recommended_actions", recommended}};
         return out;
     }
 };
@@ -250,16 +298,15 @@ struct ListShowHandler : public EngineActionHandler {
             return make_error("LIST_NOT_FOUND", "list not found: " + name);
 
         Json signals_arr = Json::array();
+        size_t index = 1;
         for (const auto& s : lst->signals)
-            signals_arr.push_back(s);
+            signals_arr.push_back({{"index", index++}, {"signal", s}});
 
         Json out;
         out["ok"] = true;
-        out["data"] = {{"list", {
-            {"name", lst->name},
-            {"signals", signals_arr},
-            {"signal_count", static_cast<int>(lst->signals.size())}
-        }}};
+        out["summary"] = {{"name", lst->name},
+                          {"signal_count", lst->signals.size()}};
+        out["data"] = {{"signals", signals_arr}};
         return out;
     }
 };
@@ -287,26 +334,21 @@ struct ListValidateHandler : public EngineActionHandler {
             return make_error("LIST_NOT_FOUND", "list not found: " + name);
 
         auto* wf = engine_globals().waveform.get();
-        Json missing = Json::array();
-        int valid_count = 0, missing_count = 0;
+        Json signals = Json::array();
 
         for (const auto& s : lst->signals) {
             if (wf->find_signal(s) != IWaveformBackend::kInvalidSignalRef) {
-                ++valid_count;
+                signals.push_back({{"signal", s}, {"status", "ok"}});
             } else {
-                ++missing_count;
-                missing.push_back(s);
+                return make_error("SIGNAL_NOT_FOUND",
+                                  "signal not found in waveform: " + s);
             }
         }
 
         Json out;
         out["ok"] = true;
-        out["data"] = {
-            {"valid", missing_count == 0},
-            {"missing", missing},
-            {"valid_count", valid_count},
-            {"missing_count", missing_count}
-        };
+        out["summary"] = {{"name", name}, {"all_found", true}};
+        out["data"] = {{"signals", signals}};
         return out;
     }
 };
