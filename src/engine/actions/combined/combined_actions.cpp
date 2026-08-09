@@ -11,6 +11,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace xdebug_fst {
@@ -36,13 +37,23 @@ std::string x_mask(const std::string& bits) {
 struct Sample {
     bool ok=false;
     uint32_t ref=0,time_idx=0,width=0;
-    uint64_t time=0;
+    uint64_t query_time=0,time=0,active_time=0;
     std::string bits;
 };
+
+uint64_t previous_change_time(IWaveformBackend& waveform, uint32_t ref,
+                              uint32_t query_index, uint64_t fallback) {
+    const auto indices=waveform.time_indices_of(ref);
+    for (auto it=indices.rbegin();it!=indices.rend();++it) {
+        if (*it<=query_index) return waveform.time_at(*it);
+    }
+    return fallback;
+}
 
 Sample sample_at(IWaveformBackend& waveform, const std::string& signal,
                  uint64_t time) {
     Sample sample;
+    sample.query_time=time;
     sample.ref=waveform.find_signal(signal);
     if (sample.ref==IWaveformBackend::kInvalidSignalRef) return sample;
     if (!waveform.is_loaded(sample.ref)) waveform.load_signals({sample.ref});
@@ -52,6 +63,8 @@ Sample sample_at(IWaveformBackend& waveform, const std::string& signal,
     IWaveformBackend::SignalInfo info;
     if (waveform.signal_info(sample.ref,info)) sample.width=info.width;
     sample.time=waveform.time_at(sample.time_idx);
+    sample.active_time=previous_change_time(
+        waveform,sample.ref,sample.time_idx,sample.time);
     sample.bits=waveform.signal_value_str(sample.ref,offset.start,0);
     sample.ok=!sample.bits.empty();
     return sample;
@@ -138,11 +151,111 @@ Json trace_hop(size_t index, const std::string& signal, const Sample& sample,
     int line=driver&&driver->line>0?driver->line:
         (signal_index>=0?design.signal_line(signal_index):1);
     return {{"index",index},{"chain_id","c0"},{"signal",signal},
-        {"time",waveform.format_time(sample.time,unit)},
-        {"active_time",waveform.format_time(sample.time,unit)},
+        {"time",waveform.format_time(sample.query_time,unit)},
+        {"active_time",waveform.format_time(sample.active_time,unit)},
         {"value",logic_string(sample,format)},{"relation",relation},
         {"file",file.empty()?"<unknown>":file},{"line",std::max(1,line)},
         {"source_context",Json::array()},{"signal_path",Json::array({signal})}};
+}
+
+struct StatementGroup {
+    std::string kind,file;
+    int line=0;
+    std::vector<IDesignBackend::DriverRecord> rhs;
+};
+
+std::vector<StatementGroup> rhs_statement_groups(
+    const std::vector<IDesignBackend::DriverRecord>& drivers) {
+    std::map<std::tuple<std::string,int,std::string>,StatementGroup> grouped;
+    for (const auto& driver : drivers) {
+        if (driver.dependency_role!="rhs"||driver.src_signal<0) continue;
+        const auto key=std::make_tuple(driver.file,driver.line,driver.kind);
+        auto& statement=grouped[key];
+        statement.kind=driver.kind;
+        statement.file=driver.file;
+        statement.line=driver.line;
+        if (std::none_of(statement.rhs.begin(),statement.rhs.end(),
+                [&](const auto& item){return item.src_signal==driver.src_signal;}))
+            statement.rhs.push_back(driver);
+    }
+    std::vector<StatementGroup> statements;
+    for (auto& [key,statement] : grouped) {
+        (void)key;
+        std::sort(statement.rhs.begin(),statement.rhs.end(),
+            [](const auto& left,const auto& right){
+                return left.src_signal<right.src_signal;
+            });
+        statements.push_back(std::move(statement));
+    }
+    return statements;
+}
+
+Sample sample_before(IWaveformBackend& waveform,const std::string& signal,
+                     uint64_t time) {
+    const uint32_t ref=waveform.find_signal(signal);
+    if (ref==IWaveformBackend::kInvalidSignalRef) return {};
+    if (!waveform.is_loaded(ref)) waveform.load_signals({ref});
+    const uint32_t query_index=waveform.time_idx_of(time);
+    const auto indices=waveform.time_indices_of(ref);
+    for (auto it=indices.rbegin();it!=indices.rend();++it) {
+        const uint64_t candidate_time=waveform.time_at(*it);
+        if (*it<query_index&&candidate_time<time)
+            return sample_at(waveform,signal,candidate_time);
+    }
+    return {};
+}
+
+bool known_bits(const std::string& bits) {
+    return bits.find_first_of("xXzZhHlLuUwW-")==std::string::npos;
+}
+
+Json ambiguity_value(const Sample& sample,IWaveformBackend& waveform,
+                     TimeRenderUnit unit,ValueRenderFormat format) {
+    if (!sample.ok) return {{"status","missing_value"},{"value",nullptr},
+        {"known",nullptr},{"value_time",nullptr}};
+    return {{"status","ok"},{"value",logic_string(sample,format)},
+        {"known",known_bits(sample.bits)},
+        {"value_time",waveform.format_time(sample.active_time,unit)}};
+}
+
+Json ambiguity_evidence(const std::string& kind,const std::string& signal,
+                        uint64_t active_time,size_t hop_index,
+                        const std::vector<StatementGroup>& groups,
+                        size_t max_trace_signals,IDesignBackend& design,
+                        IWaveformBackend& waveform,TimeRenderUnit unit,
+                        ValueRenderFormat format) {
+    Json statements=Json::array();
+    size_t rhs_count=0,returned=0;
+    for (const auto& group : groups) {
+        Json samples=Json::array();
+        for (const auto& driver : group.rhs) {
+            ++rhs_count;
+            if (returned>=max_trace_signals) continue;
+            const std::string source=signal_name(design,driver.src_signal);
+            const Sample before=sample_before(waveform,source,active_time);
+            const Sample after=sample_at(waveform,source,active_time);
+            Json before_json=ambiguity_value(before,waveform,unit,format);
+            Json after_json=ambiguity_value(after,waveform,unit,format);
+            Json changed=nullptr;
+            if (before.ok&&after.ok) changed=before.bits!=after.bits;
+            samples.push_back({{"signal",source},{"before",before_json},
+                {"after",after_json},{"changed",changed}});
+            ++returned;
+        }
+        statements.push_back({{"kind",group.kind.empty()?"assignment":group.kind},
+            {"driver",group.kind},{"file",group.file},{"line",std::max(0,group.line)},
+            {"rhs_signal_count",group.rhs.size()},
+            {"returned_rhs_signal_count",samples.size()},
+            {"complete",samples.size()==group.rhs.size()},{"rhs_samples",samples}});
+    }
+    const size_t omitted=rhs_count-returned;
+    return {{"kind",kind},{"signal",signal},
+        {"active_time",waveform.format_time(active_time,unit)},
+        {"hop_index",hop_index},{"statement_count",groups.size()},
+        {"rhs_signal_count",rhs_count},{"returned_rhs_signal_count",returned},
+        {"omitted_rhs_signal_count",omitted},{"analysis_complete",omitted==0},
+        {"truncation_scopes",omitted?Json::array({"ambiguity_rhs_samples"}):Json::array()},
+        {"statements",statements}};
 }
 
 Json x_hop(size_t index, const std::string& chain_id,
@@ -158,7 +271,7 @@ Json x_hop(size_t index, const std::string& chain_id,
         (signal_index>=0?design.signal_line(signal_index):0);
     return {{"index",index},{"chain_id",chain_id},{"signal",signal},
         {"x_onset_time",waveform.format_time(onset,unit)},
-        {"active_time",waveform.format_time(sample.time,unit)},
+        {"active_time",waveform.format_time(sample.active_time,unit)},
         {"value",logic_json(sample,format)},{"x_mask",x_mask(sample.bits)},
         {"relation",relation},{"file",file},{"line",std::max(0,line)},
         {"signal_path",Json::array({signal})}};
@@ -185,17 +298,22 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
         const size_t max_results=limits.value("max_results",10u);
         Json paths=Json::array();
         std::set<std::pair<std::string,int>> statements;
+        std::vector<IDesignBackend::DriverRecord> unique_drivers;
         for (const auto& driver : drivers_for(design,index)) {
             if (driver.line<=0||driver.file.empty()) continue;
             if (!statements.insert({driver.file,driver.line}).second) continue;
+            unique_drivers.push_back(driver);
+        }
+        for (const auto& driver : unique_drivers) {
+            if (paths.size()>=max_results) break;
             const std::string source=signal_name(design,driver.src_signal);
             paths.push_back(source_path(driver,source,signal));
-            if (paths.size()>=max_results) break;
         }
-        const size_t total=statements.size();
+        const size_t total=unique_drivers.size();
         const bool truncated=paths.size()<total;
-        const std::string rendered_time=waveform.format_time(target.time,unit);
-        Json summary{{"signal",signal},{"time",rendered_time},{"active_time",rendered_time},
+        const std::string rendered_time=waveform.format_time(time,unit);
+        const std::string active_time=waveform.format_time(target.active_time,unit);
+        Json summary{{"signal",signal},{"time",rendered_time},{"active_time",active_time},
             {"termination",paths.empty()?"no_driver":"assignment"},
             {"termination_detail",paths.empty()?"no_driver":"assignment"},
             {"scan_complete",true},{"analysis_complete",true},
@@ -219,55 +337,121 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         if (!parse_common(request,waveform,root,time,unit,format,error)) return error;
         const Json limits=request.value("limits",Json::object());
         const size_t max_depth=limits.value("max_depth",8u);
+        const size_t max_nodes=limits.value("max_nodes",50u);
+        const size_t max_trace_signals=limits.value("max_trace_signals",64u);
         Json hops=Json::array();
         std::set<std::string> visited;
         std::string current=root,termination="no_driver",detail="no_driver";
-        bool limited=false;
+        uint64_t current_time=time;
+        bool limited=false,ambiguity_limited=false;
         std::string frontier_signal; Sample frontier_sample;
-        for (size_t depth=0;depth<max_depth;++depth) {
-            if (!visited.insert(current).second) { termination="loop"; detail="loop_detected"; break; }
+        Json ambiguity=nullptr;
+        for (size_t depth=0;;++depth) {
+            const std::string visit_key=current+"\x1f"+std::to_string(current_time);
+            if (!visited.insert(visit_key).second) {
+                termination="loop_detected"; detail="loop_detected"; break;
+            }
             const int index=design.resolve(current.c_str());
             if (index<0) return action_error("SIGNAL_NOT_FOUND","signal not found in design: "+current);
-            const Sample sample=sample_at(waveform,current,time);
+            const Sample sample=sample_at(waveform,current,current_time);
             if (!sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST: "+current);
             auto drivers=drivers_for(design,index);
+            auto groups=rhs_statement_groups(drivers);
             const IDesignBackend::DriverRecord* selected=nullptr;
             std::string upstream;
-            for (const auto& driver : drivers) {
-                if (driver.dependency_role!="rhs"||driver.src_signal<0) continue;
-                const std::string candidate=signal_name(design,driver.src_signal);
-                if (candidate.empty()||candidate==current||!sample_at(waveform,candidate,time).ok) continue;
-                selected=&driver; upstream=candidate; break;
+            std::string ambiguity_kind;
+            if (groups.size()>1) ambiguity_kind="multiple_active_candidates";
+            else if (groups.size()==1&&groups[0].rhs.size()>1)
+                ambiguity_kind="multiple_rhs_sources";
+            if (!groups.empty()&&!groups[0].rhs.empty())
+                selected=&groups[0].rhs[0];
+            if (ambiguity_kind.empty()&&selected) {
+                const std::string candidate=signal_name(design,selected->src_signal);
+                if (!candidate.empty()&&candidate!=current&&
+                    sample_at(waveform,candidate,sample.active_time).ok)
+                    upstream=candidate;
             }
             hops.push_back(trace_hop(depth,current,sample,depth==0?"root":"driver",
                 selected,design,index,waveform,unit,format));
+
+            if (!ambiguity_kind.empty()) {
+                ambiguity=ambiguity_evidence(ambiguity_kind,current,
+                    sample.active_time,hops.size()-1,groups,max_trace_signals,
+                    design,waveform,unit,format);
+                ambiguity_limited=!ambiguity["analysis_complete"].get<bool>();
+                termination="ambiguous"; detail=ambiguity_kind; break;
+            }
+
             if (upstream.empty()) {
-                termination=drivers.empty()?"no_driver":"assignment";
+                if (drivers.empty()&&(design.signal_direction(index)==1||
+                                      design.signal_direction(index)==3)) {
+                    std::vector<IDesignBackend::PortConnection> connections;
+                    design.port_connections(index,connections);
+                    for (const auto& connection : connections) {
+                        const int other=connection.port_signal==index
+                            ?connection.connected_signal:connection.port_signal;
+                        const std::string candidate=signal_name(design,other);
+                        if (!candidate.empty()&&candidate!=current&&
+                            sample_at(waveform,candidate,sample.active_time).ok) {
+                            upstream=candidate;
+                            break;
+                        }
+                    }
+                    if (upstream.empty()) termination="primary_input";
+                }
+                if (upstream.empty()&&termination!="primary_input") {
+                    const bool has_control=std::any_of(drivers.begin(),drivers.end(),
+                        [](const auto& driver){return driver.dependency_role=="control";});
+                    termination=drivers.empty()?"no_driver":
+                        (has_control?"control_only":"assignment");
+                }
+            }
+            if (upstream.empty()) {
                 detail=termination; break;
             }
-            if (depth+1==max_depth) {
+
+            const uint64_t next_time=sample.active_time;
+            frontier_signal=upstream;
+            frontier_sample=sample_at(waveform,upstream,next_time);
+            if (hops.size()>=max_nodes) {
+                limited=true; termination="limit"; detail="max_nodes"; break;
+            }
+            if (depth>=max_depth) {
                 limited=true; termination="limit"; detail="max_depth";
-                frontier_signal=upstream; frontier_sample=sample_at(waveform,upstream,time); break;
+                break;
             }
             current=upstream;
+            current_time=next_time;
         }
         Json data{{"hops",hops}};
         Json truncation=Json::array();
         if (limited) {
             truncation.push_back("analysis_trace");
-            const std::string frontier_time=waveform.format_time(frontier_sample.time,unit);
-            data["depth_frontiers"]=Json::array({{{"chain_id","c0"},
-                {"signal",frontier_signal},{"time",frontier_time},
-                {"value",logic_string(frontier_sample,format)},
-                {"stopped_after_depth",max_depth}}});
-            data["suggested_next_actions"]=Json::array({{{"action","trace.active_driver_chain"},
-                {"reason","continue_from_depth_frontier"},{"chain_id","c0"},
-                {"args",{{"signal",frontier_signal},{"time",frontier_time}}},
-                {"limits",{{"max_depth",max_depth}}}}});
+            if (detail=="max_depth"&&frontier_sample.ok) {
+                const std::string frontier_time=
+                    waveform.format_time(frontier_sample.query_time,unit);
+                data["depth_frontiers"]=Json::array({{{"chain_id","c0"},
+                    {"signal",frontier_signal},{"time",frontier_time},
+                    {"value",logic_string(frontier_sample,format)},
+                    {"stopped_after_depth",max_depth}}});
+                data["suggested_next_actions"]=Json::array({
+                    {{"action","trace.active_driver_chain"},
+                     {"reason","continue_from_depth_frontier"},{"chain_id","c0"},
+                     {"args",{{"signal",frontier_signal},{"time",frontier_time}}},
+                     {"limits",{{"max_depth",max_depth}}}},
+                    {{"action","trace.active_driver_chain"},
+                     {"reason","rerun_from_root_with_higher_depth"},
+                     {"args",{{"signal",root},{"time",waveform.format_time(time,unit)}}},
+                     {"limits",{{"max_depth",max_depth*2}}}}
+                });
+            }
         }
+        if (!ambiguity.is_null()) data["ambiguity_evidence"]=ambiguity;
+        if (ambiguity_limited) truncation.push_back("ambiguity_rhs_samples");
+        const bool complete=!limited&&!ambiguity_limited;
         Json summary{{"signal",root},{"time",waveform.format_time(time,unit)},
             {"termination",termination},{"termination_detail",detail},
-            {"scan_complete",!limited},{"analysis_complete",!limited},
+            {"scan_complete",complete},{"analysis_complete",complete},
             {"response_truncated",false},{"total_count",hops.size()},
             {"returned_count",hops.size()},{"truncation_scopes",truncation}};
         return {{"ok",true},{"summary",summary},{"data",data}};
@@ -289,7 +473,7 @@ struct TraceXOriginHandler : public EngineActionHandler {
         if (root_index<0) return action_error("SIGNAL_NOT_FOUND","signal not found in design: "+root);
         const Sample query_sample=sample_at(waveform,root,time);
         if (!query_sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST");
-        const std::string query_time=waveform.format_time(query_sample.time,unit);
+        const std::string query_time=waveform.format_time(time,unit);
         Json query{{"signal",root},{"query_time",query_time},
             {"value",logic_json(query_sample,format)},{"x_mask",x_mask(query_sample.bits)}};
         if (!has_x(query_sample.bits)) {
@@ -311,17 +495,23 @@ struct TraceXOriginHandler : public EngineActionHandler {
             std::vector<std::string> visited;
             Json hops=Json::array();
             size_t depth=0;
+            uint64_t time=0;
             IDesignBackend::DriverRecord incoming;
             bool has_incoming=false;
         };
         std::deque<State> pending;
-        pending.push_back({root,"c0","root",{},Json::array(),0,{},false});
+        State initial;
+        initial.signal=root;
+        initial.chain_id="c0";
+        initial.relation="root";
+        initial.time=time;
+        pending.push_back(std::move(initial));
         Json chains=Json::array(),limitations=Json::array();
         size_t nodes=0,chain_serial=1,hop_count=0,limited_count=0,origin_count=0;
         while (!pending.empty()&&chains.size()<max_chains) {
             State state=std::move(pending.front()); pending.pop_front();
             const int index=design.resolve(state.signal.c_str());
-            const Sample sample=sample_at(waveform,state.signal,time);
+            const Sample sample=sample_at(waveform,state.signal,state.time);
             const uint64_t onset=x_onset_time(waveform,sample);
             state.hops.push_back(x_hop(state.hops.size(),state.chain_id,state.signal,sample,onset,
                 state.relation,state.has_incoming?&state.incoming:nullptr,
@@ -334,7 +524,7 @@ struct TraceXOriginHandler : public EngineActionHandler {
                 if (driver.dependency_role!="rhs"||driver.src_signal<0) continue;
                 const std::string candidate=signal_name(design,driver.src_signal);
                 if (candidate.empty()||std::find(state.visited.begin(),state.visited.end(),candidate)!=state.visited.end()) continue;
-                const Sample upstream=sample_at(waveform,candidate,time);
+                const Sample upstream=sample_at(waveform,candidate,sample.active_time);
                 if (upstream.ok&&has_x(upstream.bits)) x_sources.push_back({candidate,driver});
             }
             if (x_sources.empty()) {
@@ -344,7 +534,7 @@ struct TraceXOriginHandler : public EngineActionHandler {
                     const int other=port.port_signal==index?port.connected_signal:port.port_signal;
                     const std::string candidate=signal_name(design,other);
                     if (candidate.empty()||std::find(state.visited.begin(),state.visited.end(),candidate)!=state.visited.end()) continue;
-                    const Sample upstream=sample_at(waveform,candidate,time);
+                    const Sample upstream=sample_at(waveform,candidate,sample.active_time);
                     if (!upstream.ok||!has_x(upstream.bits)) continue;
                     IDesignBackend::DriverRecord relation;
                     relation.src_signal=other; relation.kind=port.kind;
@@ -382,7 +572,11 @@ struct TraceXOriginHandler : public EngineActionHandler {
                     x_sources[source_index].second.dependency_role;
                 next.incoming=x_sources[source_index].second; next.has_incoming=true;
                 next.depth=state.depth+1;
-                if (source_index>0) next.chain_id="c"+std::to_string(chain_serial++);
+                next.time=sample.active_time;
+                if (source_index>0) {
+                    next.chain_id="c"+std::to_string(chain_serial++);
+                    for (auto& hop : next.hops) hop["chain_id"]=next.chain_id;
+                }
                 pending.push_back(std::move(next));
             }
         }
