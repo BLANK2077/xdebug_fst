@@ -616,8 +616,10 @@ Verilator。第三批在双重修改前失败证据后，以 XDD 内部 `==?z`/`
 选中信号 RHS 和常量 RHS 分支。该用例关闭基本常量叶子与同源行分支身份，但
 随后以既有 counter FST alias 和 DesignDB 对称端口边验证内部 input 只向父级上溯，并在
 顶层 primary input 终止，关闭基本 input alias/跨端口反向折返。case inside/matches、更多
-连续/过程/NBA 与常量组合、output/inout alias、更多跨端口层级、多 driver 和原版差分仍是
-P6 必做项。
+随后按冻结原版排除目标自引用 RHS 的规则，将 `count <= count + 1` 的活动 NBA 正确终止为
+`assignment/constant_or_no_rhs_signal`，关闭基本 NBA self-RHS 分类。case inside/matches、
+更多连续/过程/NBA 时序边界与常量组合、output/inout alias、更多跨端口层级、多 driver 和
+原版差分仍是 P6 必做项。
 
 #### trace.active_driver
 

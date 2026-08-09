@@ -128,6 +128,10 @@ size_t hierarchy_depth(const std::string& signal) {
     return static_cast<size_t>(std::count(signal.begin(),signal.end(),'.'));
 }
 
+bool is_assignment_kind(const std::string& kind) {
+    return kind=="nba"||kind=="proc_assign"||kind=="cont_assign";
+}
+
 Json logic_json(const Sample& sample, ValueRenderFormat format) {
     return logic_value_json(logic_value_from_bits(sample.bits,sample.width),format);
 }
@@ -489,14 +493,22 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     if (upstream.empty()) termination="primary_input";
                 }
                 if (upstream.empty()&&termination!="primary_input") {
+                    const bool has_assignment=std::any_of(
+                        evaluated.active.begin(),evaluated.active.end(),
+                        [](const auto& statement){
+                            return is_assignment_kind(statement.kind);
+                        });
                     const bool has_control=std::any_of(drivers.begin(),drivers.end(),
                         [](const auto& driver){return driver.dependency_role=="control";});
                     termination=drivers.empty()?"no_driver":
-                        (has_control?"control_only":"assignment");
+                        (has_assignment?"assignment":
+                            (has_control?"control_only":"assignment"));
                 }
             }
             if (upstream.empty()) {
-                detail=termination; break;
+                detail=termination=="assignment"
+                    ?"constant_or_no_rhs_signal":termination;
+                break;
             }
 
             const uint64_t next_time=sample.active_time;

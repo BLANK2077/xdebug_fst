@@ -611,6 +611,13 @@ Wellen 暴露为多个保真的层级 alias。对无 driver 的声明 input，ac
 DesignDB 仍只提供静态边，Wellen 仍只提供该 alias 在原始 FST 中的值，两者都不承担链路
 分析或方向推理。
 
+NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
+目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
+xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为
+`assignment/constant_or_no_rhs_signal`，与冻结原版排除目标自引用后的合同一致。不能因为
+剩余记录恰好只有 control role 就降级成 `control_only`。该判断来自 DesignDB assignment
+kind，不是从 FST 值变化猜测 HDL 时序；Wellen 只提供 active time 和对应波形值。
+
 显式文件产物必须与“离线 FST 分析”严格区分：
 
 - `list.export` 按公共合同写出 `u64bin.v1`，用于调用者消费最终列表数据；
