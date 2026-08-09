@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from conftest import AXI_CONFIG, open_session
+from conftest import AXI_CONFIG, STREAM_CONFIG, open_session
 from runner import StdioLoopRunner
 
 
@@ -190,12 +190,15 @@ def test_value_at_axi_source(loop_runner: StdioLoopRunner, axi_fst) -> None:
 def test_value_at_stream_source(loop_runner: StdioLoopRunner,
                                 stream_fst) -> None:
     open_session(loop_runner, stream_fst)
+    loaded = loop_runner.request("stream.config.load",
+                                 args={"config": STREAM_CONFIG})
+    assert loaded.get("ok"), loaded
     rsp = loop_runner.request("value.at", args={
-        "stream": "default", "time": "0ps"})
+        "stream": "fifo", "time": "0ps"})
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["source_kind"] == "stream"
     assert [entry["key"] for entry in rsp["data"]["entries"]] == [
-        "clock", "valid", "ready"]
+        "clock", "valid", "ready", "data"]
 
 
 def test_value_at_list_source(loop_runner: StdioLoopRunner,

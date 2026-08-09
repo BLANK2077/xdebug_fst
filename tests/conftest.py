@@ -30,6 +30,15 @@ AXI_CONFIG = {
     "rlast": "TOP.rlast", "rvalid": "TOP.rvalid", "rready": "TOP.rready",
 }
 
+STREAM_CONFIG = {
+    "streams": [{"name": "fifo",
+        "signals": {"clk": "top.clk", "vld": "top.in_valid",
+                    "rdy": "top.in_ready", "data": "top.in_data"},
+        "clock": "clk", "edge": "posedge", "sample_point": "after",
+        "reset": {"signal": "top.reset", "polarity": "active_high"},
+        "vld": "vld", "rdy": "rdy", "beat_fields": {"data": "data"}}],
+}
+
 TESTS_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_ROOT.parent
 FIXTURES = REPO_ROOT / "testdata" / "fixtures"
