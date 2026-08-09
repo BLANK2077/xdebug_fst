@@ -746,6 +746,15 @@ backend。两级 alias 因而从同一原始 FST 得到 60ps，而 Verilator/Wel
 最近真实事件 30ps，并在该时刻求值复位 predicate。该用例无需新增实现即通过，进一步
 证明事件源选择来自静态敏感列表，事件发生来自 FST 运行时边沿，二者职责没有漂移。
 
+混合 blocking/NBA 写入还要求按 SystemVerilog 调度区域而非静态记录数量判定最终驱动。同一
+目标在同一时隙有且仅有一条已证明活动 NBA、且没有未决 NBA 时，该 NBA 在 NBA 区域覆盖
+所有非 NBA 写入；多个活动 NBA 或任何未决 NBA 仍必须保持歧义。consumer 的统一归一化先
+保留 force 优先级，再只在上述充分条件下筛除非 NBA statement，并同时用于单步、chain、
+X-origin 和连续 alias 的事件时间前瞻。真实 `mixed_q = 8'h33; mixed_q <= data;` 固件证明
+DesignDB 已有 proc_assign、nba、RHS 和 event_posedge 全部静态事实，无需扩展 Verilator；
+Wellen 只读取原始 FST 中 60ps 的 clk 边沿，既不读取瞬态 blocking 写入，也不以最终值选择
+语句。最终 chain 沿第 68 行 NBA 到 data，并把 60ps 因果时间传播到下游 alias。
+
 force 审计证明静态 driver kind 也不能由 FST 值反推。Verilator `90d5aa2ae` 的失败回归先
 锁定 `AstAssignForce` 被错误降级为 `proc_assign`，`07d076a82` 只复用既有 kind 字符串发布
 `force`，不改变 ABI 布局、force lowering 或仿真调度。真实 FST 仍只呈现 force 后的运行时

@@ -377,6 +377,30 @@ struct EvaluatedStatements {
     std::vector<StatementGroup> unresolved;
 };
 
+void apply_unique_nba_priority(EvaluatedStatements& statements) {
+    const auto has_kind=[](const StatementGroup& statement,const char* kind) {
+        return statement.kind==kind;
+    };
+    const bool has_force=std::any_of(
+        statements.active.begin(),statements.active.end(),
+        [&](const auto& statement){return has_kind(statement,"force");})||
+        std::any_of(statements.unresolved.begin(),statements.unresolved.end(),
+        [&](const auto& statement){return has_kind(statement,"force");});
+    if (has_force) return;
+    const size_t active_nba=static_cast<size_t>(std::count_if(
+        statements.active.begin(),statements.active.end(),
+        [&](const auto& statement){return has_kind(statement,"nba");}));
+    const bool unresolved_nba=std::any_of(
+        statements.unresolved.begin(),statements.unresolved.end(),
+        [&](const auto& statement){return has_kind(statement,"nba");});
+    if (active_nba!=1||unresolved_nba) return;
+    statements.active.erase(std::remove_if(
+        statements.active.begin(),statements.active.end(),
+        [&](const auto& statement){return !has_kind(statement,"nba");}),
+        statements.active.end());
+    statements.unresolved.clear();
+}
+
 EvaluatedStatements active_statement_groups(
     const std::vector<IDesignBackend::DriverRecord>& drivers,
     IDesignBackend& design,IWaveformBackend& waveform,uint64_t active_time,
@@ -409,8 +433,9 @@ bool causal_event_time_through_unique_chain(
     if (!sample.ok) return false;
     auto drivers=drivers_for(design,index);
     annotate_output_instance_identities(design,index,drivers);
-    const auto evaluated=active_statement_groups(
+    auto evaluated=active_statement_groups(
         drivers,design,waveform,sample.active_time,horizon);
+    apply_unique_nba_priority(evaluated);
     if (!evaluated.unresolved.empty()||evaluated.active.size()!=1) return false;
     const StatementGroup& statement=evaluated.active.front();
     if (statement.kind=="nba"&&statement.has_event_time) {
@@ -543,8 +568,9 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
         Json paths=Json::array();
         auto drivers=drivers_for(design,index);
         annotate_output_instance_identities(design,index,drivers);
-        const auto evaluated=active_statement_groups(
+        auto evaluated=active_statement_groups(
             drivers,design,waveform,target.active_time);
+        apply_unique_nba_priority(evaluated);
         const bool has_active_force=std::any_of(
             evaluated.active.begin(),evaluated.active.end(),
             [](const auto& statement) { return statement.kind=="force"; });
@@ -614,8 +640,9 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             if (!sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST: "+current);
             auto drivers=drivers_for(design,index);
             annotate_output_instance_identities(design,index,drivers);
-            const auto evaluated=active_statement_groups(
+            auto evaluated=active_statement_groups(
                 drivers,design,waveform,sample.active_time,current_time);
+            apply_unique_nba_priority(evaluated);
             std::vector<StatementGroup> groups;
             for (const auto& statement : evaluated.active) {
                 const bool has_control=std::any_of(
@@ -675,9 +702,10 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             if (ambiguity_kind.empty()&&direction==2&&!previous.empty()&&
                 upstream==previous) {
                 const int parent_index=design.resolve(previous.c_str());
-                const auto parent_evaluated=active_statement_groups(
+                auto parent_evaluated=active_statement_groups(
                     drivers_for(design,parent_index),design,waveform,
                     sample.active_time,current_time);
+                apply_unique_nba_priority(parent_evaluated);
                 if (parent_evaluated.unresolved.empty()&&
                     parent_evaluated.active.size()==1&&
                     !parent_evaluated.active[0].rhs.empty()) {
@@ -1014,8 +1042,9 @@ struct TraceXOriginHandler : public EngineActionHandler {
 
             auto all_drivers=drivers_for(design,index);
             annotate_output_instance_identities(design,index,all_drivers);
-            const auto evaluated=active_statement_groups(
+            auto evaluated=active_statement_groups(
                 all_drivers,design,waveform,sample.active_time);
+            apply_unique_nba_priority(evaluated);
             const auto force_statement=std::find_if(
                 evaluated.active.begin(),evaluated.active.end(),
                 [](const auto& statement) { return statement.kind=="force"; });
