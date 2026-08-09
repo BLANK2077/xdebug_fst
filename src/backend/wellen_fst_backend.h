@@ -37,11 +37,14 @@ public:
 
     uint32_t scope_count() const override;
     uint32_t scope_at(uint32_t idx) const override;
+    uint32_t root_scope_count() const override;
+    uint32_t root_scope_at(uint32_t idx) const override;
     uint32_t scope_child_count(uint32_t scope_ref) const override;
     uint32_t scope_child_at(uint32_t scope_ref, uint32_t idx) const override;
     uint32_t scope_var_count(uint32_t scope_ref) const override;
     uint32_t scope_var_at(uint32_t scope_ref, uint32_t idx) const override;
     const char* scope_name(uint32_t scope_ref) override;
+    const char* scope_full_name(uint32_t scope_ref) override;
     const char* var_name(uint32_t var_ref) override;
     const char* var_full_name(uint32_t var_ref) override;
     uint32_t var_signal_ref(uint32_t var_ref) const override;
@@ -69,7 +72,7 @@ public:
     const uint8_t* signal_data_ptr(uint32_t signal_ref) const override;
 
     /// Find a signal by hierarchical path (case-insensitive, "TOP." prefix
-    /// tolerant). Returns 0 if not found.
+    /// tolerant). Returns kInvalidSignalRef if not found.
     uint32_t find_signal(const std::string& path) const;
 
     /// Direct signal-value query at an absolute time (ns-style integer).

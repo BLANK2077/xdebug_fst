@@ -13,8 +13,8 @@ namespace xdebug_fst {
 class IWaveformBackend {
 public:
     /// Sentinel returned by find_signal() when a signal is not found.
-    /// (0 is a VALID signal ref in wellen, so it cannot be used as "not found".)
-    static constexpr uint32_t kInvalidSignalRef = 0xFFFFFFFFu;
+    /// The C ABI exposes native Wellen SignalRef(N) as N+1, reserving zero.
+    static constexpr uint32_t kInvalidSignalRef = 0;
 
     virtual ~IWaveformBackend() = default;
 
@@ -58,6 +58,10 @@ public:
     /// Get scope handle at linear index (0-based). Returns 0 if invalid.
     virtual uint32_t scope_at(uint32_t idx) const = 0;
 
+    /// Number of top-level scopes and their handles.
+    virtual uint32_t root_scope_count() const = 0;
+    virtual uint32_t root_scope_at(uint32_t idx) const = 0;
+
     /// Number of child scopes under a given scope.
     virtual uint32_t scope_child_count(uint32_t scope_ref) const = 0;
 
@@ -73,17 +77,20 @@ public:
     /// Get scope name (C string from interned data, valid for backend lifetime).
     virtual const char* scope_name(uint32_t scope_ref) = 0;
 
+    /// Get full hierarchical scope name.
+    virtual const char* scope_full_name(uint32_t scope_ref) = 0;
+
     /// Get variable local name.
     virtual const char* var_name(uint32_t var_ref) = 0;
 
     /// Get variable full hierarchical name.
     virtual const char* var_full_name(uint32_t var_ref) = 0;
 
-    /// Get signal_ref for a variable. Returns 0 if no associated signal.
+    /// Get the 1-based C signal_ref for a variable. Returns 0 if absent.
     virtual uint32_t var_signal_ref(uint32_t var_ref) const = 0;
 
     /// Find a signal by hierarchical path (case-insensitive, "TOP." prefix
-    /// tolerant). Returns 0 if not found.
+    /// tolerant). Returns kInvalidSignalRef if not found.
     virtual uint32_t find_signal(const std::string& path) const = 0;
 
     /// Get signal encoding and width for a variable.

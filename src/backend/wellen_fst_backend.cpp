@@ -7,6 +7,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <unordered_set>
 #include <sys/stat.h>
 
 // Link against wellen_capi (core) and wellenx_capi (extension)
@@ -112,11 +113,19 @@ std::string WellenFstBackend::format_time(uint64_t t) const {
 // ── Hierarchy ──
 
 uint32_t WellenFstBackend::scope_count() const {
-    return wellen_root_scope_count(db_);
+    return wellen_scope_count(db_);
 }
 
 uint32_t WellenFstBackend::scope_at(uint32_t idx) const {
     return wellen_scope_at(db_, idx);
+}
+
+uint32_t WellenFstBackend::root_scope_count() const {
+    return wellen_root_scope_count(db_);
+}
+
+uint32_t WellenFstBackend::root_scope_at(uint32_t idx) const {
+    return wellen_root_scope_at(db_, idx);
 }
 
 uint32_t WellenFstBackend::scope_child_count(uint32_t scope_ref) const {
@@ -159,6 +168,16 @@ const char* WellenFstBackend::scope_name(uint32_t scope_ref) {
     auto& s = name_cache_[scope_ref];
     if (s.empty()) s = get_or_cache_name(scope_ref, false, false);
     return s.c_str();
+}
+
+const char* WellenFstBackend::scope_full_name(uint32_t scope_ref) {
+    const uint32_t key = scope_ref | 0x40000000;
+    auto& value = name_cache_[key];
+    if (value.empty()) {
+        const char* name = wellen_scope_full_name(db_, scope_ref);
+        value = name ? name : "";
+    }
+    return value.c_str();
 }
 
 const char* WellenFstBackend::var_name(uint32_t var_ref) {
@@ -353,7 +372,9 @@ std::string WellenFstBackend::normalize_path(const std::string& path) {
 
 void WellenFstBackend::build_signal_index() const {
     if (!signal_index_.empty() || !db_) return;
-    uint32_t n = wellen_root_scope_count(db_);
+    std::unordered_map<std::string, uint32_t> local_candidates;
+    std::unordered_set<std::string> ambiguous_locals;
+    uint32_t n = wellen_scope_count(db_);
     for (uint32_t si = 0; si < n; ++si) {
         uint32_t sr = wellen_scope_at(db_, si);
         if (sr == 0) continue;
@@ -367,28 +388,20 @@ void WellenFstBackend::build_signal_index() const {
             if (sig == 0) continue;
             std::string key = normalize_path(full);
             if (!key.empty()) signal_index_[key] = sig;
-            // Also register the local (last-path-component) name when unique
-            std::string local = normalize_path(wellen_var_name(db_, vr) ? wellen_var_name(db_, vr) : "");
-            if (!local.empty() && signal_index_.find(local) == signal_index_.end()) {
-                signal_index_[local] = sig;
+            const char* local_name = wellen_var_name(db_, vr);
+            std::string local = normalize_path(local_name ? local_name : "");
+            if (!local.empty()) {
+                auto inserted = local_candidates.emplace(local, sig);
+                if (!inserted.second && inserted.first->second != sig) {
+                    ambiguous_locals.insert(local);
+                }
             }
         }
-        // child scopes
-        uint32_t nc = wellen_scope_child_count(db_, sr);
-        for (uint32_t ci = 0; ci < nc; ++ci) {
-            uint32_t cs = wellen_scope_child_at(db_, sr, ci);
-            if (cs == 0) continue;
-            uint32_t nvc = wellen_scope_var_count(db_, cs);
-            for (uint32_t vi = 0; vi < nvc; ++vi) {
-                uint32_t vr = wellen_scope_var_at(db_, cs, vi);
-                if (vr == 0) continue;
-                const char* full = wellen_var_full_name(db_, vr);
-                if (!full || !*full) continue;
-                uint32_t sig = wellen_var_signal_ref(db_, vr);
-                if (sig == 0) continue;
-                std::string key = normalize_path(full);
-                if (!key.empty()) signal_index_[key] = sig;
-            }
+    }
+    for (const auto& item : local_candidates) {
+        if (ambiguous_locals.count(item.first) == 0 &&
+            signal_index_.count(item.first) == 0) {
+            signal_index_[item.first] = item.second;
         }
     }
 }
@@ -400,7 +413,7 @@ uint32_t WellenFstBackend::find_signal(const std::string& path) const {
     auto it = signal_index_.find(key);
     if (it != signal_index_.end()) return it->second;
     // Fallback: brute force over all vars
-    uint32_t n = wellen_root_scope_count(db_);
+    uint32_t n = wellen_scope_count(db_);
     for (uint32_t si = 0; si < n; ++si) {
         uint32_t sr = wellen_scope_at(db_, si);
         if (sr == 0) continue;
@@ -419,7 +432,7 @@ bool WellenFstBackend::value_at(const std::string& path, uint64_t time,
                                 std::string& out_value, uint32_t* out_width,
                                 bool* out_time_match, uint32_t* out_time_idx) const {
     uint32_t ref = find_signal(path);
-    if (!ref) return false;
+    if (ref == kInvalidSignalRef) return false;
     if (!is_loaded(ref)) {
         const_cast<WellenFstBackend*>(this)->load_signals({ref});
     }

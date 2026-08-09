@@ -16,7 +16,7 @@ struct ScopeListHandler : public EngineActionHandler {
             uint32_t sr = wf.scope_at(i);
             if (!sr) continue;
             Json s;
-            s["name"] = wf.scope_name(sr) ? wf.scope_name(sr) : "";
+            s["name"] = wf.scope_full_name(sr) ? wf.scope_full_name(sr) : "";
             s["var_count"] = wf.scope_var_count(sr);
             s["child_count"] = wf.scope_child_count(sr);
             scopes.push_back(s);
@@ -32,10 +32,11 @@ struct ScopeRootsHandler : public EngineActionHandler {
     Json run(const Json&) override {
         auto& wf = *engine_globals().waveform;
         Json roots = Json::array();
-        for (uint32_t i = 0, n = wf.scope_count(); i < n; ++i) {
-            uint32_t sr = wf.scope_at(i);
+        for (uint32_t i = 0, n = wf.root_scope_count(); i < n; ++i) {
+            uint32_t sr = wf.root_scope_at(i);
             if (!sr) continue;
-            roots.push_back({{"name",wf.scope_name(sr)?wf.scope_name(sr):""}});
+            roots.push_back({{"name",wf.scope_full_name(sr)
+                                         ? wf.scope_full_name(sr) : ""}});
         }
         return Json{{"ok",true},{"summary",{{"root_count",roots.size()}}},{"data",{{"roots",roots}}}};
     }
