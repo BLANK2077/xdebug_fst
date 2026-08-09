@@ -319,7 +319,8 @@ struct Parser {
             std::string op;
             if (pos + 3 < text.size() && text[pos] == '=' && text[pos + 1] == '=' &&
                 text[pos + 2] == '?' &&
-                (text[pos + 3] == 'z' || text[pos + 3] == 'x')) {
+                (text[pos + 3] == 'z' || text[pos + 3] == 'x'
+                 || text[pos + 3] == 'i')) {
                 op = text.substr(pos, 4);
                 pos += 4;
             } else if (pos + 1 < text.size() && text[pos] == '=' && text[pos + 1] == '=' &&
@@ -588,11 +589,12 @@ LogicValue wildcard_case_eq(const LogicValue& a, const LogicValue& b,
     const std::string lhs = extend(a);
     const std::string rhs = extend(b);
     const bool casex = op == "==?x";
+    const bool inside = op == "==?i";
     const auto wildcard = [casex](char bit) {
         return bit == 'z' || (casex && bit == 'x');
     };
     for (int i = 0; i < width; ++i) {
-        if (wildcard(lhs[i]) || wildcard(rhs[i])) continue;
+        if ((!inside && wildcard(lhs[i])) || wildcard(rhs[i])) continue;
         if (lhs[i] != rhs[i]) return from_bool(false);
     }
     return from_bool(true);
@@ -753,7 +755,8 @@ LogicValue eval_expression(const ExprNode* root, const IWaveformBackend& wf,
                 op == "<<" || op == ">>") return arith(l, r, op);
             if (op == "<" || op == "<=" || op == ">" || op == ">=") return cmp(l, r, op);
             if (op == "==" || op == "!=" || op == "===" || op == "!==") return eq(l, r, op);
-            if (op == "==?z" || op == "==?x") return wildcard_case_eq(l, r, op);
+            if (op == "==?z" || op == "==?x" || op == "==?i")
+                return wildcard_case_eq(l, r, op);
             return LogicValue{};
         }
     }

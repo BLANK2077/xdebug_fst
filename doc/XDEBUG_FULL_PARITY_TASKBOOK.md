@@ -620,9 +620,11 @@ RHS 的规则，将 `count <= count + 1` 的活动 NBA 正确终止为
 `assignment/constant_or_no_rhs_signal`，关闭基本 NBA self-RHS 分类。第八批先以真实 FST
 建立双连续赋值失败证据，再仅在 `--design-db` 下旁路保存被 V3Tristate 删除的同强度
 非三态连续赋值静态描述，不保留 AST、不改变普通仿真或 XDD ABI；chain 已按原版合同报告
-两条活动语句的 `ambiguous/multiple_active_candidates`。case inside/matches、更多连续/过程/NBA
-时序边界与常量组合、output/inout alias、更多跨端口层级，以及条件/过程/跨层多驱动差分
-仍是 P6 必做项。
+两条活动语句的 `ambiguous/multiple_active_candidates`。第九批又在独立失败证据后，以现有
+predicate 字符串表达 case inside 的仅 item 侧通配和闭区间，并由 xdebug 使用 Wellen
+直接读取的真实 FST 值判定；`case matches` 仍因其 tagged pattern 语义及上游支持边界单独
+保持未完成。更多连续/过程/NBA 时序边界与常量组合、output/inout alias、更多跨端口层级，
+以及条件/过程/跨层多驱动差分仍是 P6 必做项。
 
 #### trace.active_driver
 

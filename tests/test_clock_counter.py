@@ -79,7 +79,7 @@ def test_expr_eval_at_logical_not_preserves_unknown(
     assert rsp["data"]["expr_value"] is None
 
 
-def test_expr_eval_at_preserves_casez_and_casex_unknown_semantics(
+def test_expr_eval_at_preserves_wildcard_case_unknown_semantics(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst) -> None:
     open_session(loop_runner, gcd_xorigin_fst)
     casex = loop_runner.request("expr.eval_at", args={
@@ -95,6 +95,20 @@ def test_expr_eval_at_preserves_casez_and_casex_unknown_semantics(
     assert casez.get("ok"), casez
     assert casez["summary"]["status"] == "false"
     assert casez["data"]["expr_value"] is False
+
+    inside_concrete = loop_runner.request("expr.eval_at", args={
+        "expr": "control ==?i 32'h00000000", "time": "0ps",
+        "clock": "GCD.T_13", "signals": {"control": "GCD.y"}})
+    assert inside_concrete.get("ok"), inside_concrete
+    assert inside_concrete["summary"]["status"] == "false"
+    assert inside_concrete["data"]["expr_value"] is False
+
+    inside_wildcard = loop_runner.request("expr.eval_at", args={
+        "expr": "control ==?i 32'hxxxxxxxx", "time": "0ps",
+        "clock": "GCD.T_13", "signals": {"control": "GCD.y"}})
+    assert inside_wildcard.get("ok"), inside_wildcard
+    assert inside_wildcard["summary"]["status"] == "true"
+    assert inside_wildcard["data"]["expr_value"] is True
 
 
 def test_counter_statistics(loop_runner: StdioLoopRunner, counter_fst) -> None:

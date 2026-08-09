@@ -561,12 +561,12 @@ C++ adapter 同时持有：
 - interface/array/struct leaf 已用深层 FST hierarchy 回归覆盖，仍需在 P5 对应公开
   scope/signal action 中通过冻结 schema 和原版差分确认响应形状；
 - active-driver 已禁止选择第一条静态 driver，并能用真实 FST 控制值判定已覆盖的
-  `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex` 及 V3Inst 折叠后的
+  `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` 及 V3Inst 折叠后的
   同目标嵌套条件分支，并能对基础双连续赋值报告两条活动候选；output/inout alias、
   条件/过程/跨层多 driver 和更多 NBA 边界仍须逐项差分，不能据当前用例宣称全部关闭；
 - XDD 已表达普通 `if/else`、普通 `case/default`、`casez/casex` predicate，并在当前
-  emitter 内拆分 V3Inst 合并的 `AstCond` RHS，恢复叶子源位置与条件；case inside/matches
-  仍明确 unresolved，不恢复或猜测；
+  emitter 内拆分 V3Inst 合并的 `AstCond` RHS，恢复叶子源位置与条件；case inside 已覆盖
+  item-side wildcard 与闭区间，通用 case matches 仍明确 unresolved，不恢复或猜测；
 - direction/port connection 仍有上层推导逻辑；
 - P2 已完成 UDS idle timeout、完整失败补偿、MCP direct 和 fake-LSF；TCP/file
   已按用户明确要求裁剪，不作为实现或验收项；
@@ -635,6 +635,13 @@ xdebug-fst 消费这些记录时仍按冻结 action 语义聚合静态 statement
 什么”，xdebug action 解决“合同要求如何判定与报告”；三者职责没有合并，也没有新增
 FST 转换、离线索引、全量快照或 fallback。
 
+`case inside` 继续沿用这条职责边界。DesignDB 用内部 `==?i` 表示只允许 item 侧 X/Z
+通配，并把 `AstInsideRange` 转成包含上下界的比较合取；default 静态谓词否定全部此前
+item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST expression 值执行
+这些运算，未知 LHS 不会像 casex 一样被误当通配。该扩展复用既有 predicate 字符串 ABI，
+不新增 capability，也不把区间匹配下沉到 Wellen。通用 `case matches` 的 tagged pattern
+语义仍未声称支持；缺失时继续 fail closed，不能近似成 case inside。
+
 显式文件产物必须与“离线 FST 分析”严格区分：
 
 - `list.export` 按公共合同写出 `u64bin.v1`，用于调用者消费最终列表数据；
@@ -681,7 +688,7 @@ FST 转换、离线索引、全量快照或 fallback。
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `5c19377e3286b33d43e56cbcd915a9d523fe4004`
+- revision `3e7cca4f1d0bc6ed8e9e6ad3736077825f09d4d3`
 
 对应提交：
 
@@ -701,6 +708,7 @@ FST 转换、离线索引、全量快照或 fallback。
 - Verilator `ff0c1d016`：在 XDD 头文件中明确内部通配运算符语义，仅改注释；
 - Verilator `a91524d63`：仅在 emitter 内拆分 V3Inst 合并的条件 RHS，恢复叶子行号和谓词；
 - Verilator `5c19377e3`：仅为 `--design-db` 旁路保留 V3Tristate 删除的同强度连续多驱动静态描述，普通仿真与 XDD ABI 不变；
+- Verilator `3e7cca4f1`：在既有谓词字符串中发布 case inside 的 item-side wildcard 与闭区间语义，普通仿真与 XDD ABI 不变；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
