@@ -1,5 +1,7 @@
 # xdebug-fst 项目交接文档
 
+> **当前 Goal 的不可漂移范围（2026-08-10）**：本文件包含早期探索记录，其中关于 VCD/GHW 输入、VCD fixture 或 fallback 的描述不再代表实施方案。项目只需要并且也必须完整适配 FST 波形；生产、测试、差分和验收只允许 Wellen 在当前 session 中直接按需读取原始 `.fst`。禁止将 FST 转成 VCD、JSON、私有索引、离线数据库或全量内存快照后分析。Verilator DesignDB 仅提供静态设计事实，显式 export 仅是最终输出且不得回灌。权威范围以 [`doc/XDEBUG_FULL_PARITY_TASKBOOK.md`](doc/XDEBUG_FULL_PARITY_TASKBOOK.md) 为准。
+
 > 作者: BLANK2077 + Claude Code (Claude Fable 5)
 > 日期: 2026-08-04
 > 版本: 1.0
