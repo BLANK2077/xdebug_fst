@@ -719,3 +719,4 @@ FST 转换、离线索引、全量快照或 fallback。
 - xdebug-fst `4a1a4c0`：只允许 input 端口向较浅父级上溯并在 primary input 终止；
 - xdebug-fst `72ede46`：建立 NBA 目标自引用被误判为 control-only 的修改前失败证据；
 - xdebug-fst `97ed236`：按静态赋值 kind 对无非自身 RHS 的 NBA 返回 assignment 终止。
+- xdebug-fst `9e6dbbe`：锁定 Verilator 多驱动修复并以真实 FST/DesignDB 组合恢复双连续活动候选歧义。
