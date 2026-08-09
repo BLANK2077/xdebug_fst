@@ -134,7 +134,9 @@ UDS 使用一行一个 JSON object 的 framing，单帧上限 16 MiB，socket �
 `0600`。`server.ping` 返回 engine generation，frontend 只有在 endpoint generation
 与 registry generation 相同时才把它视为所管理的进程；`session.close` 走私有
 `server.quit`，`session.kill` 的信号操作也受同一 generation endpoint 证明约束。
-transport 连接、超时或解析失败直接返回 transport error，绝不自动切换 TCP 或 file。
+UDS 连接、超时或解析失败直接返回 transport error，绝不自动切换其他 transport。
+根据 2026-08-09 用户范围决定，TCP 与 file server 不实现；冻结 schema 中仍保留原版
+enum，但请求这两种模式时 fail closed 返回 `TRANSPORT_UNAVAILABLE`。
 
 GCC 8 对 C++17 `std::filesystem` 仍使用独立的 `libstdc++fs`。CMake 现在对
 `xdebug-fst` 显式链接 `stdc++fs`，保证相同源码在当前冻结工具链中可重复配置和链接，
@@ -468,7 +470,8 @@ C++ adapter 同时持有：
 - current active-driver 不能只选择第一条可读静态 driver；
 - XDD 当前控制依赖只提供静态候选，尚未表达完整条件表达式和嵌套 provenance；
 - direction/port connection 仍有上层推导逻辑；
-- P2 仍需完成 TCP、file、idle timeout、完整失败补偿、MCP direct 和 fake-LSF；
+- P2 仍需完成 UDS idle timeout、完整失败补偿、MCP direct 和 fake-LSF；TCP/file
+  已按用户明确要求裁剪，不作为实现或验收项；
 - UDS 已打通真实 engine，但大部分 action 的成功 payload 仍需 P3/P5 对齐严格
   response schema，不能把 transport 已通等同于 action 能力已兼容。
 
@@ -485,7 +488,7 @@ C++ adapter 同时持有：
 7. 先有失败差分，再扩展 XDD；
 8. 每次 ABI 变化同时更新 header hash、依赖锁、C/Rust 测试和 xdebug consumer；
 9. 不提交 `.so`、ELF、obj_dir、FSDB、daidir 或 proprietary 内容；
-10. 最终验收以严格 73 action、全 schema、全 transport、全差分和 clean worktree 为准。
+10. 最终验收以严格 73 action、全 schema、UDS/stdio transport、全差分和 clean worktree 为准；TCP/file 是明确登记的用户裁剪项。
 
 ## 十一、相关文件和提交
 

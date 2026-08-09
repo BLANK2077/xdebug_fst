@@ -42,7 +42,7 @@
 
 兼容金标准为当前 ${XDEBUG_ORIGINAL_ROOT}/xdebug：版本 0.1.0、当前运行时 build id、当前 schema revision、严格 73 个公开 action。原版仓库只读，不得修改。请求与响应必须通过同一套 xdebug v1 JSON Schema；忽略 PID、耗时、build id、临时路径和后端数据库路径等明确登记的易变字段后，所有确定性 summary、data、error、findings、warnings、完整性字段和 suggested_next_actions 必须语义一致。不得保留额外公开 action，不得以仅 action 名存在、简化返回、stub schema、smoke test 或宽松字段比较冒充兼容。
 
-必须先冻结原版 action catalog、全部 request/response schema、原版 build/schema revision 和归一化规则，再迁移 MIT 许可的公共协议核心，包括 action registry、严格 schema 校验、canonical response envelope、错误合同、XOUT、one-shot、stdio-loop、session registry、engine 生命周期以及 UDS/TCP/file transport。不得复制、提交或分发任何 Synopsys proprietary header、library、FSDB、daidir、文档、生成物或链接 proprietary runtime 的二进制。
+必须先冻结原版 action catalog、全部 request/response schema、原版 build/schema revision 和归一化规则，再迁移 MIT 许可的公共协议核心，包括 action registry、严格 schema 校验、canonical response envelope、错误合同、XOUT、one-shot、stdio-loop、session registry、engine 生命周期以及 UDS transport。根据 2026-08-09 用户范围变更，TCP 与 file transport 不实现、不测试，也不作为完成门禁；schema 中保留原版 enum 仅为协议查询兼容，实际请求必须明确返回不支持且不得 fallback。不得复制、提交或分发任何 Synopsys proprietary header、library、FSDB、daidir、文档、生成物或链接 proprietary runtime 的二进制。
 
 必须完整实现全部 73 个 action，不区分 stable 与 experimental。value.at 必须支持 signal/list/APB/stream/AXI selector、time/times、clock sampling、sample_point、value_format、render_time_unit 和严格时间单位。必须完整实现 scope、signal、list、event、expression、verify、window、counter、APB、AXI、stream、cursor、export、session、trace.active_driver、trace.active_driver_chain 和 trace.x_origin 的当前合同、错误语义、limits、truncation 和 completeness。
 
@@ -52,7 +52,7 @@ Wellen 侧必须补齐 signal ref 0、递归层级、alias、timescale、四态�
 
 Git 中只保存合法的源文件、请求、配置、去敏归一化 JSON golden 和可重复生成脚本，不保存 proprietary database。
 
-完成条件是：严格 73 个 action；全部冻结 schema 可加载且成功/错误响应均通过；73 个 action 均有正例、非法请求、资源缺失、空结果、边界、limits/truncation/completeness 测试；原版与 xdebug-fst 的归一化差分全部通过；one-shot、XOUT、stdio-loop、UDS、TCP、file、MCP direct 和 fake-LSF 全部通过；active-driver 与 X-origin 在多 driver、控制分支、NBA、跨端口、alias 和 X 传播场景与原版一致；Wellen 和 Verilator 测试不是 0 tests；ASan/UBSan、并发 session、异常退出和资源泄漏门禁通过；三个仓库工作树干净；任务书、进度文件、依赖 SHA、测试证据和最终验收报告齐全。
+完成条件是：严格 73 个 action；全部冻结 schema 可加载且成功/错误响应均通过；73 个 action 均有正例、非法请求、资源缺失、空结果、边界、limits/truncation/completeness 测试；原版与 xdebug-fst 的归一化差分全部通过；one-shot、XOUT、stdio-loop、UDS、MCP direct 和 fake-LSF 全部通过；TCP/file 请求稳定返回已登记的不支持错误且绝不 fallback，但不实现相应 server；active-driver 与 X-origin 在多 driver、控制分支、NBA、跨端口、alias 和 X 传播场景与原版一致；Wellen 和 Verilator 测试不是 0 tests；ASan/UBSan、并发 session、异常退出和资源泄漏门禁通过；三个仓库工作树干净；任务书、进度文件、依赖 SHA、测试证据和最终验收报告齐全。
 
 只在上述全部条件真实满足、没有剩余必需工作时将 Goal 标记为 complete。不得因为阶段完成、已有测试通过、预算接近耗尽或存在困难而提前完成 Goal。
 ```
@@ -295,35 +295,34 @@ P1 验收：
 
 ### P2：实现真实 Session 和 Transport
 
+范围修订（2026-08-09，用户明确指示）：只实现 UDS 与现有 stdio 生命周期；TCP 和 file transport 不需要，不得继续开发。冻结 public schema 仍保留原版 `transport` enum，选择 `tcp` 或 `file` 时必须 fail closed 返回明确错误，不自动降级到 UDS。
+
 1. 迁移 session registry 和 generation 管理。
 2. 实现 opening、alive、closed、failed、cleanup_failed 等状态。
 3. session 元数据使用锁和原子替换持久化。
 4. 实现真实 engine 子进程，不再把 `--server` 当作 stdin one-shot。
 5. 实现 UDS transport。
-6. 实现 TCP transport。
-7. 实现 file transport 的 requests、claims、responses、done、failed、tmp 和 heartbeat。
-8. transport 失败时直接返回对应错误，不自动 fallback。
-9. 对齐：
+6. UDS transport 失败时直接返回对应错误，不自动 fallback。
+7. 对齐：
    - `session.open`
    - `session.list`
    - `session.doctor`
    - `session.close`
    - `session.kill`
    - `session.gc`
-10. 覆盖重复名称、并发打开、generation 冲突、启动超时、进程崩溃、残留记录和补偿清理。
-11. public target 只使用原版字段：
+8. 覆盖重复名称、并发打开、generation 冲突、启动超时、进程崩溃、残留记录和补偿清理。
+9. public target 只使用原版字段：
    - `target.fsdb` 接受 FST
    - `target.daidir` 指向 Verilator DesignDB bundle
    - bundle manifest 唯一指定 `.so`
    - 删除 `target.design_db`
-12. 对齐 MCP direct、fake-LSF 和 SDK-free stdio-loop 生命周期。
-13. UDS、TCP、file 和子进程测试默认在沙箱内运行；若异常属于 IPC、端口、进程或共享目录限制，保存证据后用同命令沙箱外重试。
+10. 对齐 MCP direct、fake-LSF 和 SDK-free stdio-loop 生命周期。
+11. UDS 和子进程测试默认在沙箱内运行；若异常属于 IPC、进程或共享目录限制，保存证据后用同命令沙箱外重试。
 
 提交：
 
 - `功能：实现多会话注册表与生命周期状态机`
 - `功能：实现 UDS 会话服务与资源释放`
-- `功能：补齐 TCP 与文件传输协议`
 - `功能：对齐会话诊断清理与失败补偿`
 - `测试：覆盖全部会话传输与异常生命周期`
 
@@ -635,7 +634,7 @@ P1 验收：
    - 原版 differential tests
    - MCP direct
    - fake-LSF
-   - UDS/TCP/file
+   - UDS
    - ASan
    - UBSan
    - 并发 session
@@ -675,7 +674,7 @@ P1 验收：
 - 所有测试请求和响应通过 schema
 - 原版和 xdebug-fst 的 73 action 归一化差分全部通过
 - one-shot、JSON、XOUT、stdio-loop 全部通过
-- UDS、TCP、file transport 全部通过
+- UDS transport 全部通过；TCP/file 明确为用户裁剪项，不存在隐式 fallback
 - MCP direct 和 fake-LSF 全部通过
 - Wellen、Wellen C API 和 wellenx 有真实测试执行数量
 - Verilator simple/full/UART/metadata 独立通过
