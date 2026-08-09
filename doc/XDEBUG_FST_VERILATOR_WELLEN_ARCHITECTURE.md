@@ -16,7 +16,7 @@
 
 ### 1.1 FST-only 架构边界
 
-本架构边界受任务书永久 Goal 约束 **`GOAL-FST-DIRECT-001`** 管辖。它是所有后续实现选择的否决条件，不是可以在 action 迁移过程中临时放宽的偏好。
+本架构边界受任务书永久 Goal 约束 **`GOAL-FST-DIRECT-001`** 及其权威执行附件 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 管辖。它是所有后续实现选择的否决条件，不是可以在 action 迁移过程中临时放宽的偏好。
 
 xdebug-fst 只接收和分析 FST 波形。Wellen 在本方案中的职责是提供 FST 的层级、时间和值变化语义；VCD/FSDB 不属于产品输入，也不得成为测试 fallback。VCD 可以保留为可读的测试波形源描述，但必须先由固定生成链转换成 FST，测试和验收只能打开生成后的 `.fst`。如果转换后的 FST 丢失四态、delta 或类型信息，应修复生成链或 Wellen FST 读取层，不得直接读取 VCD 绕过问题。
 

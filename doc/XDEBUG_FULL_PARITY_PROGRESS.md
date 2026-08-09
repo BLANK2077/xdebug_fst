@@ -123,7 +123,7 @@
 
 ## 剩余差异
 
-P0、P1、P2、P3、P4 已关闭，P5 正在执行。P5 已完成发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake、APB 及 AXI，但 stream 与 combined trace 尚未全部关闭，因此仍不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
+P0、P1、P2、P3、P4 已关闭，P5 正在执行。P5 已完成发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake、APB 及 AXI，但 stream 与 combined trace 尚未全部关闭，因此仍不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。2026-08-10 新增 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 作为当前 active Goal 的权威执行附件；后续每个批次按 `GOAL-FST-DIRECT-001` 审查唯一 FST 数据流、禁止转换/离线分析/fallback、TCP/file 裁剪及 Verilator 克制修改，任一违反即否决提交与 Goal 完成。
 
 ## P4 修改前失败证据
 

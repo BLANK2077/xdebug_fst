@@ -1,10 +1,12 @@
 # xdebug_oc 全能力兼容修复、Goal 执行与分批提交计划
 
+Goal 不可漂移约束：[`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md)。该文档是当前 active Goal 的权威执行附件，固定 FST 唯一输入、Wellen 直接按需读取、禁止转换/离线分析/fallback、TCP/file 裁剪和 Verilator 克制修改等否决条件。
+
 配套架构说明：[`XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md`](XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md)。该文档说明 Verilator DesignDB 修改的范围、原因和数据流，以及 xdebug-fst 对 Wellen 波形能力的需求、双 C ABI 方案和后续收敛边界。
 
 ## 零、不可漂移的 FST-only 输入边界（2026-08-09 用户确认）
 
-本节在当前 Goal 中的永久约束编号为 **`GOAL-FST-DIRECT-001`**。后续计划、实现、测试、提交、交接摘要和验收报告必须使用这个编号引用同一条约束；不得通过改名、拆分阶段或更换术语弱化其含义。
+本节及其权威执行附件 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 在当前 Goal 中的永久约束编号为 **`GOAL-FST-DIRECT-001`**。后续计划、实现、测试、提交、交接摘要和验收报告必须使用这个编号引用同一条约束；不得通过改名、拆分阶段或更换术语弱化其含义。
 
 本任务、当前 Goal 及 P0–P7 的实现与验收只适配 **FST 波形**。这是覆盖全文所有阶段、提交和完成条件的最高优先级硬约束：
 
