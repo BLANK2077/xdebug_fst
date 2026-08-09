@@ -324,12 +324,25 @@ def test_cursor_use(loop_runner: StdioLoopRunner, counter_fst) -> None:
 
 # ── nwave.rc.generate ──
 
-def test_nwave_rc_generate(loop_runner: StdioLoopRunner, counter_fst) -> None:
+def test_nwave_rc_generate(loop_runner: StdioLoopRunner, counter_fst,
+                           tmp_path) -> None:
     open_session(loop_runner, counter_fst)
+    config = tmp_path / "wave_view.json"
+    config.write_text(json.dumps({
+        "file_time_scale": "1ps", "window_time_unit": "1ns",
+        "signal_spacing": 5,
+        "groups": [{"name": "counter", "signals": [
+            "top.clk", "top.counter_top.count"]}],
+        "times": ["0ps", "100ps"],
+    }))
+    output = tmp_path / "signal.rc"
     rsp = loop_runner.request("nwave.rc.generate", args={
-        "signal": "top.counter_top.count", "clock": "top.clk",
-        "begin": "0", "end": "500"})
+        "config_path": str(config), "output": {"path": str(output)}})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["constraint_count"] >= 1
-    c0 = rsp["data"]["constraints"][0]
-    assert "kind" in c0 and c0["kind"] in ("recovery", "removal", "change")
+    assert rsp["summary"]["written"] is True
+    assert rsp["summary"]["group_count"] == 1
+    assert rsp["summary"]["signal_count"] == 2
+    assert rsp["data"]["validation"] == {"signals": 2, "times": 2}
+    text = output.read_text()
+    assert "fileTimeScale 1ps" in text
+    assert "addSignal top/counter_top/count" in text
