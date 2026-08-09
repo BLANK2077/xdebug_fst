@@ -8,6 +8,7 @@
 #include "engine/actions/value_source_entries.h"
 
 #include <algorithm>
+#include <fstream>
 #include <map>
 #include <set>
 #include <string>
@@ -19,41 +20,33 @@ namespace xdebug_fst {
 
 struct StreamConfig {
     std::string name;
+    Json source;
+    std::map<std::string,std::string> signals;
     std::string clock;   // clock signal name
     std::string valid;   // valid signal name
     std::string ready;   // ready signal name
     std::string data;    // data signal name (optional)
+    std::string edge = "posedge";
+    std::string sample_point = "before";
+    std::string reset;
+    std::string reset_polarity;
+    std::string sop, eop;
+    Json beat_fields = Json::object();
+    std::string channel_id_valid = "every_beat";
+    bool allow_interleaving = false;
     uint64_t start = 0;  // window begin (0 = full)
     uint64_t end = 0;    // window end (0 = full)
     bool active_high = true;
 };
 
 static Json config_to_json(const StreamConfig& cfg) {
-    Json j;
-    j["name"] = cfg.name;
-    j["clock"] = cfg.clock;
-    j["valid"] = cfg.valid;
-    j["ready"] = cfg.ready;
-    if (!cfg.data.empty()) j["data"] = cfg.data;
-    j["start"] = cfg.start;
-    j["end"] = cfg.end;
-    j["active_high"] = cfg.active_high;
-    return j;
+    return cfg.source;
 }
 
 // ── In-process config store ──
 
 static std::map<std::string, StreamConfig>& config_store() {
     static std::map<std::string, StreamConfig> store;
-    if (store.empty()) {
-        // Built-in "default" config with reasonable signal name defaults
-        StreamConfig def;
-        def.name = "default";
-        def.clock = "clk";
-        def.valid = "valid";
-        def.ready = "ready";
-        store["default"] = def;
-    }
     return store;
 }
 
@@ -176,6 +169,85 @@ bool stream_value_source_entries(const std::string& name,
            {"ready", config.ready}};
     if (!config.data.empty()) out.push_back({"data", config.data});
     return true;
+}
+
+static Json action_error(const std::string& code, const std::string& message) {
+    return {{"ok",false},{"error",{{"code",code},{"message",message}}}};
+}
+
+static bool parse_stream(const Json& input, StreamConfig& cfg, std::string& message) {
+    cfg = {};
+    cfg.name = input.at("name");
+    cfg.signals = input.at("signals").get<std::map<std::string,std::string>>();
+    auto resolve = [&](const std::string& alias) -> std::string {
+        auto found = cfg.signals.find(alias);
+        return found == cfg.signals.end() ? std::string() : found->second;
+    };
+    cfg.clock = resolve(input.at("clock"));
+    cfg.valid = resolve(input.at("vld"));
+    cfg.ready = resolve(input.at("rdy"));
+    if (input.contains("sop")) cfg.sop = resolve(input.at("sop"));
+    if (input.contains("eop")) cfg.eop = resolve(input.at("eop"));
+    cfg.edge = input.value("edge","posedge");
+    cfg.sample_point = input.value("sample_point", cfg.edge == "negedge" ? "" : "before");
+    if (input.contains("reset")) {
+        cfg.reset = input.at("reset").at("signal");
+        cfg.reset_polarity = input.at("reset").at("polarity");
+    }
+    cfg.beat_fields = input.value("beat_fields",Json::object());
+    cfg.channel_id_valid = input.value("channel_id_valid","every_beat");
+    cfg.allow_interleaving = input.value("allow_interleaving",false);
+    if (cfg.clock.empty() || cfg.valid.empty() || cfg.ready.empty()) {
+        message = "stream clock/vld/rdy alias is missing from signals";
+        return false;
+    }
+    cfg.data.clear();
+    if (!cfg.beat_fields.empty()) {
+        const std::string expression = cfg.beat_fields.begin().value();
+        cfg.data = resolve(expression);
+    }
+    cfg.source = input;
+    cfg.source["edge"] = cfg.edge;
+    if (cfg.edge != "negedge") cfg.source["sample_point"] = cfg.sample_point;
+    cfg.source["channel_id_valid"] = cfg.channel_id_valid;
+    cfg.source["allow_interleaving"] = cfg.allow_interleaving;
+    return true;
+}
+
+static Json validate_stream(IWaveformBackend* wf, const StreamConfig& cfg,
+                            bool include_stream) {
+    Json signals = Json::array();
+    bool ok = true;
+    for (const auto& item : cfg.signals) {
+        const uint32_t ref = wf->find_signal(item.second);
+        Json signal{{"alias",item.first},{"requested_path",item.second}};
+        if (!ref) { signal["status"] = "signal_not_found"; ok = false; }
+        else {
+            if (!wf->is_loaded(ref)) wf->load_signals({ref});
+            IWaveformBackend::SignalInfo info;
+            if (!wf->signal_info(ref,info)) { signal["status"] = "signal_not_found"; ok = false; }
+            else { signal["status"]="ok"; signal["resolved_path"]=item.second; signal["width"]=info.width; }
+        }
+        signals.push_back(std::move(signal));
+    }
+    Json result{{"status",ok?"ok":"error"},{"signals",signals},
+        {"sampling",{{"clock",cfg.source.at("clock")},{"edge",cfg.edge},
+            {"sample_point",cfg.edge == "negedge" ? Json(nullptr) : Json(cfg.sample_point)}}},
+        {"packet_rules",{{"packet_enabled",!cfg.sop.empty() && !cfg.eop.empty()},
+            {"channel_id_valid",cfg.channel_id_valid},
+            {"allow_interleaving",cfg.allow_interleaving}}}};
+    if (include_stream) result["stream"] = cfg.name;
+    return result;
+}
+
+static Json recommendations() {
+    return Json::array({
+        {{"action","value.at"},{"purpose","按一个或多个指定时间读取单信号、命名信号列表或接口配置维护的值。"}},
+        {{"action","stream.describe"},{"purpose","显示 stream 定义和摘要。"}},
+        {{"action","stream.validate"},{"purpose","验证 stream 配置；动态验证可显式选择 full 或 range 基础分析缓存范围。"}},
+        {{"action","stream.query"},{"purpose","以显式 full 或 range 基础分析缓存范围查询并按多个字段过滤 stream transfer 或 packet。"}},
+        {{"action","stream.export"},{"purpose","从显式 full 或 range 基础分析缓存范围导出 stream 查询结果。"}}
+    });
 }
 
 // ── Helper: scan handshake events on clock edges ──
@@ -344,18 +416,27 @@ struct StreamConfigListHandler : public EngineActionHandler {
     bool needs_design() const override { return false; }
     bool needs_waveform() const override { return true; }
 
-    Json run(const Json& /*req*/) override {
+    Json run(const Json& req) override {
         Json err = check_waveform(action_name());
         if (!err.empty()) return err;
 
         auto& store = config_store();
+        const Json args = req.value("args",Json::object());
+        const bool verbose = args.value("output",Json::object()).value("verbose",false);
         Json arr = Json::array();
         for (const auto& kv : store) {
-            arr.push_back({{"name", kv.second.name}});
+            const auto& cfg = kv.second;
+            Json item{{"name",cfg.name},{"sampling_mode","clock_edge"},
+                {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
+                {"handshake","vld/rdy"},{"packet",(!cfg.sop.empty()&&!cfg.eop.empty())?"sop/eop":"disabled"},
+                {"field_count",cfg.beat_fields.size()},{"channel_id_valid",cfg.channel_id_valid},
+                {"allow_interleaving",cfg.allow_interleaving}};
+            if (cfg.edge != "negedge") item["sample_point"] = cfg.sample_point;
+            if (verbose) item["config"] = config_to_json(cfg);
+            arr.push_back(std::move(item));
         }
-
-        return Json{{"ok", true},
-                    {"data", {{"configs", arr}}}};
+        return {{"ok",true},{"summary",{{"count",arr.size()}}},
+            {"data",{{"streams",arr}}}};
     }
 };
 
@@ -373,14 +454,14 @@ struct StreamConfigGetHandler : public EngineActionHandler {
         if (!err.empty()) return err;
 
         auto args = req.value("args", Json::object());
-        std::string name = args.value("name", "default");
+        std::string name = args.at("name");
 
         StreamConfig cfg;
         Json cerr;
         if (!get_config(name, cfg, cerr)) return cerr;
 
-        return Json{{"ok", true},
-                    {"data", {{"config", config_to_json(cfg)}}}};
+        return {{"ok",true},{"summary",{{"name",name}}},
+            {"data",{{"stream",config_to_json(cfg)}}}};
     }
 };
 
@@ -398,51 +479,31 @@ struct StreamConfigLoadHandler : public EngineActionHandler {
         if (!err.empty()) return err;
 
         auto args = req.value("args", Json::object());
-        auto cfg_json = args.value("config", Json::object());
-
-        // Validation: name is required
-        std::string name = cfg_json.value("name", "");
-        if (name.empty()) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "VALIDATION_FAILED"},
-                                   {"message", "config.name is required"}}}};
-        }
-
-        StreamConfig cfg;
-        cfg.name = name;
-        cfg.clock = cfg_json.value("clock", "");
-        cfg.valid = cfg_json.value("valid", "");
-        cfg.ready = cfg_json.value("ready", "");
-        cfg.data = cfg_json.value("data", "");
-
-        if (cfg_json.contains("start")) {
-            if (cfg_json["start"].is_number()) cfg.start = cfg_json["start"].get<uint64_t>();
-            else if (cfg_json["start"].is_string()) {
-                try { cfg.start = std::stoull(cfg_json["start"].get<std::string>()); }
-                catch (...) { cfg.start = 0; }
+        Json document;
+        if (args.contains("config")) document = args.at("config");
+        else {
+            std::ifstream stream(args.at("config_path").get<std::string>());
+            if (!stream) return action_error("INVALID_FIELD","cannot read stream config_path");
+            try { stream >> document; } catch (...) {
+                return action_error("INVALID_FIELD","invalid stream config JSON");
             }
         }
-        if (cfg_json.contains("end")) {
-            if (cfg_json["end"].is_number()) cfg.end = cfg_json["end"].get<uint64_t>();
-            else if (cfg_json["end"].is_string()) {
-                try { cfg.end = std::stoull(cfg_json["end"].get<std::string>()); }
-                catch (...) { cfg.end = 0; }
-            }
+        const std::string mode = args.value("mode","replace");
+        if (mode == "replace") config_store().clear();
+        Json names = Json::array(), validations = Json::array(), issues = Json::array();
+        for (const Json& item : document.at("streams")) {
+            StreamConfig cfg; std::string message;
+            if (!parse_stream(item,cfg,message))
+                return action_error("VALIDATION_FAILED",message);
+            Json validation = validate_stream(engine_globals().waveform.get(),cfg,true);
+            if (validation.at("status") != "ok")
+                return action_error("CONFIG_SIGNAL_NOT_FOUND","stream config signal not found");
+            names.push_back(cfg.name); validations.push_back(validation);
+            config_store()[cfg.name] = std::move(cfg);
         }
-        cfg.active_high = cfg_json.value("active_high", true);
-
-        // Validate: clock, valid, ready are required
-        if (cfg.clock.empty() || cfg.valid.empty() || cfg.ready.empty()) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "VALIDATION_FAILED"},
-                                   {"message", "config.clock, config.valid, and config.ready are required"}}}};
-        }
-
-        // Store
-        config_store()[name] = cfg;
-
-        return Json{{"ok", true},
-                    {"data", {{"config", config_to_json(cfg)}}}};
+        return {{"ok",true},{"summary",{{"loaded",names.size()},{"mode",mode}}},
+            {"data",{{"streams",names},{"issues",issues},{"validation",validations},
+                {"recommended_actions",recommendations()}}}};
     }
 };
 
@@ -460,67 +521,18 @@ struct StreamDescribeHandler : public EngineActionHandler {
         if (!err.empty()) return err;
 
         auto args = req.value("args", Json::object());
-        std::string name = args.value("name", "default");
+        std::string name = args.at("stream");
 
         StreamConfig cfg;
         Json cerr;
         if (!get_config(name, cfg, cerr)) return cerr;
 
-        auto* wf = engine_globals().waveform.get();
-
-        // Load signals
-        uint32_t clk_ref = load_signal(wf, cfg.clock);
-        uint32_t vld_ref = load_signal(wf, cfg.valid);
-        uint32_t rdy_ref = load_signal(wf, cfg.ready);
-        uint32_t data_ref = cfg.data.empty() ? 0 : load_signal(wf, cfg.data);
-
-        if (clk_ref == IWaveformBackend::kInvalidSignalRef ||
-            vld_ref == IWaveformBackend::kInvalidSignalRef ||
-            rdy_ref == IWaveformBackend::kInvalidSignalRef) {
-            std::vector<std::string> missing;
-            if (clk_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.clock);
-            if (vld_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.valid);
-            if (rdy_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.ready);
-            Json arr = Json::array();
-            for (auto& m : missing) arr.push_back(m);
-            return Json{{"ok", false},
-                        {"error", {{"code", "CONFIG_SIGNAL_NOT_FOUND"},
-                                   {"message", "some signals not found in waveform"},
-                                   {"missing_signals", arr}}}};
-        }
-
-        // Resolve window
-        uint64_t begin_time = cfg.start;
-        uint64_t end_time = cfg.end > 0 ? cfg.end : wf->max_time();
-        if (args.contains("begin")) {
-            if (args["begin"].is_number()) begin_time = args["begin"].get<uint64_t>();
-        }
-        if (args.contains("end")) {
-            if (args["end"].is_number()) end_time = args["end"].get<uint64_t>();
-        }
-
-        uint32_t begin_ti = wf->time_idx_of(begin_time);
-        uint32_t end_ti = wf->time_idx_of(end_time);
-
-        uint64_t vhc = 0, rhc = 0, hc = 0;
-        count_handshake_stats(wf, clk_ref, vld_ref, rdy_ref,
-                              begin_ti, end_ti, vhc, rhc, hc);
-
-        IWaveformBackend::SignalInfo info;
-        int data_width = -1;
-        if (data_ref && wf->signal_info(data_ref, info)) {
-            data_width = static_cast<int>(info.width);
-        }
-
-        Json desc;
-        desc["valid_high_count"] = vhc;
-        desc["ready_high_count"] = rhc;
-        desc["handshake_count"] = hc;
-        if (data_width >= 0) desc["data_width"] = data_width;
-        desc["window"] = {{"begin", begin_time}, {"end", end_time}};
-
-        return Json{{"ok", true},
-                    {"data", {{"description", desc}}}};
+        Json validation = validate_stream(engine_globals().waveform.get(),cfg,false);
+        Json issues = Json::array();
+        return {{"ok",true},{"summary",{{"stream",name},{"handshake","vld/rdy"},
+            {"packet_enabled",!cfg.sop.empty()&&!cfg.eop.empty()}}},
+            {"data",{{"config",config_to_json(cfg)},{"issues",issues},
+                {"validation",validation},{"semantics",{{"transfer","vld/rdy"},{"stall","enabled"}}}}}};
     }
 };
 
@@ -538,7 +550,7 @@ struct StreamQueryHandler : public EngineActionHandler {
         if (!err.empty()) return err;
 
         auto args = req.value("args", Json::object());
-        std::string name = args.value("name", "default");
+        std::string name = args.at("stream");
 
         StreamConfig cfg;
         Json cerr;
@@ -566,33 +578,23 @@ struct StreamQueryHandler : public EngineActionHandler {
                                    {"missing_signals", arr}}}};
         }
 
-        uint64_t begin_time = cfg.start;
-        uint64_t end_time = cfg.end > 0 ? cfg.end : wf->max_time();
-        if (args.contains("begin")) {
-            if (args["begin"].is_number()) begin_time = args["begin"].get<uint64_t>();
-            else if (args["begin"].is_string()) {
-                try { begin_time = std::stoull(args["begin"].get<std::string>()); }
-                catch (...) {}
-            }
-        }
-        if (args.contains("end")) {
-            if (args["end"].is_number()) end_time = args["end"].get<uint64_t>();
-            else if (args["end"].is_string()) {
-                try { end_time = std::stoull(args["end"].get<std::string>()); }
-                catch (...) {}
-            }
-        }
+        uint64_t begin_time = wf->min_time(), end_time = wf->max_time();
+        std::string message;
+        const Json range = args.value("time_range",Json::object());
+        if (range.contains("begin") && !wf->parse_time(range.at("begin"),begin_time,message))
+            return action_error("INVALID_TIME",message);
+        if (range.contains("end") && !wf->parse_time(range.at("end"),end_time,message,true))
+            return action_error("INVALID_TIME",message);
+        if (begin_time > end_time) return action_error("TIME_RANGE_INVALID","end is before begin");
 
-        int max_rows = 1000;
-        if (args.contains("max_rows")) {
-            if (args["max_rows"].is_number()) max_rows = args["max_rows"].get<int>();
-        }
+        int max_rows = args.value("line_limit",1000);
 
         uint32_t begin_ti = wf->time_idx_of(begin_time);
         uint32_t end_ti = wf->time_idx_of(end_time);
 
         ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
+        parse_value_render_format(args.value("value_format", "hex"), fmt);
+        TimeRenderUnit unit; parse_time_render_unit(args.value("render_time_unit","ns"),unit,message);
 
         IWaveformBackend::SignalInfo info;
         int data_width = 0;
@@ -603,16 +605,16 @@ struct StreamQueryHandler : public EngineActionHandler {
         auto events = scan_handshakes(wf, clk_ref, vld_ref, rdy_ref, data_ref,
                                       begin_ti, end_ti, max_rows);
 
-        Json handshakes = Json::array();
+        Json rows = Json::array();
+        size_t cycle = 0;
         for (auto& ev : events) {
-            Json item;
-            item["time"] = ev.time;
-            item["time_idx"] = ev.time_idx;
-            if (data_ref && !ev.data_bits.empty()) {
-                LogicValue lv = logic_value_from_bits(ev.data_bits, data_width);
-                item["data"] = logic_value_json(lv, fmt);
-            }
-            handshakes.push_back(item);
+            Json fields = Json::object();
+            if (data_ref && !ev.data_bits.empty())
+                fields["data"] = logic_value_json(
+                    logic_value_from_bits(ev.data_bits,data_width),fmt);
+            rows.push_back({{"cycle",cycle++},{"time",wf->format_time(ev.time,unit)},
+                {"vld",true},{"rdy",true},{"bp",false},{"sop",false},{"eop",false},
+                {"transfer",true},{"stall",false},{"beat_index",0},{"fields",fields}});
         }
 
         // Count total handshakes for summary
@@ -620,15 +622,39 @@ struct StreamQueryHandler : public EngineActionHandler {
         count_handshake_stats(wf, clk_ref, vld_ref, rdy_ref,
                               begin_ti, end_ti, vhc, rhc, hc);
 
-        bool truncated = (int)events.size() >= max_rows && hc > (uint64_t)events.size();
-
-        Json summary;
-        summary["handshake_count"] = hc;
-        summary["truncated"] = truncated;
-
-        return Json{{"ok", true},
-                    {"summary", summary},
-                    {"data", {{"handshakes", handshakes}}}};
+        bool truncated = events.size() < hc;
+        const std::string query = args.at("query");
+        Json summary{{"stream",name},{"query",query},{"sampling_mode","clock_edge"},
+            {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
+            {"sample_time_semantics","time is sample_time"},{"handshake","vld/rdy"},
+            {"packet_enabled",!cfg.sop.empty()&&!cfg.eop.empty()},
+            {"clock_edges",wf->time_indices_of(clk_ref).size()/2},{"vld_cycles",vhc},
+            {"transfer_count",hc},{"stall_cycles",vhc-hc},{"stall_windows",vhc>hc?1:0},
+            {"complete_packet_count",0},{"partial_packet_count",0},
+            {"packet_count_status","exact"},{"control_xz_count",0},{"data_xz_count",0},
+            {"ready_bp_conflict_count",0},{"packet_stable_mismatch_count",0},
+            {"requested_range",{{"begin",wf->format_time(begin_time,unit)},
+                {"end",wf->format_time(end_time,unit)}}},
+            {"scanned_range",{{"begin",wf->format_time(begin_time,unit)},
+                {"end",wf->format_time(end_time,unit)}}},{"filter_applied",false},
+            {"scan_complete",true},{"analysis_complete",true},
+            {"response_truncated",truncated},{"total_count",query=="summary"?0:hc},
+            {"returned_count",query=="transfer_window"?rows.size():0},
+            {"truncation_scopes",truncated?Json::array({"response_rows"}):Json::array()}};
+        if (cfg.edge != "negedge") summary["sample_point"] = cfg.sample_point;
+        if (!events.empty()) {
+            summary["first_transfer_time"] = wf->format_time(events.front().time,unit);
+            summary["last_transfer_time"] = wf->format_time(events.back().time,unit);
+        }
+        Json data = Json::object();
+        if (query == "transfer_window") {
+            data["rows"] = rows;
+            if (truncated) data["hint"] = "increase line_limit to return more transfer rows";
+        }
+        else if (query == "first_transfer" || query == "last_transfer") {
+            if (!rows.empty()) data["row"] = query=="first_transfer"?rows.front():rows.back();
+        }
+        return {{"ok",true},{"summary",summary},{"data",data}};
     }
 };
 
@@ -646,7 +672,7 @@ struct StreamExportHandler : public EngineActionHandler {
         if (!err.empty()) return err;
 
         auto args = req.value("args", Json::object());
-        std::string name = args.value("name", "default");
+        std::string name = args.at("stream");
 
         StreamConfig cfg;
         Json cerr;
@@ -674,28 +700,23 @@ struct StreamExportHandler : public EngineActionHandler {
                                    {"missing_signals", arr}}}};
         }
 
-        uint64_t begin_time = cfg.start;
-        uint64_t end_time = cfg.end > 0 ? cfg.end : wf->max_time();
-        if (args.contains("begin")) {
-            if (args["begin"].is_number()) begin_time = args["begin"].get<uint64_t>();
-            else if (args["begin"].is_string()) {
-                try { begin_time = std::stoull(args["begin"].get<std::string>()); }
-                catch (...) {}
-            }
-        }
-        if (args.contains("end")) {
-            if (args["end"].is_number()) end_time = args["end"].get<uint64_t>();
-            else if (args["end"].is_string()) {
-                try { end_time = std::stoull(args["end"].get<std::string>()); }
-                catch (...) {}
-            }
-        }
+        uint64_t begin_time = wf->min_time(), end_time = wf->max_time();
+        std::string message;
+        const Json range = args.value("time_range",Json::object());
+        if (range.contains("begin") && !wf->parse_time(range.at("begin"),begin_time,message))
+            return action_error("INVALID_TIME",message);
+        if (range.contains("end") && !wf->parse_time(range.at("end"),end_time,message,true))
+            return action_error("INVALID_TIME",message);
+        if (begin_time > end_time) return action_error("TIME_RANGE_INVALID","end is before begin");
 
         uint32_t begin_ti = wf->time_idx_of(begin_time);
         uint32_t end_ti = wf->time_idx_of(end_time);
 
         ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
+        parse_value_render_format(args.value("value_format", "hex"), fmt);
+        TimeRenderUnit unit;
+        if (!parse_time_render_unit(args.value("render_time_unit","ns"),unit,message))
+            return action_error("INVALID_FIELD",message);
 
         IWaveformBackend::SignalInfo info;
         int data_width = 0;
@@ -703,28 +724,62 @@ struct StreamExportHandler : public EngineActionHandler {
             data_width = static_cast<int>(info.width);
         }
 
-        // No row limit for export
+        const size_t line_limit = args.value("line_limit",1000u);
         auto events = scan_handshakes(wf, clk_ref, vld_ref, rdy_ref, data_ref,
                                       begin_ti, end_ti, 0);
-
-        Json handshakes = Json::array();
-        for (auto& ev : events) {
-            Json item;
-            item["time"] = ev.time;
-            item["time_idx"] = ev.time_idx;
-            if (data_ref && !ev.data_bits.empty()) {
-                LogicValue lv = logic_value_from_bits(ev.data_bits, data_width);
-                item["data"] = logic_value_json(lv, fmt);
-            }
-            handshakes.push_back(item);
+        const size_t row_count = std::min(line_limit,events.size());
+        if (!args.contains("output") || !args.at("output").contains("path"))
+            return action_error("INVALID_FIELD","stream.export requires output.path");
+        const Json output = args.at("output");
+        const std::string path = output.at("path");
+        const std::string file_format = output.value("file_format","tsv");
+        const std::string meta_path = path + ".meta.json";
+        std::ofstream rows_file(path), meta_file(meta_path);
+        if (!rows_file || !meta_file)
+            return action_error("OUTPUT_WRITE_FAILED","cannot open stream export output");
+        const char separator = file_format == "csv" ? ',' : '\t';
+        rows_file << "cycle" << separator << "time" << separator << "data\n";
+        for (size_t index = 0; index < row_count; ++index) {
+            const auto& event = events[index];
+            std::string rendered;
+            if (data_ref && !event.data_bits.empty())
+                rendered = logic_value_json(
+                    logic_value_from_bits(event.data_bits,data_width),fmt).at("value");
+            rows_file << index << separator << wf->format_time(event.time,unit)
+                      << separator << rendered << '\n';
         }
+        meta_file << Json{{"stream",name},{"kind",args.value("kind","transfer")},
+            {"row_count",row_count},{"source","current_session_fst"}}.dump(2) << '\n';
 
-        Json summary;
-        summary["handshake_count"] = handshakes.size();
-
-        return Json{{"ok", true},
-                    {"summary", summary},
-                    {"data", {{"handshakes", handshakes}}}};
+        uint64_t vhc = 0, rhc = 0, hc = 0;
+        count_handshake_stats(wf,clk_ref,vld_ref,rdy_ref,begin_ti,end_ti,vhc,rhc,hc);
+        const bool truncated = row_count < events.size();
+        Json summary{{"stream",name},{"sampling_mode","clock_edge"},
+            {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
+            {"sample_time_semantics","time is sample_time"},{"handshake","vld/rdy"},
+            {"packet_enabled",!cfg.sop.empty()&&!cfg.eop.empty()},
+            {"clock_edges",wf->time_indices_of(clk_ref).size()/2},{"vld_cycles",vhc},
+            {"transfer_count",hc},{"stall_cycles",vhc-hc},{"stall_windows",vhc>hc?1:0},
+            {"complete_packet_count",0},{"partial_packet_count",0},
+            {"packet_count_status","exact"},{"control_xz_count",0},{"data_xz_count",0},
+            {"ready_bp_conflict_count",0},{"packet_stable_mismatch_count",0},
+            {"requested_range",{{"begin",wf->format_time(begin_time,unit)},
+                {"end",wf->format_time(end_time,unit)}}},
+            {"scanned_range",{{"begin",wf->format_time(begin_time,unit)},
+                {"end",wf->format_time(end_time,unit)}}},
+            {"status","written"},{"output_written",true},{"row_count",row_count},
+            {"line_limit",line_limit},{"kind",args.value("kind","transfer")},
+            {"output",{{"path",path},{"meta_path",meta_path},{"file_format",file_format}}},
+            {"scan_complete",true},{"analysis_complete",true},
+            {"response_truncated",truncated},{"total_count",events.size()},
+            {"returned_count",row_count},
+            {"truncation_scopes",truncated?Json::array({"export_rows"}):Json::array()}};
+        if (cfg.edge != "negedge") summary["sample_point"] = cfg.sample_point;
+        if (!events.empty()) {
+            summary["first_transfer_time"] = wf->format_time(events.front().time,unit);
+            summary["last_transfer_time"] = wf->format_time(events.back().time,unit);
+        }
+        return {{"ok",true},{"summary",summary},{"data",Json::object()}};
     }
 };
 
@@ -742,7 +797,7 @@ struct StreamValidateHandler : public EngineActionHandler {
         if (!err.empty()) return err;
 
         auto args = req.value("args", Json::object());
-        std::string name = args.value("name", "default");
+        std::string name = args.at("stream");
 
         StreamConfig cfg;
         Json cerr;
@@ -750,29 +805,60 @@ struct StreamValidateHandler : public EngineActionHandler {
 
         auto* wf = engine_globals().waveform.get();
 
-        std::vector<std::string> missing;
-        bool all_found = true;
-
-        auto check_signal = [&](const std::string& sig_name, const std::string& /*role*/) {
-            if (sig_name.empty()) return;
-            uint32_t ref = wf->find_signal(sig_name);
-            if (ref == IWaveformBackend::kInvalidSignalRef) {
-                missing.push_back(sig_name);
-                all_found = false;
+        Json validation = validate_stream(wf,cfg,false);
+        const bool static_ok = validation.at("status") == "ok";
+        Json issues = Json::array();
+        if (!static_ok) issues.push_back({{"code","signal_not_found"},
+            {"severity","error"},{"message","stream contains unresolved signals"}});
+        const bool dynamic_requested = args.value("dynamic",false);
+        Json dynamic = Json::object();
+        bool scan_complete = false, analysis_complete = static_ok;
+        if (dynamic_requested && static_ok) {
+            uint64_t begin_time = wf->min_time(), end_time = wf->max_time();
+            std::string message;
+            const Json range = args.value("time_range",Json::object());
+            if (range.contains("begin") && !wf->parse_time(range.at("begin"),begin_time,message))
+                return action_error("INVALID_TIME",message);
+            if (range.contains("end") && !wf->parse_time(range.at("end"),end_time,message,true))
+                return action_error("INVALID_TIME",message);
+            if (begin_time > end_time)
+                return action_error("TIME_RANGE_INVALID","end is before begin");
+            TimeRenderUnit unit;
+            if (!parse_time_render_unit(args.value("render_time_unit","ns"),unit,message))
+                return action_error("INVALID_FIELD",message);
+            const uint32_t clk_ref=load_signal(wf,cfg.clock),
+                vld_ref=load_signal(wf,cfg.valid),rdy_ref=load_signal(wf,cfg.ready);
+            const uint32_t begin_ti=wf->time_idx_of(begin_time),end_ti=wf->time_idx_of(end_time);
+            uint64_t vhc=0,rhc=0,hc=0;
+            count_handshake_stats(wf,clk_ref,vld_ref,rdy_ref,begin_ti,end_ti,vhc,rhc,hc);
+            auto events=scan_handshakes(wf,clk_ref,vld_ref,rdy_ref,0,begin_ti,end_ti,0);
+            dynamic={{"stream",name},{"sampling_mode","clock_edge"},
+                {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
+                {"sample_time_semantics","time is sample_time"},{"handshake","vld/rdy"},
+                {"packet_enabled",!cfg.sop.empty()&&!cfg.eop.empty()},
+                {"clock_edges",wf->time_indices_of(clk_ref).size()/2},{"vld_cycles",vhc},
+                {"transfer_count",hc},{"stall_cycles",vhc-hc},{"stall_windows",vhc>hc?1:0},
+                {"complete_packet_count",0},{"partial_packet_count",0},
+                {"packet_count_status","exact"},{"control_xz_count",0},{"data_xz_count",0},
+                {"ready_bp_conflict_count",0},{"packet_stable_mismatch_count",0},
+                {"requested_range",{{"begin",wf->format_time(begin_time,unit)},
+                    {"end",wf->format_time(end_time,unit)}}},
+                {"scanned_range",{{"begin",wf->format_time(begin_time,unit)},
+                    {"end",wf->format_time(end_time,unit)}}}};
+            if (cfg.edge != "negedge") dynamic["sample_point"] = cfg.sample_point;
+            if (!events.empty()) {
+                dynamic["first_transfer_time"]=wf->format_time(events.front().time,unit);
+                dynamic["last_transfer_time"]=wf->format_time(events.back().time,unit);
             }
-        };
-
-        check_signal(cfg.clock, "clock");
-        check_signal(cfg.valid, "valid");
-        check_signal(cfg.ready, "ready");
-        check_signal(cfg.data, "data");
-
-        Json arr = Json::array();
-        for (auto& m : missing) arr.push_back(m);
-
-        return Json{{"ok", true},
-                    {"data", {{"valid", all_found},
-                               {"missing_signals", arr}}}};
+            scan_complete=true;
+        }
+        const bool ok=static_ok && (!dynamic_requested || scan_complete);
+        return {{"ok",true},{"summary",{{"stream",name},{"ok",ok},
+            {"static_validation_complete",true},{"dynamic_requested",dynamic_requested},
+            {"scan_complete",scan_complete},{"analysis_complete",analysis_complete},
+            {"response_truncated",false},{"total_count",issues.size()},
+            {"returned_count",issues.size()},{"truncation_scopes",Json::array()}}},
+            {"data",{{"issues",issues},{"dynamic",dynamic}}}};
     }
 };
 
