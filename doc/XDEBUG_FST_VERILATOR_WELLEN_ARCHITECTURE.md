@@ -555,6 +555,18 @@ C++ adapter 同时持有：
 
 特别是 Verilator emitter 当前输出的某些 interface pseudo signal 可能 width 为 0，array 可能只显示聚合名；是否扩展 XDD 必须先用原版差分证明这些事实确实是某个公开 action 的必要输入。
 
+### 9.4 P5 已落地的会话内 FST action 架构
+
+P5 当前已把发现、静态设计、`value.at`、list、event、cursor 和 RC 生成迁移到冻结合同。`value.at`、`list.first_change`、`event.find` 和所有导出数据收集都直接调用当前 `WellenFstBackend`：先按请求涉及的最终叶子信号加载，再在指定物理时间、时钟边沿和 observation point 读取类型化值。命名 list、event config 和 cursor 只保存路径、表达式、采样策略或时间书签，不保存波形值或变化索引。
+
+三类显式文件产物必须与“离线 FST 分析”严格区分：
+
+- `list.export` 按公共合同写出 `u64bin.v1`，用于调用者消费最终列表数据；
+- `event.export` 按公共合同写出 JSON 事件结果；
+- `nwave.rc.generate` 写出 nWave 视图脚本，并明确要求工具另行打开原始 FST。
+
+这些文件只在请求明确给出输出路径时写出，不参与 session.open，不被任何 action 自动重载，不是 file transport，也不允许在 Wellen 失败时充当 fallback。生产分析唯一波形事实源仍是会话中由 Wellen 直接按需读取的 `.fst`。因此“必须适配 FST 波形”和“允许公共 export action 产生最终结果文件”并不冲突：前者约束分析输入与事实来源，后者只是调用者显式要求的输出。
+
 ## 十、后续演进原则
 
 1. Wellen 负责波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；

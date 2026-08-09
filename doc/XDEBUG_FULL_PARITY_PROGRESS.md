@@ -4,9 +4,9 @@
 
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
 - 当前阶段：P4 已完成（克制扩展 Verilator DesignDB）
-- 当前任务：进入 P5，按 action 批次实现全部公共能力
+- 当前任务：P5 进行中；发现/静态设计、`value.at`、list、event、cursor 与 `nwave.rc.generate` 批次已完成，继续表达式/验证/窗口/信号分析
 - 全局硬门禁：生产、回归和最终验收只打开 FST 波形；VCD 仅可作为可重复生成 FST 的源文件，禁止作为输入或 fallback
-- xdebug-fst 当前功能提交：`f61670a`；当前测试提交：`e1779c9`
+- xdebug-fst 当前功能提交：`da274c6`；当前测试提交：`ee37acd`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `50d8fff59df67a2eafcd19676e6ce6cc9827c0b7`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
@@ -23,7 +23,7 @@
 | P2 | 已完成 | `parity-p2` | registry、真实 UDS engine、来源清单、批量生命周期、异常补偿及 MCP direct/fake-LSF 全部通过；TCP/file 按用户要求裁剪且无 fallback |
 | P3 | 已完成 | `parity-p3` | FST-only Wellen 层级、时间、类型、delta、采样、批量与完整性已实现；Rust/C/C++、7 CTest、基线与双 C ABI 门禁全部通过 |
 | P4 | 已完成 | `parity-p4` | 两组修改前失败证据后，仅增加 ABI/capability、声明方向、预计算端口边和 driver dependency role；8 个 XDD 与普通回归通过 |
-| P5 | 未开始 | `parity-p5` | 全部公共 Action |
+| P5 | 进行中 | `parity-p5` | 已完成发现/静态设计、`value.at`、list、event、cursor、`nwave.rc.generate`；其余 action 继续分批迁移 |
 | P6 | 未开始 | `parity-p6` | Active Driver 与 X Origin |
 | P7 | 未开始 | `parity-p7` | 全量差分与最终交付 |
 
@@ -68,6 +68,12 @@
 - Verilator `50d8fff59`：以附加访问器区分 RHS、control 与 statement 依赖角色。
 - `4ab367d`：锁定最新 XDD 并消费原生 dependency role。
 - `7670e6c`：覆盖同一目标的数据依赖与控制依赖角色。
+- `a13e2ef`、`3dfa01d`：对齐并验证发现与静态设计 action。
+- `035c835`、`2b2f572`：实现并验证 `value.at` 的 signal/list/APB/AXI/stream、多时间点、时钟采样、X/Z 和严格物理时间。
+- `4b42139` 至 `23dd725`：对齐 list 管理、首次差异、预览和 `u64bin.v1` 导出。
+- `a7d42ea`、`17c1027`：对齐 cursor 的物理时间、活动状态与元数据。
+- `11ecbfc` 至 `04c3da2`：对齐 event 配置、时钟采样表达式查询、聚合与 JSON 导出。
+- `da274c6`、`ee37acd`：按正式配置生成并验证 nWave RC 视图脚本。
 
 ## 测试记录
 
@@ -94,12 +100,14 @@
 - P4 Verilator：`make -C src -j2` 通过；`t_xdd_trace_simple/full/uart/metadata/ops/trace`、`t_xdd_p3`、`t_xdd_p4` 共 8 个 DesignDB 用例逐一通过；普通非 DesignDB `t_a1_first_cc` 通过。
 - P4 xdebug-fst：依赖 revision/header hash 配置门禁通过，构建通过，8/8 CTest 通过；旧 XDD bundle、缺 capability 或缺符号均 fail closed，方向、端口边和 driver role 均使用原生事实。
 - P4 基线：`check_compat_baseline.py --original-root ${XDEBUG_ORIGINAL_ROOT}` 通过；五组 DesignDB 固件已重生成，但所有 `.fst` 文件保持未修改，测试继续由 Wellen 直接按需打开 FST。
+- P5 已完成批次：发现/静态设计 13 项、`value.at` 16 项、list/event/cursor/RC 22 项专项 pytest 均通过；8/8 CTest 持续通过。所有输入波形路径均以 `.fst` 结尾。
+- P5 导出边界：`list.export` 的 `u64bin.v1`、`event.export` 的 JSON 和 `nwave.rc.generate` 的 RC 仅是用户显式请求的最终产物，不是 file transport，也从不作为后续分析输入；所有事件发现、采样、首次差异和导出数据收集仍由 Wellen 在当前 FST 会话中按需执行。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
 ## 剩余差异
 
-P0、P1、P2、P3、P4 已关闭。P3 的 FST 后端事实层已实现递归层级、alias、timescale、严格时间、四态/real/string/event、delta、raw/before/after、时钟采样、批量访问和完整性诊断，且生产与测试均禁止直接读取 VCD/FSDB 或 fallback。P4 在两组修改前失败证据后，仅为 XDD 增加声明方向、预计算端口边和 driver dependency role；没有证据的 process order、sequential boundary 未加入。下一步 P5 必须把全部公开 action 迁移到这些统一语义。FST 始终由 Wellen 在会话中按需读取，不转换成离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；schema enum 保留，实际选择必须 fail closed 且不得 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
+P0、P1、P2、P3、P4 已关闭，P5 正在执行。P5 已完成发现/静态设计、`value.at`、list、event、cursor 和 RC 生成批次，但表达式、verify、window、signal/counter/protocol、APB、AXI、stream 与 combined trace 尚未全部关闭，因此仍不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
 
 ## P4 修改前失败证据
 
