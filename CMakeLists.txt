@@ -161,6 +161,7 @@ if(BUILD_TESTING)
             ${CMAKE_SOURCE_DIR}/tests/test_session_uds_lifecycle.py
             $<TARGET_FILE:xdebug-fst>
             ${CMAKE_SOURCE_DIR}/testdata/fixtures/waves.fst
+            ${CMAKE_SOURCE_DIR}/testdata/fixtures/counter/obj_dir/libVcounter_top__DesignDb.so
     )
 
     if(XDEBUG_ENABLE_MCP_INTEGRATION_TESTS)

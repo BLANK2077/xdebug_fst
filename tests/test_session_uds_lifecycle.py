@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -63,9 +64,30 @@ def expect_error(result: tuple[int, dict], action: str, code: str) -> dict:
     return response
 
 
+def directory_tree_sha256(root: Path) -> str:
+    digest = hashlib.sha256()
+
+    def visit(directory: Path, relative: Path) -> None:
+        for child in sorted(directory.iterdir(), key=lambda path: path.name):
+            child_relative = relative / child.name
+            relative_text = child_relative.as_posix()
+            if child.is_dir() and not child.is_symlink():
+                digest.update(f"D\n{relative_text}\n".encode())
+                visit(child, child_relative)
+            elif child.is_file() and not child.is_symlink():
+                digest.update(f"F\n{relative_text}\n".encode())
+                digest.update(child.read_bytes())
+            else:
+                raise AssertionError(f"unsupported directory member: {child}")
+
+    visit(root, Path())
+    return digest.hexdigest()
+
+
 def main() -> int:
     executable = str(Path(sys.argv[1]).resolve())
     waveform = str(Path(sys.argv[2]).resolve())
+    design_library = Path(sys.argv[3]).resolve()
     with tempfile.TemporaryDirectory(prefix="xdebug-fst-session-") as root:
         environment = os.environ.copy()
         environment["HOME"] = root
@@ -113,6 +135,149 @@ def main() -> int:
             "INVALID_ENVIRONMENT",
         )
 
+        provenance = Path(root) / "provenance"
+        provenance.mkdir()
+        manifest_waveform = provenance / "waves.fst"
+        shutil.copy2(waveform, manifest_waveform)
+        digest = hashlib.sha256(manifest_waveform.read_bytes()).hexdigest()
+        manifest_document = {
+            "schema_version": "xdebug.run-manifest.v1",
+            "state": "published",
+            "resources": {
+                "fsdb": {
+                    "path": "waves.fst",
+                    "size_bytes": manifest_waveform.stat().st_size,
+                    "sha256": digest,
+                }
+            },
+        }
+        manifest_path = provenance / "run.json"
+        manifest_path.write_text(
+            json.dumps(manifest_document), encoding="utf-8"
+        )
+        manifested = expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.open",
+                    target={
+                        "fsdb": str(manifest_waveform),
+                        "run_manifest": str(manifest_path),
+                    },
+                    args={"name": "case_manifest"},
+                ),
+            ),
+            "session.open",
+        )
+        run_manifest = manifested["data"]["run_manifest"]
+        assert run_manifest["schema_version"] == "xdebug.run-manifest.v1"
+        assert run_manifest["state"] == "published"
+        assert run_manifest["manifest_path"] == str(manifest_path.resolve())
+        assert run_manifest["resources"] == manifest_document["resources"]
+        expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.close",
+                    target={"session_id": "case_manifest"},
+                    args={},
+                ),
+            ),
+            "session.close",
+        )
+
+        mismatched_document = json.loads(json.dumps(manifest_document))
+        mismatched_document["resources"]["fsdb"]["sha256"] = "0" * 64
+        manifest_path.write_text(
+            json.dumps(mismatched_document), encoding="utf-8"
+        )
+        provenance_error = expect_error(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.open",
+                    target={
+                        "fsdb": str(manifest_waveform),
+                        "run_manifest": str(manifest_path),
+                    },
+                    args={"name": "case_manifest_bad"},
+                ),
+            ),
+            "session.open",
+            "RESOURCE_PROVENANCE_MISMATCH",
+        )
+        assert provenance_error["error"]["expected_sha256"] == "0" * 64
+        assert provenance_error["error"]["actual_sha256"] == digest
+
+        combined_root = Path(root) / "combined"
+        combined_bundle = combined_root / "bundle"
+        combined_bundle.mkdir(parents=True)
+        combined_waveform = combined_root / "waves.fst"
+        shutil.copy2(waveform, combined_waveform)
+        shutil.copy2(design_library, combined_bundle / "design.so")
+        (combined_bundle / "xdebug-design-db.json").write_text(
+            json.dumps({
+                "schema_version": "xdebug.design-db-bundle.v1",
+                "library": "design.so",
+            }),
+            encoding="utf-8",
+        )
+        combined_manifest = {
+            "schema_version": "xdebug.run-manifest.v1",
+            "state": "published",
+            "resources": {
+                "fsdb": {
+                    "path": "waves.fst",
+                    "size_bytes": combined_waveform.stat().st_size,
+                    "sha256": hashlib.sha256(
+                        combined_waveform.read_bytes()).hexdigest(),
+                },
+                "daidir": {
+                    "path": "bundle",
+                    "size_bytes": combined_bundle.stat().st_size,
+                    "sha256": directory_tree_sha256(combined_bundle),
+                },
+            },
+        }
+        combined_manifest_path = combined_root / "run.json"
+        combined_manifest_path.write_text(
+            json.dumps(combined_manifest), encoding="utf-8"
+        )
+        combined = expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.open",
+                    target={
+                        "fsdb": str(combined_waveform),
+                        "daidir": str(combined_bundle),
+                        "run_manifest": str(combined_manifest_path),
+                    },
+                    args={"name": "case_combined_manifest"},
+                ),
+            ),
+            "session.open",
+        )
+        assert combined["session"]["mode"] == "combined"
+        assert combined["data"]["run_manifest"]["resources"] == \
+            combined_manifest["resources"]
+        expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.close",
+                    target={"session_id": "case_combined_manifest"},
+                    args={},
+                ),
+            ),
+            "session.close",
+        )
+
         open_request = request(
             "session.open",
             target={"fsdb": waveform},
@@ -124,6 +289,40 @@ def main() -> int:
         socket_path = Path(opened["session"]["socket_path"])
         assert socket_path.is_socket()
         assert socket_path.stat().st_mode & 0o777 == 0o600
+
+        same_resource = expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.open",
+                    target={"fsdb": waveform},
+                    args={"name": "case_same_resource"},
+                ),
+            ),
+            "session.open",
+        )
+        assert same_resource["advisories"] == [{
+            "code": "RESOURCE_SESSION_ALREADY_ALIVE",
+            "severity": "info",
+            "match_kind": "same_fsdb",
+            "existing_session_id": "case_a",
+            "existing_mode": "waveform",
+            "message": "same resource already has an alive session; "
+                       "consider closing one to save resources",
+        }]
+        expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.close",
+                    target={"session_id": "case_same_resource"},
+                    args={},
+                ),
+            ),
+            "session.close",
+        )
 
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
             client.settimeout(2)
@@ -365,6 +564,83 @@ def main() -> int:
         assert expired["summary"]["expired_removed_count"] == 1
         assert expired["data"]["removed"][0]["reason"] == "idle_timeout"
         assert not Path(idle["session"]["socket_path"]).exists()
+
+        for name in ("case_close_all_a", "case_close_all_b"):
+            expect_ok(
+                invoke(
+                    executable,
+                    environment,
+                    request(
+                        "session.open",
+                        target={"fsdb": waveform},
+                        args={"name": name},
+                    ),
+                ),
+                "session.open",
+            )
+        close_all = expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.close", target={"session_id": "all"}, args={}
+                ),
+            ),
+            "session.close",
+        )
+        assert close_all["summary"] == {
+            "requested_count": 2,
+            "removed_count": 2,
+        }
+        assert {item["session_id"] for item in
+                close_all["data"]["removed_sessions"]} == {
+            "case_close_all_a", "case_close_all_b"
+        }
+
+        for name in ("case_kill_all_a", "case_kill_all_b"):
+            expect_ok(
+                invoke(
+                    executable,
+                    environment,
+                    request(
+                        "session.open",
+                        target={"fsdb": waveform},
+                        args={"name": name},
+                    ),
+                ),
+                "session.open",
+            )
+        expect_error(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.kill",
+                    target={"session_id": "all"},
+                    args={"ownership_token": token},
+                ),
+            ),
+            "session.kill",
+            "SESSION_OWNERSHIP_TOKEN_FORBIDDEN",
+        )
+        kill_all = expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.kill", target={"session_id": "all"}, args={}
+                ),
+            ),
+            "session.kill",
+        )
+        assert kill_all["summary"] == {
+            "requested_count": 2,
+            "removed_count": 2,
+        }
+        assert {item["session_id"] for item in
+                kill_all["data"]["removed_sessions"]} == {
+            "case_kill_all_a", "case_kill_all_b"
+        }
 
         # In stdio-loop the frontend remains the engine's parent. Closing in
         # that same process must reap the child instead of mistaking a zombie
