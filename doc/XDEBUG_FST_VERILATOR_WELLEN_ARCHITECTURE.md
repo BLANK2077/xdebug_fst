@@ -567,7 +567,8 @@ C++ adapter 同时持有：
   条件/过程/跨层多 driver 和更多 NBA 边界仍须逐项差分，不能据当前用例宣称全部关闭；
 - XDD 已表达普通 `if/else`、普通 `case/default`、`casez/casex` predicate，并在当前
   emitter 内拆分 V3Inst 合并的 `AstCond` RHS，恢复叶子源位置与条件；case inside 已覆盖
-  item-side wildcard 与闭区间，通用 case matches 仍明确 unresolved，不恢复或猜测；
+  item-side wildcard 与闭区间；精确表达式 case matches 复用 `===`，tagged/pattern
+  matches 仍明确 unsupported，不恢复或猜测；
 - direction/port connection 仍有上层推导逻辑；
 - P2 已完成 UDS idle timeout、完整失败补偿、MCP direct 和 fake-LSF；TCP/file
   已按用户明确要求裁剪，不作为实现或验收项；
@@ -827,6 +828,7 @@ expression、tagged pattern、pattern variable/star 和独立 `matches` 运算�
 - xdebug-fst `97ed236`：按静态赋值 kind 对无非自身 RHS 的 NBA 返回 assignment 终止。
 - xdebug-fst `9e6dbbe`：锁定 Verilator 多驱动修复并以真实 FST/DesignDB 组合恢复双连续活动候选歧义。
 - xdebug-fst `6d5adcd`：以 RHS-only 四态通配与闭区间求值消费 case inside 谓词，运行时值仍直接来自原始 FST。
+- xdebug-fst `d67ef94`：锁定精确表达式 `case matches` 的有限 Verilator 子集，并以独立原始 FST 在 active time 验证 item/default；FST 只提供 selector 波形事实。
 - xdebug-fst `022d316`：锁定 inout lowering 原始 RHS 替换语义，并以真实 FST 完成跨端口四跳链。
 - xdebug-fst `fcd5e06`：以带独立中间 net 的真实两级 inout 固件验证六跳父向链，三方实现和 ABI 均无需修改。
 - xdebug-fst `7e07599`、`970aae1`：冻结 output 边界折叠失败，并仅组合既有 XDD 端口/驱动事实恢复原版五跳模块链。
