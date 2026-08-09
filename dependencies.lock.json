@@ -1,0 +1,30 @@
+{
+  "lock_version": 1,
+  "wellen": {
+    "repository": "../wellen",
+    "revision": "1d66a9ea5111d1e80d16273a604f92e8c6a51cbd",
+    "branch": "feature/xdebug-fst-capi",
+    "crate_version": "0.25.6",
+    "capi_header_sha256": "26774b53d744c8f3e2361c45963da2b85f6c5e5c1d4b4c1dbd65f2a856f1a735",
+    "signal_reference_base": 1
+  },
+  "wellenx_capi": {
+    "repository": ".",
+    "crate_version": "0.1.0",
+    "cargo_lock_sha256": "20bd1693f8cf3ab3544cfde109d5d9c9b3508cbf94a86feda79b2a5f714f32b3",
+    "header_sha256": "31ad5bf0311a438587daacc97d261f7f0e0306522ee6dece76c1003d7a986528",
+    "source_sha256": "946d22760a47b3ebcadffb1870f160436a06b4bf88505a798b544b18e20f1174",
+    "signal_reference_base": 1
+  },
+  "verilator": {
+    "repository": "../verilator",
+    "revision": "e04eb0ea8203028490400172396add8ec458932b",
+    "branch": "feature/design-db-for-xdebug",
+    "xdd_header_sha256": "7570263712b2a6d97972f45bb34897838f18704dcbd5c87b1fbb6ccf4e3e2d95"
+  },
+  "original_xdebug": {
+    "runtime_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
+    "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "baseline_manifest_sha256": "5d2882cdc06bbdc8bc03ea1fb6d9bb888bc9de316d8936cbeb67188f26da53f0"
+  }
+}
