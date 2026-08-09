@@ -5,6 +5,7 @@
 #include "core/value/logic_value.h"
 #include "waveform/list/list_manager.h"
 #include "waveform/cursor/cursor_manager.h"
+#include "waveform/time_contract.h"
 #include "api/json_types.h"
 
 #include <algorithm>
@@ -55,6 +56,20 @@ static Json check_waveform(const char* action) {
                           std::string("action requires waveform file: ") + action);
     }
     return Json(); // null
+}
+
+static Json cursor_metadata(const WaveformCursor& cursor) {
+    return {{"note", cursor.note}, {"origin", cursor.origin},
+            {"clock", cursor.clock}};
+}
+
+static bool cursor_render_unit(const Json& args, TimeRenderUnit& unit,
+                               Json& error) {
+    std::string message;
+    if (parse_time_render_unit(args.value("render_time_unit", "ns"), unit,
+                               message)) return true;
+    error = make_error("INVALID_TIME_UNIT", message);
+    return false;
 }
 
 // ============================================================================
@@ -744,16 +759,27 @@ struct CursorSetHandler : public EngineActionHandler {
             return make_error("MISSING_FIELD", "args.name is required for waveform.cursor.set");
 
         uint64_t time = 0;
-        if (!args.contains("time"))
-            return make_error("MISSING_FIELD", "args.time is required for waveform.cursor.set");
-        if (!parse_time_arg(args["time"], time))
-            return make_error("INVALID_TIME", "args.time must be an integer");
+        std::string parse_error;
+        if (!engine_globals().waveform->parse_time(args.at("time"), time,
+                                                   parse_error))
+            return make_error("INVALID_TIME", parse_error);
+        TimeRenderUnit unit;
+        Json unit_error;
+        if (!cursor_render_unit(args, unit, unit_error)) return unit_error;
 
         CursorManager::instance().set(name, time);
+        WaveformCursor cursor;
+        CursorManager::instance().get(name, cursor);
+        const std::string rendered = engine_globals().waveform->format_time(time, unit);
 
         Json out;
         out["ok"] = true;
-        out["data"] = {{"cursor", {{"name", name}, {"time", time}}}};
+        out["summary"] = {{"name", name}, {"time", rendered},
+                          {"status", "set"},
+                          {"active", CursorManager::instance().active_name() == name}};
+        out["data"] = {
+            {"resolved_time", {{"source", "explicit"}, {"time", rendered}}},
+            {"metadata", cursor_metadata(cursor)}};
         return out;
     }
 };
@@ -780,9 +806,15 @@ struct CursorGetHandler : public EngineActionHandler {
         if (!CursorManager::instance().get(name, c))
             return make_error("CURSOR_NOT_FOUND", "cursor not found: " + name);
 
+        TimeRenderUnit unit;
+        Json unit_error;
+        if (!cursor_render_unit(args, unit, unit_error)) return unit_error;
+        const std::string rendered = engine_globals().waveform->format_time(c.time, unit);
         Json out;
         out["ok"] = true;
-        out["data"] = {{"cursor", {{"name", c.name}, {"time", c.time}}}};
+        out["summary"] = {{"name", c.name}, {"time", rendered},
+                          {"status", "found"}};
+        out["data"] = {{"metadata", cursor_metadata(c)}};
         return out;
     }
 };
@@ -799,15 +831,24 @@ struct CursorListHandler : public EngineActionHandler {
     Json run(const Json& req) override {
         Json err = check_waveform(action_name());
         if (!err.is_null()) return err;
-        (void)req;
+        auto args = req.value("args", Json::object());
+        TimeRenderUnit unit;
+        Json unit_error;
+        if (!cursor_render_unit(args, unit, unit_error)) return unit_error;
 
         auto cursors = CursorManager::instance().all();
         Json arr = Json::array();
         for (const auto& c : cursors)
-            arr.push_back({{"name", c.name}, {"time", c.time}});
+            arr.push_back({{"name", c.name},
+                {"time", engine_globals().waveform->format_time(c.time, unit)},
+                {"note", c.note}, {"origin", c.origin}, {"clock", c.clock},
+                {"created_at", c.created_at}, {"updated_at", c.updated_at}});
 
         Json out;
         out["ok"] = true;
+        const std::string active = CursorManager::instance().active_name();
+        out["summary"] = {{"cursor_count", arr.size()},
+                          {"active_cursor", active.empty() ? Json(nullptr) : Json(active)}};
         out["data"] = {{"cursors", arr}};
         return out;
     }
@@ -836,7 +877,9 @@ struct CursorDeleteHandler : public EngineActionHandler {
 
         Json out;
         out["ok"] = true;
-        out["summary"] = {{"name", name}, {"deleted", true}};
+        out["summary"] = {{"name", name}, {"deleted", true},
+                          {"status", "deleted"}};
+        out["data"] = Json::object();
         return out;
     }
 };
@@ -859,13 +902,20 @@ struct CursorUseHandler : public EngineActionHandler {
         if (name.empty())
             return make_error("MISSING_FIELD", "args.name is required for waveform.cursor.use");
 
-        uint64_t time = 0;
-        if (!CursorManager::instance().use(name, time))
+        WaveformCursor cursor;
+        if (!CursorManager::instance().use(name, cursor))
             return make_error("CURSOR_NOT_FOUND", "cursor not found: " + name);
+        TimeRenderUnit unit;
+        Json unit_error;
+        if (!cursor_render_unit(args, unit, unit_error)) return unit_error;
+        const std::string rendered =
+            engine_globals().waveform->format_time(cursor.time, unit);
 
         Json out;
         out["ok"] = true;
-        out["data"] = {{"cursor", {{"name", name}, {"time", time}}}};
+        out["summary"] = {{"status", "active"}, {"active_cursor", name},
+                          {"time", rendered}};
+        out["data"] = {{"metadata", cursor_metadata(cursor)}};
         return out;
     }
 };

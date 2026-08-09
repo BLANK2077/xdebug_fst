@@ -11,7 +11,19 @@ CursorManager& CursorManager::instance() {
 
 bool CursorManager::set(const std::string& name, uint64_t time) {
     if (name.empty()) return false;
-    cursors_[name] = WaveformCursor{name, time};
+    const uint64_t revision = ++revision_;
+    auto it = cursors_.find(name);
+    if (it == cursors_.end()) {
+        WaveformCursor cursor;
+        cursor.name = name;
+        cursor.time = time;
+        cursor.created_at = revision;
+        cursor.updated_at = revision;
+        cursors_[name] = std::move(cursor);
+    } else {
+        it->second.time = time;
+        it->second.updated_at = revision;
+    }
     return true;
 }
 
@@ -23,13 +35,14 @@ bool CursorManager::get(const std::string& name, WaveformCursor& out) const {
 }
 
 bool CursorManager::remove(const std::string& name) {
-    return cursors_.erase(name) > 0;
+    const bool removed = cursors_.erase(name) > 0;
+    if (removed && active_name_ == name) active_name_.clear();
+    return removed;
 }
 
-bool CursorManager::use(const std::string& name, uint64_t& time) const {
-    WaveformCursor c;
-    if (!get(name, c)) return false;
-    time = c.time;
+bool CursorManager::use(const std::string& name, WaveformCursor& out) {
+    if (!get(name, out)) return false;
+    active_name_ = name;
     return true;
 }
 
@@ -42,6 +55,10 @@ std::vector<WaveformCursor> CursorManager::all() const {
 
 void CursorManager::clear() {
     cursors_.clear();
+    active_name_.clear();
+    revision_ = 0;
 }
+
+std::string CursorManager::active_name() const { return active_name_; }
 
 } // namespace xdebug_fst
