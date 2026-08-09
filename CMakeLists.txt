@@ -118,4 +118,23 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test-runtime-schema-validator PRIVATE pthread stdc++fs)
     add_test(NAME runtime-schema-validator COMMAND test-runtime-schema-validator)
+
+    add_executable(test-session-registry
+        tests/cpp/test_session_registry.cpp
+        src/core/common/env_config.cpp
+        src/core/common/path_utils.cpp
+        src/core/common/tool_config.cpp
+        src/core/session/session_endpoint_contract.cpp
+        src/core/session/session_registry_contract.cpp
+        src/core/session/session_types.cpp
+        src/session/session_paths.cpp
+        src/session/session_registry.cpp
+    )
+    target_include_directories(test-session-registry PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/src/core
+        ${CMAKE_SOURCE_DIR}/third_party
+    )
+    target_link_libraries(test-session-registry PRIVATE stdc++fs)
+    add_test(NAME session-registry COMMAND test-session-registry)
 endif()
