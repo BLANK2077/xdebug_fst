@@ -140,6 +140,36 @@ public:
         double real = 0.0;
     };
 
+    /// Selection within a waveform timestamp. Raw/After select the settled
+    /// (last delta) value; Before selects the value immediately preceding an
+    /// exact timestamp, or the current settled value between timestamps.
+    enum class ObservationPoint { Raw, Before, After };
+
+    struct SampledValue {
+        WaveformValue value;
+        uint32_t time_idx = 0;
+        uint16_t element = 0;
+        uint16_t elements_at_time = 0;
+        bool time_match = false;
+    };
+
+    struct SignalChange {
+        uint32_t time_idx = 0;
+        uint64_t time = 0;
+        uint16_t delta = 0;
+        WaveformValue value;
+    };
+
+    struct ScanDiagnostics {
+        uint32_t total_count = 0;
+        uint32_t returned_count = 0;
+        uint32_t width = 0;
+        ValueKind encoding = ValueKind::BitVector;
+        bool scan_complete = false;
+        bool analysis_complete = false;
+        bool truncated = false;  // response projection only
+    };
+
     // ── Core queries ──
 
     /// Result of binary search for a signal at a time index.
@@ -170,6 +200,16 @@ public:
                                        uint32_t start, uint16_t element,
                                        WaveformValue& out) const = 0;
 
+    /// Read a semantically selected observation at a waveform time index.
+    virtual bool sampled_value_at(uint32_t signal_ref, uint32_t time_idx,
+                                  ObservationPoint point,
+                                  SampledValue& out) const = 0;
+
+    /// Preserve all ordered delta elements at the selected timestamp.
+    virtual bool delta_values_at(uint32_t signal_ref, uint32_t time_idx,
+                                 std::vector<WaveformValue>& out,
+                                 bool& out_time_match) const = 0;
+
     // ── Batch operations ──
 
     /// Read values for multiple signals at the same time_idx.
@@ -177,6 +217,24 @@ public:
     virtual void values_at(const std::vector<uint32_t>& refs, uint32_t time_idx,
                            std::vector<std::string>& out_values,
                            std::vector<bool>& out_found) const = 0;
+
+    /// Typed batch read at one consistent observation point.
+    virtual void typed_values_at(const std::vector<uint32_t>& refs,
+                                 uint32_t time_idx, ObservationPoint point,
+                                 std::vector<SampledValue>& out_values,
+                                 std::vector<bool>& out_found) const = 0;
+
+    /// Cursor-style access by change ordinal, including same-time deltas.
+    virtual bool signal_change_at(uint32_t signal_ref, uint32_t ordinal,
+                                  SignalChange& out) const = 0;
+
+    /// Scan an inclusive time-index range. `limit` caps returned rows only;
+    /// the backend still scans the full range to preserve exact totals and
+    /// analysis completeness.
+    virtual bool scan_changes(uint32_t signal_ref, uint32_t begin_time_idx,
+                              uint32_t end_time_idx, uint32_t limit,
+                              std::vector<SignalChange>& out,
+                              ScanDiagnostics& diagnostics) const = 0;
 
     // ── Signal change iteration ──
 

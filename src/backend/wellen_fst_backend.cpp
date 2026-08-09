@@ -35,10 +35,22 @@ bool file_exists(const std::string& path) {
     struct stat st;
     return stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode);
 }
+
+bool has_fst_suffix(const std::string& path) {
+    constexpr const char* suffix = ".fst";
+    constexpr size_t suffix_length = 4;
+    return path.size() >= suffix_length &&
+           path.compare(path.size() - suffix_length, suffix_length, suffix) == 0;
+}
 }  // namespace
 
 bool WellenFstBackend::open(const std::string& path) {
     close();
+    if (!has_fst_suffix(path)) {
+        fprintf(stderr, "wellen_open: only .fst waveform input is supported: %s\n",
+                path.c_str());
+        return false;
+    }
     if (!file_exists(path)) {
         fprintf(stderr, "wellen_open: file not found: %s\n", path.c_str());
         return false;
@@ -56,6 +68,9 @@ bool WellenFstBackend::open(const std::string& path) {
     xdb_ = wellenx_open(path.c_str());
     if (!xdb_) {
         fprintf(stderr, "wellenx_open error: %s\n", path.c_str());
+        wellen_close(db_);
+        db_ = nullptr;
+        return false;
     }
 
     // Cache the time table
@@ -354,6 +369,57 @@ bool WellenFstBackend::signal_typed_value_at(
     return true;
 }
 
+bool WellenFstBackend::sampled_value_at(
+    uint32_t signal_ref, uint32_t time_idx, ObservationPoint point,
+    SampledValue& out) const {
+    out = {};
+    SignalOffset offset;
+    if (!signal_offset_at(signal_ref, time_idx, offset) ||
+        offset.elements == 0) {
+        return false;
+    }
+
+    uint32_t start = offset.start;
+    uint16_t element = static_cast<uint16_t>(offset.elements - 1);
+    if (point == ObservationPoint::Before && offset.time_match) {
+        if (offset.start == 0) return false;
+        start = offset.start - 1;
+        element = 0;
+    }
+    if (!signal_typed_value_at(signal_ref, start, element, out.value)) {
+        return false;
+    }
+    out.time_idx = time_idx;
+    out.element = element;
+    out.elements_at_time = offset.elements;
+    out.time_match = offset.time_match;
+    return true;
+}
+
+bool WellenFstBackend::delta_values_at(
+    uint32_t signal_ref, uint32_t time_idx,
+    std::vector<WaveformValue>& out, bool& out_time_match) const {
+    out.clear();
+    out_time_match = false;
+    SignalOffset offset;
+    if (!signal_offset_at(signal_ref, time_idx, offset) ||
+        offset.elements == 0) {
+        return false;
+    }
+    out.reserve(offset.elements);
+    for (uint16_t element = 0; element < offset.elements; ++element) {
+        WaveformValue value;
+        if (!signal_typed_value_at(
+                signal_ref, offset.start, element, value)) {
+            out.clear();
+            return false;
+        }
+        out.push_back(std::move(value));
+    }
+    out_time_match = offset.time_match;
+    return true;
+}
+
 // ── Batch ──
 
 void WellenFstBackend::values_at(const std::vector<uint32_t>& refs,
@@ -365,11 +431,91 @@ void WellenFstBackend::values_at(const std::vector<uint32_t>& refs,
 
     // Per-signal reads via bit-string extension (2/4/9-state aware)
     for (size_t i = 0; i < refs.size(); ++i) {
-        IWaveformBackend::SignalOffset off;
-        if (!signal_offset_at(refs[i], time_idx, off)) continue;
+        SampledValue sampled;
+        if (!sampled_value_at(refs[i], time_idx,
+                              ObservationPoint::Raw, sampled)) continue;
         out_found[i] = true;
-        out_values[i] = signal_value_str(refs[i], off.start, 0);
+        if (sampled.value.kind == ValueKind::Real) {
+            std::ostringstream stream;
+            stream << std::setprecision(17) << sampled.value.real;
+            out_values[i] = stream.str();
+        } else if (sampled.value.kind == ValueKind::Event) {
+            out_values[i] = "event";
+        } else {
+            out_values[i] = sampled.value.text;
+        }
     }
+}
+
+void WellenFstBackend::typed_values_at(
+    const std::vector<uint32_t>& refs, uint32_t time_idx,
+    ObservationPoint point, std::vector<SampledValue>& out_values,
+    std::vector<bool>& out_found) const {
+    out_values.assign(refs.size(), {});
+    out_found.assign(refs.size(), false);
+    for (size_t index = 0; index < refs.size(); ++index) {
+        out_found[index] = sampled_value_at(
+            refs[index], time_idx, point, out_values[index]);
+    }
+}
+
+bool WellenFstBackend::signal_change_at(
+    uint32_t signal_ref, uint32_t ordinal, SignalChange& out) const {
+    out = {};
+    std::vector<uint32_t> indices = time_indices_of(signal_ref);
+    if (ordinal >= indices.size()) return false;
+    const uint32_t time_idx = indices[ordinal];
+    uint16_t delta = 0;
+    for (uint32_t index = ordinal;
+         index > 0 && indices[index - 1] == time_idx; --index) {
+        ++delta;
+    }
+    if (!signal_typed_value_at(signal_ref, ordinal, 0, out.value)) {
+        return false;
+    }
+    out.time_idx = time_idx;
+    out.time = time_at(time_idx);
+    out.delta = delta;
+    return true;
+}
+
+bool WellenFstBackend::scan_changes(
+    uint32_t signal_ref, uint32_t begin_time_idx, uint32_t end_time_idx,
+    uint32_t limit, std::vector<SignalChange>& out,
+    ScanDiagnostics& diagnostics) const {
+    out.clear();
+    diagnostics = {};
+    SignalInfo info;
+    if (begin_time_idx > end_time_idx || !signal_info(signal_ref, info)) {
+        return false;
+    }
+    diagnostics.width = info.width;
+    diagnostics.encoding = info.encoding;
+    const std::vector<uint32_t> indices = time_indices_of(signal_ref);
+    for (uint32_t ordinal = 0; ordinal < indices.size(); ++ordinal) {
+        if (indices[ordinal] < begin_time_idx ||
+            indices[ordinal] > end_time_idx) {
+            continue;
+        }
+        ++diagnostics.total_count;
+        if (limit != 0 && out.size() >= limit) continue;
+        SignalChange change;
+        change.time_idx = indices[ordinal];
+        change.time = time_at(change.time_idx);
+        for (uint32_t index = ordinal;
+             index > 0 && indices[index - 1] == change.time_idx; --index) {
+            ++change.delta;
+        }
+        if (!signal_typed_value_at(
+                signal_ref, ordinal, 0, change.value)) return false;
+        out.push_back(std::move(change));
+    }
+    diagnostics.returned_count = static_cast<uint32_t>(out.size());
+    diagnostics.truncated =
+        diagnostics.returned_count < diagnostics.total_count;
+    diagnostics.scan_complete = true;
+    diagnostics.analysis_complete = true;
+    return true;
 }
 
 const uint32_t* WellenFstBackend::signal_time_indices(uint32_t signal_ref,

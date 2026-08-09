@@ -68,10 +68,26 @@ public:
     bool signal_typed_value_at(uint32_t signal_ref,
                                uint32_t start, uint16_t element,
                                WaveformValue& out) const override;
+    bool sampled_value_at(uint32_t signal_ref, uint32_t time_idx,
+                          ObservationPoint point,
+                          SampledValue& out) const override;
+    bool delta_values_at(uint32_t signal_ref, uint32_t time_idx,
+                         std::vector<WaveformValue>& out,
+                         bool& out_time_match) const override;
 
     void values_at(const std::vector<uint32_t>& refs, uint32_t time_idx,
                    std::vector<std::string>& out_values,
                    std::vector<bool>& out_found) const override;
+    void typed_values_at(const std::vector<uint32_t>& refs,
+                         uint32_t time_idx, ObservationPoint point,
+                         std::vector<SampledValue>& out_values,
+                         std::vector<bool>& out_found) const override;
+    bool signal_change_at(uint32_t signal_ref, uint32_t ordinal,
+                          SignalChange& out) const override;
+    bool scan_changes(uint32_t signal_ref, uint32_t begin_time_idx,
+                      uint32_t end_time_idx, uint32_t limit,
+                      std::vector<SignalChange>& out,
+                      ScanDiagnostics& diagnostics) const override;
 
     const uint32_t* signal_time_indices(uint32_t signal_ref,
                                         uint32_t* out_count) const override;

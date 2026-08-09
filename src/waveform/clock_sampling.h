@@ -28,9 +28,8 @@ struct ClockSample {
 /// Semantics (matching xdebug ClockPointSampler):
 ///   * edges are the change points of the clock signal that go 0→1 (rising)
 ///     or 1→0 (falling) — X/Z transitions are skipped
-///   * middle is the target value at the exact edge time index
-///   * before is the target value just before the edge (previous change)
-///   * after is the target value at its next change after the edge
+///   * middle/raw and after are the settled last-delta value at the edge
+///   * before is the value immediately preceding all deltas at the edge
 class ClockSampleScanner {
 public:
     ClockSampleScanner(const IWaveformBackend& wf, uint32_t clk_ref,
@@ -57,8 +56,8 @@ private:
     std::vector<uint32_t> edge_indices_;  // clock edge time indices
 };
 
-/// Read the target value at an exact time index (middle), the previous
-/// value (before) and the next change value (after).
+/// Read raw/settled, immediately-before, and immediately-after observations
+/// for one exact waveform timestamp.
 struct PointValues {
     std::string before;
     std::string middle;
