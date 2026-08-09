@@ -610,7 +610,7 @@ activation predicate capability 和只读访问器，ABI 仍为 v2。xdebug-fst 
 Verilator。第三批在双重修改前失败证据后，以 XDD 内部 `==?z`/`==?x` 谓词保留
 `casez/casex` 静态匹配种类，并由 xdebug 使用 Wellen 读取的真实四态 FST 值求值；ABI
 仍为 v2，未修改普通 Verilator 行为。此检查点关闭已验证的 `if/else`、APB 嵌套条件、
-普通 `case/default` 和 `casez/casex` 基础语义；被前序 lowering 合并的同目标嵌套语句、
+普通 `case/default`、`casez/casex` 以及 V3Inst 折叠后的同目标嵌套条件基础语义；
 case inside/matches、更多连续/过程/NBA、常量、alias、跨端口、多 driver 和原版差分
 仍是 P6 必做项。
 

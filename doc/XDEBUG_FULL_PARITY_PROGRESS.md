@@ -5,14 +5,14 @@
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
 - Goal 永久门禁：`GOAL-FST-DIRECT-001`；当前 session 原始 `.fst` → Wellen 按需访问 → action 查询/推理，是唯一允许的波形事实路径。该门禁已写入 Goal 权威任务书和架构文档，并作为每批提交审查及最终 `complete` 的否决条件
 - 当前阶段：P5 功能批次已覆盖；P6 进行中（Active Driver 与 X Origin）
-- 当前任务：继续补齐 P6 的 lowering 前同目标嵌套语句身份、case inside/matches、连续/过程/NBA 边界、常量、alias、跨端口和多 driver 原版差分；当前 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex` 与真实四态 FST 基础链已完成，但不得据此宣称 P6 全部关闭
+- 当前任务：继续补齐 P6 的 case inside/matches、连续/过程/NBA 边界、常量、alias、跨端口和多 driver 原版差分；当前 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、V3Inst 折叠后的同目标嵌套条件与真实四态 FST 基础链已完成，但不得据此宣称 P6 全部关闭
 - 全局硬门禁：生产、回归和最终验收只打开 FST 波形；VCD 仅可作为可重复生成 FST 的源文件，禁止作为输入或 fallback
 - 2026-08-10 用户再次确认：项目只需要并且也必须完整适配 FST 波形；唯一波形事实路径是当前 session 中由 Wellen 直接按需读取原始 `.fst`。不得建立独立“FST 分析”数据库，不得转成 VCD/JSON/私有索引/离线库/全量内存快照后分析；显式 export 产物永不回灌。该约束已写入 Goal 权威任务书，覆盖旧 Goal 或历史文档中的相反表述
 - 2026-08-10 用户进一步锁定职责边界：FST 只是唯一波形输入容器，Wellen 只是保真按需访问层；分析能力属于冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合。禁止把“必须适配 FST”偷换成“由 FST 自身做分析”，也禁止据此简化 driver/load、active-driver、chain、X-origin、协议、表达式、完整性或错误合同。该定义已加入任务书与 Goal 权威附件，作为逐批门禁和 Goal 完成否决项
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
 - xdebug-fst 当前功能提交：`9eac4a5`；当前测试提交：`2815e61`；普通 case/APB 回归提交：`a0b73bc`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
-- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `ff0c1d016e6fbf6458fcfcd0b69455d5d1a3c32c`
+- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `a91524d6302552023a50cb4018602c265af32e0a`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
 - 原版 xdebug runtime build ID：`8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 原版 schema revision：`c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
@@ -28,7 +28,7 @@
 | P3 | 已完成 | `parity-p3` | FST-only Wellen 层级、时间、类型、delta、采样、批量与完整性已实现；Rust/C/C++、7 CTest、基线与双 C ABI 门禁全部通过 |
 | P4 | 已完成 | `parity-p4` | 两组修改前失败证据后，仅增加 ABI/capability、声明方向、预计算端口边和 driver dependency role；8 个 XDD 与普通回归通过 |
 | P5 | 功能批次已覆盖 | `parity-p5` | 发现/静态设计、value/list/event/cursor/RC/expr、signal、verify/window、counter/pulse/handshake、APB、AXI、stream 与 combined 基础合同已迁移；阶段总差分仍随 P6/P7 复核 |
-| P6 | 进行中 | `parity-p6` | 已完成多分支 X DFS、时间/限制证据、driver role，以及 counter if/else、APB 嵌套条件、普通 case/default 与 casez/casex 的 FST 运行时谓词选择；复杂控制与原版差分继续 |
+| P6 | 进行中 | `parity-p6` | 已完成多分支 X DFS、时间/限制证据、driver role，以及 counter if/else、APB 嵌套条件、普通 case/default、casez/casex 与 lowering 后同目标嵌套条件的 FST 运行时谓词选择；复杂控制与原版差分继续 |
 | P7 | 未开始 | `parity-p7` | 全量差分与最终交付 |
 
 ## Commit 记录
@@ -90,6 +90,7 @@
 - Verilator `02f4a2259`：保持 ABI v2 和既有函数签名，仅附加 activation predicate capability/访问器；8/8 DesignDB 与 2/2 分发门禁通过。
 - Verilator `a3adaaabb`：在既有 predicate 字符串内增加内部 `==?z`/`==?x`，精确保留 casez/casex 匹配种类；ABI v2、capability、公开记录布局和普通仿真行为均不变，8/8 DesignDB、2/2 分发门禁与源码构建通过。
 - Verilator `ff0c1d016`：仅在 `xdd_trace_driver_predicate` 注释中固化 `==?z`/`==?x` 的消费者语义；函数签名和二进制 ABI 不变，更新 XDD header hash 锁。
+- Verilator `a91524d63`：递归拆分 V3Inst 合并的 `AstCond` RHS，恢复各叶子的源位置、RHS/control role 和 activation predicate；不移动 pass、不修改 V3Inst/调度/仿真、不扩展 ABI，8/8 DesignDB 与 2/2 分发门禁通过。
 - `0188cd0`：锁定新 XDD header/revision，严格要求 predicate capability，并仅刷新五组 DesignDB 静态 fixture；所有 FST 保持原样。
 - `1529647`：修复括号内逻辑解析及 `!`、`&&`、`||` 的四态 X/Z 传播。
 - `e2870e9`：在 active time 由 Wellen 直接读取原始 FST 控制值，筛选 active-driver、chain 与 X-origin 语句；不可判定时 unresolved，不回退静态首项。
@@ -137,12 +138,13 @@
 - P6 第三批修改前证据：扩展同一最小 case 固件，使 `casez (sel)` 的 `2'b1z` 在 FST 中 `sel=2'b10` 时应选中 item，并使 `casex (sel)` 的 `2'bx1` 在 `sel=2'b01` 时应选中 item。冻结 Verilator `02f4a2259` 按既定安全策略为两类 driver 发布空 predicate，`trace.active_driver` 因而返回 `analysis_complete=false`，定向 combined 回归真实失败。xdebug 已有 source/role/普通 case predicate 和完整四态 FST 值仍无法重建 wildcard 类型，证明缺失的是 DesignDB 的静态 case 匹配种类；下一步只允许扩展 predicate 表达式及其定向回归，不增加 process order/sequential boundary，不触碰普通 Verilator 仿真或优化。
 - P6 第三批实现：Verilator `a3adaaabb` 仅在既有 emitter 中发布 `==?z`/`==?x`，xdebug 表达式求值器逐 bit 实现 casez（Z 通配）与 casex（X/Z 通配）的四态规则。真实 case FST 在 60ps/40ps 分别唯一选中 `case_top.sv:28/:32`；GCD FST 的真实 X 值进一步证明 casex 匹配为真而 casez 对同一 X/0 比较为假。combined+clock/counter 定向测试 41/41、全量 pytest 213/213、CTest 8/8 与冻结基线检查均通过；所有运行时值仍由 Wellen 直接按需读取 FST。
 - P6 第四批修改前证据：在同一最小 FST 固件加入 `reset / sel==0 / sel==1 / else` 四路同目标嵌套 if。45ps 查询时 FST 中 `reset=0, sel=1`，应唯一选择 `nested_out <= data + 1` 的第 45 行；冻结 Verilator `ff0c1d016` 的 V3Inst 已把 RHS 合并成第 41 行的嵌套 `AstCond`，现有 emitter 把全部条件和叶子压成同一无条件 driver，xdebug 因而错误返回复位行 41，定向 combined 回归真实失败。只读 AST dump 证明 emitter 挂接点仍保留各 `AstCond` 条件和叶子的 41/43/45/47 源位置，因此下一步只允许在现有 emitter 内拆分 RHS 条件叶子，不移动 pass、不修改 V3Inst/调度/仿真，也不增加新 ABI 字段。
+- P6 第四批实现：Verilator `a91524d63` 仅在既有 emitter 内拆分条件 RHS 叶子；xdebug 使用 Wellen 从真实 case FST 在 40ps 直接读取的 `reset=0, sel=1`，已唯一返回 `nested_out <= data + 1` 的第 45 行。combined 定向测试 24/24、全量 pytest 214/214、CTest 8/8 与冻结基线检查均通过；依赖 revision 更新但 XDD header/ABI/capability 不变。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
 ## 剩余差异
 
-P0、P1、P2、P3、P4 已关闭，P5 的功能迁移批次已覆盖，P6 正在执行。当前已完成 active-driver 的 counter `if/else`、APB 嵌套条件、普通 `case/default` 与 `casez/casex` 运行时选择，以及 X-origin 多分支基础语义，但 lowering 前同目标嵌套语句身份、case inside/matches、更多 NBA/常量/alias/跨端口/多 driver 与原版差分仍未关闭，因此绝不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。2026-08-10 新增 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 作为当前 active Goal 的权威执行附件；后续每个批次按 `GOAL-FST-DIRECT-001` 审查唯一 FST 数据流、禁止转换/离线分析/fallback、TCP/file 裁剪及 Verilator 克制修改，任一违反即否决提交与 Goal 完成。
+P0、P1、P2、P3、P4 已关闭，P5 的功能迁移批次已覆盖，P6 正在执行。当前已完成 active-driver 的 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex` 与 lowering 后同目标嵌套条件运行时选择，以及 X-origin 多分支基础语义，但 case inside/matches、更多 NBA/常量/alias/跨端口/多 driver 与原版差分仍未关闭，因此绝不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。2026-08-10 新增 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 作为当前 active Goal 的权威执行附件；后续每个批次按 `GOAL-FST-DIRECT-001` 审查唯一 FST 数据流、禁止转换/离线分析/fallback、TCP/file 裁剪及 Verilator 克制修改，任一违反即否决提交与 Goal 完成。
 
 ## P4 修改前失败证据
 

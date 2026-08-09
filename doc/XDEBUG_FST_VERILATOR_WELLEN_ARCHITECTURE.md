@@ -561,11 +561,11 @@ C++ adapter 同时持有：
 - interface/array/struct leaf 已用深层 FST hierarchy 回归覆盖，仍需在 P5 对应公开
   scope/signal action 中通过冻结 schema 和原版差分确认响应形状；
 - active-driver 已禁止选择第一条静态 driver，并能用真实 FST 控制值判定已覆盖的
-  `if/else`、APB 嵌套条件、普通 `case/default` 及 `casez/casex` 分支；在 DesignDB
-  挂接点之前被 lowering 合并的同目标嵌套语句、alias、多 driver 和更多 NBA 边界仍须
+  `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex` 及 V3Inst 折叠后的
+  同目标嵌套条件分支；alias、多 driver 和更多 NBA 边界仍须
   逐项差分，不能据当前三组用例宣称全部关闭；
-- XDD 已表达普通 `if/else`、普通 `case/default` 与 `casez/casex` predicate；在当前
-  DesignDB 挂接点之前已被 Verilator 合并的同目标内层语句，以及 case inside/matches，
+- XDD 已表达普通 `if/else`、普通 `case/default`、`casez/casex` predicate，并在当前
+  emitter 内拆分 V3Inst 合并的 `AstCond` RHS，恢复叶子源位置与条件；case inside/matches
   仍明确 unresolved，不恢复或猜测；
 - direction/port connection 仍有上层推导逻辑；
 - P2 已完成 UDS idle timeout、完整失败补偿、MCP direct 和 fake-LSF；TCP/file
@@ -641,7 +641,7 @@ VCD/JSON/export，不建立 predicate-value cache 或离线 FST 索引，也不�
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `ff0c1d016e6fbf6458fcfcd0b69455d5d1a3c32c`
+- revision `a91524d6302552023a50cb4018602c265af32e0a`
 
 对应提交：
 
@@ -659,6 +659,7 @@ VCD/JSON/export，不建立 predicate-value cache 或离线 FST 索引，也不�
 - Verilator `02f4a2259`：附加驱动谓词 capability 和只读访问器，并对无法精确表示的构造失败关闭；
 - Verilator `a3adaaabb`：在同一谓词表中保留 `casez/casex` 四态通配类型，ABI 与 capability 不变；
 - Verilator `ff0c1d016`：在 XDD 头文件中明确内部通配运算符语义，仅改注释；
+- Verilator `a91524d63`：仅在 emitter 内拆分 V3Inst 合并的条件 RHS，恢复叶子行号和谓词；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
