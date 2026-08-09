@@ -59,14 +59,29 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     ${CMAKE_SOURCE_DIR}/src/*.cpp
 )
 
+set(JSON_SCHEMA_VALIDATOR_SOURCES
+    ${CMAKE_SOURCE_DIR}/third_party/json-schema-validator/src/smtp-address-validator.cpp
+    ${CMAKE_SOURCE_DIR}/third_party/json-schema-validator/src/json-schema-draft7.json.cpp
+    ${CMAKE_SOURCE_DIR}/third_party/json-schema-validator/src/json-uri.cpp
+    ${CMAKE_SOURCE_DIR}/third_party/json-schema-validator/src/json-validator.cpp
+    ${CMAKE_SOURCE_DIR}/third_party/json-schema-validator/src/json-patch.cpp
+    ${CMAKE_SOURCE_DIR}/third_party/json-schema-validator/src/string-format-check.cpp
+)
+
 # ── Executable ──
-add_executable(xdebug-fst ${SOURCES})
+add_executable(xdebug-fst ${SOURCES} ${JSON_SCHEMA_VALIDATOR_SOURCES})
 
 target_include_directories(xdebug-fst PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/third_party
     ${WELLEN_CAPI_INCLUDE}
     ${WELLENX_CAPI_INCLUDE}
+    ${CMAKE_SOURCE_DIR}/third_party/json-schema-validator/src
+)
+
+target_compile_definitions(xdebug-fst PRIVATE
+    XDEBUG_FST_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
 )
 
 target_link_libraries(xdebug-fst PRIVATE
@@ -82,3 +97,25 @@ set_target_properties(xdebug-fst PROPERTIES
 
 # ── Install ──
 install(TARGETS xdebug-fst DESTINATION bin)
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(test-runtime-schema-validator
+        tests/cpp/test_runtime_schema_validator.cpp
+        src/core/common/env_config.cpp
+        src/core/schema/internal_request_contract.cpp
+        src/core/schema/runtime_schema_validator.cpp
+        ${JSON_SCHEMA_VALIDATOR_SOURCES}
+    )
+    target_include_directories(test-runtime-schema-validator PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/src/core
+        ${CMAKE_SOURCE_DIR}/third_party
+        ${CMAKE_SOURCE_DIR}/third_party/json-schema-validator/src
+    )
+    target_compile_definitions(test-runtime-schema-validator PRIVATE
+        XDEBUG_FST_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    )
+    target_link_libraries(test-runtime-schema-validator PRIVATE pthread)
+    add_test(NAME runtime-schema-validator COMMAND test-runtime-schema-validator)
+endif()
