@@ -4,12 +4,15 @@
 #include "engine/engine_globals.h"
 #include "core/value/logic_value.h"
 #include "waveform/clock_sampling.h"
+#include "waveform/expr/expr_eval.h"
 #include "api/json_types.h"
 #include "engine/actions/value_source_entries.h"
 
 #include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -248,6 +251,172 @@ static Json recommendations() {
         {{"action","stream.query"},{"purpose","以显式 full 或 range 基础分析缓存范围查询并按多个字段过滤 stream transfer 或 packet。"}},
         {{"action","stream.export"},{"purpose","从显式 full 或 range 基础分析缓存范围导出 stream 查询结果。"}}
     });
+}
+
+static std::string resolve_field_expression(const std::string& expression,
+                                            const StreamConfig& cfg) {
+    std::string resolved;
+    for (size_t pos = 0; pos < expression.size();) {
+        const unsigned char ch = static_cast<unsigned char>(expression[pos]);
+        if (std::isalpha(ch) || expression[pos] == '_') {
+            size_t end = pos + 1;
+            while (end < expression.size()) {
+                const unsigned char next = static_cast<unsigned char>(expression[end]);
+                if (!std::isalnum(next) && expression[end] != '_' && expression[end] != '$') break;
+                ++end;
+            }
+            const std::string token = expression.substr(pos,end-pos);
+            auto found = cfg.signals.find(token);
+            resolved += found == cfg.signals.end() ? token : found->second;
+            pos = end;
+        } else {
+            resolved.push_back(expression[pos++]);
+        }
+    }
+    return resolved;
+}
+
+static bool evaluate_field_expression(const std::string& expression,
+                                      const StreamConfig& cfg,
+                                      const IWaveformBackend& wf,
+                                      uint32_t time_idx, LogicValue& value,
+                                      std::string& message) {
+    std::string text = expression;
+    const auto first = text.find_first_not_of(" \t");
+    const auto last = text.find_last_not_of(" \t");
+    if (first == std::string::npos) { message = "empty stream field expression"; return false; }
+    text = text.substr(first,last-first+1);
+    if (text.front() == '{' && text.back() == '}') {
+        const std::string inner = text.substr(1,text.size()-2);
+        std::string part;
+        std::vector<std::string> parts;
+        int square_depth = 0;
+        for (char c : inner) {
+            if (c == '[') ++square_depth;
+            if (c == ']') --square_depth;
+            if (c == ',' && square_depth == 0) {
+                parts.push_back(part); part.clear();
+            } else part.push_back(c);
+        }
+        parts.push_back(part);
+        std::string bits;
+        for (const auto& item : parts) {
+            LogicValue component;
+            if (!evaluate_field_expression(item,cfg,wf,time_idx,component,message)) return false;
+            bits += component.bits;
+        }
+        value = logic_value_from_bits(bits,static_cast<int>(bits.size()));
+        return true;
+    }
+    const std::string resolved = resolve_field_expression(text,cfg);
+    std::unique_ptr<ExprNode> root(parse_expression(resolved,message));
+    if (!root) return false;
+    value = eval_expression(root.get(),wf,time_idx);
+    return !value.bits.empty();
+}
+
+static Json stream_fields_at(const StreamConfig& cfg, const IWaveformBackend& wf,
+                             uint32_t time_idx, ValueRenderFormat format,
+                             bool& complete) {
+    Json fields = Json::object();
+    for (const auto& item : cfg.beat_fields.items()) {
+        LogicValue value; std::string message;
+        if (!item.value().is_string() ||
+            !evaluate_field_expression(item.value(),cfg,wf,time_idx,value,message)) {
+            complete = false;
+            continue;
+        }
+        fields[item.key()] = logic_value_json(value,format);
+    }
+    return fields;
+}
+
+struct StreamSample {
+    size_t cycle = 0;
+    uint32_t time_idx = 0;
+    uint64_t time = 0;
+    bool vld = false, rdy = false, sop = false, eop = false;
+    bool transfer = false, stall = false;
+    Json fields = Json::object();
+};
+
+static std::vector<StreamSample> scan_stream_samples(
+    IWaveformBackend* wf, const StreamConfig& cfg,
+    uint32_t begin_ti, uint32_t end_ti, ValueRenderFormat format,
+    bool& fields_complete) {
+    std::vector<StreamSample> samples;
+    const uint32_t clk_ref=load_signal(wf,cfg.clock),vld_ref=load_signal(wf,cfg.valid),
+        rdy_ref=load_signal(wf,cfg.ready);
+    const uint32_t sop_ref=cfg.sop.empty()?0:load_signal(wf,cfg.sop),
+        eop_ref=cfg.eop.empty()?0:load_signal(wf,cfg.eop);
+    std::string previous_clock;
+    bool have_previous = false;
+    size_t cycle = 0;
+    for (uint32_t ti : wf->time_indices_of(clk_ref)) {
+        IWaveformBackend::SignalOffset offset;
+        if (!wf->signal_offset_at(clk_ref,ti,offset) || !offset.time_match) continue;
+        const std::string current_clock=wf->signal_value_str(clk_ref,offset.start,0);
+        const bool rising=have_previous && is_rising_edge(previous_clock,current_clock);
+        previous_clock=current_clock; have_previous=true;
+        if (!rising || ti < begin_ti) continue;
+        if (ti > end_ti) break;
+        StreamSample sample;
+        sample.cycle=cycle++; sample.time_idx=ti; sample.time=wf->time_at(ti);
+        const bool v_now=signal_is_high_at(wf,vld_ref,ti),
+            r_now=signal_is_high_at(wf,rdy_ref,ti),
+            v_prev=ti>0&&signal_is_high_at(wf,vld_ref,ti-1),
+            r_prev=ti>0&&signal_is_high_at(wf,rdy_ref,ti-1);
+        sample.transfer=(v_now&&r_now)||(v_now&&!v_prev&&r_prev)||(r_now&&!r_prev&&v_prev);
+        sample.vld=sample.transfer||v_now; sample.rdy=sample.transfer||r_now;
+        sample.stall=sample.vld&&!sample.rdy;
+        sample.sop=sample.transfer&&sop_ref&&signal_is_high_at(wf,sop_ref,ti);
+        sample.eop=sample.transfer&&eop_ref&&signal_is_high_at(wf,eop_ref,ti);
+        if (sample.transfer)
+            sample.fields=stream_fields_at(cfg,*wf,ti,format,fields_complete);
+        samples.push_back(std::move(sample));
+    }
+    return samples;
+}
+
+static bool known_u64(const Json& value, uint64_t& result) {
+    if (!value.value("known",false) || !value.contains("bits")) return false;
+    const std::string bits=value.at("bits");
+    if (bits.size()>64) return false;
+    result=0;
+    for (char bit : bits) {
+        if (bit!='0'&&bit!='1') return false;
+        result=(result<<1)|(bit=='1'?1u:0u);
+    }
+    return true;
+}
+
+static bool literal_u64(const std::string& text, uint64_t& result) {
+    LogicValue value;
+    if (!parse_sv_literal(text,value) || !value.known || value.bits.size()>64) return false;
+    result=0;
+    for (char bit : value.bits) result=(result<<1)|(bit=='1'?1u:0u);
+    return true;
+}
+
+static bool stream_field_matches(const Json& value, const Json& rule) {
+    uint64_t actual=0;
+    if (!known_u64(value,actual)) return false;
+    const std::string mode=rule.at("mode");
+    if (mode=="exact") {
+        for (const Json& candidate : rule.at("values")) {
+            uint64_t expected=0;
+            if (literal_u64(candidate,expected)&&actual==expected) return true;
+        }
+        return false;
+    }
+    if (mode=="range") {
+        uint64_t begin=0,end=0;
+        return literal_u64(rule.at("begin"),begin)&&literal_u64(rule.at("end"),end)&&
+            actual>=begin&&actual<=end;
+    }
+    uint64_t expected=0,mask=0;
+    return literal_u64(rule.at("value"),expected)&&literal_u64(rule.at("mask"),mask)&&
+        (actual&mask)==(expected&mask);
 }
 
 // ── Helper: scan handshake events on clock edges ──
@@ -596,63 +765,180 @@ struct StreamQueryHandler : public EngineActionHandler {
         parse_value_render_format(args.value("value_format", "hex"), fmt);
         TimeRenderUnit unit; parse_time_render_unit(args.value("render_time_unit","ns"),unit,message);
 
-        IWaveformBackend::SignalInfo info;
-        int data_width = 0;
-        if (data_ref && wf->signal_info(data_ref, info)) {
-            data_width = static_cast<int>(info.width);
-        }
-
-        auto events = scan_handshakes(wf, clk_ref, vld_ref, rdy_ref, data_ref,
-                                      begin_ti, end_ti, max_rows);
-
-        Json rows = Json::array();
-        size_t cycle = 0;
-        for (auto& ev : events) {
-            Json fields = Json::object();
-            if (data_ref && !ev.data_bits.empty())
-                fields["data"] = logic_value_json(
-                    logic_value_from_bits(ev.data_bits,data_width),fmt);
-            rows.push_back({{"cycle",cycle++},{"time",wf->format_time(ev.time,unit)},
-                {"vld",true},{"rdy",true},{"bp",false},{"sop",false},{"eop",false},
-                {"transfer",true},{"stall",false},{"beat_index",0},{"fields",fields}});
-        }
-
-        // Count total handshakes for summary
-        uint64_t vhc = 0, rhc = 0, hc = 0;
-        count_handshake_stats(wf, clk_ref, vld_ref, rdy_ref,
-                              begin_ti, end_ti, vhc, rhc, hc);
-
-        bool truncated = events.size() < hc;
         const std::string query = args.at("query");
+        const bool packet_enabled=!cfg.sop.empty()&&!cfg.eop.empty();
+        if (!packet_enabled && (query=="first_packet"||query=="last_packet"||
+            query=="packet_at"||query=="packet_window"))
+            return action_error("PACKET_NOT_CONFIGURED","stream has no sop/eop packet boundaries");
+
+        bool fields_complete=true;
+        auto samples=scan_stream_samples(wf,cfg,begin_ti,end_ti,fmt,fields_complete);
+        std::vector<const StreamSample*> transfers;
+        size_t vld_cycles=0,stall_cycles=0;
+        for (const auto& sample : samples) {
+            if (sample.vld) ++vld_cycles;
+            if (sample.stall) ++stall_cycles;
+            if (sample.transfer) transfers.push_back(&sample);
+        }
+
+        auto row_json=[&](const StreamSample& sample, size_t beat_index) {
+            return Json{{"cycle",sample.cycle},{"time",wf->format_time(sample.time,unit)},
+                {"vld",sample.vld},{"rdy",sample.rdy},{"bp",false},
+                {"sop",sample.sop},{"eop",sample.eop},{"transfer",sample.transfer},
+                {"stall",sample.stall},{"beat_index",beat_index},{"fields",sample.fields}};
+        };
+        Json all_rows=Json::array();
+        for (const auto* transfer : transfers) all_rows.push_back(row_json(*transfer,0));
+
+        Json stalls=Json::array();
+        for (size_t pos=0;pos<samples.size();) {
+            if (!samples[pos].stall) { ++pos; continue; }
+            const size_t first=pos;
+            while (pos+1<samples.size()&&samples[pos+1].stall) ++pos;
+            stalls.push_back({{"start_cycle",samples[first].cycle},
+                {"end_cycle",samples[pos].cycle},
+                {"start_time",wf->format_time(samples[first].time,unit)},
+                {"end_time",wf->format_time(samples[pos].time,unit)},
+                {"cycles",pos-first+1},{"reason","vld_without_rdy"}});
+            ++pos;
+        }
+
+        Json packets=Json::array();
+        std::vector<const StreamSample*> packet_beats;
+        size_t packet_index=0,complete_packets=0,partial_packets=0;
+        auto append_packet=[&]() {
+            if (packet_beats.empty()) return;
+            const bool partial_begin=!packet_beats.front()->sop,
+                partial_end=!packet_beats.back()->eop;
+            Json head=Json::array(),tail=Json::array();
+            for (size_t index=0;index<packet_beats.size();++index) {
+                Json beat{{"cycle",packet_beats[index]->cycle},
+                    {"time",wf->format_time(packet_beats[index]->time,unit)},
+                    {"beat_index",index},{"fields",packet_beats[index]->fields}};
+                if (index<2) head.push_back(beat);
+                if (index+2>=packet_beats.size()) tail.push_back(beat);
+            }
+            Json preview{{"head",head},{"tail",tail},{"scan_complete",true},
+                {"analysis_complete",fields_complete},{"response_truncated",false},
+                {"total_count",packet_beats.size()},
+                {"returned_count",head.size()+tail.size()},
+                {"truncation_scopes",Json::array()}};
+            packets.push_back({{"packet_index",packet_index++},
+                {"start_cycle",packet_beats.front()->cycle},
+                {"end_cycle",packet_beats.back()->cycle},
+                {"start_time",wf->format_time(packet_beats.front()->time,unit)},
+                {"end_time",wf->format_time(packet_beats.back()->time,unit)},
+                {"beat_count",packet_beats.size()},{"partial_begin",partial_begin},
+                {"partial_end",partial_end},{"packet_stable_fields",Json::object()},
+                {"packet_stable_mismatches",Json::array()},
+                {"beat_fields_preview",preview},
+                {"first_fields",packet_beats.front()->fields},
+                {"last_fields",packet_beats.back()->fields}});
+            partial_begin||partial_end?++partial_packets:++complete_packets;
+            packet_beats.clear();
+        };
+        if (packet_enabled) {
+            for (const auto* transfer : transfers) {
+                if (transfer->sop && !packet_beats.empty()) append_packet();
+                packet_beats.push_back(transfer);
+                if (transfer->eop) append_packet();
+            }
+            append_packet();
+        }
+
+        const bool filter_applied=args.contains("filter");
+        Json filtered_packets=Json::array();
+        Json normalized_filter=Json::object();
+        if (filter_applied) {
+            normalized_filter=args.at("filter");
+            if (!normalized_filter.contains("position")) normalized_filter["position"]="sop";
+            const bool at_eop=normalized_filter.at("position")=="eop";
+            for (const Json& packet : packets) {
+                const Json& fields=at_eop?packet.at("last_fields"):packet.at("first_fields");
+                bool matched=true;
+                for (const auto& criterion : normalized_filter.at("fields").items()) {
+                    if (!fields.contains(criterion.key())||
+                        !stream_field_matches(fields.at(criterion.key()),criterion.value())) {
+                        matched=false; break;
+                    }
+                }
+                if (matched) filtered_packets.push_back(packet);
+            }
+        } else filtered_packets=packets;
+
+        size_t total_count=0,returned_count=0;
+        bool truncated=false;
+        Json data=Json::object();
+        if (query=="summary") total_count=packet_enabled?packets.size():transfers.size();
+        else if (query=="first_transfer"||query=="last_transfer") {
+            total_count=transfers.size(); returned_count=transfers.empty()?0:1;
+            if (!transfers.empty()) data["row"]=row_json(
+                query=="first_transfer"?*transfers.front():*transfers.back(),0);
+        } else if (query=="transfer_window") {
+            total_count=all_rows.size(); returned_count=std::min<size_t>(max_rows,total_count);
+            Json rows=Json::array();
+            for (size_t index=0;index<returned_count;++index) rows.push_back(all_rows[index]);
+            data["rows"]=rows; truncated=returned_count<total_count;
+            if (truncated) data["hint"]="increase line_limit to return more transfer rows";
+        } else if (query=="first_stall"||query=="last_stall") {
+            total_count=stalls.size(); returned_count=stalls.empty()?0:1;
+            if (!stalls.empty()) data["stall"]=query=="first_stall"?stalls.front():stalls.back();
+        } else if (query=="stall_window") {
+            total_count=stalls.size(); returned_count=std::min<size_t>(max_rows,total_count);
+            Json selected=Json::array();
+            for (size_t index=0;index<returned_count;++index) selected.push_back(stalls[index]);
+            data["stalls"]=selected; truncated=returned_count<total_count;
+            if (truncated) data["hint"]="increase line_limit to return more stall windows";
+        } else if (query=="first_packet"||query=="last_packet"||query=="packet_at") {
+            total_count=filtered_packets.size(); size_t index=0;
+            if (query=="last_packet"&&!filtered_packets.empty()) index=filtered_packets.size()-1;
+            if (query=="packet_at") index=args.at("packet_index");
+            const bool found=index<filtered_packets.size(); returned_count=found?1:0;
+            data["found"]=found;
+            if (found) data["packet"]=filtered_packets[index];
+        } else {
+            total_count=filtered_packets.size(); returned_count=std::min<size_t>(max_rows,total_count);
+            Json selected=Json::array();
+            for (size_t index=0;index<returned_count;++index) selected.push_back(filtered_packets[index]);
+            data["packets"]=selected; truncated=returned_count<total_count;
+            if (truncated) data["hint"]="increase line_limit to return more packets";
+        }
+        if (filter_applied) {
+            data["filter"]=normalized_filter;
+            data["notes"]={{"unresolved_filter_count","0"}};
+        }
+
         Json summary{{"stream",name},{"query",query},{"sampling_mode","clock_edge"},
             {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
             {"sample_time_semantics","time is sample_time"},{"handshake","vld/rdy"},
-            {"packet_enabled",!cfg.sop.empty()&&!cfg.eop.empty()},
-            {"clock_edges",wf->time_indices_of(clk_ref).size()/2},{"vld_cycles",vhc},
-            {"transfer_count",hc},{"stall_cycles",vhc-hc},{"stall_windows",vhc>hc?1:0},
-            {"complete_packet_count",0},{"partial_packet_count",0},
-            {"packet_count_status","exact"},{"control_xz_count",0},{"data_xz_count",0},
+            {"packet_enabled",packet_enabled},{"clock_edges",samples.size()},
+            {"vld_cycles",vld_cycles},{"transfer_count",transfers.size()},
+            {"stall_cycles",stall_cycles},{"stall_windows",stalls.size()},
+            {"complete_packet_count",complete_packets},{"partial_packet_count",partial_packets},
+            {"packet_count_status",packet_enabled?"exact":"not_configured"},
+            {"control_xz_count",0},{"data_xz_count",0},
             {"ready_bp_conflict_count",0},{"packet_stable_mismatch_count",0},
             {"requested_range",{{"begin",wf->format_time(begin_time,unit)},
                 {"end",wf->format_time(end_time,unit)}}},
             {"scanned_range",{{"begin",wf->format_time(begin_time,unit)},
-                {"end",wf->format_time(end_time,unit)}}},{"filter_applied",false},
+                {"end",wf->format_time(end_time,unit)}}},{"filter_applied",filter_applied},
             {"scan_complete",true},{"analysis_complete",true},
-            {"response_truncated",truncated},{"total_count",query=="summary"?0:hc},
-            {"returned_count",query=="transfer_window"?rows.size():0},
+            {"response_truncated",truncated},{"total_count",total_count},
+            {"returned_count",returned_count},
             {"truncation_scopes",truncated?Json::array({"response_rows"}):Json::array()}};
+        if (filter_applied) {
+            summary["unresolved_filter_count"]=0;
+            summary["matched_packet_count"]=filtered_packets.size();
+            summary["retained_packet_count"]=filtered_packets.size();
+        }
         if (cfg.edge != "negedge") summary["sample_point"] = cfg.sample_point;
-        if (!events.empty()) {
-            summary["first_transfer_time"] = wf->format_time(events.front().time,unit);
-            summary["last_transfer_time"] = wf->format_time(events.back().time,unit);
+        if (!transfers.empty()) {
+            summary["first_transfer_time"] = wf->format_time(transfers.front()->time,unit);
+            summary["last_transfer_time"] = wf->format_time(transfers.back()->time,unit);
         }
-        Json data = Json::object();
-        if (query == "transfer_window") {
-            data["rows"] = rows;
-            if (truncated) data["hint"] = "increase line_limit to return more transfer rows";
-        }
-        else if (query == "first_transfer" || query == "last_transfer") {
-            if (!rows.empty()) data["row"] = query=="first_transfer"?rows.front():rows.back();
+        if (!stalls.empty()) {
+            summary["first_stall_time"]=stalls.front().at("start_time");
+            summary["last_stall_time"]=stalls.back().at("start_time");
         }
         return {{"ok",true},{"summary",summary},{"data",data}};
     }
@@ -678,108 +964,79 @@ struct StreamExportHandler : public EngineActionHandler {
         Json cerr;
         if (!get_config(name, cfg, cerr)) return cerr;
 
-        auto* wf = engine_globals().waveform.get();
+        const std::string kind=args.value("kind","transfer");
+        const size_t line_limit=args.value("line_limit",16u);
+        Json query_args=args;
+        query_args.erase("kind"); query_args.erase("output");
+        query_args["line_limit"]=line_limit;
+        query_args["query"]=kind=="transfer"?"transfer_window":"packet_window";
+        StreamQueryHandler query_handler;
+        Json analyzed=query_handler.run({{"args",query_args}});
+        if (!analyzed.value("ok",false)) return analyzed;
 
-        uint32_t clk_ref = load_signal(wf, cfg.clock);
-        uint32_t vld_ref = load_signal(wf, cfg.valid);
-        uint32_t rdy_ref = load_signal(wf, cfg.ready);
-        uint32_t data_ref = cfg.data.empty() ? 0 : load_signal(wf, cfg.data);
-
-        if (clk_ref == IWaveformBackend::kInvalidSignalRef ||
-            vld_ref == IWaveformBackend::kInvalidSignalRef ||
-            rdy_ref == IWaveformBackend::kInvalidSignalRef) {
-            std::vector<std::string> missing;
-            if (clk_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.clock);
-            if (vld_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.valid);
-            if (rdy_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.ready);
-            Json arr = Json::array();
-            for (auto& m : missing) arr.push_back(m);
-            return Json{{"ok", false},
-                        {"error", {{"code", "CONFIG_SIGNAL_NOT_FOUND"},
-                                   {"message", "some signals not found in waveform"},
-                                   {"missing_signals", arr}}}};
+        Json preview;
+        if (kind=="transfer") preview=analyzed.at("data").at("rows");
+        else if (kind=="packet") preview=analyzed.at("data").at("packets");
+        else {
+            preview=Json::array();
+            for (const Json& packet : analyzed.at("data").at("packets"))
+                for (const Json& beat : packet.at("beat_fields_preview").at("head")) {
+                    Json row{{"cycle",beat.at("cycle")},{"time",beat.at("time")},
+                        {"vld",true},{"rdy",true},{"bp",false},{"sop",false},{"eop",false},
+                        {"transfer",true},{"stall",false},{"beat_index",beat.at("beat_index")},
+                        {"fields",beat.at("fields")}};
+                    preview.push_back(std::move(row));
+                }
         }
 
-        uint64_t begin_time = wf->min_time(), end_time = wf->max_time();
-        std::string message;
-        const Json range = args.value("time_range",Json::object());
-        if (range.contains("begin") && !wf->parse_time(range.at("begin"),begin_time,message))
-            return action_error("INVALID_TIME",message);
-        if (range.contains("end") && !wf->parse_time(range.at("end"),end_time,message,true))
-            return action_error("INVALID_TIME",message);
-        if (begin_time > end_time) return action_error("TIME_RANGE_INVALID","end is before begin");
-
-        uint32_t begin_ti = wf->time_idx_of(begin_time);
-        uint32_t end_ti = wf->time_idx_of(end_time);
-
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("value_format", "hex"), fmt);
-        TimeRenderUnit unit;
-        if (!parse_time_render_unit(args.value("render_time_unit","ns"),unit,message))
-            return action_error("INVALID_FIELD",message);
-
-        IWaveformBackend::SignalInfo info;
-        int data_width = 0;
-        if (data_ref && wf->signal_info(data_ref, info)) {
-            data_width = static_cast<int>(info.width);
+        const bool written=args.contains("output")&&args.at("output").contains("path");
+        Json output_summary;
+        if (written) {
+            const Json output=args.at("output");
+            const std::string path=output.at("path"),
+                file_format=output.value("file_format","tsv"),meta_path=path+".meta.json";
+            std::ofstream rows_file(path),meta_file(meta_path);
+            if (!rows_file||!meta_file)
+                return action_error("OUTPUT_WRITE_FAILED","cannot open stream export output");
+            const char separator=file_format=="csv"?',':'\t';
+            if (kind=="transfer") {
+                rows_file << "cycle" << separator << "time" << separator << "data\n";
+                for (const Json& row : preview) {
+                    std::string data_value;
+                    if (row.at("fields").contains("data"))
+                        data_value=row.at("fields").at("data").at("value");
+                    rows_file << row.at("cycle") << separator << row.at("time")
+                              << separator << data_value << '\n';
+                }
+            } else {
+                rows_file << "index" << separator << "record\n";
+                for (size_t index=0;index<preview.size();++index)
+                    rows_file << index << separator << preview[index].dump() << '\n';
+            }
+            meta_file << Json{{"stream",name},{"kind",kind},{"row_count",preview.size()},
+                {"source","current_session_fst"}}.dump(2) << '\n';
+            output_summary={{"path",path},{"meta_path",meta_path},{"file_format",file_format}};
         }
 
-        const size_t line_limit = args.value("line_limit",1000u);
-        auto events = scan_handshakes(wf, clk_ref, vld_ref, rdy_ref, data_ref,
-                                      begin_ti, end_ti, 0);
-        const size_t row_count = std::min(line_limit,events.size());
-        if (!args.contains("output") || !args.at("output").contains("path"))
-            return action_error("INVALID_FIELD","stream.export requires output.path");
-        const Json output = args.at("output");
-        const std::string path = output.at("path");
-        const std::string file_format = output.value("file_format","tsv");
-        const std::string meta_path = path + ".meta.json";
-        std::ofstream rows_file(path), meta_file(meta_path);
-        if (!rows_file || !meta_file)
-            return action_error("OUTPUT_WRITE_FAILED","cannot open stream export output");
-        const char separator = file_format == "csv" ? ',' : '\t';
-        rows_file << "cycle" << separator << "time" << separator << "data\n";
-        for (size_t index = 0; index < row_count; ++index) {
-            const auto& event = events[index];
-            std::string rendered;
-            if (data_ref && !event.data_bits.empty())
-                rendered = logic_value_json(
-                    logic_value_from_bits(event.data_bits,data_width),fmt).at("value");
-            rows_file << index << separator << wf->format_time(event.time,unit)
-                      << separator << rendered << '\n';
-        }
-        meta_file << Json{{"stream",name},{"kind",args.value("kind","transfer")},
-            {"row_count",row_count},{"source","current_session_fst"}}.dump(2) << '\n';
-
-        uint64_t vhc = 0, rhc = 0, hc = 0;
-        count_handshake_stats(wf,clk_ref,vld_ref,rdy_ref,begin_ti,end_ti,vhc,rhc,hc);
-        const bool truncated = row_count < events.size();
-        Json summary{{"stream",name},{"sampling_mode","clock_edge"},
-            {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
-            {"sample_time_semantics","time is sample_time"},{"handshake","vld/rdy"},
-            {"packet_enabled",!cfg.sop.empty()&&!cfg.eop.empty()},
-            {"clock_edges",wf->time_indices_of(clk_ref).size()/2},{"vld_cycles",vhc},
-            {"transfer_count",hc},{"stall_cycles",vhc-hc},{"stall_windows",vhc>hc?1:0},
-            {"complete_packet_count",0},{"partial_packet_count",0},
-            {"packet_count_status","exact"},{"control_xz_count",0},{"data_xz_count",0},
-            {"ready_bp_conflict_count",0},{"packet_stable_mismatch_count",0},
-            {"requested_range",{{"begin",wf->format_time(begin_time,unit)},
-                {"end",wf->format_time(end_time,unit)}}},
-            {"scanned_range",{{"begin",wf->format_time(begin_time,unit)},
-                {"end",wf->format_time(end_time,unit)}}},
-            {"status","written"},{"output_written",true},{"row_count",row_count},
-            {"line_limit",line_limit},{"kind",args.value("kind","transfer")},
-            {"output",{{"path",path},{"meta_path",meta_path},{"file_format",file_format}}},
-            {"scan_complete",true},{"analysis_complete",true},
-            {"response_truncated",truncated},{"total_count",events.size()},
-            {"returned_count",row_count},
-            {"truncation_scopes",truncated?Json::array({"export_rows"}):Json::array()}};
-        if (cfg.edge != "negedge") summary["sample_point"] = cfg.sample_point;
-        if (!events.empty()) {
-            summary["first_transfer_time"] = wf->format_time(events.front().time,unit);
-            summary["last_transfer_time"] = wf->format_time(events.back().time,unit);
-        }
-        return {{"ok",true},{"summary",summary},{"data",Json::object()}};
+        const Json& base=analyzed.at("summary");
+        Json summary;
+        for (const char* key : {"stream","sampling_mode","clock","edge","sample_point",
+             "sample_time_semantics","handshake","packet_enabled","clock_edges","vld_cycles",
+             "transfer_count","stall_cycles","stall_windows","complete_packet_count",
+             "partial_packet_count","packet_count_status","control_xz_count","data_xz_count",
+             "ready_bp_conflict_count","packet_stable_mismatch_count","requested_range",
+             "scanned_range","first_transfer_time","last_transfer_time","first_stall_time",
+             "last_stall_time","scan_complete","analysis_complete","response_truncated",
+             "total_count","returned_count","truncation_scopes"})
+            if (base.contains(key)) summary[key]=base.at(key);
+        summary["status"]=written?"written":"preview";
+        summary["output_written"]=written;
+        summary["row_count"]=preview.size();
+        summary["line_limit"]=line_limit;
+        summary["kind"]=kind;
+        if (written) summary["output"]=output_summary;
+        Json data=written?Json::object():Json{{"preview",preview}};
+        return {{"ok",true},{"summary",summary},{"data",data}};
     }
 };
 
@@ -814,43 +1071,23 @@ struct StreamValidateHandler : public EngineActionHandler {
         Json dynamic = Json::object();
         bool scan_complete = false, analysis_complete = static_ok;
         if (dynamic_requested && static_ok) {
-            uint64_t begin_time = wf->min_time(), end_time = wf->max_time();
-            std::string message;
-            const Json range = args.value("time_range",Json::object());
-            if (range.contains("begin") && !wf->parse_time(range.at("begin"),begin_time,message))
-                return action_error("INVALID_TIME",message);
-            if (range.contains("end") && !wf->parse_time(range.at("end"),end_time,message,true))
-                return action_error("INVALID_TIME",message);
-            if (begin_time > end_time)
-                return action_error("TIME_RANGE_INVALID","end is before begin");
-            TimeRenderUnit unit;
-            if (!parse_time_render_unit(args.value("render_time_unit","ns"),unit,message))
-                return action_error("INVALID_FIELD",message);
-            const uint32_t clk_ref=load_signal(wf,cfg.clock),
-                vld_ref=load_signal(wf,cfg.valid),rdy_ref=load_signal(wf,cfg.ready);
-            const uint32_t begin_ti=wf->time_idx_of(begin_time),end_ti=wf->time_idx_of(end_time);
-            uint64_t vhc=0,rhc=0,hc=0;
-            count_handshake_stats(wf,clk_ref,vld_ref,rdy_ref,begin_ti,end_ti,vhc,rhc,hc);
-            auto events=scan_handshakes(wf,clk_ref,vld_ref,rdy_ref,0,begin_ti,end_ti,0);
-            dynamic={{"stream",name},{"sampling_mode","clock_edge"},
-                {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
-                {"sample_time_semantics","time is sample_time"},{"handshake","vld/rdy"},
-                {"packet_enabled",!cfg.sop.empty()&&!cfg.eop.empty()},
-                {"clock_edges",wf->time_indices_of(clk_ref).size()/2},{"vld_cycles",vhc},
-                {"transfer_count",hc},{"stall_cycles",vhc-hc},{"stall_windows",vhc>hc?1:0},
-                {"complete_packet_count",0},{"partial_packet_count",0},
-                {"packet_count_status","exact"},{"control_xz_count",0},{"data_xz_count",0},
-                {"ready_bp_conflict_count",0},{"packet_stable_mismatch_count",0},
-                {"requested_range",{{"begin",wf->format_time(begin_time,unit)},
-                    {"end",wf->format_time(end_time,unit)}}},
-                {"scanned_range",{{"begin",wf->format_time(begin_time,unit)},
-                    {"end",wf->format_time(end_time,unit)}}}};
-            if (cfg.edge != "negedge") dynamic["sample_point"] = cfg.sample_point;
-            if (!events.empty()) {
-                dynamic["first_transfer_time"]=wf->format_time(events.front().time,unit);
-                dynamic["last_transfer_time"]=wf->format_time(events.back().time,unit);
-            }
-            scan_complete=true;
+            Json query_args=args;
+            query_args.erase("dynamic");
+            query_args["query"]="summary";
+            StreamQueryHandler query_handler;
+            Json analyzed=query_handler.run({{"args",query_args}});
+            if (!analyzed.value("ok",false)) return analyzed;
+            const Json& base=analyzed.at("summary");
+            for (const char* key : {"stream","sampling_mode","clock","edge","sample_point",
+                 "sample_time_semantics","handshake","packet_enabled","clock_edges","vld_cycles",
+                 "transfer_count","stall_cycles","stall_windows","complete_packet_count",
+                 "partial_packet_count","packet_count_status","control_xz_count","data_xz_count",
+                 "ready_bp_conflict_count","packet_stable_mismatch_count","requested_range",
+                 "scanned_range","first_transfer_time","last_transfer_time","first_stall_time",
+                 "last_stall_time"})
+                if (base.contains(key)) dynamic[key]=base.at(key);
+            scan_complete=base.at("scan_complete");
+            analysis_complete=base.at("analysis_complete");
         }
         const bool ok=static_ok && (!dynamic_requested || scan_complete);
         return {{"ok",true},{"summary",{{"stream",name},{"ok",ok},
