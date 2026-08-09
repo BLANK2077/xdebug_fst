@@ -5,11 +5,11 @@
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
 - Goal 永久门禁：`GOAL-FST-DIRECT-001`；当前 session 原始 `.fst` → Wellen 按需访问 → action 查询/推理，是唯一允许的波形事实路径。该门禁已写入 Goal 权威任务书和架构文档，并作为每批提交审查及最终 `complete` 的否决条件
 - 当前阶段：P4 已完成（克制扩展 Verilator DesignDB）
-- 当前任务：P5 进行中；发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake 及 APB 已完成，继续 AXI/stream
+- 当前任务：P5 进行中；发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake、APB 及 AXI 已完成，继续 stream
 - 全局硬门禁：生产、回归和最终验收只打开 FST 波形；VCD 仅可作为可重复生成 FST 的源文件，禁止作为输入或 fallback
 - 2026-08-10 用户再次确认：项目只需要并且也必须完整适配 FST 波形；唯一波形事实路径是当前 session 中由 Wellen 直接按需读取原始 `.fst`。不得建立独立“FST 分析”数据库，不得转成 VCD/JSON/私有索引/离线库/全量内存快照后分析；显式 export 产物永不回灌。该约束已写入 Goal 权威任务书，覆盖旧 Goal 或历史文档中的相反表述
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
-- xdebug-fst 当前功能提交：`0b6a831`；当前测试提交：`5c94e86`
+- xdebug-fst 当前功能提交：`0e17e7a`；当前测试提交：`a12599a`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `50d8fff59df67a2eafcd19676e6ce6cc9827c0b7`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
@@ -26,7 +26,7 @@
 | P2 | 已完成 | `parity-p2` | registry、真实 UDS engine、来源清单、批量生命周期、异常补偿及 MCP direct/fake-LSF 全部通过；TCP/file 按用户要求裁剪且无 fallback |
 | P3 | 已完成 | `parity-p3` | FST-only Wellen 层级、时间、类型、delta、采样、批量与完整性已实现；Rust/C/C++、7 CTest、基线与双 C ABI 门禁全部通过 |
 | P4 | 已完成 | `parity-p4` | 两组修改前失败证据后，仅增加 ABI/capability、声明方向、预计算端口边和 driver dependency role；8 个 XDD 与普通回归通过 |
-| P5 | 进行中 | `parity-p5` | 已完成发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake 及 APB；AXI/stream/combined trace 继续分批迁移 |
+| P5 | 进行中 | `parity-p5` | 已完成发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake、APB 及 AXI；stream/combined trace 继续分批迁移 |
 | P6 | 未开始 | `parity-p6` | Active Driver 与 X Origin |
 | P7 | 未开始 | `parity-p7` | 全量差分与最终交付 |
 
@@ -82,6 +82,7 @@
 - `d895fac`、`798dcc2`：对齐并验证 `signal.statistics/stability/xz_verify/anomaly.inspect` 的 raw/clock、多信号检查、决定性早停、分析预算与证据裁剪。
 - `e531d78`、`f9a0a75`：对齐并验证 counter、sampled pulse 与 valid-ready handshake 的表达式有效条件、拼接计数器、未采样脉冲、payload 风险、stall/data/valid-hold 规则与双层裁剪。
 - `0b6a831`、`5c94e86`：对齐并验证 APB 命名配置、时钟采样事务、query/statistics/cursor/window 六项合同及 `value.at(apb)` 值源集成。
+- `0e17e7a`、`a12599a`：对齐并验证 AXI 命名配置、五通道事务重建、query/statistics/cursor、latency/osd/pending、stall/outlier/outstanding/pair/export 及 `value.at(axi)` 值源集成。
 - `8091689`、`f2f54ff`：对齐并验证 `verify.conditions/window.verify` 的 alias 表达式、clock context、三态结果、always/eventually/never、决定性早停与完整性。
 
 ## 测试记录
@@ -114,14 +115,15 @@
 - P5 verify/window 批次：`tests/test_window.py` 13/13 通过，覆盖单点条件的 pass/fail/unknown、posedge-after 与 clock context、alias 声明约束，以及窗口 always/eventually/never、决定性结论、空采样、`max_samples` inconclusive、`line_limit` 仅裁剪 findings 和旧请求 schema 拒绝；随后 8/8 CTest 和冻结基线检查均通过。全部 operand 和 edge 由 Wellen 直接从 counter `.fst` 采样。
 - P5 counter/pulse/handshake 批次：`tests/test_clock_counter.py` 15/15 通过，覆盖表达式 `vld`、拼接 `cnt`、无有效 counter 值、非法时间范围、`max_samples` 分析不完整、`line_limit` 证据裁剪、未采样 valid pulse、payload 规则依赖，以及 handshake 的 intervals/all、valid hold、stall data 与 findings 裁剪；随后 8/8 CTest 和冻结基线检查均通过。实际输入仅为 `counter/waves.fst` 与 `stream/waves.fst`，三项 action 均从当前 session 的 Wellen 后端按需采样。
 - P5 APB 批次：`tests/test_protocol.py -k apb` 13/13 与 `test_value_at_apb_source` 1/1 通过，真实从 `apb/waves.fst` 解码两写两读四笔事务，覆盖 config 列表/按名查询、query count/list/index/last、exact/range/mask、statistics、cursor、window、裁剪与缺失配置；随后 8/8 CTest 和冻结基线检查均通过。
-- P5 全量 pytest 复核：APB 与 `value.at(apb)` 不再出现在失败列表；剩余 31 项失败集中在尚未迁移的 AXI、stream、combined trace，以及仍断言早期 batch/session/error envelope 的旧测试。严格 request/response gate 保持开启，未为这些失败放宽 schema。
+- P5 AXI 批次：`tests/test_protocol.py -k axi` 13/13 与 `test_value_at_axi_source` 1/1 通过，真实从重新生成的 `axi/waves.fst` 解码一笔三 beat write 和一笔两 beat read，覆盖 31 个配置叶子、五通道握手、真实 SIZE/BURST、config/query/filter/statistics/cursor、latency/osd/pending、stall、Top-N/threshold、outstanding、pair 与显式 TSV export；随后 8/8 CTest 和冻结基线检查均通过。固件只用 `--trace-fst` 生成，未生成或读取 VCD，Verilator 仓库代码未修改。
+- P5 全量 pytest 复核：APB、AXI 及各自 `value.at` 值源不再出现在失败列表；剩余 20 项失败集中在尚未迁移的 stream、combined trace，以及仍断言早期 batch/session/error envelope 的旧测试。严格 request/response gate 保持开启，未为这些失败放宽 schema。
 - P5 导出边界：`list.export` 的 `u64bin.v1`、`event.export` 的 JSON 和 `nwave.rc.generate` 的 RC 仅是用户显式请求的最终产物，不是 file transport，也从不作为后续分析输入；所有事件发现、采样、首次差异和导出数据收集仍由 Wellen 在当前 FST 会话中按需执行。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
 ## 剩余差异
 
-P0、P1、P2、P3、P4 已关闭，P5 正在执行。P5 已完成发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake 及 APB，但 AXI、stream 与 combined trace 尚未全部关闭，因此仍不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
+P0、P1、P2、P3、P4 已关闭，P5 正在执行。P5 已完成发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake、APB 及 AXI，但 stream 与 combined trace 尚未全部关闭，因此仍不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
 
 ## P4 修改前失败证据
 
