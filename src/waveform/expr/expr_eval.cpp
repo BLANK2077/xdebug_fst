@@ -317,7 +317,12 @@ struct Parser {
         while (left) {
             skip_ws();
             std::string op;
-            if (pos + 1 < text.size() && text[pos] == '=' && text[pos + 1] == '=' &&
+            if (pos + 3 < text.size() && text[pos] == '=' && text[pos + 1] == '=' &&
+                text[pos + 2] == '?' &&
+                (text[pos + 3] == 'z' || text[pos + 3] == 'x')) {
+                op = text.substr(pos, 4);
+                pos += 4;
+            } else if (pos + 1 < text.size() && text[pos] == '=' && text[pos + 1] == '=' &&
                 pos + 2 < text.size() && text[pos + 2] == '=') { op = "==="; pos += 3; }
             else if (pos + 1 < text.size() && text[pos] == '!' && text[pos + 1] == '=' &&
                      pos + 2 < text.size() && text[pos + 2] == '=') { op = "!=="; pos += 3; }
@@ -561,6 +566,38 @@ LogicValue eq(const LogicValue& a, const LogicValue& b, const std::string& op) {
     return from_bool(r);
 }
 
+LogicValue wildcard_case_eq(const LogicValue& a, const LogicValue& b,
+                            const std::string& op) {
+    const int width = std::max(
+        a.width > 0 ? a.width : static_cast<int>(a.bits.size()),
+        b.width > 0 ? b.width : static_cast<int>(b.bits.size()));
+    const auto extend = [width](const LogicValue& value) {
+        std::string bits = value.bits;
+        if (static_cast<int>(bits.size()) > width) {
+            bits = bits.substr(bits.size() - width);
+        } else if (static_cast<int>(bits.size()) < width) {
+            char fill = '0';
+            if (!value.known && !bits.empty()
+                && (bits.front() == 'x' || bits.front() == 'z')) {
+                fill = bits.front();
+            }
+            bits.insert(bits.begin(), width - bits.size(), fill);
+        }
+        return bits;
+    };
+    const std::string lhs = extend(a);
+    const std::string rhs = extend(b);
+    const bool casex = op == "==?x";
+    const auto wildcard = [casex](char bit) {
+        return bit == 'z' || (casex && bit == 'x');
+    };
+    for (int i = 0; i < width; ++i) {
+        if (wildcard(lhs[i]) || wildcard(rhs[i])) continue;
+        if (lhs[i] != rhs[i]) return from_bool(false);
+    }
+    return from_bool(true);
+}
+
 LogicValue reduce(const LogicValue& a, const std::string& op) {
     // unary bitwise reduction on the whole vector
     if (op == "!") {
@@ -716,6 +753,7 @@ LogicValue eval_expression(const ExprNode* root, const IWaveformBackend& wf,
                 op == "<<" || op == ">>") return arith(l, r, op);
             if (op == "<" || op == "<=" || op == ">" || op == ">=") return cmp(l, r, op);
             if (op == "==" || op == "!=" || op == "===" || op == "!==") return eq(l, r, op);
+            if (op == "==?z" || op == "==?x") return wildcard_case_eq(l, r, op);
             return LogicValue{};
         }
     }

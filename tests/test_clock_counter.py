@@ -79,6 +79,24 @@ def test_expr_eval_at_logical_not_preserves_unknown(
     assert rsp["data"]["expr_value"] is None
 
 
+def test_expr_eval_at_preserves_casez_and_casex_unknown_semantics(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst) -> None:
+    open_session(loop_runner, gcd_xorigin_fst)
+    casex = loop_runner.request("expr.eval_at", args={
+        "expr": "control ==?x 32'h00000000", "time": "0ps",
+        "clock": "GCD.T_13", "signals": {"control": "GCD.y"}})
+    assert casex.get("ok"), casex
+    assert casex["summary"]["status"] == "true"
+    assert casex["data"]["expr_value"] is True
+
+    casez = loop_runner.request("expr.eval_at", args={
+        "expr": "control ==?z 32'h00000000", "time": "0ps",
+        "clock": "GCD.T_13", "signals": {"control": "GCD.y"}})
+    assert casez.get("ok"), casez
+    assert casez["summary"]["status"] == "false"
+    assert casez["data"]["expr_value"] is False
+
+
 def test_counter_statistics(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("counter.statistics", args={

@@ -246,12 +246,14 @@ emitter 在 `V3Scope` 已经建立 `AstVarScope` 之后运行，因为此时能�
 - 区分 `cont_assign`、`proc_assign` 和 `nba`；
 - 向上查找所在的 `if` 或 `case`，把条件表达式中的信号加入静态依赖；
 - 为每条依赖原生标记 `rhs`、`control` 或 `statement`，避免消费者根据名称或行号猜测；
-- 为 `if/else` 与普通 `case/default` 生成使用完整层级信号名的 activation predicate；
+- 为 `if/else`、普通 `case/default` 以及 `casez/casex` 生成使用完整层级信号名的
+  activation predicate；其中内部 `==?z`/`==?x` 运算符保留两种四态通配规则；
 - 记录 assignment 的源文件和行号；
 - 同时反向生成 load 记录。
 
-predicate 仍是静态设计事实，不包含任何运行时值。无法精确表达的 wildcard case
-不会被近似成普通 case，而是发布空 predicate，要求消费者失败关闭。这些记录回答的是
+predicate 仍是静态设计事实，不包含任何运行时值。`casez/casex` 只发布匹配种类与
+item 模式，实际 expression 值仍由 Wellen 从 FST 读取；尚未精确表达的 case inside/matches
+发布空 predicate 并要求消费者失败关闭。这些记录回答的是
 “哪些信号和语句可能影响 target”以及“激活该语句需要满足什么静态条件”，不是“某个
 时刻哪一条分支已经被证明激活”。后者必须由 xdebug-fst 在 active time 通过 Wellen 直接
 读取原始 FST 中的控制值并执行四态求值。
@@ -559,11 +561,12 @@ C++ adapter 同时持有：
 - interface/array/struct leaf 已用深层 FST hierarchy 回归覆盖，仍需在 P5 对应公开
   scope/signal action 中通过冻结 schema 和原版差分确认响应形状；
 - active-driver 已禁止选择第一条静态 driver，并能用真实 FST 控制值判定已覆盖的
-  `if/else`、APB 嵌套条件及普通 `case/default` 分支；casez/casex、在 DesignDB
+  `if/else`、APB 嵌套条件、普通 `case/default` 及 `casez/casex` 分支；在 DesignDB
   挂接点之前被 lowering 合并的同目标嵌套语句、alias、多 driver 和更多 NBA 边界仍须
   逐项差分，不能据当前三组用例宣称全部关闭；
-- XDD 已表达普通 `if/else` 与普通 `case/default` predicate；在当前 DesignDB 挂接点之前
-  已被 Verilator 合并的同目标内层语句，以及 casez/casex，仍明确 unresolved，不恢复或猜测；
+- XDD 已表达普通 `if/else`、普通 `case/default` 与 `casez/casex` predicate；在当前
+  DesignDB 挂接点之前已被 Verilator 合并的同目标内层语句，以及 case inside/matches，
+  仍明确 unresolved，不恢复或猜测；
 - direction/port connection 仍有上层推导逻辑；
 - P2 已完成 UDS idle timeout、完整失败补偿、MCP direct 和 fake-LSF；TCP/file
   已按用户明确要求裁剪，不作为实现或验收项；
@@ -588,7 +591,8 @@ P6 的 active-driver 数据流同样没有增加第二套波形系统：DesignDB
 源码位置和静态 activation predicate；`trace.active_driver`、chain 与 X-origin 在请求期间
 提取 predicate 引用的最终叶子信号，通过当前 `WellenFstBackend` 直接按需加载原始
 `.fst`，在目标变化的 `active_time` 做四态求值，并只沿谓词为真的语句继续。谓词缺失、
-解析失败、FST 信号缺失或控制值含 X/Z 时返回 unresolved/ambiguity evidence，不读取
+解析失败、FST 信号缺失，或非 wildcard predicate 的控制值无法归约为已知真假时返回
+unresolved/ambiguity evidence；`casez/casex` 的 X/Z 则严格按对应通配语义求值。不读取
 VCD/JSON/export，不建立 predicate-value cache 或离线 FST 索引，也不回退到静态首项。
 
 显式文件产物必须与“离线 FST 分析”严格区分：
@@ -637,7 +641,7 @@ VCD/JSON/export，不建立 predicate-value cache 或离线 FST 索引，也不�
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `02f4a2259ff491b25da7a6b67bb3d2d61a335025`
+- revision `ff0c1d016e6fbf6458fcfcd0b69455d5d1a3c32c`
 
 对应提交：
 
@@ -653,6 +657,8 @@ VCD/JSON/export，不建立 predicate-value cache 或离线 FST 索引，也不�
 - Verilator `50d8fff59`：以附加访问器区分 RHS 与控制依赖；
 - Verilator `c3abd3999`：建立 then/else activation predicate 缺失的修改前失败证据；
 - Verilator `02f4a2259`：附加驱动谓词 capability 和只读访问器，并对无法精确表示的构造失败关闭；
+- Verilator `a3adaaabb`：在同一谓词表中保留 `casez/casex` 四态通配类型，ABI 与 capability 不变；
+- Verilator `ff0c1d016`：在 XDD 头文件中明确内部通配运算符语义，仅改注释；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；

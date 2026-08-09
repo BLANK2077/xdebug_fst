@@ -600,14 +600,19 @@ P1 验收：
 原 XDD 的 source/role/file/line 无法表达 then/else 极性；Verilator 随后只附加 driver
 activation predicate capability 和只读访问器，ABI 仍为 v2。xdebug-fst 在目标
 `active_time` 通过 Wellen 直接按需读取当前原始 `.fst` 的 predicate 叶子并做四态求值，
-不生成中间波形、离线索引或全量快照。缺 predicate、解析失败、信号缺失或 X/Z 结果
-必须 unresolved/fail closed，禁止选择静态首项。随后又用真实 APB FST 验证嵌套
+不生成中间波形、离线索引或全量快照。缺 predicate、解析失败、信号缺失或非 wildcard
+谓词无法归约为已知真假时必须 unresolved/fail closed，禁止选择静态首项；casez/casex
+中的 X/Z 则按对应通配规则求值。随后又用真实 APB FST 验证嵌套
 `presetn && psel && penable && !pwrite` 条件、NBA、数组 RHS 和端口归一化，唯一选中
 `apb_top.sv:25`；用独立 case FST 验证普通 case item/default 分别唯一选中
-`case_top.sv:14/:15`。这些运行时值全部由 Wellen 直接读取 FST，且两项验证都没有修改
-Verilator。此检查点只关闭已验证的 `if/else`、APB 嵌套条件和普通 `case/default`
-基础语义；casez/casex、被前序 lowering 合并的同目标嵌套语句、更多连续/过程/NBA、
-常量、alias、跨端口、多 driver 和原版差分仍是 P6 必做项。
+`case_top.sv:14/:15`（固件扩展 wildcard 输出后对应行号为 `:16/:17`）。这些运行时值
+全部由 Wellen 直接读取 FST，且两项验证都没有修改
+Verilator。第三批在双重修改前失败证据后，以 XDD 内部 `==?z`/`==?x` 谓词保留
+`casez/casex` 静态匹配种类，并由 xdebug 使用 Wellen 读取的真实四态 FST 值求值；ABI
+仍为 v2，未修改普通 Verilator 行为。此检查点关闭已验证的 `if/else`、APB 嵌套条件、
+普通 `case/default` 和 `casez/casex` 基础语义；被前序 lowering 合并的同目标嵌套语句、
+case inside/matches、更多连续/过程/NBA、常量、alias、跨端口、多 driver 和原版差分
+仍是 P6 必做项。
 
 #### trace.active_driver
 
