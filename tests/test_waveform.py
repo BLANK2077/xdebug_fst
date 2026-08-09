@@ -114,20 +114,52 @@ def test_signal_changes_missing_signal(loop_runner: StdioLoopRunner,
 
 def test_scope_roots(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
-    rsp = loop_runner.request("scope.roots")
-    assert rsp.get("ok")
-    names = [r["name"] for r in rsp["data"]["roots"]]
-    assert "counter_top" in names or "TOP" in names
+    rsp = loop_runner.request("scope.roots", args={"source": "auto"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["source"] == "auto"
+    assert rsp["summary"]["wave_available"] is True
+    assert rsp["summary"]["design_available"] is False
+    assert rsp["summary"]["scan_complete"] is False
+    assert rsp["summary"]["truncation_scopes"] == ["analysis_sources"]
+    assert [r["path"] for r in rsp["data"]["roots"]] == ["top"]
+    assert rsp["data"]["roots"][0]["status"] == "wave_only"
+    assert rsp["data"]["wave_roots"][0]["queryable"] is True
 
 
-def test_scope_list(loop_runner: StdioLoopRunner, counter_fst) -> None:
-    open_session(loop_runner, counter_fst)
-    rsp = loop_runner.request("scope.list")
-    assert rsp.get("ok")
-    assert rsp["summary"]["scope_count"] >= 1
-    for s in rsp["data"]["scopes"]:
-        assert "name" in s
-        assert "var_count" in s
+def test_scope_roots_reports_design_wave_mismatch(
+        loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    rsp = loop_runner.request("scope.roots", args={"source": "auto"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["scan_complete"] is True
+    assert rsp["summary"]["matched_count"] == 1
+    assert rsp["summary"]["recommended_root"] == "top"
+    assert rsp["summary"]["recommended_reason"] == "unique root"
+    assert [(r["path"], r["status"]) for r in rsp["data"]["roots"]] == [
+        ("top", "matched"),
+    ]
+
+
+def test_scope_list(loop_runner: StdioLoopRunner, counter_fst,
+                    counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    rsp = loop_runner.request("scope.list", args={
+        "path": "top", "level": 1, "kind": "all",
+        "include_patterns": ["counter_top.c*", "counter_top.overflow"],
+        "exclude_patterns": ["counter_top.clk"],
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["scan_complete"] is True
+    assert rsp["summary"]["returned_module_count"] == 0
+    assert rsp["summary"]["returned_port_count"] == 2
+    assert rsp["summary"]["returned_signal_count"] == 0
+    assert rsp["data"]["modules"] == []
+    assert [(p["name"], p["direction"], p["width"])
+            for p in rsp["data"]["ports"]] == [
+                ("counter_top.count", "output", 8),
+                ("counter_top.overflow", "output", 1),
+            ]
+    assert rsp["data"]["signals"] == []
 
 
 def test_waveform_not_loaded_error(cli_runner) -> None:
