@@ -1,5 +1,5 @@
-// signal_analysis_actions.cpp — signal.statistics, signal.stability,
-// signal.xz_verify, signal.anomaly.inspect handlers (BSD-3-Clause)
+// signal_analysis_actions.cpp — signal statistics/stability/xz/anomaly
+// BSD-3-Clause License
 #include "engine/engine_action_handler.h"
 #include "engine/engine_globals.h"
 #include "core/value/logic_value.h"
@@ -7,57 +7,199 @@
 #include "api/json_types.h"
 
 #include <algorithm>
-#include <cmath>
+#include <cctype>
+#include <limits>
 #include <string>
 #include <vector>
 
 namespace xdebug_fst {
+namespace {
 
-// ── Shared helpers ──
+using Value = IWaveformBackend::WaveformValue;
 
-static Json render_value_json(const std::string& bits, uint32_t width,
-                              ValueRenderFormat fmt) {
-    LogicValue v = logic_value_from_bits(bits, static_cast<int>(width));
-    return logic_value_json(v, fmt);
+struct ChangeRow {
+    uint64_t time = 0;
+    Value value;
+};
+
+Json action_error(const std::string& code, const std::string& message) {
+    return Json{{"ok", false},
+                {"error", {{"code", code}, {"message", message}}}};
 }
 
-static bool is_all_zero(const std::string& bits) {
-    for (char c : bits)
-        if (c != '0') return false;
-    return true;
-}
-
-static bool is_all_one(const std::string& bits) {
-    for (char c : bits)
-        if (c != '1') return false;
-    return true;
-}
-
-static bool has_x_bit(const std::string& bits) {
-    for (char c : bits)
-        if (c == 'x' || c == 'X') return true;
-    return false;
-}
-
-static bool has_z_bit(const std::string& bits) {
-    for (char c : bits)
-        if (c == 'z' || c == 'Z') return true;
-    return false;
-}
-
-// Parse begin/end from args (accepts string or integer JSON values).
-static uint64_t parse_time_arg(const Json& args, const char* key,
-                               uint64_t default_val) {
-    if (!args.contains(key)) return default_val;
-    const Json& v = args[key];
-    if (v.is_string()) {
-        try { return std::stoull(v.get<std::string>()); } catch (...) { return default_val; }
+Json typed_logic_value(const Value& value, uint32_t width,
+                       ValueRenderFormat format) {
+    if (value.kind == IWaveformBackend::ValueKind::BitVector) {
+        LogicValue logic = logic_value_from_bits(value.text,
+                                                  static_cast<int>(width));
+        return logic_value_json(logic, format);
     }
-    if (v.is_number()) return v.get<uint64_t>();
-    return default_val;
+    if (value.kind == IWaveformBackend::ValueKind::Real)
+        return Json{{"value", std::to_string(value.real)}, {"known", true}};
+    return Json{{"value", value.kind == IWaveformBackend::ValueKind::Event
+                              ? "event" : value.text},
+                {"known", true}};
 }
 
-// ── signal.statistics ──
+bool value_equal(const Value& left, const Value& right) {
+    if (left.kind != right.kind) return false;
+    return left.kind == IWaveformBackend::ValueKind::Real
+        ? left.real == right.real : left.text == right.text;
+}
+
+std::string lowercase(std::string text) {
+    for (char& c : text)
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    return text;
+}
+
+bool contains_xz(const std::string& bits) {
+    const std::string value = lowercase(bits);
+    return value.find('x') != std::string::npos ||
+           value.find('z') != std::string::npos;
+}
+
+bool contains_bit(const std::string& bits, char expected) {
+    return lowercase(bits).find(expected) != std::string::npos;
+}
+
+bool all_bits(const std::string& bits, char expected) {
+    if (bits.empty()) return false;
+    const std::string value = lowercase(bits);
+    return std::all_of(value.begin(), value.end(),
+                       [expected](char bit) { return bit == expected; });
+}
+
+bool parse_range(IWaveformBackend& wf, const Json& args,
+                 uint64_t& begin, uint64_t& end, Json& error) {
+    begin = wf.min_time();
+    end = wf.max_time();
+    const Json range = args.value("time_range", Json::object());
+    std::string message;
+    if (range.contains("begin") &&
+        !wf.parse_time(range.at("begin"), begin, message)) {
+        error = action_error("INVALID_TIME", message);
+        return false;
+    }
+    if (range.contains("end") &&
+        !wf.parse_time(range.at("end"), end, message, true)) {
+        error = action_error("INVALID_TIME", message);
+        return false;
+    }
+    if (begin > end) {
+        error = action_error("TIME_RANGE_INVALID", "end is before begin");
+        return false;
+    }
+    return true;
+}
+
+bool parse_render_unit(const Json& args, TimeRenderUnit& unit, Json& error) {
+    std::string message;
+    if (!parse_time_render_unit(args.value("render_time_unit", "ns"),
+                                unit, message)) {
+        error = action_error("INVALID_TIME_UNIT", message);
+        return false;
+    }
+    return true;
+}
+
+bool prepare_signal(IWaveformBackend& wf, const std::string& signal,
+                    uint32_t& ref, IWaveformBackend::SignalInfo& info,
+                    Json& error) {
+    ref = wf.find_signal(signal);
+    if (!ref) {
+        error = action_error("SIGNAL_NOT_FOUND",
+                             "signal not found in waveform: " + signal);
+        return false;
+    }
+    if (!wf.is_loaded(ref) && wf.load_signals({ref}) != 1) {
+        error = action_error("VALUE_NOT_AVAILABLE",
+                             "failed to load waveform signal: " + signal);
+        return false;
+    }
+    if (!wf.signal_info(ref, info)) {
+        error = action_error("VALUE_NOT_AVAILABLE",
+                             "signal metadata is unavailable: " + signal);
+        return false;
+    }
+    return true;
+}
+
+std::vector<ChangeRow> collect_changes(IWaveformBackend& wf, uint32_t ref,
+                                       uint64_t begin, uint64_t end) {
+    std::vector<ChangeRow> rows;
+    if (begin > wf.max_time() || end < wf.min_time()) return rows;
+    const uint32_t begin_ti = wf.time_idx_of(begin);
+    IWaveformBackend::SampledValue initial;
+    if (wf.sampled_value_at(ref, begin_ti,
+                            IWaveformBackend::ObservationPoint::Raw, initial))
+        rows.push_back({begin, initial.value});
+
+    for (uint32_t ti : wf.time_indices_of(ref)) {
+        const uint64_t time = wf.time_at(ti);
+        if (time <= begin || time > end) continue;
+        IWaveformBackend::SampledValue sampled;
+        if (!wf.sampled_value_at(ref, ti,
+                IWaveformBackend::ObservationPoint::Raw, sampled)) continue;
+        if (!rows.empty() && value_equal(rows.back().value, sampled.value))
+            continue;
+        rows.push_back({time, sampled.value});
+    }
+    return rows;
+}
+
+Json completeness(bool scan_complete, bool analysis_complete,
+                  bool response_truncated, size_t total_count,
+                  size_t returned_count, const Json& scopes) {
+    return Json{{"scan_complete", scan_complete},
+                {"analysis_complete", analysis_complete},
+                {"response_truncated", response_truncated},
+                {"total_count", total_count},
+                {"returned_count", returned_count},
+                {"truncation_scopes", scopes}};
+}
+
+void merge_object(Json& target, const Json& source) {
+    for (auto it = source.begin(); it != source.end(); ++it)
+        target[it.key()] = it.value();
+}
+
+Json sampling_contract(const std::string& edge,
+                       const std::string& requested_point) {
+    const bool negedge = edge == "negedge";
+    const std::string effective_point = negedge ? std::string()
+        : (requested_point.empty() ? "before" : requested_point);
+    Json result{
+        {"requested", {{"edge", edge},
+                       {"sample_point", requested_point.empty()
+                           ? Json(nullptr) : Json(requested_point)}}},
+        {"effective", {{"edge", edge},
+                       {"sample_point", effective_point.empty()
+                           ? Json(nullptr) : Json(effective_point)}}},
+        {"sample_point_applied", !negedge},
+        {"sample_point_ignored_for_negedge",
+         negedge && !requested_point.empty()}
+    };
+    if (negedge && !requested_point.empty())
+        result["sample_point_not_applied_reason"] =
+            "negedge keeps the established current-value sampling semantics";
+    return result;
+}
+
+IWaveformBackend::ObservationPoint observation_point(
+    const std::string& edge, const std::string& requested_point) {
+    if (edge == "negedge") return IWaveformBackend::ObservationPoint::Raw;
+    return requested_point == "after"
+        ? IWaveformBackend::ObservationPoint::After
+        : IWaveformBackend::ObservationPoint::Before;
+}
+
+bool edge_selected(const std::string& edge, bool rising, bool falling) {
+    return edge == "dual" ? rising || falling
+        : edge == "posedge" ? rising : falling;
+}
+
+}  // namespace
 
 struct SignalStatisticsHandler : public EngineActionHandler {
     const char* action_name() const override { return "signal.statistics"; }
@@ -65,183 +207,244 @@ struct SignalStatisticsHandler : public EngineActionHandler {
     bool needs_waveform() const override { return true; }
 
     Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_waveform || !g.waveform) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "WAVEFORM_NOT_LOADED"},
-                                   {"message",
-                                    "action requires waveform file: signal.statistics"}}}};
-        }
-        auto args = req.value("args", Json::object());
-        std::string sig = args.value("signal", "");
-        if (sig.empty()) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "MISSING_FIELD"},
-                                   {"message", "args.signal is required"}}}};
-        }
-
-        auto* wf = g.waveform.get();
-        uint32_t ref = wf->find_signal(sig);
-        if (ref == IWaveformBackend::kInvalidSignalRef) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "SIGNAL_NOT_FOUND"},
-                                   {"message", "signal not found in waveform: " + sig}}}};
-        }
-        if (!wf->is_loaded(ref)) wf->load_signals({ref});
-
+        auto* wf = engine_globals().waveform.get();
+        const Json args = req.at("args");
+        const std::string signal = args.at("signal");
+        Json error;
+        uint32_t ref = 0;
         IWaveformBackend::SignalInfo info;
-        wf->signal_info(ref, info);
+        if (!prepare_signal(*wf, signal, ref, info, error)) return error;
+        uint64_t begin = 0, end = 0;
+        if (!parse_range(*wf, args, begin, end, error)) return error;
+        TimeRenderUnit unit;
+        if (!parse_render_unit(args, unit, error)) return error;
+        ValueRenderFormat format = ValueRenderFormat::Hex;
+        parse_value_render_format(args.value("value_format", "hex"), format);
 
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
+        if (!args.contains("clock")) {
+            if (args.contains("edge") || args.contains("sample_point"))
+                return action_error("INVALID_FIELD",
+                    "edge and sample_point require args.clock for signal.statistics");
+            const std::vector<ChangeRow> rows =
+                collect_changes(*wf, ref, begin, end);
+            const size_t limit = args.value("line_limit", 100u);
+            const size_t returned = std::min(rows.size(), limit);
+            const bool response_truncated = returned < rows.size();
+            Json summary{{"signal", signal},
+                         {"sampling_mode", "raw_value_changes"},
+                         {"begin", wf->format_time(begin, unit)},
+                         {"end", wf->format_time(end, unit)},
+                         {"actual_transition_count",
+                          rows.empty() ? 0 : rows.size() - 1}};
+            merge_object(summary, completeness(
+                true, true, response_truncated, rows.size(), returned,
+                response_truncated ? Json::array({"response_evidence"})
+                                   : Json::array()));
 
-        uint64_t begin = parse_time_arg(args, "begin", 0);
-        uint64_t end = parse_time_arg(args, "end", wf->max_time());
-
-        uint32_t begin_ti = wf->time_idx_of(begin);
-        uint32_t end_ti = wf->time_idx_of(end);
-        if (end_ti < begin_ti) end_ti = begin_ti;
-
-        std::string clock = args.value("clock", "");
-        std::string edge = args.value("edge", "posedge");
-
-        Json out;
-        out["ok"] = true;
-
-        if (!clock.empty()) {
-            // ── Clock-based sampling ──
-            uint32_t clk_ref = wf->find_signal(clock);
-            if (clk_ref == IWaveformBackend::kInvalidSignalRef) {
-                return Json{{"ok", false},
-                            {"error", {{"code", "SIGNAL_NOT_FOUND"},
-                                       {"message",
-                                        "clock signal not found in waveform: " + clock}}}};
-            }
-            if (!wf->is_loaded(clk_ref)) wf->load_signals({clk_ref});
-
-            bool rising = (edge == "posedge" || edge == "both");
-            bool falling = (edge == "negedge" || edge == "both");
-
-            ClockSampleScanner scanner(*wf, clk_ref, ref, rising, falling);
-            std::vector<ClockSample> samples;
-            scanner.scan(begin_ti, end_ti, samples);
-
-            int sample_count = static_cast<int>(samples.size());
-            int zero_count = 0, one_count = 0, x_count = 0, z_count = 0;
-            int transitions = 0;
-            std::string prev_bits;
-            Json data_samples = Json::array();
-
-            for (size_t i = 0; i < samples.size(); ++i) {
-                std::string bits = samples[i].middle;
-                if (bits.empty()) {
-                    x_count++;
-                    continue;
+            int high_bursts = 0;
+            bool previous_high = false;
+            Json first_high = nullptr, last_high = nullptr, last_fall = nullptr;
+            for (const ChangeRow& row : rows) {
+                const bool high = row.value.kind ==
+                        IWaveformBackend::ValueKind::BitVector &&
+                    !contains_xz(row.value.text) &&
+                    row.value.text.find('1') != std::string::npos;
+                if (high) {
+                    if (!previous_high) ++high_bursts;
+                    if (first_high.is_null())
+                        first_high = wf->format_time(row.time, unit);
+                    last_high = wf->format_time(row.time, unit);
+                } else if (previous_high) {
+                    last_fall = wf->format_time(row.time, unit);
                 }
-
-                if (has_x_bit(bits))
-                    x_count++;
-                else if (has_z_bit(bits))
-                    z_count++;
-                else if (is_all_zero(bits))
-                    zero_count++;
-                else if (is_all_one(bits))
-                    one_count++;
-
-                if (i > 0 && bits != prev_bits) transitions++;
-                prev_bits = bits;
-
-                data_samples.push_back(
-                    {{"time", samples[i].time},
-                     {"time_idx", samples[i].time_idx},
-                     {"value", render_value_json(bits, info.width, fmt)}});
+                previous_high = high;
             }
-
-            double activity =
-                sample_count > 0
-                    ? static_cast<double>(transitions) /
-                          static_cast<double>(sample_count)
-                    : 0.0;
-
-            out["summary"] = {{"signal", sig},
-                              {"begin", begin},
-                              {"end", end},
-                              {"sample_count", sample_count},
-                              {"state_counts",
-                               {{"zero", zero_count},
-                                {"one", one_count},
-                                {"x", x_count},
-                                {"z", z_count}}},
-                              {"transition_count", transitions},
-                              {"activity", activity},
-                              {"sampling_mode", "clock_edge"},
-                              {"clock", clock},
-                              {"edge", edge}};
-            out["data"] = {{"samples", data_samples}};
-        } else {
-            // ── Self-change-based sampling ──
-            std::vector<uint32_t> indices = wf->time_indices_of(ref);
-
-            int sample_count = 0;
-            int zero_count = 0, one_count = 0, x_count = 0, z_count = 0;
-            int transitions = 0;
-            std::string prev_bits;
-            Json data_samples = Json::array();
-
-            for (uint32_t ti : indices) {
-                if (ti < begin_ti || ti > end_ti) continue;
-                IWaveformBackend::SignalOffset off;
-                if (!wf->signal_offset_at(ref, ti, off)) continue;
-                if (!off.time_match) continue;
-                std::string bits = wf->signal_value_str(ref, off.start, 0);
-                if (bits.empty()) continue;
-
-                sample_count++;
-
-                if (has_x_bit(bits))
-                    x_count++;
-                else if (has_z_bit(bits))
-                    z_count++;
-                else if (is_all_zero(bits))
-                    zero_count++;
-                else if (is_all_one(bits))
-                    one_count++;
-
-                if (sample_count > 1 && bits != prev_bits) transitions++;
-                prev_bits = bits;
-
-                data_samples.push_back(
-                    {{"time", wf->time_at(ti)},
-                     {"time_idx", ti},
-                     {"value", render_value_json(bits, info.width, fmt)}});
+            Json data{
+                {"includes_initial_value", !rows.empty()},
+                {"activity", {{"high_burst_count", high_bursts},
+                              {"first_high_time", first_high},
+                              {"last_high_time", last_high},
+                              {"last_fall_time", last_fall},
+                              {"max_high_cycles", nullptr}}}
+            };
+            if (!rows.empty()) {
+                data["initial_value"] = typed_logic_value(
+                    rows.front().value, info.width, format);
+                data["final_value"] = typed_logic_value(
+                    rows.back().value, info.width, format);
+                data["first_change_time"] =
+                    wf->format_time(rows.front().time, unit);
+                data["last_change_time"] =
+                    wf->format_time(rows.back().time, unit);
             }
-
-            double activity =
-                sample_count > 0
-                    ? static_cast<double>(transitions) /
-                          static_cast<double>(sample_count)
-                    : 0.0;
-
-            out["summary"] = {{"signal", sig},
-                              {"begin", begin},
-                              {"end", end},
-                              {"sample_count", sample_count},
-                              {"state_counts",
-                               {{"zero", zero_count},
-                                {"one", one_count},
-                                {"x", x_count},
-                                {"z", z_count}}},
-                              {"transition_count", transitions},
-                              {"activity", activity},
-                              {"sampling_mode", "value_change"}};
-            out["data"] = {{"samples", data_samples}};
+            Json evidence = Json::array();
+            for (size_t i = 0; i < returned; ++i)
+                evidence.push_back({
+                    {"time", wf->format_time(rows[i].time, unit)},
+                    {"kind", i == 0 ? "initial" : "value_change"},
+                    {"value", typed_logic_value(rows[i].value,
+                                                 info.width, format)}});
+            data["evidence"] = evidence;
+            return Json{{"ok", true}, {"summary", summary}, {"data", data}};
         }
 
-        return out;
+        if (info.encoding != IWaveformBackend::ValueKind::BitVector)
+            return action_error("INVALID_SIGNAL_TYPE",
+                                "clock-sampled statistics requires a bit-vector signal");
+        const std::string clock = args.at("clock");
+        uint32_t clock_ref = 0;
+        IWaveformBackend::SignalInfo clock_info;
+        if (!prepare_signal(*wf, clock, clock_ref, clock_info, error))
+            return action_error("CLOCK_NOT_FOUND",
+                                "clock signal not found: " + clock);
+        const std::string edge = args.value("edge", "negedge");
+        if (edge != "posedge" && edge != "negedge" && edge != "dual")
+            return action_error("INVALID_FIELD",
+                                "args.edge must be posedge, negedge, or dual");
+        const std::string requested_point =
+            args.value("sample_point", std::string());
+        const auto point = observation_point(edge, requested_point);
+        const size_t evidence_limit = args.value("line_limit", 100u);
+        const size_t sample_limit = args.value(
+            "max_samples", std::numeric_limits<size_t>::max());
+
+        size_t samples = 0, known = 0, unknown = 0;
+        size_t high_cycles = 0, low_cycles = 0, high_bursts = 0;
+        size_t current_high = 0, max_high_cycles = 0, transitions = 0;
+        bool analysis_truncated = false, have_known = false, previous_high = false;
+        std::string first_bits, final_bits, min_bits, max_bits, previous_bits;
+        Json first_change = nullptr, last_change = nullptr;
+        Json first_high = nullptr, last_high = nullptr, last_fall = nullptr;
+        Json evidence = Json::array();
+        size_t evidence_count = 0;
+        auto add_evidence = [&](uint64_t time, const char* kind,
+                                const Value& value) {
+            ++evidence_count;
+            if (evidence.size() < evidence_limit)
+                evidence.push_back({{"time", wf->format_time(time, unit)},
+                    {"kind", kind},
+                    {"value", typed_logic_value(value, info.width, format)}});
+        };
+
+        uint32_t previous_ti = std::numeric_limits<uint32_t>::max();
+        for (uint32_t ti : wf->time_indices_of(clock_ref)) {
+            if (ti == previous_ti) continue;
+            previous_ti = ti;
+            const uint64_t time = wf->time_at(ti);
+            if (time < begin || time > end) continue;
+            IWaveformBackend::SampledValue before_clock, raw_clock;
+            if (!wf->sampled_value_at(clock_ref, ti,
+                    IWaveformBackend::ObservationPoint::Before, before_clock) ||
+                !wf->sampled_value_at(clock_ref, ti,
+                    IWaveformBackend::ObservationPoint::Raw, raw_clock)) continue;
+            const bool rising = is_rising_edge(before_clock.value.text,
+                                                raw_clock.value.text);
+            const bool falling = is_falling_edge(before_clock.value.text,
+                                                  raw_clock.value.text);
+            if (!edge_selected(edge, rising, falling)) continue;
+            if (samples >= sample_limit) {
+                analysis_truncated = true;
+                break;
+            }
+            ++samples;
+            IWaveformBackend::SampledValue sampled;
+            if (!wf->sampled_value_at(ref, ti, point, sampled) ||
+                sampled.value.kind != IWaveformBackend::ValueKind::BitVector ||
+                contains_xz(sampled.value.text)) {
+                ++unknown;
+                Value unknown_value;
+                unknown_value.kind = IWaveformBackend::ValueKind::BitVector;
+                unknown_value.text = sampled.value.text.empty()
+                    ? std::string(std::max(1u, info.width), 'x')
+                    : sampled.value.text;
+                add_evidence(time, "unknown", unknown_value);
+                if (previous_high) {
+                    max_high_cycles = std::max(max_high_cycles, current_high);
+                    current_high = 0;
+                    last_fall = wf->format_time(time, unit);
+                    previous_high = false;
+                }
+                continue;
+            }
+            ++known;
+            const std::string bits = lowercase(sampled.value.text);
+            const bool nonzero = bits.find('1') != std::string::npos;
+            const bool high = nonzero && bits.size() == 1;
+            if (!nonzero) ++low_cycles;
+            else if (high) ++high_cycles;
+            if (high) {
+                if (!previous_high) {
+                    ++high_bursts;
+                    current_high = 0;
+                    if (first_high.is_null())
+                        first_high = wf->format_time(time, unit);
+                }
+                ++current_high;
+                last_high = wf->format_time(time, unit);
+            } else if (previous_high) {
+                max_high_cycles = std::max(max_high_cycles, current_high);
+                current_high = 0;
+                last_fall = wf->format_time(time, unit);
+            }
+            previous_high = high;
+            if (!have_known) {
+                first_bits = final_bits = min_bits = max_bits = previous_bits = bits;
+                have_known = true;
+            } else {
+                if (bits != previous_bits) {
+                    ++transitions;
+                    add_evidence(time, "value_change", sampled.value);
+                    if (first_change.is_null())
+                        first_change = wf->format_time(time, unit);
+                    last_change = wf->format_time(time, unit);
+                }
+                if (bits < min_bits) min_bits = bits;
+                if (bits > max_bits) max_bits = bits;
+                previous_bits = final_bits = bits;
+            }
+        }
+        if (previous_high)
+            max_high_cycles = std::max(max_high_cycles, current_high);
+
+        const bool response_truncated = evidence.size() < evidence_count;
+        Json scopes = Json::array();
+        if (analysis_truncated) scopes.push_back("analysis_samples");
+        if (response_truncated) scopes.push_back("response_evidence");
+        Json summary{{"signal", signal}, {"sampling_mode", "clock_edge"},
+            {"clock", clock}, {"sample_time_semantics", "time is sample_time"},
+            {"sample_count", samples}, {"known_count", known},
+            {"unknown_count", unknown},
+            {"begin", wf->format_time(begin, unit)},
+            {"end", wf->format_time(end, unit)}};
+        merge_object(summary, completeness(!analysis_truncated,
+            !analysis_truncated, response_truncated, evidence_count,
+            evidence.size(), scopes));
+        Json data{{"evidence", evidence}, {"transition_count", transitions},
+                  {"sampling", sampling_contract(edge, requested_point)}};
+        if (have_known) {
+            auto bits_value = [&](const std::string& bits) {
+                Value value; value.kind = IWaveformBackend::ValueKind::BitVector;
+                value.text = bits;
+                return typed_logic_value(value, info.width, format);
+            };
+            data["first"] = bits_value(first_bits);
+            data["final"] = bits_value(final_bits);
+            data["min"] = bits_value(min_bits);
+            data["max"] = bits_value(max_bits);
+            data["low_cycles"] = low_cycles;
+            data["high_cycles"] = high_cycles;
+            data["high_ratio"] = known == 0 ? 0.0
+                : static_cast<double>(high_cycles) / static_cast<double>(known);
+            if (!first_change.is_null()) data["first_change_time"] = first_change;
+            if (!last_change.is_null()) data["last_change_time"] = last_change;
+            data["activity"] = {{"high_burst_count", high_bursts},
+                {"first_high_time", first_high}, {"last_high_time", last_high},
+                {"last_fall_time", last_fall},
+                {"max_high_cycles", max_high_cycles}};
+        }
+        return Json{{"ok", true}, {"summary", summary}, {"data", data}};
     }
 };
-
-// ── signal.stability ──
 
 struct SignalStabilityHandler : public EngineActionHandler {
     const char* action_name() const override { return "signal.stability"; }
@@ -249,96 +452,48 @@ struct SignalStabilityHandler : public EngineActionHandler {
     bool needs_waveform() const override { return true; }
 
     Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_waveform || !g.waveform) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "WAVEFORM_NOT_LOADED"},
-                                   {"message",
-                                    "action requires waveform file: signal.stability"}}}};
-        }
-        auto args = req.value("args", Json::object());
-        std::string sig = args.value("signal", "");
-        if (sig.empty()) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "MISSING_FIELD"},
-                                   {"message", "args.signal is required"}}}};
-        }
-
-        auto* wf = g.waveform.get();
-        uint32_t ref = wf->find_signal(sig);
-        if (ref == IWaveformBackend::kInvalidSignalRef) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "SIGNAL_NOT_FOUND"},
-                                   {"message", "signal not found in waveform: " + sig}}}};
-        }
-        if (!wf->is_loaded(ref)) wf->load_signals({ref});
-
+        auto* wf = engine_globals().waveform.get();
+        const Json args = req.at("args");
+        const std::string signal = args.at("signal");
+        Json error;
+        uint32_t ref = 0;
         IWaveformBackend::SignalInfo info;
-        wf->signal_info(ref, info);
+        if (!prepare_signal(*wf, signal, ref, info, error)) return error;
+        uint64_t begin = 0, end = 0;
+        if (!parse_range(*wf, args, begin, end, error)) return error;
+        TimeRenderUnit unit;
+        if (!parse_render_unit(args, unit, error)) return error;
+        ValueRenderFormat format = ValueRenderFormat::Hex;
+        parse_value_render_format(args.value("value_format", "hex"), format);
 
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
-
-        uint64_t begin = parse_time_arg(args, "begin", 0);
-        uint64_t end = parse_time_arg(args, "end", wf->max_time());
-
-        uint32_t begin_ti = wf->time_idx_of(begin);
-        uint32_t end_ti = wf->time_idx_of(end);
-        if (end_ti < begin_ti) end_ti = begin_ti;
-
-        std::vector<uint32_t> indices = wf->time_indices_of(ref);
-
-        bool stable = true;
-        std::string first_bits;
+        const std::vector<ChangeRow> all_rows =
+            collect_changes(*wf, ref, begin, end);
         Json changes = Json::array();
-        int change_row_count = 0;
-        bool includes_initial = false;
-
-        for (uint32_t ti : indices) {
-            if (ti < begin_ti || ti > end_ti) continue;
-            IWaveformBackend::SignalOffset off;
-            if (!wf->signal_offset_at(ref, ti, off)) continue;
-            if (!off.time_match) continue;
-            std::string bits = wf->signal_value_str(ref, off.start, 0);
-            if (bits.empty()) continue;
-
-            change_row_count++;
-            if (change_row_count == 1) {
-                first_bits = bits;
-                includes_initial = true;
-            }
-
-            changes.push_back({{"time", wf->time_at(ti)},
-                               {"time_idx", ti},
-                               {"value",
-                                render_value_json(bits, info.width, fmt)}});
-
-            if (change_row_count > 1 && bits != first_bits) {
+        bool stable = true;
+        for (size_t i = 0; i < all_rows.size(); ++i) {
+            changes.push_back({{"time", wf->format_time(all_rows[i].time, unit)},
+                {"value", typed_logic_value(all_rows[i].value,
+                                             info.width, format)}});
+            if (i > 0 && !value_equal(all_rows[i].value, all_rows.front().value)) {
                 stable = false;
                 break;
             }
         }
-
-        int actual_transition_count = stable ? 0 : 1;
-
-        Json out;
-        out["ok"] = true;
-        out["data"] = {
-            {"signal", sig},
-            {"begin", begin},
-            {"end", end},
-            {"changes", changes},
-            {"summary",
-             {{"stable", stable},
-              {"change_row_count", change_row_count},
-              {"actual_transition_count", actual_transition_count},
-              {"scan_stopped_on_first_transition", !stable}}},
-            {"includes_initial_value", includes_initial}};
-        return out;
+        const size_t count = changes.size();
+        Json summary{{"stable", stable}, {"change_row_count", count},
+            {"actual_transition_count", stable ? 0 : 1},
+            {"scan_stopped_on_first_transition", !stable}};
+        merge_object(summary, completeness(stable, true, false, count, count,
+            stable ? Json::array()
+                   : Json::array({"scan_after_first_transition"})));
+        Json data{{"signal", signal},
+                  {"begin", wf->format_time(begin, unit)},
+                  {"end", wf->format_time(end, unit)},
+                  {"changes", changes},
+                  {"includes_initial_value", count > 0}};
+        return Json{{"ok", true}, {"summary", summary}, {"data", data}};
     }
 };
-
-// ── signal.xz_verify ──
 
 struct SignalXzVerifyHandler : public EngineActionHandler {
     const char* action_name() const override { return "signal.xz_verify"; }
@@ -346,283 +501,200 @@ struct SignalXzVerifyHandler : public EngineActionHandler {
     bool needs_waveform() const override { return true; }
 
     Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_waveform || !g.waveform) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "WAVEFORM_NOT_LOADED"},
-                                   {"message",
-                                    "action requires waveform file: signal.xz_verify"}}}};
-        }
-        auto args = req.value("args", Json::object());
-        std::string sig = args.value("signal", "");
-        std::string expected_state = args.value("expected_state", "");
-        std::string match_mode = args.value("match_mode", "exact");
-
-        if (sig.empty() || expected_state.empty()) {
-            return Json{{"ok", false},
-                        {"error",
-                         {{"code", "MISSING_FIELD"},
-                          {"message",
-                           "args.signal and args.expected_state are required"}}}};
-        }
-        if (expected_state != "x" && expected_state != "z") {
-            return Json{{"ok", false},
-                        {"error",
-                         {{"code", "INVALID_FIELD"},
-                          {"message", "args.expected_state must be x or z"}}}};
-        }
-        if (match_mode != "exact" && match_mode != "contains") {
-            return Json{{"ok", false},
-                        {"error",
-                         {{"code", "INVALID_FIELD"},
-                          {"message",
-                           "args.match_mode must be exact or contains"}}}};
-        }
-
-        auto* wf = g.waveform.get();
-        uint32_t ref = wf->find_signal(sig);
-        if (ref == IWaveformBackend::kInvalidSignalRef) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "SIGNAL_NOT_FOUND"},
-                                   {"message", "signal not found in waveform: " + sig}}}};
-        }
-        if (!wf->is_loaded(ref)) wf->load_signals({ref});
-
+        auto* wf = engine_globals().waveform.get();
+        const Json args = req.at("args");
+        const std::string signal = args.at("signal");
+        const std::string expected = args.at("expected_state");
+        const std::string mode = args.value("match_mode", "exact");
+        Json error;
+        uint32_t ref = 0;
         IWaveformBackend::SignalInfo info;
-        wf->signal_info(ref, info);
+        if (!prepare_signal(*wf, signal, ref, info, error)) return error;
+        if (info.encoding != IWaveformBackend::ValueKind::BitVector)
+            return action_error("INVALID_SIGNAL_TYPE",
+                                "signal.xz_verify requires a bit-vector signal");
+        uint64_t begin = 0, end = 0;
+        if (!parse_range(*wf, args, begin, end, error)) return error;
+        TimeRenderUnit unit;
+        if (!parse_render_unit(args, unit, error)) return error;
+        ValueRenderFormat format = ValueRenderFormat::Hex;
+        parse_value_render_format(args.value("value_format", "hex"), format);
 
-        uint64_t begin = parse_time_arg(args, "begin", 0);
-        uint64_t end = parse_time_arg(args, "end", wf->max_time());
-
-        uint32_t begin_ti = wf->time_idx_of(begin);
-        uint32_t end_ti = wf->time_idx_of(end);
-        if (end_ti < begin_ti) end_ti = begin_ti;
-
-        std::vector<uint32_t> indices = wf->time_indices_of(ref);
-
-        bool always_matched = true;
-        int checked_value_count = 0;
-        Json initial_value = nullptr;
+        const std::vector<ChangeRow> rows = collect_changes(*wf, ref, begin, end);
+        if (rows.empty())
+            return action_error("VALUE_NOT_AVAILABLE",
+                "no waveform value is available for signal " + signal +
+                " in the requested window");
+        bool matched_all = true;
+        size_t checked = 0;
         Json first_mismatch = nullptr;
-        char expected_bit = expected_state[0];
-
-        for (uint32_t ti : indices) {
-            if (ti < begin_ti || ti > end_ti) continue;
-            IWaveformBackend::SignalOffset off;
-            if (!wf->signal_offset_at(ref, ti, off)) continue;
-            if (!off.time_match) continue;
-            std::string bits = wf->signal_value_str(ref, off.start, 0);
-            if (bits.empty()) continue;
-
-            Json val_json =
-                render_value_json(bits, info.width, ValueRenderFormat::Hex);
-
-            if (checked_value_count == 0) {
-                initial_value = val_json;
-            }
-            checked_value_count++;
-
-            bool matched;
-            if (match_mode == "exact") {
-                matched = true;
-                for (char c : bits) {
-                    if (c != expected_bit) {
-                        matched = false;
-                        break;
-                    }
-                }
-            } else {  // contains
-                matched = (bits.find(expected_bit) != std::string::npos);
-            }
-
+        for (const ChangeRow& row : rows) {
+            ++checked;
+            const bool matched = mode == "exact"
+                ? all_bits(row.value.text, expected[0])
+                : contains_bit(row.value.text, expected[0]);
             if (!matched) {
-                always_matched = false;
-                first_mismatch = {{"sample_time", wf->time_at(ti)},
-                                  {"value", val_json}};
+                matched_all = false;
+                first_mismatch = {
+                    {"sample_time", wf->format_time(row.time, unit)},
+                    {"value", typed_logic_value(row.value, info.width, format)}};
                 break;
             }
         }
-
-        if (checked_value_count == 0) {
-            return Json{
-                {"ok", false},
-                {"error",
-                 {{"code", "VALUE_NOT_AVAILABLE"},
-                  {"message",
-                   "no waveform values for signal in requested window: " +
-                       sig}}}};
-        }
-
-        Json out;
-        out["ok"] = true;
-        out["data"] = {
-            {"summary",
-             {{"signal", sig},
-              {"expected_state", expected_state},
-              {"match_mode", match_mode},
-              {"verdict", always_matched ? "pass" : "fail"},
-              {"always_matched", always_matched},
-              {"checked_value_count", checked_value_count},
-              {"stop_reason",
-               always_matched ? "window_end" : "first_mismatch"}}},
-            {"initial_value", initial_value},
-            {"first_mismatch", first_mismatch}};
-        return out;
+        Json summary{{"signal", signal}, {"expected_state", expected},
+            {"match_mode", mode}, {"verdict", matched_all ? "pass" : "fail"},
+            {"always_matched", matched_all}, {"checked_value_count", checked},
+            {"stop_reason", matched_all ? "window_end" : "first_mismatch"}};
+        merge_object(summary, completeness(matched_all, true, false,
+                                           checked, checked, Json::array()));
+        Json data{{"time_range", {{"begin", wf->format_time(begin, unit)},
+                                  {"end", wf->format_time(end, unit)}}},
+            {"initial_value", typed_logic_value(rows.front().value,
+                                                info.width, format)},
+            {"first_mismatch", first_mismatch},
+            {"sample_time_semantics",
+             "sample_time is the finalized raw waveform value-change time in the closed interval"}};
+        return Json{{"ok", true}, {"summary", summary}, {"data", data}};
     }
 };
 
-// ── signal.anomaly.inspect ──
-
 struct SignalAnomalyInspectHandler : public EngineActionHandler {
-    const char* action_name() const override {
-        return "signal.anomaly.inspect";
-    }
+    const char* action_name() const override { return "signal.anomaly.inspect"; }
     bool needs_design() const override { return false; }
     bool needs_waveform() const override { return true; }
 
     Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_waveform || !g.waveform) {
-            return Json{
-                {"ok", false},
-                {"error",
-                 {{"code", "WAVEFORM_NOT_LOADED"},
-                  {"message",
-                   "action requires waveform file: signal.anomaly.inspect"}}}};
+        auto* wf = engine_globals().waveform.get();
+        const Json args = req.at("args");
+        Json error;
+        uint64_t begin = 0, end = 0;
+        if (!parse_range(*wf, args, begin, end, error)) return error;
+        TimeRenderUnit unit;
+        if (!parse_render_unit(args, unit, error)) return error;
+        ValueRenderFormat format = ValueRenderFormat::Hex;
+        parse_value_render_format(args.value("value_format", "hex"), format);
+
+        const Json checks = args.value("checks", Json::array());
+        bool check_unknown = checks.empty();
+        bool check_glitch = false;
+        bool check_stuck = checks.empty();
+        uint64_t glitch_width = 0, stuck_duration = 0;
+        if (checks.empty()) {
+            std::string message;
+            if (!wf->parse_time("1us", stuck_duration, message))
+                return action_error("INVALID_TIME", message);
         }
-        auto args = req.value("args", Json::object());
-        std::string sig = args.value("signal", "");
-        if (sig.empty()) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "MISSING_FIELD"},
-                                   {"message", "args.signal is required"}}}};
-        }
-
-        std::string anomaly_type = args.value("anomaly_type", "xz");
-        if (anomaly_type != "x" && anomaly_type != "z" &&
-            anomaly_type != "xz" && anomaly_type != "both") {
-            anomaly_type = "xz";
-        }
-
-        auto* wf = g.waveform.get();
-        uint32_t ref = wf->find_signal(sig);
-        if (ref == IWaveformBackend::kInvalidSignalRef) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "SIGNAL_NOT_FOUND"},
-                                   {"message", "signal not found in waveform: " + sig}}}};
-        }
-        if (!wf->is_loaded(ref)) wf->load_signals({ref});
-
-        IWaveformBackend::SignalInfo info;
-        wf->signal_info(ref, info);
-
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
-
-        uint64_t begin = parse_time_arg(args, "begin", 0);
-        uint64_t end = parse_time_arg(args, "end", wf->max_time());
-
-        uint32_t begin_ti = wf->time_idx_of(begin);
-        uint32_t end_ti = wf->time_idx_of(end);
-        if (end_ti < begin_ti) end_ti = begin_ti;
-
-        std::vector<uint32_t> indices = wf->time_indices_of(ref);
-
-        Json anomalies = Json::array();
-        int anomaly_count = 0;
-        Json first_anomaly_time = nullptr;
-
-        bool in_anomaly = false;
-        uint64_t anomaly_begin_time = 0;
-        uint32_t anomaly_begin_ti = 0;
-        std::string anomaly_value;
-        std::string anomaly_kind;
-
-        for (uint32_t ti : indices) {
-            if (ti < begin_ti || ti > end_ti) continue;
-            IWaveformBackend::SignalOffset off;
-            if (!wf->signal_offset_at(ref, ti, off)) continue;
-            if (!off.time_match) continue;
-            std::string bits = wf->signal_value_str(ref, off.start, 0);
-            if (bits.empty()) continue;
-
-            bool is_anomalous = false;
-            std::string kind;
-
-            bool hx = has_x_bit(bits);
-            bool hz = has_z_bit(bits);
-
-            if (anomaly_type == "x" || anomaly_type == "xz" ||
-                anomaly_type == "both") {
-                if (hx) {
-                    is_anomalous = true;
-                    kind = "x";
-                }
-            }
-            if (!is_anomalous &&
-                (anomaly_type == "z" || anomaly_type == "xz" ||
-                 anomaly_type == "both")) {
-                if (hz) {
-                    is_anomalous = true;
-                    kind = "z";
-                }
-            }
-
-            if (is_anomalous) {
-                if (!in_anomaly) {
-                    in_anomaly = true;
-                    anomaly_begin_time = wf->time_at(ti);
-                    anomaly_begin_ti = ti;
-                    anomaly_value = bits;
-                    anomaly_kind = kind;
-                }
-            } else {
-                if (in_anomaly) {
-                    uint64_t anomaly_end_time = wf->time_at(ti);
-                    anomalies.push_back(
-                        {{"begin_time", anomaly_begin_time},
-                         {"end_time", anomaly_end_time},
-                         {"begin_time_idx", anomaly_begin_ti},
-                         {"end_time_idx", ti},
-                         {"value",
-                          render_value_json(anomaly_value, info.width, fmt)},
-                         {"kind", anomaly_kind}});
-                    anomaly_count++;
-                    if (first_anomaly_time.is_null())
-                        first_anomaly_time = anomaly_begin_time;
-                    in_anomaly = false;
-                }
+        for (const Json& check : checks) {
+            const std::string type = check.at("type");
+            std::string message;
+            if (type == "unknown_xz") check_unknown = true;
+            else if (type == "glitch") {
+                check_glitch = true;
+                if (!wf->parse_time(check.at("min_pulse_width"),
+                                    glitch_width, message) || glitch_width == 0)
+                    return action_error("INVALID_TIME",
+                        message.empty() ? "min_pulse_width must be greater than zero"
+                                        : message);
+            } else if (type == "stuck") {
+                check_stuck = true;
+                if (!wf->parse_time(check.at("min_duration"),
+                                    stuck_duration, message) || stuck_duration == 0)
+                    return action_error("INVALID_TIME",
+                        message.empty() ? "min_duration must be greater than zero"
+                                        : message);
             }
         }
 
-        // Handle open anomaly at end of window
-        if (in_anomaly) {
-            anomalies.push_back(
-                {{"begin_time", anomaly_begin_time},
-                 {"end_time", end},
-                 {"begin_time_idx", anomaly_begin_ti},
-                 {"end_time_idx", end_ti},
-                 {"value",
-                  render_value_json(anomaly_value, info.width, fmt)},
-                 {"kind", anomaly_kind}});
-            anomaly_count++;
-            if (first_anomaly_time.is_null())
-                first_anomaly_time = anomaly_begin_time;
+        const size_t limit = args.value("line_limit", 50u);
+        Json findings = Json::array(), scan_status = Json::array();
+        size_t finding_count = 0;
+        bool analysis_complete = true;
+        auto add_finding = [&](const Json& finding, size_t& signal_count) {
+            ++finding_count;
+            ++signal_count;
+            if (findings.size() < limit) findings.push_back(finding);
+        };
+
+        for (const Json& signal_json : args.at("signals")) {
+            const std::string signal = signal_json;
+            uint32_t ref = 0;
+            IWaveformBackend::SignalInfo info;
+            Json signal_error;
+            if (!prepare_signal(*wf, signal, ref, info, signal_error)) {
+                analysis_complete = false;
+                scan_status.push_back({{"signal", signal}, {"status", "error"},
+                    {"analysis_complete", false},
+                    {"message", signal_error.at("error").at("message")}});
+                continue;
+            }
+            const std::vector<ChangeRow> rows =
+                collect_changes(*wf, ref, begin, end);
+            size_t signal_findings = 0;
+            for (size_t i = 0; i < rows.size(); ++i) {
+                if (check_unknown &&
+                    rows[i].value.kind == IWaveformBackend::ValueKind::BitVector &&
+                    contains_xz(rows[i].value.text)) {
+                    add_finding({{"type", "unknown_xz"}, {"signal", signal},
+                        {"severity", "warning"},
+                        {"time", wf->format_time(rows[i].time, unit)},
+                        {"value", typed_logic_value(rows[i].value,
+                                                     info.width, format)}},
+                        signal_findings);
+                }
+                if (i + 1 >= rows.size()) continue;
+                const uint64_t duration = rows[i + 1].time - rows[i].time;
+                if (check_glitch && duration > 0 && duration < glitch_width)
+                    add_finding({{"type", "glitch"}, {"signal", signal},
+                        {"severity", "info"},
+                        {"time", wf->format_time(rows[i].time, unit)},
+                        {"pulse_width", wf->format_time(duration, unit)}},
+                        signal_findings);
+                if (check_stuck && duration >= stuck_duration)
+                    add_finding({{"type", "stuck"}, {"signal", signal},
+                        {"severity", "warning"},
+                        {"begin", wf->format_time(rows[i].time, unit)},
+                        {"end", wf->format_time(rows[i + 1].time, unit)},
+                        {"duration", wf->format_time(duration, unit)},
+                        {"value", typed_logic_value(rows[i].value,
+                                                     info.width, format)}},
+                        signal_findings);
+            }
+            if (check_stuck && !rows.empty() && end >= rows.back().time &&
+                end - rows.back().time >= stuck_duration) {
+                const uint64_t duration = end - rows.back().time;
+                add_finding({{"type", "stuck"}, {"signal", signal},
+                    {"severity", "warning"},
+                    {"begin", wf->format_time(rows.back().time, unit)},
+                    {"end", wf->format_time(end, unit)},
+                    {"duration", wf->format_time(duration, unit)},
+                    {"value", typed_logic_value(rows.back().value,
+                                                 info.width, format)},
+                    {"open_at_window_end", true}}, signal_findings);
+            }
+            scan_status.push_back({{"signal", signal}, {"status", "ok"},
+                {"analysis_complete", true}, {"change_row_count", rows.size()},
+                {"finding_count", signal_findings},
+                {"no_finding_reason", signal_findings == 0
+                    ? Json("no configured rule matched in the requested window")
+                    : Json(nullptr)}});
         }
 
-        Json out;
-        out["ok"] = true;
-        Json summary;
-        summary["anomaly_count"] = anomaly_count;
-        if (!first_anomaly_time.is_null())
-            summary["first_anomaly_time"] = first_anomaly_time;
-        out["summary"] = summary;
-        out["data"] = {{"anomalies", anomalies}};
-        return out;
+        const bool response_truncated = findings.size() < finding_count;
+        Json scopes = Json::array();
+        if (!analysis_complete) scopes.push_back("analysis_signals");
+        if (response_truncated) scopes.push_back("response_findings");
+        Json summary{{"signal_count", scan_status.size()}, {"checks", checks},
+            {"glitch_threshold", check_glitch
+                ? Json(wf->format_time(glitch_width, unit)) : Json(nullptr)},
+            {"stuck_threshold", check_stuck
+                ? Json(wf->format_time(stuck_duration, unit)) : Json(nullptr)}};
+        merge_object(summary, completeness(analysis_complete, analysis_complete,
+            response_truncated, finding_count, findings.size(), scopes));
+        return Json{{"ok", true}, {"summary", summary},
+                    {"data", {{"findings", findings},
+                              {"scan_status", scan_status}}}};
     }
 };
-
-// ── Factory functions ──
 
 std::unique_ptr<EngineActionHandler> make_signal_statistics_handler() {
     return std::make_unique<SignalStatisticsHandler>();
