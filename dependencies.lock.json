@@ -18,7 +18,7 @@
   },
   "verilator": {
     "repository": "../verilator",
-    "revision": "a5232efb6c3d04f42a5ef730cb2954ce419db2fe",
+    "revision": "7c4d19ee2680af6c9dd53e41091d9ad1f54a7c86",
     "branch": "feature/design-db-for-xdebug",
     "xdd_header_sha256": "555f32b8468ff4192532f32eb778532e30a33766f909e70b4bb2c421434b17f8"
   },

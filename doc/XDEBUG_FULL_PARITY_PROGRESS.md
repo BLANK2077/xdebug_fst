@@ -13,7 +13,7 @@
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
 - xdebug-fst 当前功能与验收提交：`d67ef94`；精确表达式 `case matches` 的 Verilator 修改前证据为 `ea1d3c9b4`、最小实现为 `adc193c2f`；同值 NBA 事件依赖的 Verilator 修改前证据为 `01f9f2a4b`、最小实现为 `6239de45e`；复杂 output 表达式修改前失败证据为 `ae76785`，常量 NBA 修复为 `f3b5143`；过程/常量、多级端口、固件、架构说明与全量门禁证据均已登记
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
-- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `a5232efb6c3d04f42a5ef730cb2954ce419db2fe`
+- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `7c4d19ee2680af6c9dd53e41091d9ad1f54a7c86`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
 - 原版 xdebug runtime build ID：`8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 原版 schema revision：`c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
@@ -190,6 +190,7 @@
 - P6 第二十五批 Verilator pattern 切片：`8623446e6` 先用独立普通仿真证明顶层点星 wildcard 在 `case matches` 与 `AstPatternStar` 两层均被拒绝；`a5232efb6` 仅在 LinkParse 将直接 item wildcard 规范化为 case 表达式与自身的四态精确比较，从而对零、一、X、Z 恒真并保留源码 item 顺序。新 wildcard、既有精确 matches 与两组 tagged 拒绝回归 4/4，完整 XDD 8/8、distribution 2/2 通过；未修改 DesignDB emitter、ABI/capability、调度或 Wellen。该批只关闭无绑定顶层 wildcard，tagged union、嵌套 pattern、pattern variable/作用域和独立 `matches` 运算符仍未完成，不得宣称通用 tagged/pattern 已关闭。
 - P6 第二十六批调度边沿审计：在既有最小 raw-FST 固件加入 `always @(clk)` 的同值 NBA，60ps 时 clk 发生任意方向变化但 data 与 changed_q 均保持不变，目标 FST 因而没有新 transition。现有 DesignDB 已发布 `event_changed(clk)`，xdebug action 让 Wellen 只对当前原始 `.fst` 中该确定信号按需倒查变化，65ps chain 正确得到 `changed_out(active=60ps) → changed_q(time/active=60ps) → top.data` 并以 primary input 终止。combined 45/45 通过；无需修改 action、Verilator、Wellen 或 ABI，证明已声明的无显式边沿敏感项不是未测试死代码，也没有把 FST 伪装成赋值事件数据库。首次全量门禁还发现上一批只更新 CMake 锁而遗漏 JSON 锁，本批同步修正 `dependencies.lock.json` 到同一 Verilator SHA，不放宽一致性检查。
 - P6 第二十七批混合调度实现：真实固件在同一 posedge 对 mixed_q 先 blocking 写常量、再 NBA 写 data。修改前 XDD 已完整发布 proc_assign、nba/rhs 与 `event_posedge(clk)`，chain 也选中正确 NBA 第 68 行，却因 alias 事件前瞻把两条静态语句视为同级而把活动时间错报为 20ps。consumer 现统一执行“force 优先；无 force 时，恰好一条活动 NBA 且没有未决 NBA才覆盖非 NBA”的调度归一化；多个/未决 NBA 继续歧义。65ps 最终返回 `mixed_out(active=60ps) → mixed_q(time/active=60ps) → top.data`。force、双活动过程等定向门禁通过；全量 pytest、CTest 8/8、冻结基线通过。未修改 Verilator/Wellen/ABI，未用 FST 最终值反推调度。
+- P6 第二十八批 assignment-pattern 切片：Verilator `9cc890153` 先证明 packed struct 的位置式和成员命名式 pattern 已成功解析，却被 LinkParse 对 pattern-bearing matches 的总括拒绝阻断；`7c4d19ee2` 仅允许不含 PatternVar/PatternStar/Tagged 节点的 AstPattern，并在 Width 中传入 case expression dtype，复用既有 assignment-pattern 展开和四态精确 case lowering。pattern、wildcard、精确表达式及 tagged 拒绝回归 5/5，XDD 8/8、distribution 2/2 通过；header/ABI/capability 未变。pattern binding、嵌套 wildcard、tagged union/payload 和独立 matches 运算符仍未完成。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 

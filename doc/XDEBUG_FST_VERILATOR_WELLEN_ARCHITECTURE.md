@@ -804,12 +804,14 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 这些运算，未知 LHS 不会像 casex 一样被误当通配。该扩展复用既有 predicate 字符串 ABI，
 不新增 capability，也不把区间匹配下沉到 Wellen。
 
-`case matches` 只关闭有真实证据的精确表达式子集。Verilator `adc193c2f` 在 LinkParse 中
-仅放行“至少一个非 default 精确表达式 item，且条件树不含 tagged/pattern 节点”的构造，
-普通仿真继续走既有 case lowering；DesignDB 在既有 predicate 字符串中发布 `===`，default
+`case matches` 按独立证据逐层关闭。Verilator `adc193c2f` 先放行精确表达式 item；
+`a5232efb6` 把直接顶层点星 wildcard 规范化为恒真的四态自比较；`7c4d19ee2` 再允许不含
+绑定、嵌套 wildcard 或 tagged 节点的 assignment pattern，并在 Width 中用 case expression
+dtype 复用既有 packed pattern 展开。普通仿真继续走既有 case lowering；DesignDB 在既有
+predicate 字符串中发布展开后的 `===`，default
 否定此前精确 item。xdebug 在 active time 仍通过 Wellen 直接读取当前原始 `.fst` 的 selector
 并执行四态谓词求值，FST 不是 pattern 或 driver 分析器。default-only、tagged union、tagged
-expression、tagged pattern、pattern variable/star 和独立 `matches` 运算符继续明确不支持，
+expression、tagged pattern、pattern variable、嵌套 wildcard 和独立 `matches` 运算符继续明确不支持，
 不得把本批次描述成通用 pattern matching 已完成，也不得近似成 case inside。
 
 显式文件产物必须与“离线 FST 分析”严格区分：
@@ -858,7 +860,7 @@ expression、tagged pattern、pattern variable/star 和独立 `matches` 运算�
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `a5232efb6c3d04f42a5ef730cb2954ce419db2fe`
+- revision `7c4d19ee2680af6c9dd53e41091d9ad1f54a7c86`
 
 对应提交：
 
@@ -884,6 +886,7 @@ expression、tagged pattern、pattern variable/star 和独立 `matches` 运算�
 - Verilator `01f9f2a4b`、`6239de45e`：先证明同值 NBA 缺少赋值事件源，再仅由 DesignDB emitter 发布赋值所在直接敏感信号的 `event_*` 静态角色；不修改仿真调度、ABI 布局或 pass 顺序；
 - Verilator `90d5aa2ae`、`07d076a82`：先证明 force 被降级为普通赋值，再仅在既有 kind 字符串中恢复 `force` 类型；不改变 force/release lowering、仿真调度或 ABI 布局；
 - Verilator `8623446e6`、`a5232efb6`：先证明顶层点星 pattern wildcard 被 LinkParse 明确拒绝，再仅将无绑定的直接 item wildcard 规范化为 case 表达式与自身的四态精确比较；源码顺序与 X/Z 恒真语义有独立普通仿真覆盖，嵌套 pattern、变量绑定、tagged union 和独立 `matches` 运算符继续拒绝；
+- Verilator `9cc890153`、`7c4d19ee2`：先证明 packed struct assignment pattern 仅被总括 LinkParse 门禁阻断，再允许无绑定 pattern 从 case expression 取得 dtype 并复用现有展开；位置式、成员命名式和 default 均有普通仿真覆盖，不扩展 tagged/binding 语义；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
