@@ -119,6 +119,28 @@ def test_trace_active_driver_preserves_lowered_nested_if_identity(
     assert rsp["data"]["paths"][0]["line"] == 45
 
 
+def test_trace_active_driver_keeps_same_line_ternary_branches_separate(
+        loop_runner: StdioLoopRunner, case_fst, case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    signal_branch = loop_runner.request("trace.active_driver", args={
+        "signal": "top.ternary_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert signal_branch.get("ok"), signal_branch
+    assert signal_branch["summary"]["analysis_complete"] is True
+    assert signal_branch["summary"]["total_count"] == 1
+    assert signal_branch["data"]["paths"][0]["signal_path"] == [
+        "top.data", "top.ternary_out"]
+
+    constant_branch = loop_runner.request("trace.active_driver", args={
+        "signal": "top.ternary_out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert constant_branch.get("ok"), constant_branch
+    assert constant_branch["summary"]["analysis_complete"] is True
+    assert constant_branch["summary"]["total_count"] == 1
+    assert constant_branch["data"]["paths"][0]["signal_path"] == [
+        "top.ternary_out"]
+
+
 def test_trace_active_driver_counts_before_response_limit(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:
