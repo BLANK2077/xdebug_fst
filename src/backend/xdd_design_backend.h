@@ -3,6 +3,7 @@
 #pragma once
 
 #include "design_backend.h"
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -46,6 +47,8 @@ private:
     XddDb* db_ = nullptr;             // xdd_init() result
 
     // Function pointers loaded via dlsym
+    int   (*fn_abi_version_)() = nullptr;
+    uint64_t (*fn_capabilities_)() = nullptr;
     void* (*fn_init_)() = nullptr;
     void  (*fn_close_)(void*) = nullptr;
     int   (*fn_count_)(void*) = nullptr;
@@ -60,12 +63,8 @@ private:
     void  (*fn_drv_)(void*, int, int, int*, const char**, const char**, int*) = nullptr;
     int   (*fn_ld_cnt_)(void*, int) = nullptr;
     void  (*fn_ld_)(void*, int, int, int*, const char**, const char**, int*) = nullptr;
-
-    /// Scratch buffer for port_conn_count()
-    mutable std::vector<PortConnection> conn_cache_;
-
-    /// Direction lookup: native symbol first, then driver/load-table inference.
-    int signal_direction_inferred(int idx) const;
+    int   (*fn_conn_cnt_)(void*, int) = nullptr;
+    void  (*fn_conn_)(void*, int, int, int*, const char**) = nullptr;
 
     void load_symbols();
 };

@@ -4,7 +4,6 @@
 #include "xdd_design_backend.h"
 
 #include <cstdio>
-#include <cstring>
 #include <dlfcn.h>
 
 namespace xdebug_fst {
@@ -18,6 +17,10 @@ XddDesignBackend::~XddDesignBackend() {
 void XddDesignBackend::load_symbols() {
     if (!so_handle_) return;
 
+    fn_abi_version_ = reinterpret_cast<decltype(fn_abi_version_)>(
+        dlsym(so_handle_, "xdd_abi_version"));
+    fn_capabilities_ = reinterpret_cast<decltype(fn_capabilities_)>(
+        dlsym(so_handle_, "xdd_capabilities"));
     fn_init_    = reinterpret_cast<decltype(fn_init_)>(dlsym(so_handle_, "xdd_init"));
     fn_close_   = reinterpret_cast<decltype(fn_close_)>(dlsym(so_handle_, "xdd_close"));
     fn_count_   = reinterpret_cast<decltype(fn_count_)>(dlsym(so_handle_, "xdd_signal_count"));
@@ -34,6 +37,10 @@ void XddDesignBackend::load_symbols() {
     fn_drv_     = reinterpret_cast<decltype(fn_drv_)>(dlsym(so_handle_, "xdd_trace_driver"));
     fn_ld_cnt_  = reinterpret_cast<decltype(fn_ld_cnt_)>(dlsym(so_handle_, "xdd_trace_load_count"));
     fn_ld_      = reinterpret_cast<decltype(fn_ld_)>(dlsym(so_handle_, "xdd_trace_load"));
+    fn_conn_cnt_ = reinterpret_cast<decltype(fn_conn_cnt_)>(
+        dlsym(so_handle_, "xdd_port_connection_count"));
+    fn_conn_ = reinterpret_cast<decltype(fn_conn_)>(
+        dlsym(so_handle_, "xdd_port_connection"));
 }
 
 bool XddDesignBackend::open(const std::string& so_path) {
@@ -47,8 +54,38 @@ bool XddDesignBackend::open(const std::string& so_path) {
 
     load_symbols();
 
-    if (!fn_init_ || !fn_resolve_) {
-        fprintf(stderr, "xdd_design_backend: missing required symbols in %s\n",
+    constexpr int kRequiredAbiVersion = 2;
+    constexpr uint64_t kRequiredCapabilities = UINT64_C(3);
+    if (!fn_abi_version_ || !fn_capabilities_) {
+        fprintf(stderr,
+                "xdd_design_backend: incompatible legacy bundle without ABI "
+                "version/capabilities: %s\n", so_path.c_str());
+        dlclose(so_handle_);
+        so_handle_ = nullptr;
+        return false;
+    }
+    const int abi_version = fn_abi_version_();
+    const uint64_t capabilities = fn_capabilities_();
+    if (abi_version != kRequiredAbiVersion ||
+        (capabilities & kRequiredCapabilities) != kRequiredCapabilities) {
+        fprintf(stderr,
+                "xdd_design_backend: incompatible bundle ABI/capabilities "
+                "(got version=%d capabilities=0x%llx, required version=%d "
+                "capabilities=0x%llx): %s\n",
+                abi_version, static_cast<unsigned long long>(capabilities),
+                kRequiredAbiVersion,
+                static_cast<unsigned long long>(kRequiredCapabilities),
+                so_path.c_str());
+        dlclose(so_handle_);
+        so_handle_ = nullptr;
+        return false;
+    }
+    if (!fn_init_ || !fn_close_ || !fn_count_ || !fn_resolve_ || !fn_name_ ||
+        !fn_type_ || !fn_width_ || !fn_file_ || !fn_line_ || !fn_dir_ ||
+        !fn_drv_cnt_ || !fn_drv_ || !fn_ld_cnt_ || !fn_ld_ ||
+        !fn_conn_cnt_ || !fn_conn_) {
+        fprintf(stderr,
+                "xdd_design_backend: ABI v2 bundle is missing required symbols: %s\n",
                 so_path.c_str());
         dlclose(so_handle_);
         so_handle_ = nullptr;
@@ -109,8 +146,7 @@ int XddDesignBackend::signal_line(int idx) const {
 }
 
 int XddDesignBackend::signal_direction(int idx) const {
-    // Native symbol first, then inferred (see inference below)
-    return signal_direction_inferred(idx);
+    return fn_dir_ ? fn_dir_(db_, idx) : 0;
 }
 
 // ── Driver tracing ──
@@ -169,95 +205,23 @@ int XddDesignBackend::trace_load(int signal_idx,
     return n;
 }
 
-// ── Direction inference (Phase 3) ──
-//
-// The Verilator --design-db .so does not (yet) export xdd_signal_direction.
-// We infer port direction from the driver/load tables:
-//   * a port that drives an internal wire via cont_assign (i.e. it appears as
-//     the src of a cont_assign whose target is an internal signal) is an
-//     input (value flows into the design)
-//   * a port whose driver table contains a non-cont_assign entry (nba /
-//     proc_assign) or a src from an internal signal is an output (value flows
-//     out of the design)
-//   * both → inout; neither → unknown (keep the native symbol when present)
-
-static bool is_port_type(const char* type) {
-    return type && std::strcmp(type, "port") == 0;
-}
-
-int XddDesignBackend::signal_direction_inferred(int idx) const {
-    // Prefer a native symbol when the .so provides it
-    if (fn_dir_) {
-        int d = fn_dir_(db_, idx);
-        if (d != 0) return d;
-    }
-    if (!is_port_type(signal_type(idx))) return 0;
-
-    // Output feature: the port is driven by internal sequential/process
-    // logic (nba / proc_assign records in its own driver table).
-    bool has_proc_driver = false;
-    std::vector<DriverRecord> drivers;
-    trace_driver(idx, drivers);
-    for (const auto& d : drivers) {
-        if (d.kind == "nba" || d.kind == "proc_assign") has_proc_driver = true;
-    }
-
-    // Input feature: the port drives an internal wire via cont_assign
-    // (value flows from the port into the design).
-    bool drives_internal = false;
-    int n = signal_count();
-    for (int i = 0; i < n; ++i) {
-        if (i == idx) continue;
-        std::vector<DriverRecord> ds;
-        trace_driver(i, ds);
-        for (const auto& d : ds) {
-            if (d.src_signal == idx && d.kind == "cont_assign" &&
-                !is_port_type(signal_type(i))) {
-                drives_internal = true;
-            }
-        }
-    }
-
-    if (has_proc_driver) return 2;                     // output (aliasing cont_assign entries are the same net)
-    if (drives_internal) return 1;                     // input
-    return 0;                                          // unknown
-}
-
-// ── Port connections (Phase 3) ──
-//
-// The .so does not export port connections yet; infer them from the driver
-// table: a cont_assign entry linking a port to an internal signal is a port
-// boundary connection.
+// ── Native cross-hierarchy port connections ──
 
 int XddDesignBackend::port_conn_count(int signal_idx) const {
-    return port_connections(signal_idx, conn_cache_);
+    return fn_conn_cnt_ ? fn_conn_cnt_(db_, signal_idx) : 0;
 }
 
 int XddDesignBackend::port_connections(int signal_idx,
                                        std::vector<PortConnection>& out) const {
     out.clear();
-    if (!is_port_type(signal_type(signal_idx))) return 0;
-
-    // 1. this port drives internal wires (input connections)
-    int n = signal_count();
-    for (int i = 0; i < n; ++i) {
-        std::vector<DriverRecord> ds;
-        trace_driver(i, ds);
-        for (const auto& d : ds) {
-            if (d.src_signal == signal_idx && d.kind == "cont_assign" &&
-                !is_port_type(signal_type(i))) {
-                out.push_back({signal_idx, i, "port_boundary"});
-            }
-        }
-    }
-    // 2. internal signals drive this port (output connections)
-    std::vector<DriverRecord> drivers;
-    trace_driver(signal_idx, drivers);
-    for (const auto& d : drivers) {
-        if (d.src_signal >= 0 && d.kind == "cont_assign" &&
-            !is_port_type(signal_type(d.src_signal))) {
-            out.push_back({signal_idx, d.src_signal, "port_boundary"});
-        }
+    if (!fn_conn_cnt_ || !fn_conn_) return 0;
+    const int count = fn_conn_cnt_(db_, signal_idx);
+    out.reserve(count);
+    for (int index = 0; index < count; ++index) {
+        int connected_signal = -1;
+        const char* kind = nullptr;
+        fn_conn_(db_, signal_idx, index, &connected_signal, &kind);
+        out.push_back({signal_idx, connected_signal, kind ? kind : ""});
     }
     return static_cast<int>(out.size());
 }
