@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xdebug.session.close.request.v1",
+  "title": "session.close request",
+  "type": "object",
+  "required": [
+    "api_version",
+    "action",
+    "target"
+  ],
+  "properties": {
+    "api_version": {
+      "type": "string",
+      "enum": [
+        "xdebug.v1"
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "session.close"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "additionalProperties": false
+    },
+    "args": {
+      "type": "object",
+      "required": [],
+      "properties": {},
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "description": "Close a debug session and release its runtime resources.",
+  "x-purpose": "关闭指定 session。",
+  "x-how_it_works": "释放该 session 的 runtime 资源并从管理器移除。",
+  "x-when_to_use": "结束不再使用的调试上下文。",
+  "x-arg_contract_notes": "required: target.session_id",
+  "x-description-zh": "关闭指定 session。",
+  "x-agent": {
+    "use_when": [
+      "Own a healthy session and need a graceful lifecycle close that releases its runtime resources."
+    ],
+    "do_not_use_when": [
+      "Do not use it to forcibly remove stale state or merely inspect session health."
+    ],
+    "alternatives": [
+      {
+        "action": "session.kill",
+        "when": "Force removal when graceful close is impossible."
+      },
+      {
+        "action": "session.doctor",
+        "when": "Diagnose the session without changing it."
+      }
+    ],
+    "constraints": [
+      "required: target.session_id"
+    ]
+  }
+}

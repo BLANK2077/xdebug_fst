@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xdebug.stream.config.list.request.v1",
+  "title": "stream.config.list request",
+  "type": "object",
+  "required": [
+    "api_version",
+    "action",
+    "target"
+  ],
+  "properties": {
+    "api_version": {
+      "type": "string",
+      "enum": [
+        "xdebug.v1"
+      ]
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "stream.config.list"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fsdb": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "session_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "fsdb"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "required": [
+              "session_id"
+            ]
+          },
+          "required": [
+            "fsdb"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "args": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "output": {
+          "type": "object",
+          "properties": {
+            "verbose": {
+              "type": "boolean",
+              "default": false,
+              "description": "Include each saved configuration object with the name list."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Export destination and rendering controls. path, file_format, and verbose are supported only where this action declares them."
+        }
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Positive public frontend-to-engine request timeout in milliseconds. Omit limits.timeout_ms to disable the public watchdog."
+        }
+      },
+      "additionalProperties": false
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false,
+  "description": "List saved stream configurations.",
+  "x-purpose": "列出 stream 配置。",
+  "x-how_it_works": "只列出已保存配置的名称和摘要，不接受 name。",
+  "x-when_to_use": "查看可查询的 stream。",
+  "x-arg_contract_notes": "no required args",
+  "x-description-zh": "列出 stream 配置。",
+  "x-agent": {
+    "use_when": [
+      "Need only the names and inventory of saved stream configurations before choosing one."
+    ],
+    "do_not_use_when": [
+      "Do not use it to retrieve one raw definition or resolve signals against a waveform."
+    ],
+    "alternatives": [
+      {
+        "action": "stream.config.get",
+        "when": "Read one exact persisted definition."
+      },
+      {
+        "action": "stream.describe",
+        "when": "Resolve and describe a stream against the active waveform."
+      }
+    ],
+    "constraints": [
+      "no required args"
+    ]
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xdebug.scope.roots.request.v1",
+  "title": "scope.roots request",
+  "type": "object",
+  "required": [
+    "api_version",
+    "action",
+    "target"
+  ],
+  "properties": {
+    "api_version": {
+      "type": "string",
+      "enum": [
+        "xdebug.v1"
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "scope.roots"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "daidir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fsdb": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "session_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "daidir"
+                ]
+              },
+              {
+                "required": [
+                  "fsdb"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "required": [
+              "session_id"
+            ]
+          },
+          "anyOf": [
+            {
+              "required": [
+                "daidir"
+              ]
+            },
+            {
+              "required": [
+                "fsdb"
+              ]
+            }
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "args": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "wave",
+            "design"
+          ],
+          "default": "auto",
+          "description": "scope roots 或证据的来源选择。"
+        }
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Positive public frontend-to-engine request timeout in milliseconds. Omit limits.timeout_ms to disable the public watchdog."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "description": "Discover waveform and design hierarchy roots.",
+  "x-purpose": "发现 waveform/design 根。",
+  "x-how_it_works": "合并 FSDB 根和可用设计根信息。",
+  "x-when_to_use": "判断 session 绑定的顶层和路径规范。",
+  "x-arg_contract_notes": "none",
+  "x-description-zh": "发现 waveform/design 根。",
+  "x-agent": {
+    "use_when": [
+      "Need only the database root scopes as entry points before choosing a narrower hierarchy query."
+    ],
+    "do_not_use_when": [
+      "Do not use it for module hierarchy contents or module/port/signal filtering."
+    ],
+    "alternatives": [
+      {
+        "action": "scope.list",
+        "when": "List module-relative modules, ports, signals, and interface instances with level and glob filters."
+      }
+    ],
+    "constraints": [
+      "none"
+    ]
+  }
+}

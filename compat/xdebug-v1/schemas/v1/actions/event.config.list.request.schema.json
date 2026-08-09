@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xdebug.event.config.list.request.v1",
+  "title": "event.config.list request",
+  "type": "object",
+  "required": [
+    "api_version",
+    "action",
+    "target"
+  ],
+  "properties": {
+    "api_version": {
+      "type": "string",
+      "enum": [
+        "xdebug.v1"
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "event.config.list"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fsdb": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "session_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "fsdb"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "required": [
+              "session_id"
+            ]
+          },
+          "required": [
+            "fsdb"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "args": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "line_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Limits returned evidence rows only, not scanning, aggregation, or the verdict; read completeness fields as well."
+        },
+        "name": {
+          "type": "string",
+          "description": "Saved-object name in this action namespace; do not assume names are shared by cursors, lists, and protocol configs."
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "not": {
+            "required": [
+              "name",
+              "line_limit"
+            ]
+          }
+        }
+      ]
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Positive public frontend-to-engine request timeout in milliseconds. Omit limits.timeout_ms to disable the public watchdog."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "description": "List saved event-query configurations.",
+  "x-purpose": "列出事件配置。",
+  "x-how_it_works": "读取 EventManager 中保存的配置；args:{} 列全部，args.name 显示单个配置详情。",
+  "x-when_to_use": "查看可用事件查询模板。",
+  "x-arg_contract_notes": "args:{} list all; optional name shows one config",
+  "x-description-zh": "列出事件配置。",
+  "x-agent": {
+    "use_when": [
+      "Need to enumerate or inspect saved event-query definitions without executing a waveform search."
+    ],
+    "do_not_use_when": [
+      "Do not use it to load a named event configuration or search waveform events."
+    ],
+    "alternatives": [
+      {
+        "action": "event.config.load",
+        "when": "Load one event-query configuration."
+      },
+      {
+        "action": "event.find",
+        "when": "Search sampled waveform events."
+      }
+    ],
+    "constraints": [
+      "args:{} list all; optional name shows one config"
+    ]
+  }
+}

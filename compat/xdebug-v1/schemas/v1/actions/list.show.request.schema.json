@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xdebug.list.show.request.v1",
+  "title": "list.show request",
+  "type": "object",
+  "required": [
+    "api_version",
+    "action",
+    "args",
+    "target"
+  ],
+  "properties": {
+    "api_version": {
+      "type": "string",
+      "enum": [
+        "xdebug.v1"
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "list.show"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fsdb": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "session_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "fsdb"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "required": [
+              "session_id"
+            ]
+          },
+          "required": [
+            "fsdb"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "args": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Saved-object name in this action namespace; do not assume names are shared by cursors, lists, and protocol configs."
+        }
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Positive public frontend-to-engine request timeout in milliseconds. Omit limits.timeout_ms to disable the public watchdog."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "description": "Show the contents of a waveform signal list.",
+  "x-purpose": "显示信号列表内容。",
+  "x-how_it_works": "读取 ListManager 存储并返回 index/signal。",
+  "x-when_to_use": "确认 list 当前包含哪些信号。",
+  "x-arg_contract_notes": "required: name",
+  "x-description-zh": "显示信号列表内容。",
+  "x-agent": {
+    "use_when": [
+      "Know the list name and need its stored one-based entries without waveform validation or sampling."
+    ],
+    "do_not_use_when": [
+      "Do not use it to validate design existence or sample waveform values."
+    ],
+    "alternatives": [
+      {
+        "action": "list.validate",
+        "when": "Check every stored path against the active waveform."
+      },
+      {
+        "action": "value.at",
+        "when": "Sample the list at one or more times."
+      }
+    ],
+    "constraints": [
+      "required: name"
+    ]
+  }
+}

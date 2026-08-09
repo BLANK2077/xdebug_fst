@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xdebug.axi.export.request.v1",
+  "title": "axi.export request",
+  "type": "object",
+  "required": [
+    "api_version",
+    "action",
+    "args",
+    "target"
+  ],
+  "properties": {
+    "api_version": {
+      "type": "string",
+      "enum": [
+        "xdebug.v1"
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "axi.export"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fsdb": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "session_id"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "fsdb"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "not": {
+            "required": [
+              "session_id"
+            ]
+          },
+          "required": [
+            "fsdb"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "args": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Saved-object name in this action namespace; do not assume names are shared by cursors, lists, and protocol configs."
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Output path prefix; omit it to return an in-response preview."
+            },
+            "file_format": {
+              "type": "string",
+              "enum": [
+                "tsv",
+                "csv"
+              ],
+              "default": "tsv",
+              "description": "AXI artifact file format."
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "required": [
+                  "file_format"
+                ]
+              },
+              "then": {
+                "required": [
+                  "path"
+                ]
+              },
+              "description": "Export destination and rendering controls. path, file_format, and verbose are supported only where this action declares them."
+            }
+          ],
+          "additionalProperties": false,
+          "description": "Export destination and rendering controls. path, file_format, and verbose are supported only where this action declares them."
+        },
+        "render_time_unit": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "ps",
+            "ns",
+            "us"
+          ],
+          "description": "Controls only canonical response time rendering: auto, ps, ns, or us. It never changes input parsing, sampling, filtering, or ordering."
+        },
+        "time_range": {
+          "type": "object",
+          "minProperties": 1,
+          "properties": {
+            "begin": {
+              "type": "string",
+              "minLength": 1,
+              "description": "闭区间起点；省略时使用可用波形窗口起点。"
+            },
+            "end": {
+              "type": "string",
+              "minLength": 1,
+              "description": "闭区间终点；省略时使用可用波形窗口终点。"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Closed analysis interval. begin and end may be omitted independently to use the available waveform bounds."
+        },
+        "value_format": {
+          "type": "string",
+          "enum": [
+            "hex",
+            "bin",
+            "dec"
+          ],
+          "default": "hex",
+          "description": "返回 LogicValue 的显示格式；不改变比较、采样或底层四态值。"
+        }
+      },
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "time_range"
+          ]
+        }
+      ]
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Positive public frontend-to-engine request timeout in milliseconds. Omit limits.timeout_ms to disable the public watchdog."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "description": "Export AXI transactions for external analysis.",
+  "x-purpose": "导出 AXI 数据。",
+  "x-how_it_works": "按 name 和 time_range 查询 AXI，再按 format/output.path 写出。",
+  "x-when_to_use": "给外部表格或脚本分析。",
+  "x-arg_contract_notes": "required: name; also one of: time_range",
+  "x-description-zh": "导出 AXI 数据。",
+  "x-agent": {
+    "use_when": [
+      "Need selected AXI transaction evidence persisted to the declared artifact path and file format."
+    ],
+    "do_not_use_when": [
+      "Do not use it when the result should remain only in the response or when no artifact is required."
+    ],
+    "alternatives": [
+      {
+        "action": "axi.query",
+        "when": "Inspect AXI evidence in the response without creating an artifact."
+      }
+    ],
+    "constraints": [
+      "required: name; also one of: time_range"
+    ]
+  }
+}

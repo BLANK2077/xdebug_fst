@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xdebug.session.list.request.v1",
+  "title": "session.list request",
+  "type": "object",
+  "required": [
+    "api_version",
+    "action"
+  ],
+  "properties": {
+    "api_version": {
+      "type": "string",
+      "enum": [
+        "xdebug.v1"
+      ]
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "session.list"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "args": {
+      "type": "object",
+      "required": [],
+      "properties": {},
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "description": "List active debug sessions.",
+  "x-purpose": "列出当前 session。",
+  "x-how_it_works": "读取 SessionManager 中的活动 session 元数据。",
+  "x-when_to_use": "确认已有 session_id 和资源类型。",
+  "x-arg_contract_notes": "none",
+  "x-description-zh": "列出当前 session。",
+  "x-agent": {
+    "use_when": [
+      "Need to discover session identifiers and lifecycle states without probing resources or mutating them."
+    ],
+    "do_not_use_when": [
+      "Do not use it to diagnose resources or mutate session lifecycle."
+    ],
+    "alternatives": [
+      {
+        "action": "session.doctor",
+        "when": "Inspect one session's health and resources."
+      },
+      {
+        "action": "session.open",
+        "when": "Create a new session."
+      }
+    ],
+    "constraints": [
+      "none"
+    ]
+  }
+}
