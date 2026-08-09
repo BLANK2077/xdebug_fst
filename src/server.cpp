@@ -9,6 +9,7 @@
 #include "waveform/list/list_manager.h"
 #include "waveform/cursor/cursor_manager.h"
 #include "api/json_types.h"
+#include "protocol/public_catalog.h"
 
 #include <cstdio>
 #include <unistd.h>
@@ -34,35 +35,11 @@ static Json dispatch(const Json& request) {
 
     // Built-in stateless actions
     if (action == "actions") {
-        auto& reg = ActionRegistry::instance();
-        Json list = Json::array();
-        for (auto& name : reg.list_actions()) {
-            auto* h = reg.find(name);
-            Json item;
-            item["action"] = name;
-            item["category"] = "waveform";
-            item["requires"] = "waveform";
-            if (h) {
-                if (h->needs_design()) item["requires"] = "design+waveform";
-                else if (!h->needs_waveform()) item["requires"] = "design";
-                else if (!h->needs_design()) item["requires"] = "waveform";
-            }
-            list.push_back(item);
-        }
-        // Add meta actions
-        list.push_back({{"action", "actions"}, {"category", "common"}, {"requires", "none"}});
-        list.push_back({{"action", "schema"}, {"category", "common"}, {"requires", "none"}});
-        list.push_back({{"action", "batch"}, {"category", "common"}, {"requires", "none"}});
-        list.push_back({{"action", "session.open"}, {"category", "session"}, {"requires", "session"}});
-        list.push_back({{"action", "session.close"}, {"category", "session"}, {"requires", "session"}});
-        list.push_back({{"action", "session.list"}, {"category", "session"}, {"requires", "session"}});
-        list.push_back({{"action", "session.doctor"}, {"category", "session"}, {"requires", "session"}});
-        list.push_back({{"action", "session.gc"}, {"category", "session"}, {"requires", "session"}});
-        list.push_back({{"action", "session.kill"}, {"category", "session"}, {"requires", "session"}});
+        const CatalogResult catalog =
+            build_actions_catalog(request.value("args", Json::object()));
         return Json{{"ok", true},
-                    {"summary", {{"action_count", list.size()},
-                                 {"total_action_count", list.size()}}},
-                    {"data", {{"actions", list}}}};
+                    {"summary", catalog.summary},
+                    {"data", catalog.data}};
     }
 
     if (action == "schema") {

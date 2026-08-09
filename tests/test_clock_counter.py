@@ -7,49 +7,14 @@ from conftest import open_session
 from runner import StdioLoopRunner
 
 
-def test_clock_point_query_middle(loop_runner: StdioLoopRunner, counter_fst) -> None:
+def test_noncanonical_clock_point_query_is_not_public(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("clock_point_query", args={
         "signal": "top.counter_top.count", "clock": "top.clk",
         "time": "300", "sample_point": "middle"})
-    assert rsp.get("ok"), rsp
-    assert rsp["data"]["edge_found"] is True
-    assert rsp["data"]["edge_time"] == 300
-    sample = rsp["data"]["sample"]
-    assert sample["middle"]["value"] == "8'h0b"
-
-
-def test_clock_point_query_before_after(loop_runner: StdioLoopRunner,
-                                        counter_fst) -> None:
-    open_session(loop_runner, counter_fst)
-    rsp = loop_runner.request("clock_point_query", args={
-        "signal": "top.counter_top.count", "clock": "top.clk",
-        "time": "300", "sample_point": "all"})
-    assert rsp.get("ok"), rsp
-    sample = rsp["data"]["sample"]
-    assert sample["before"]["value"] == "8'h0a"
-    assert sample["middle"]["value"] == "8'h0b"
-    assert sample["after"]["value"] == "8'h0c"
-
-
-def test_clock_point_query_not_edge(loop_runner: StdioLoopRunner,
-                                    counter_fst) -> None:
-    open_session(loop_runner, counter_fst)
-    # t=310 is between edges (clk edges at 300, 320)
-    rsp = loop_runner.request("clock_point_query", args={
-        "signal": "top.counter_top.count", "clock": "top.clk",
-        "time": "310", "sample_point": "middle"})
-    assert rsp.get("ok"), rsp
-    assert rsp["data"]["edge_found"] in (False, True)  # nearest edge semantics
-
-
-def test_clock_point_query_bad_edge(loop_runner: StdioLoopRunner, counter_fst) -> None:
-    open_session(loop_runner, counter_fst)
-    rsp = loop_runner.request("clock_point_query", args={
-        "signal": "top.counter_top.count", "clock": "top.clk",
-        "time": "300", "edge": "sideways"})
     assert not rsp.get("ok")
-    assert rsp["error"]["code"] == "INVALID_FIELD"
+    assert rsp["error"]["code"] == "UNKNOWN_ACTION"
 
 
 def test_expr_eval_at_equal(loop_runner: StdioLoopRunner, counter_fst) -> None:

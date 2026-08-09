@@ -41,18 +41,27 @@ def test_actions_catalog(cli_runner: CliRunner) -> None:
     is present (xdebug parity)."""
     result = cli_runner.run({"api_version": "xdebug.v1", "action": "actions"})
     assert result.ok, result.stderr_raw
-    got = {a["action"] for a in result.response["data"]["actions"]}
-    assert set(ALL_ACTIONS) <= got, f"missing: {set(ALL_ACTIONS) - got}"
+    got = result.response["data"]["actions"]
+    assert got == sorted(ALL_ACTIONS)
+    assert result.response["summary"]["action_count"] == 73
+    assert result.response["summary"]["total_action_count"] == 73
+    assert "clock_point_query" not in got
 
 
 def test_actions_entries_have_category_and_requires(cli_runner: CliRunner) -> None:
-    result = cli_runner.run({"api_version": "xdebug.v1", "action": "actions"})
+    result = cli_runner.run({
+        "api_version": "xdebug.v1",
+        "action": "actions",
+        "args": {"output": {"verbose": True}},
+    })
     assert result.ok
     for entry in result.response["data"]["actions"]:
-        assert entry["action"]
-        assert entry["category"] in {"waveform", "design", "common", "session"}
-        assert entry["requires"] in {"waveform", "design", "design+waveform",
+        assert entry["name"]
+        assert entry["category"] in {"waveform", "design", "combined", "builtin", "session"}
+        assert entry["requires"] in {"waveform", "design", "combined", "any",
                                      "none", "session"}
+        assert entry["request_schema"].endswith(".request.schema.json")
+        assert entry["response_schema"].endswith(".response.schema.json")
 
 
 def test_schema_action(cli_runner: CliRunner) -> None:
