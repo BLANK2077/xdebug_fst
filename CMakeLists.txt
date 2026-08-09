@@ -116,6 +116,6 @@ if(BUILD_TESTING)
     target_compile_definitions(test-runtime-schema-validator PRIVATE
         XDEBUG_FST_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
     )
-    target_link_libraries(test-runtime-schema-validator PRIVATE pthread)
+    target_link_libraries(test-runtime-schema-validator PRIVATE pthread stdc++fs)
     add_test(NAME runtime-schema-validator COMMAND test-runtime-schema-validator)
 endif()

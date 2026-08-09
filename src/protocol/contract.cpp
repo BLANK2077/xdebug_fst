@@ -117,8 +117,10 @@ ContractResult validate_public_request(const Json& request) {
 ContractResult validate_public_response(const std::string& action,
                                         const Json& response) {
     ContractResult result;
-    const auto validation = xdebug_core::RuntimeSchemaValidator().validate_response(
-        action, nlohmann::ordered_json(response));
+    xdebug_core::RuntimeSchemaValidator validator;
+    const auto validation = action == "batch"
+        ? validator.validate_batch_response(nlohmann::ordered_json(response))
+        : validator.validate_response(action, nlohmann::ordered_json(response));
     if (!validation.ok) {
         result.ok = false;
         result.error = validation.error;

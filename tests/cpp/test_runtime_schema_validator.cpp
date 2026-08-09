@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 #include <string>
 
 namespace {
@@ -58,5 +59,34 @@ int main() {
         "/compat/xdebug-v1/catalog.response.json";
     require(validator.validate_response("actions", read_json(baseline)).ok,
             "frozen original actions response did not validate");
+
+    const std::filesystem::path examples =
+        std::filesystem::path(XDEBUG_FST_SOURCE_DIR) /
+        "compat/xdebug-v1/examples";
+    size_t request_count = 0;
+    size_t response_count = 0;
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(examples)) {
+        if (!entry.is_regular_file() || entry.path().extension() != ".json") continue;
+        const Json example = read_json(entry.path().string());
+        require(example.is_object() && example.contains("action") &&
+                    example["action"].is_string(),
+                "example lacks action: " + entry.path().string());
+        const std::string action = example["action"].get<std::string>();
+        if (entry.path().parent_path().filename() == "requests") {
+            const auto validation = validator.validate_request(action, example);
+            require(validation.ok,
+                    "request example failed validation: " + entry.path().string() +
+                    ": " + validation.message);
+            ++request_count;
+        } else if (entry.path().parent_path().filename() == "responses") {
+            const auto validation = validator.validate_response(action, example);
+            require(validation.ok,
+                    "response example failed validation: " + entry.path().string() +
+                    ": " + validation.message);
+            ++response_count;
+        }
+    }
+    require(request_count == 105, "expected 105 frozen request examples");
+    require(response_count == 110, "expected 110 frozen response examples");
     return 0;
 }

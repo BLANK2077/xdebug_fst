@@ -62,3 +62,16 @@ def test_wrong_type_and_missing_required_field_are_schema_errors(
     assert not missing.ok
     assert missing.response["error"]["error_layer"] == "schema"
     assert missing.response["error"]["invalid_arg"] == "args.action"
+
+
+def test_actions_and_schema_responses_pass_runtime_contract(cli_runner: CliRunner) -> None:
+    actions = cli_runner.run({
+        "api_version": "xdebug.v1", "action": "actions", "args": {}
+    })
+    assert actions.ok, actions.response
+    schema = cli_runner.run({
+        "api_version": "xdebug.v1",
+        "action": "schema",
+        "args": {"action": "actions", "kind": "response"},
+    })
+    assert schema.ok, schema.response

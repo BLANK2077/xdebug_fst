@@ -263,7 +263,13 @@ static Json dispatch(const Json& request) {
     const std::string action = request.is_object() ? request.value("action", "") : "";
     const ContractResult validation = validate_public_request(request);
     if (!validation.ok) return canonical_error(request, action, validation.error);
-    return canonical_response(request, action, dispatch_handler(request));
+    Json response = canonical_response(request, action, dispatch_handler(request));
+    const ContractResult response_validation =
+        validate_public_response(action, response);
+    if (!response_validation.ok) {
+        return canonical_error(request, action, response_validation.error);
+    }
+    return response;
 }
 
 // ── One-shot mode ──
