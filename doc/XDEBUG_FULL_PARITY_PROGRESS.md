@@ -10,7 +10,7 @@
 - 2026-08-10 用户再次确认：项目只需要并且也必须完整适配 FST 波形；唯一波形事实路径是当前 session 中由 Wellen 直接按需读取原始 `.fst`。不得建立独立“FST 分析”数据库，不得转成 VCD/JSON/私有索引/离线库/全量内存快照后分析；显式 export 产物永不回灌。该约束已写入 Goal 权威任务书，覆盖旧 Goal 或历史文档中的相反表述
 - 2026-08-10 用户进一步锁定职责边界：FST 只是唯一波形输入容器，Wellen 只是保真按需访问层；分析能力属于冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合。禁止把“必须适配 FST”偷换成“由 FST 自身做分析”，也禁止据此简化 driver/load、active-driver、chain、X-origin、协议、表达式、完整性或错误合同。该定义已加入任务书与 Goal 权威附件，作为逐批门禁和 Goal 完成否决项
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
-- xdebug-fst 当前功能提交：`9eac4a5`；当前测试提交：`2815e61`；普通 case/APB 回归提交：`a0b73bc`
+- xdebug-fst 当前依赖与验收提交：`5e64ec1`；lowering 后嵌套分支失败证据提交：`ec8323c`；通配 case 功能提交：`9eac4a5`；普通 case/APB 回归提交：`a0b73bc`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `a91524d6302552023a50cb4018602c265af32e0a`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
