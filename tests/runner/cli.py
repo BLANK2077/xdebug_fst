@@ -70,7 +70,7 @@ class CliRunner:
             timed_out=timed_out,
         )
         try:
-            result.response = json.loads(proc.stdout.strip().splitlines()[-1])
+            result.response = json.loads(proc.stdout)
         except (json.JSONDecodeError, IndexError):
             result.response = None
         return result

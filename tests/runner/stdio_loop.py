@@ -117,7 +117,9 @@ class StdioLoopRunner:
             return
         try:
             if self.proc.stdin:
-                self.proc.stdin.write('{"action":"stdio.quit"}\n')
+                self.proc.stdin.write(
+                    '{"api_version":"xdebug.v1","action":"stdio.quit"}\n'
+                )
                 self.proc.stdin.flush()
         except (BrokenPipeError, OSError):
             pass

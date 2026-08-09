@@ -12,6 +12,7 @@
 #include "protocol/public_catalog.h"
 #include "protocol/response.h"
 #include "protocol/contract.h"
+#include "protocol/xout_renderer.h"
 
 #include <cstdio>
 #include <unistd.h>
@@ -283,13 +284,21 @@ int oneshot_main(bool json_mode) {
     try {
         request = Json::parse(input);
     } catch (const std::exception& e) {
-        fprintf(stdout, "{\"ok\":false,\"error\":{\"code\":\"PARSE_ERROR\",\"message\":\"%s\"}}\n", e.what());
+        Json error = canonical_error(
+            Json::object(), "error",
+            Json{{"code", "INVALID_JSON"}, {"message", e.what()},
+                 {"recoverable", true}, {"error_layer", "handler"}});
+        const std::string output = json_mode ? error.dump(2) + "\n"
+                                             : render_xout_response(error);
+        fprintf(stdout, "%s", output.c_str());
         return 1;
     }
 
     Json response = dispatch(request);
-    fprintf(stdout, "%s\n", response.dump().c_str());
-    return 0;
+    const std::string output = json_mode ? response.dump(2) + "\n"
+                                         : render_xout_response(response);
+    fprintf(stdout, "%s", output.c_str());
+    return response.value("ok", false) ? 0 : 1;
 }
 
 // ── Server mode ──
@@ -328,14 +337,6 @@ int server_main(int argc, char** argv) {
 //       "json": <response> | "xout": <text>}
 //   3. "stdio.quit" terminates the loop
 
-static std::string simple_xout(const std::string& action, const Json& response) {
-    // Compact xout rendering: header line + pretty JSON body.
-    std::string out = "@xdebug." + action + ".v1\n";
-    out += response.dump(2);
-    out += "\n";
-    return out;
-}
-
 int stdio_loop_main(int argc, char** argv) {
     fprintf(stderr, "[xdebug-fst] stdio-loop mode starting...\n");
 
@@ -362,24 +363,43 @@ int stdio_loop_main(int argc, char** argv) {
         Json request;
         try {
             request = Json::parse(line);
-        } catch (...) {
-            Json err = error_response("PARSE_ERROR", "failed to parse JSON request line");
+        } catch (const std::exception& exception) {
             Json env{{"id", "req-" + std::to_string(++req_seq)},
                      {"ok", false},
-                     {"api_version", "xdebug.v1"},
-                     {"action", ""},
-                     {"payload_format", "json"},
-                     {"json", err}};
+                     {"error", {{"code", "INVALID_JSON"},
+                                {"message", exception.what()}}}};
             fprintf(stdout, "%s\n", env.dump().c_str());
             fflush(stdout);
             continue;
         }
 
         std::string action = request.value("action", "");
-        if (action == "stdio.quit") break;
-
-        std::string rid = request.value("request_id",
-                          request.value("id", "req-" + std::to_string(++req_seq)));
+        ++req_seq;
+        std::string rid = request.value("id",
+                          request.value("request_id", "req-" + std::to_string(req_seq)));
+        if (request.contains("id")) request.erase("id");
+        bool wants_json = json_mode;
+        if (request.contains("payload_format")) {
+            if (!request["payload_format"].is_string() ||
+                (request["payload_format"] != "json" && request["payload_format"] != "xout")) {
+                Json env{{"id", rid}, {"ok", false},
+                         {"error", {{"code", "INVALID_REQUEST"},
+                                    {"message", "stdio-loop payload_format must be json or xout"}}}};
+                fprintf(stdout, "%s\n", env.dump().c_str());
+                fflush(stdout);
+                continue;
+            }
+            wants_json = request["payload_format"] == "json";
+            request.erase("payload_format");
+        }
+        if (action == "stdio.quit") {
+            Json env{{"id", rid}, {"ok", true}, {"api_version", "xdebug.v1"},
+                     {"action", "stdio.quit"}, {"payload_format", "json"},
+                     {"json", {{"ok", true}, {"action", "stdio.quit"}}}};
+            fprintf(stdout, "%s\n", env.dump().c_str());
+            fflush(stdout);
+            break;
+        }
 
         Json response = dispatch(request);
         bool ok = response.value("ok", false);
@@ -389,12 +409,16 @@ int stdio_loop_main(int argc, char** argv) {
         env["ok"] = ok;
         env["api_version"] = "xdebug.v1";
         env["action"] = action;
-        if (json_mode) {
-            env["payload_format"] = "json";
+        if (!ok) {
+            env["error"] = response.value("error", Json::object());
             env["json"] = response;
+        }
+        if (wants_json) {
+            env["payload_format"] = "json";
+            if (ok) env["json"] = response;
         } else {
             env["payload_format"] = "xout";
-            env["xout"] = simple_xout(action, response);
+            env["xout"] = render_xout_response(response);
         }
         fprintf(stdout, "%s\n", env.dump().c_str());
         fflush(stdout);
