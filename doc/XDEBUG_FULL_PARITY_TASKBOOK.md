@@ -2,6 +2,19 @@
 
 配套架构说明：[`XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md`](XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md)。该文档说明 Verilator DesignDB 修改的范围、原因和数据流，以及 xdebug-fst 对 Wellen 波形能力的需求、双 C ABI 方案和后续收敛边界。
 
+## 零、不可漂移的 FST-only 输入边界（2026-08-09 用户确认）
+
+本任务、当前 Goal 及 P0–P7 的实现与验收只适配 **FST 波形**。这是覆盖全文所有阶段、提交和完成条件的最高优先级硬约束：
+
+1. xdebug-fst 的生产波形输入只允许 FST；不得把 VCD、FSDB 或其他波形格式接入后端。
+2. 单元测试、集成测试、差分测试和最终验收实际打开的波形文件必须是 `.fst`，不得直接打开 VCD 来替代缺失或错误的 FST 能力。
+3. VCD 只可作为生成测试 FST 的源描述，且生成过程必须固定、可重复；VCD 读取结果不得作为功能通过证据。
+4. 某个 FST 固件不能保留 X/Z、delta-cycle、real、string、event 或层级信息时，必须修复 FST 固件生成链或 Wellen FST 读取能力；不得切换到 VCD、FSDB、其他 backend 或其他 fixture 作为 fallback。
+5. 所有测试清单和最终报告必须列出实际输入路径，并设置“全部为 FST”的自动门禁；发现非 `.fst` 波形输入立即失败。
+6. 本约束同时修订 Goal 中较早记录的 transport 范围：按用户后续指令，TCP 与 file transport 不实现、不验收，选择时必须明确失败且不得 fallback；会话只保留已规划的 UDS、MCP direct 与 fake-LSF 路径。
+
+当前 Goal 的 objective 以本任务书为执行来源；Goal 系统不支持在 active 状态原地改写 objective，因此本节是对 Goal 的强制范围增补与后续用户指令的权威记录，不得因旧 objective 文本仍提及 TCP/file 而恢复这些已裁剪能力。
+
 ## 一、强制执行顺序
 
 进入实施阶段后，必须严格按照以下顺序开始，不得提前修改其他源码。

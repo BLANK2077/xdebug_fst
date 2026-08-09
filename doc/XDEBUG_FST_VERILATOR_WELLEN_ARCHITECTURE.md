@@ -14,6 +14,10 @@
 
 本文描述的是整体目标架构，同时明确标注 P0 至 P2 已落地能力与后续阶段目标，避免把当前的协议、会话兼容误认为全部 73 个分析 action 已经与原版 xdebug 完全一致。
 
+### 1.1 FST-only 架构边界
+
+xdebug-fst 只接收和分析 FST 波形。Wellen 在本方案中的职责是提供 FST 的层级、时间和值变化语义；VCD/FSDB 不属于产品输入，也不得成为测试 fallback。VCD 可以保留为可读的测试波形源描述，但必须先由固定生成链转换成 FST，测试和验收只能打开生成后的 `.fst`。如果转换后的 FST 丢失四态、delta 或类型信息，应修复生成链或 Wellen FST 读取层，不得直接读取 VCD 绕过问题。
+
 ## 二、为什么需要两个相互独立的事实源
 
 原版 xdebug 同时回答两类本质不同的问题。
@@ -343,7 +347,7 @@ xdebug-fst 需要：
 - close 时释放 mmap、signal cache 和字符串；
 - 多 session 并发时不能依赖无保护的全局可变状态。
 
-Wellen 还支持 VCD/GHW，但兼容目标以 FST 为主，不会在 FST 失败后自动换格式或 backend。
+即使 Wellen 库本身还支持 VCD/GHW，xdebug-fst 生产 adapter 也只允许 `.fst`，并在调用 Wellen 前拒绝其他后缀；`wellen_capi` 或 `wellenx_capi` 任一 handle 打开失败都会关闭整个 backend，不会换格式、换 backend 或降级继续。
 
 ### 7.2 层级和信号解析
 
@@ -437,15 +441,15 @@ xdebug-fst 主体是 C++，Wellen 是 Rust。直接依赖 Rust 内部类型会�
 - signal load/unload；
 - signal info；
 - offset、time match、element、next index；
-- 基础 batch value 访问。
+- bit-vector/real/string/event 编码元数据；
+- 容量感知的类型化值访问，保留 UTF-8、f64、event 与完整四态 bit string。
 
 把核心 C API 放在 Wellen 仓库的原因是它描述 Wellen 本身的通用波形能力，可以独立测试，也便于未来减少 xdebug 私有扩展。
 
 ### 8.3 `wellenx_capi`：xdebug-fst 的最小扩展
 
-当前 Wellen 核心 C API 尚不能完整满足 xdebug-fst 的高效值渲染和变化扫描，因此仓内保留一个最小扩展，只提供：
+当前 Wellen 核心 C API 已负责层级、时间、类型和值读取；仓内保留的最小扩展只提供：
 
-- ASCII bit string 读取，保留 2/4/9-state；
 - signal change time-index 数组。
 
 它不复制层级、时间表和生命周期接口，不发展成第二套 Wellen API。只要核心 `wellen_capi` 将来原生提供等价能力，就可以逐项删除扩展，而不是长期维护两个重叠实现。
@@ -495,7 +499,7 @@ C++ adapter 同时持有：
 - Wellen revision、Verilator revision 和 ABI header hash 已写入依赖锁；
 - CMake 配置阶段严格校验 revision、header hash 和 release library。
 
-### 9.2 P1 与 P2 当前进展
+### 9.2 P1、P2 与 P3 当前进展
 
 - P1 的严格 73 action、146 个公开 schema、请求/响应 runtime gate、canonical
   JSON/XOUT 和 stdio-loop 已完成；
@@ -507,19 +511,27 @@ C++ adapter 同时持有：
   当前 `xdebug-fst --stdio-loop --json`，覆盖 trace metadata、managed ownership token、
   UDS native engine、scheduler noise、job id、bkill 和双层清理；默认开源构建不强依赖
   xverif 源树，验收时显式启用 `XDEBUG_ENABLE_MCP_INTEGRATION_TESTS`。
+- P3 已完成 signal reference sentinel、任意深度层级、alias 消歧、FST timescale、
+  严格物理时间解析和 auto/ps/ns/us 渲染；类型化值保留 X/Z、64 位宽度、real、
+  UTF-8 string 和 event。
+- FST 同时间多个 element 按 delta 顺序发布；raw/after 选择稳定后的最后 delta，
+  before 选择精确时间点全部 delta 之前的值。后端还提供类型化批量取值、变化序号
+  游标和范围扫描，并区分完整分析与响应行数截断。
+- 生产 adapter 和测试入口都建立 FST-only 门禁：非 `.fst` 在解析前失败，全部 P3
+  固件实际输入均为 FST；VCD 不作为输入或 fallback。
 
 ### 9.3 仍不能宣称完全一致的内容
 
 当前过渡实现仍有明确缺口，后续阶段不得用文档掩盖：
 
-- timescale 与 `ps/ns/us` 解析仍需 P3 对齐；
-- real/string/event 和宽总线的 canonical value 仍需完善；
-- delta-cycle、before/after/clock sampled 仍需系统回归；
-- signal alias、名称大小写和 interface/array leaf 仍需差分确认；
+- P3 后端事实已补齐，但 73 个 action 尚需在 P5 全部迁移到统一观察点、类型化批量值
+  和完整性接口，不能继续直接选择第一个 delta element；
+- interface/array/struct leaf 已用深层 FST hierarchy 回归覆盖，仍需在 P5 对应公开
+  scope/signal action 中通过冻结 schema 和原版差分确认响应形状；
 - current active-driver 不能只选择第一条可读静态 driver；
 - XDD 当前控制依赖只提供静态候选，尚未表达完整条件表达式和嵌套 provenance；
 - direction/port connection 仍有上层推导逻辑；
-- P2 仍需完成 UDS idle timeout、完整失败补偿、MCP direct 和 fake-LSF；TCP/file
+- P2 已完成 UDS idle timeout、完整失败补偿、MCP direct 和 fake-LSF；TCP/file
   已按用户明确要求裁剪，不作为实现或验收项；
 - UDS 已打通真实 engine，但大部分 action 的成功 payload 仍需 P3/P5 对齐严格
   response schema，不能把 transport 已通等同于 action 能力已兼容。
@@ -555,7 +567,7 @@ C++ adapter 同时持有：
 - `wellen_capi/src/lib.rs`
 - `wellen_capi/include/wellen_capi.h`
 - `wellen_capi/test/`
-- revision `1d66a9ea5111d1e80d16273a604f92e8c6a51cbd`
+- revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
 
 ### Verilator
 
@@ -568,7 +580,12 @@ C++ adapter 同时持有：
 
 - Wellen `dba5242`：建立可测试的 Wellen C 波形访问接口；
 - Wellen `1d66a9e`：增加 Wellen C ABI 端到端验证；
+- Wellen `c5132ef`：区分根层级与递归层级并发布稳定 full name；
+- Wellen `76e5077`：通过 C ABI 发布 FST timescale；
+- Wellen `066d86a`：通过容量感知 C ABI 保真发布 bit/real/string/event；
 - Verilator `80c4226ae`：增加最小化 DesignDB 生成接口；
 - Verilator `e04eb0ea8`：修复全量回归并覆盖独立设计；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
+- xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
+- xdebug-fst `e1779c9`：建立生产与回归 FST-only 硬门禁。
