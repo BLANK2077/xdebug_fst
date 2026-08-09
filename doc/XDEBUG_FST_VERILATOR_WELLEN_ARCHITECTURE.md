@@ -354,7 +354,7 @@ Verilator 是上游大型编译器。对它的修改会影响解析、展开、�
 
 每个用例拥有独立 prefix、obj_dir、生成 C++、`.so` 和 validator。UART 静态 DesignDB 提取使用 `--no-timing`，避免当前未启用 coroutine 的 Verilator 构建把测试标记为 skip；这不会修改 UART RTL，也不改变要提取的静态设计关系。
 
-当前验收结果是 7 个 DesignDB 用例全部真实执行通过，同时通过 Verilator distribution copyright/license 检查。ELF、FST、obj_dir 和临时验证程序均被忽略，不进入 Git。
+当前验收结果是 8 个 XDD/DesignDB 用例全部真实执行通过，同时通过 Verilator distribution copyright/license 检查。ELF、临时 FST、obj_dir 和临时验证程序均被忽略，不进入 Git；xdebug-fst 只提交既有最小 fixture 的原始 FST 和可独立装载 DesignDB bundle。
 
 ## 七、xdebug-fst 对 Wellen 的需求
 
@@ -562,8 +562,8 @@ C++ adapter 同时持有：
   scope/signal action 中通过冻结 schema 和原版差分确认响应形状；
 - active-driver 已禁止选择第一条静态 driver，并能用真实 FST 控制值判定已覆盖的
   `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex` 及 V3Inst 折叠后的
-  同目标嵌套条件分支；alias、多 driver 和更多 NBA 边界仍须
-  逐项差分，不能据当前三组用例宣称全部关闭；
+  同目标嵌套条件分支，并能对基础双连续赋值报告两条活动候选；output/inout alias、
+  条件/过程/跨层多 driver 和更多 NBA 边界仍须逐项差分，不能据当前用例宣称全部关闭；
 - XDD 已表达普通 `if/else`、普通 `case/default`、`casez/casex` predicate，并在当前
   emitter 内拆分 V3Inst 合并的 `AstCond` RHS，恢复叶子源位置与条件；case inside/matches
   仍明确 unresolved，不恢复或猜测；
@@ -618,6 +618,23 @@ xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无�
 剩余记录恰好只有 control role 就降级成 `control_only`。该判断来自 DesignDB assignment
 kind，不是从 FST 值变化猜测 HDL 时序；Wellen 只提供 active time 和对应波形值。
 
+基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
+语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终
+运行时值，既不包含被删除的 HDL 语句，也不能证明该值由几条静态赋值共同驱动；因此绝不
+允许由 Wellen 扫描 FST 去反推多驱动。Verilator `5c19377e3` 只在显式 `--design-db` 时，
+于删除前保存目标局部名及声明位置、赋值源位置和 RHS 局部信号名组成的不可变描述；正常
+scope/signal 表建立后，再按目标声明位置和实例前缀将其映射回既有 signal index，并复用
+原有 driver/load ABI 附加 `cont_assign/rhs/predicate=1` 记录。描述保存不阻止 AST 删除，
+不移动 pass，不改变仿真、XDD header、ABI 或 capability；实例映射同时要求局部名和声明
+文件/行号匹配，避免同名信号串扰。
+
+xdebug-fst 消费这些记录时仍按冻结 action 语义聚合静态 statement；目标 45ps 的运行时
+观察点仍由 Wellen 直接从当前原始 `.fst` 取得。两条无条件 predicate 均为活动后，chain
+依据两条静态 statement 返回 `ambiguous/multiple_active_candidates`，并报告语句数、RHS
+信号数和源码行。这里 DesignDB 解决“有哪些 HDL 候选”，FST/Wellen 解决“当前波形事实是
+什么”，xdebug action 解决“合同要求如何判定与报告”；三者职责没有合并，也没有新增
+FST 转换、离线索引、全量快照或 fallback。
+
 显式文件产物必须与“离线 FST 分析”严格区分：
 
 - `list.export` 按公共合同写出 `u64bin.v1`，用于调用者消费最终列表数据；
@@ -664,7 +681,7 @@ kind，不是从 FST 值变化猜测 HDL 时序；Wellen 只提供 active time �
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `a91524d6302552023a50cb4018602c265af32e0a`
+- revision `5c19377e3286b33d43e56cbcd915a9d523fe4004`
 
 对应提交：
 
@@ -683,6 +700,7 @@ kind，不是从 FST 值变化猜测 HDL 时序；Wellen 只提供 active time �
 - Verilator `a3adaaabb`：在同一谓词表中保留 `casez/casex` 四态通配类型，ABI 与 capability 不变；
 - Verilator `ff0c1d016`：在 XDD 头文件中明确内部通配运算符语义，仅改注释；
 - Verilator `a91524d63`：仅在 emitter 内拆分 V3Inst 合并的条件 RHS，恢复叶子行号和谓词；
+- Verilator `5c19377e3`：仅为 `--design-db` 旁路保留 V3Tristate 删除的同强度连续多驱动静态描述，普通仿真与 XDD ABI 不变；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；

@@ -615,11 +615,14 @@ Verilator。第三批在双重修改前失败证据后，以 XDD 内部 `==?z`/`
 信号/常量叶子，并仅在 xdebug-fst consumer 将 predicate 纳入语句身份；真实 FST 已分别
 选中信号 RHS 和常量 RHS 分支。该用例关闭基本常量叶子与同源行分支身份，但
 随后以既有 counter FST alias 和 DesignDB 对称端口边验证内部 input 只向父级上溯，并在
-顶层 primary input 终止，关闭基本 input alias/跨端口反向折返。case inside/matches、更多
-随后按冻结原版排除目标自引用 RHS 的规则，将 `count <= count + 1` 的活动 NBA 正确终止为
-`assignment/constant_or_no_rhs_signal`，关闭基本 NBA self-RHS 分类。case inside/matches、
-更多连续/过程/NBA 时序边界与常量组合、output/inout alias、更多跨端口层级、多 driver 和
-原版差分仍是 P6 必做项。
+顶层 primary input 终止，关闭基本 input alias/跨端口反向折返；再按冻结原版排除目标自引用
+RHS 的规则，将 `count <= count + 1` 的活动 NBA 正确终止为
+`assignment/constant_or_no_rhs_signal`，关闭基本 NBA self-RHS 分类。第八批先以真实 FST
+建立双连续赋值失败证据，再仅在 `--design-db` 下旁路保存被 V3Tristate 删除的同强度
+非三态连续赋值静态描述，不保留 AST、不改变普通仿真或 XDD ABI；chain 已按原版合同报告
+两条活动语句的 `ambiguous/multiple_active_candidates`。case inside/matches、更多连续/过程/NBA
+时序边界与常量组合、output/inout alias、更多跨端口层级，以及条件/过程/跨层多驱动差分
+仍是 P6 必做项。
 
 #### trace.active_driver
 
