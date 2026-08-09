@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "policy": "deny_unlisted",
+  "exact_json_pointers": [
+    "/tool/build_id"
+  ],
+  "volatile_key_names": [
+    "pid",
+    "ppid",
+    "elapsed_ms",
+    "duration_ms",
+    "started_at",
+    "created_at",
+    "updated_at",
+    "closed_at",
+    "heartbeat_at",
+    "timestamp"
+  ],
+  "temporary_path_key_names": [
+    "request_file",
+    "response_file",
+    "claim_file",
+    "socket_path",
+    "temporary_path",
+    "tmp_path"
+  ],
+  "forbidden_generic_ignores": [
+    "action",
+    "api_version",
+    "ok",
+    "error",
+    "data",
+    "summary",
+    "findings",
+    "warnings",
+    "tool.git_revision",
+    "tool.schema_revision",
+    "session.id",
+    "session.generation",
+    "signal",
+    "file",
+    "line",
+    "value",
+    "time"
+  ]
+}
