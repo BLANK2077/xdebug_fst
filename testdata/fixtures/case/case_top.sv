@@ -62,4 +62,13 @@ module case_top (
             default: inside_out <= 8'hfb;
         endcase
     end
+
+    wire [7:0] inout_bus;
+    assign inout_bus = data;
+    inout_leaf u_inout (.bus(inout_bus));
+endmodule
+
+module inout_leaf (
+    inout wire [7:0] bus
+);
 endmodule
