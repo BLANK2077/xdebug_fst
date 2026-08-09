@@ -70,6 +70,12 @@ module case_top (
     wire [7:0] nested_inout_bus;
     assign nested_inout_bus = data;
     inout_mid u_inout_mid (.bus(nested_inout_bus));
+
+    wire [7:0] child_output_bus;
+    output_leaf u_output (
+        .data_i(data),
+        .data_o(child_output_bus)
+    );
 endmodule
 
 module inout_leaf (
@@ -83,4 +89,11 @@ module inout_mid (
     wire [7:0] leaf_bus;
     assign leaf_bus = bus;
     inout_leaf u_leaf (.bus(leaf_bus));
+endmodule
+
+module output_leaf (
+    input  wire [7:0] data_i,
+    output wire [7:0] data_o
+);
+    assign data_o = data_i;
 endmodule

@@ -632,6 +632,14 @@ input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、
 inout 跨端口链”，但不能外推为任意双向驱动。更多连续/过程/NBA 时序边界与常量组合、
 复杂 output/inout alias，以及条件/过程/跨层多驱动差分仍是 P6 必做项。
 
+第十二批已建立 output 边界修改前失败证据。冻结原版 P0-2 module-boundary 用例要求
+`parent net → child output → child input → parent input`，不能把模块边界全部折叠成等值
+alias。当前 DesignDB 对等价 `output_leaf` 的 lowering 后 RHS 直接指向顶层 `data`，使
+xdebug 返回 `child_output_bus → top.data` 并跳过三个层级节点。FST 中的等值 alias 只
+证明运行时值，不能用于反推 HDL 端口关系；修复必须来自既有 DesignDB 静态记录的严格
+consumer 组合，或在证明确有静态事实缺口后对 Verilator 作最小、`--design-db` 专用的
+附加保留。禁止为了补 hop 扫描 FST 寻找同值信号。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。

@@ -630,6 +630,13 @@ Verilator 合法折叠成直接连接，所以独立中间 net 是为了让两�
 波形事实或分析缓存。现有 Verilator `8a5523487`、Wellen `066d86a` 与 xdebug consumer
 已经通过该用例，本批不修改三者代码，也不把这一单向上溯证据夸大为复杂双向 inout 已完成。
 
+output 方向不能照搬上述父向 input/inout 规则。冻结原版的 module-boundary 回归要求从
+父级连接 net 进入子模块 output，再沿子模块内部 assignment 追到 input 及其父级连接。
+第十二批等价固件证明，当前 lowering 后 driver 把 `output_leaf.data_o = data_i` 的 RHS
+直接规范成 `top.data`，导致 action 从 `child_output_bus` 一步跨过整个实例层级。即使 FST
+中所有 alias 值一致，也绝不能据此补造端口 hop；后续只能消费 DesignDB 已有的精确静态
+边，或在证明信息已经丢失后，以不改变普通 Verilator 的最小 DesignDB 专用事实保留修复。
+
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
 xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为
