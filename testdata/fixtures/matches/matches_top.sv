@@ -59,4 +59,12 @@ module matches_top (
     else
       release forced_q;
   end
+
+  reg [7:0] mixed_q;
+  wire [7:0] mixed_out;
+  assign mixed_out = mixed_q;
+  always @(posedge clk) begin
+    mixed_q = 8'h33;
+    mixed_q <= data;
+  end
 endmodule

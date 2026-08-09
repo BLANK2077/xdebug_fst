@@ -217,6 +217,26 @@ def test_trace_active_driver_chain_uses_changed_event_time(
     assert hops[1]["time"] == "60ps"
 
 
+def test_trace_active_driver_chain_prefers_unique_nba_over_blocking_write(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.matches_top.mixed_out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "primary_input"
+    hops = rsp["data"]["hops"]
+    assert [hop["signal"] for hop in hops] == [
+        "top.matches_top.mixed_out",
+        "top.matches_top.mixed_q",
+        "top.data",
+    ]
+    assert hops[1]["line"] == 68
+    assert [hop["active_time"] for hop in hops[:2]] == ["60ps", "60ps"]
+
+
 def test_trace_active_driver_chain_stops_at_force(
         loop_runner: StdioLoopRunner, matches_fst,
         matches_design_db) -> None:
