@@ -571,11 +571,14 @@ APB 命名配置只保存时钟、复位和总线叶子信号路径以及采样�
 
 AXI 命名配置同样只保存 clock/reset、edge/sample point 和五个 channel 的 31 个最终叶子路径。每个 AXI action 都从当前 session 的 Wellen backend 重新采样选定时钟边沿，在请求内按 AXI4 规则把 AW、W、B 以及 AR、R 握手临时配对；ID FIFO、W beat FIFO、outstanding 深度、latency 样本和 pending 状态只在该请求的有界内存中存在，不持久化为事务索引或离线波形库。`axi.export` 写出的 TSV/CSV/meta 是调用者显式要求的最终产物，任何 action 都不会重新加载它们。
 
-三类显式文件产物必须与“离线 FST 分析”严格区分：
+stream 命名配置只保存 signal alias、clock/edge/sample point、reset、vld/rdy、可选 sop/eop 与 beat field 表达式。当前已落地的 transfer 扫描、summary、动态 validate 和 export 每次请求都直接从当前 session 的 Wellen backend 读取原始 FST 中涉及的 clock、vld、rdy 与 data 叶子，在请求期间形成有限的 transfer 行和统计；`cache_scope` 在该实现中只约束本次扫描范围，不产生可跨请求重载的基础分析缓存。显式 `stream.export` 只把当次结果写为最终 TSV/CSV 与 meta，meta 标记事实源为 `current_session_fst`，任何 action 都不会回灌这些文件。packet、stall、filter 和复杂 beat field 表达式仍是后续独立批次，当前基础批次不冒充 stream 全合同完成。
+
+显式文件产物必须与“离线 FST 分析”严格区分：
 
 - `list.export` 按公共合同写出 `u64bin.v1`，用于调用者消费最终列表数据；
 - `event.export` 按公共合同写出 JSON 事件结果；
 - `nwave.rc.generate` 写出 nWave 视图脚本，并明确要求工具另行打开原始 FST。
+- `axi.export` 与 `stream.export` 按公共合同写出用户指定的事务或传输表及 meta。
 
 这些文件只在请求明确给出输出路径时写出，不参与 session.open，不被任何 action 自动重载，不是 file transport，也不允许在 Wellen 失败时充当 fallback。生产分析唯一波形事实源仍是会话中由 Wellen 直接按需读取的 `.fst`。因此“必须适配 FST 波形”和“允许公共 export action 产生最终结果文件”并不冲突：前者约束分析输入与事实来源，后者只是调用者显式要求的输出。
 
