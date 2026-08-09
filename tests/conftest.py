@@ -126,10 +126,10 @@ def stream_fst() -> Path:
 # ── Helpers ──
 
 def open_session(loop: StdioLoopRunner, fsdb: Path, design_db: Path | None = None) -> Json:
-    target: dict = {"session_id": "test", "fsdb": str(fsdb)}
+    target: dict = {"fsdb": str(fsdb)}
     if design_db is not None:
-        target["design_db"] = str(design_db)
-    rsp = loop.request("session.open", target=target)
+        target["daidir"] = str(design_db)
+    rsp = loop.request("session.open", target=target, args={"name": "test"})
     assert rsp.get("ok"), rsp
     assert rsp["session"]["session_id"] == "test"
     return rsp

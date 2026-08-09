@@ -11,6 +11,7 @@
 #include "api/json_types.h"
 #include "protocol/public_catalog.h"
 #include "protocol/response.h"
+#include "protocol/contract.h"
 
 #include <cstdio>
 #include <unistd.h>
@@ -34,6 +35,8 @@ static Json error_response(const std::string& code,
                            {"recoverable", recoverable},
                            {"error_layer", layer}}}};
 }
+
+static Json dispatch(const Json& request);
 
 static Json dispatch_handler(const Json& request) {
     std::string action = request.value("action", "");
@@ -67,7 +70,7 @@ static Json dispatch_handler(const Json& request) {
         std::string session_id = args.value("name",
             target.value("session_id", "default"));
         std::string fsdb_path  = target.value("fsdb", "");
-        std::string design_db  = target.value("design_db", "");
+        std::string design_db  = target.value("daidir", "");
 
         auto& g = engine_globals();
         g.session_id = session_id;
@@ -226,8 +229,7 @@ static Json dispatch_handler(const Json& request) {
                 responses.push_back(error_response("MISSING_ACTION", "batch item must be an object"));
                 continue;
             }
-            responses.push_back(canonical_response(
-                sub, sub.value("action", "error"), dispatch_handler(sub)));
+            responses.push_back(dispatch(sub));
         }
         return Json{{"ok", true},
                     {"summary", {{"request_count", responses.size()}}},
@@ -259,6 +261,8 @@ static Json dispatch_handler(const Json& request) {
 
 static Json dispatch(const Json& request) {
     const std::string action = request.is_object() ? request.value("action", "") : "";
+    const ContractResult validation = validate_public_request(request);
+    if (!validation.ok) return canonical_error(request, action, validation.error);
     return canonical_response(request, action, dispatch_handler(request));
 }
 

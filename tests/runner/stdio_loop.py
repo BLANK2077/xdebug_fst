@@ -36,6 +36,7 @@ class StdioLoopRunner:
         self.proc: Optional[subprocess.Popen[str]] = None
         self._out_queue: "queue.Queue[str]" = queue.Queue()
         self._seq = 0
+        self._session_id: Optional[str] = None
 
     def start(self, timeout_sec: float = 30.0) -> Json:
         self.proc = subprocess.Popen(
@@ -92,6 +93,11 @@ class StdioLoopRunner:
             req["args"] = args
         if target is not None:
             req["target"] = target
+        elif self._session_id is not None and action not in {
+            "actions", "schema", "batch", "session.open", "session.list",
+            "session.gc",
+        }:
+            req["target"] = {"session_id": self._session_id}
         assert self.proc.stdin is not None
         self.proc.stdin.write(json.dumps(req) + "\n")
         self.proc.stdin.flush()
@@ -99,7 +105,12 @@ class StdioLoopRunner:
         assert env.get("id") == req["request_id"], f"id mismatch: {env}"
         assert env.get("api_version") == "xdebug.v1"
         assert env.get("payload_format") == "json"
-        return env.get("json", {})
+        response = env.get("json", {})
+        if action == "session.open" and response.get("ok"):
+            self._session_id = args.get("name") if args else None
+        if action in {"session.close", "session.kill"} and response.get("ok"):
+            self._session_id = None
+        return response
 
     def stop(self) -> None:
         if self.proc is None:

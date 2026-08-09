@@ -52,7 +52,8 @@ def test_value_at_missing_fields(loop_runner: StdioLoopRunner, counter_fst) -> N
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("value.at", args={"signal": "top.clk"})
     assert not rsp.get("ok")
-    assert rsp["error"]["code"] == "MISSING_FIELD"
+    assert rsp["error"]["code"] == "INVALID_REQUEST"
+    assert rsp["error"]["error_layer"] == "schema"
 
 
 def test_value_at_invalid_time(loop_runner: StdioLoopRunner, counter_fst) -> None:
@@ -68,18 +69,19 @@ def test_value_at_render_formats(loop_runner: StdioLoopRunner, counter_fst) -> N
     rsp = _value(loop_runner, "top.counter_top.count", 300)
     rsp_bin = loop_runner.request("value.at", args={
         "signal": "top.counter_top.count", "time": "300",
-        "render_format": "bin"})
+        "value_format": "bin"})
     assert rsp_bin["data"]["value"] == "8'b00001011"
     rsp_dec = loop_runner.request("value.at", args={
         "signal": "top.counter_top.count", "time": "300",
-        "render_format": "dec"})
+        "value_format": "dec"})
     assert rsp_dec["data"]["value"] == "8'd11"
 
 
 def test_signal_changes(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("signal.changes", args={
-        "signal": "top.counter_top.count", "begin": "0", "end": "490"})
+        "signal": "top.counter_top.count",
+        "time_range": {"begin": "0", "end": "490"}})
     assert rsp.get("ok")
     changes = rsp["data"]["changes"]
     assert len(changes) == 21
@@ -93,7 +95,8 @@ def test_signal_changes(loop_runner: StdioLoopRunner, counter_fst) -> None:
 def test_signal_changes_window(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("signal.changes", args={
-        "signal": "top.counter_top.count", "begin": "200", "end": "300"})
+        "signal": "top.counter_top.count",
+        "time_range": {"begin": "200", "end": "300"}})
     assert rsp.get("ok")
     changes = rsp["data"]["changes"]
     assert changes[0]["time"] == 200
@@ -129,6 +132,7 @@ def test_scope_list(loop_runner: StdioLoopRunner, counter_fst) -> None:
 
 def test_waveform_not_loaded_error(cli_runner) -> None:
     result = cli_runner.run({"api_version": "xdebug.v1", "action": "value.at",
+                             "target": {"session_id": "missing"},
                              "args": {"signal": "top.clk", "time": "10"}})
     assert not result.ok
     assert result.response["error"]["code"] == "WAVEFORM_NOT_LOADED"

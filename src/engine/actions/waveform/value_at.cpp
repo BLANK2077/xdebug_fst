@@ -65,7 +65,7 @@ struct ValueAtHandler : public EngineActionHandler {
         wf->signal_info(ref, info);
 
         ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
+        parse_value_render_format(args.value("value_format", "hex"), fmt);
 
         std::string bits = wf->signal_value_str(ref, off.start, 0);
         Json value = render_value_json(bits, info.width, fmt);
@@ -115,11 +115,12 @@ struct SignalChangesHandler : public EngineActionHandler {
         if (!wf->is_loaded(ref)) wf->load_signals({ref});
 
         uint64_t begin = 0, end = wf->max_time();
-        if (args.contains("begin")) begin = std::stoull(args["begin"].get<std::string>());
-        if (args.contains("end")) end = std::stoull(args["end"].get<std::string>());
+        const Json time_range = args.value("time_range", Json::object());
+        if (time_range.contains("begin")) begin = std::stoull(time_range["begin"].get<std::string>());
+        if (time_range.contains("end")) end = std::stoull(time_range["end"].get<std::string>());
 
         ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
+        parse_value_render_format(args.value("value_format", "hex"), fmt);
 
         IWaveformBackend::SignalInfo info;
         wf->signal_info(ref, info);

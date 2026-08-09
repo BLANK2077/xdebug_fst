@@ -84,8 +84,12 @@ def test_batch_aggregates_responses(loop_runner: StdioLoopRunner,
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("batch", args={
         "requests": [
-            {"action": "value.at", "args": {"signal": "top.clk", "time": "100"}},
-            {"action": "value.at", "args": {"signal": "top.clk", "time": "200"}},
+            {"api_version": "xdebug.v1", "action": "value.at",
+             "target": {"session_id": "test"},
+             "args": {"signal": "top.clk", "time": "100"}},
+            {"api_version": "xdebug.v1", "action": "value.at",
+             "target": {"session_id": "test"},
+             "args": {"signal": "top.clk", "time": "200"}},
         ]
     })
     assert rsp.get("ok"), rsp
@@ -99,7 +103,8 @@ def test_batch_aggregates_responses(loop_runner: StdioLoopRunner,
 def test_batch_missing_requests(cli_runner: CliRunner) -> None:
     result = cli_runner.run({"api_version": "xdebug.v1", "action": "batch"})
     assert not result.ok
-    assert result.response["error"]["code"] == "MISSING_FIELD"
+    assert result.response["error"]["code"] == "INVALID_REQUEST"
+    assert result.response["error"]["error_layer"] == "schema"
 
 
 def test_session_open_and_close(loop_runner: StdioLoopRunner,
@@ -120,7 +125,7 @@ def test_session_open_with_design_db(loop_runner: StdioLoopRunner,
 
 def test_session_open_missing_file(loop_runner: StdioLoopRunner) -> None:
     rsp = loop_runner.request("session.open", target={
-        "session_id": "bad", "fsdb": "/nonexistent/waves.fst"})
+        "fsdb": "/nonexistent/waves.fst"}, args={"name": "bad"})
     assert not rsp.get("ok")
     assert rsp["error"]["code"] == "WAVEFORM_OPEN_FAILED"
 
@@ -153,4 +158,5 @@ def test_unknown_action(cli_runner: CliRunner) -> None:
 def test_missing_action(cli_runner: CliRunner) -> None:
     result = cli_runner.run({"api_version": "xdebug.v1"})
     assert not result.ok
-    assert result.response["error"]["code"] == "MISSING_ACTION"
+    assert result.response["error"]["code"] == "INVALID_REQUEST"
+    assert result.response["error"]["error_layer"] == "internal"
