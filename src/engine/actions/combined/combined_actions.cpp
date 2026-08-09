@@ -634,7 +634,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             IDesignBackend::DriverRecord mapped_driver;
             std::string upstream;
             std::string ambiguity_kind;
-            if (!evaluated.unresolved.empty()) ambiguity_kind="predicate_unresolved";
+            if (!has_active_force&&!evaluated.unresolved.empty())
+                ambiguity_kind="predicate_unresolved";
             else if (groups.size()>1) ambiguity_kind="multiple_active_candidates";
             else if (groups.size()==1&&groups[0].rhs.size()>1)
                 ambiguity_kind="multiple_rhs_sources";
@@ -1009,6 +1010,26 @@ struct TraceXOriginHandler : public EngineActionHandler {
             annotate_output_instance_identities(design,index,all_drivers);
             const auto evaluated=active_statement_groups(
                 all_drivers,design,waveform,sample.active_time);
+            const auto force_statement=std::find_if(
+                evaluated.active.begin(),evaluated.active.end(),
+                [](const auto& statement) { return statement.kind=="force"; });
+            if (force_statement!=evaluated.active.end()) {
+                const auto* driver=representative_driver(*force_statement);
+                if (driver&&!state.hops.empty()) {
+                    state.hops.back()["file"]=driver->file;
+                    state.hops.back()["line"]=std::max(0,driver->line);
+                }
+                Json chain=finish_chain(state,sample,onset,"origin_found",
+                    "force_x",state.complete,false);
+                chain["origin"]={{"signal",state.signal},
+                    {"x_onset_time",waveform.format_time(onset,unit)},
+                    {"kind","force"},{"reason","force_x"},
+                    {"evidence_status","proven"},
+                    {"file",driver?driver->file:""},
+                    {"line",driver?std::max(0,driver->line):0}};
+                chains.push_back(std::move(chain));
+                continue;
+            }
             if (!evaluated.unresolved.empty()) {
                 limitations.push_back(
                     "activation predicate unresolved at "+state.signal);

@@ -759,6 +759,9 @@ action 实现原版优先级，职责仍严格分离。
 既有 GCD 原始 `.fst` 上仅增加测试 XDD 的 force 静态记录；修改前 action 把当前 X 信号
 退化为 `candidate_x_source`。冻结原版要求活动 force 直接证明 `force_x` origin，且不得沿
 force RHS。修复仍只消费 DesignDB kind 与原始 FST X 值，不增加波形或静态数据通道。
+最终 DFS 在 predicate 求值后先查活动 force，命中即用 force statement 更新当前 hop 源码，
+并生成 `kind=force/reason=force_x/evidence_status=proven` 的当前信号 origin；普通 unresolved、
+RHS/control 枚举均不再执行。该优先级与冻结原版一致，同时保持 FST 只提供 X 值事实。
 
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终
