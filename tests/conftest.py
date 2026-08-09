@@ -155,6 +155,16 @@ def apb_design_db() -> Path:
 
 
 @pytest.fixture(scope="session")
+def case_fst() -> Path:
+    return _fix("case")
+
+
+@pytest.fixture(scope="session")
+def case_design_db() -> Path:
+    return FIXTURES / "case" / "obj_dir"
+
+
+@pytest.fixture(scope="session")
 def axi_fst() -> Path:
     return _fix("axi")
 

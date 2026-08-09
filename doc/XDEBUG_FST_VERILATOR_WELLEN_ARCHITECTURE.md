@@ -559,8 +559,9 @@ C++ adapter 同时持有：
 - interface/array/struct leaf 已用深层 FST hierarchy 回归覆盖，仍需在 P5 对应公开
   scope/signal action 中通过冻结 schema 和原版差分确认响应形状；
 - active-driver 已禁止选择第一条静态 driver，并能用真实 FST 控制值判定已覆盖的
-  `if/else` 分支；普通 case、嵌套条件、wildcard case、alias、多 driver 和更多 NBA
-  边界仍须逐项差分，不能据当前 counter 用例宣称全部关闭；
+  `if/else`、APB 嵌套条件及普通 `case/default` 分支；casez/casex、在 DesignDB
+  挂接点之前被 lowering 合并的同目标嵌套语句、alias、多 driver 和更多 NBA 边界仍须
+  逐项差分，不能据当前三组用例宣称全部关闭；
 - XDD 已表达普通 `if/else` 与普通 `case/default` predicate；在当前 DesignDB 挂接点之前
   已被 Verilator 合并的同目标内层语句，以及 casez/casex，仍明确 unresolved，不恢复或猜测；
 - direction/port connection 仍有上层推导逻辑；

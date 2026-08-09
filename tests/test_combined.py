@@ -49,6 +49,44 @@ def test_trace_active_driver_selects_runtime_else_branch(
     assert rsp["data"]["paths"][0]["signal_path"] == ["top.reset", "top.count"]
 
 
+def test_trace_active_driver_selects_nested_apb_read_branch(
+        loop_runner: StdioLoopRunner, apb_fst, apb_design_db) -> None:
+    open_session(loop_runner, apb_fst, apb_design_db)
+    rsp = loop_runner.request("trace.active_driver", args={
+        "signal": "top.prdata", "time": "280ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["active_time"] == "260ps"
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["total_count"] == 1
+    assert rsp["data"]["paths"] == [{
+        "file": "apb_top.sv",
+        "line": 25,
+        "signal_path": ["top.paddr", "top.prdata"],
+        "source_context": [],
+    }]
+
+
+def test_trace_active_driver_selects_case_item_and_default(
+        loop_runner: StdioLoopRunner, case_fst, case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    selected = loop_runner.request("trace.active_driver", args={
+        "signal": "top.out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert selected.get("ok"), selected
+    assert selected["summary"]["analysis_complete"] is True
+    assert selected["summary"]["total_count"] == 1
+    assert selected["data"]["paths"][0]["line"] == 14
+
+    default = loop_runner.request("trace.active_driver", args={
+        "signal": "top.out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert default.get("ok"), default
+    assert default["summary"]["analysis_complete"] is True
+    assert default["summary"]["total_count"] == 1
+    assert default["data"]["paths"][0]["line"] == 15
+
+
 def test_trace_active_driver_counts_before_response_limit(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:
