@@ -623,6 +623,31 @@ def test_trace_x_origin_x_propagation(loop_runner: StdioLoopRunner,
     assert "x" in chains[0]["origin"]["reason"]
 
 
+def test_trace_x_origin_stops_at_force_x(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        gcd_xorigin_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, gcd_xorigin_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.y", "time": "0ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "origin_found"
+    assert rsp["summary"]["origin_count"] == 1
+    chain = rsp["data"]["chains"][0]
+    assert chain["status"] == "origin_found"
+    assert chain["termination_detail"] == "force_x"
+    assert [hop["signal"] for hop in chain["hops"]] == ["GCD.y"]
+    assert chain["origin"] == {
+        "signal": "GCD.y",
+        "x_onset_time": "0ps",
+        "kind": "force",
+        "reason": "force_x",
+        "evidence_status": "proven",
+        "file": "gcd_xorigin.sv",
+        "line": 10,
+    }
+
+
 def test_trace_x_origin_branch_chain_ids_are_consistent(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:

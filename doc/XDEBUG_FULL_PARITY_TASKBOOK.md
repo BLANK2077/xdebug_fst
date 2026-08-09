@@ -650,6 +650,9 @@ statement、连续赋值、唯一 RHS 四项同时成立才继续，到达唯一
 实现先在已求值活动 group 中筛选 force：唯一 force 覆盖底层 assignment 并就地终止，其
 RHS 只作证据；多个 force 仍报多候选。release 后 force predicate 失活，chain 恢复底层
 NBA。所有状态判断来自 DesignDB 静态类型/谓词/事件与原始 FST 控制边沿，不从值猜 force。
+第二十二批证明 `trace.x_origin` 仍有独立 force 缺口：合法原始 GCD FST 加静态 force 事实
+后，当前返回 `candidate_x_source`，而冻结原版要求当前信号为 proven `force_x` origin。
+修复必须在 X-origin 自身应用活动 force 优先级，不能假定 chain 修复会自动覆盖。
 第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和

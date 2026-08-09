@@ -755,6 +755,11 @@ release 本身不伪装成 driver；release 后 force predicate 在最新事件�
 重新成为活动 statement。这样 DesignDB 提供类型和条件，FST 只提供条件值与事件时刻，
 action 实现原版优先级，职责仍严格分离。
 
+`trace.x_origin` 使用独立 DFS，不能因为 chain 已支持 force 就视为自动兼容。第二十二批在
+既有 GCD 原始 `.fst` 上仅增加测试 XDD 的 force 静态记录；修改前 action 把当前 X 信号
+退化为 `candidate_x_source`。冻结原版要求活动 force 直接证明 `force_x` origin，且不得沿
+force RHS。修复仍只消费 DesignDB kind 与原始 FST X 值，不增加波形或静态数据通道。
+
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终
 运行时值，既不包含被删除的 HDL 语句，也不能证明该值由几条静态赋值共同驱动；因此绝不

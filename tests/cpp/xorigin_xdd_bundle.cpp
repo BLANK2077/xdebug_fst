@@ -25,13 +25,14 @@ const XddDriverRec kDrivers[] = {
     {1, 2, "cont_assign", "rhs", "gcd_xorigin.sv", 6},
     {3, 1, "cont_assign", "rhs", "gcd_xorigin.sv", 9},
     {3, 4, "cont_assign", "rhs", "gcd_xorigin.sv", 9},
+    {4, 2, "force", "rhs", "gcd_xorigin.sv", 10},
     {5, 1, "cont_assign", "rhs", "gcd_xorigin.sv", 10},
     {5, 4, "cont_assign", "rhs", "gcd_xorigin.sv", 11},
     {6, 1, "cont_assign", "rhs", "gcd_xorigin.sv", 14},
     {6, 4, "cont_assign", "control", "gcd_xorigin.sv", 14},
 };
 
-const int kDriverStart[] = {0, 1, 2, 2, 4, 4, 6, 8};
+const int kDriverStart[] = {0, 1, 2, 2, 4, 5, 7, 9};
 
 const XddLoadRec kLoads[] = {
     {1, 0, "rhs_use", "gcd_xorigin.sv", 7},
@@ -39,16 +40,17 @@ const XddLoadRec kLoads[] = {
     {1, 5, "rhs_use", "gcd_xorigin.sv", 10},
     {1, 6, "rhs_use", "gcd_xorigin.sv", 14},
     {2, 1, "rhs_use", "gcd_xorigin.sv", 6},
+    {2, 4, "rhs_use", "gcd_xorigin.sv", 10},
     {4, 3, "rhs_use", "gcd_xorigin.sv", 9},
     {4, 5, "rhs_use", "gcd_xorigin.sv", 11},
     {4, 6, "control_use", "gcd_xorigin.sv", 14},
 };
 
-const int kLoadStart[] = {0, 0, 4, 5, 5, 8, 8, 8};
+const int kLoadStart[] = {0, 0, 4, 6, 6, 9, 9, 9};
 
 constexpr int kSignalCount = 8;
-constexpr int kDriverCount = 8;
-constexpr int kLoadCount = 8;
+constexpr int kDriverCount = 9;
+constexpr int kLoadCount = 9;
 
 }  // namespace
 
