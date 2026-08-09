@@ -849,7 +849,7 @@ expression、tagged pattern、pattern variable/star 和独立 `matches` 运算�
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `07d076a8296ddf6b89c3f9a84dc39225e436276e`
+- revision `a5232efb6c3d04f42a5ef730cb2954ce419db2fe`
 
 对应提交：
 
@@ -874,6 +874,7 @@ expression、tagged pattern、pattern variable/star 和独立 `matches` 运算�
 - Verilator `ea1d3c9b4`、`adc193c2f`：先记录精确表达式 `case matches` 被无条件拒绝的普通仿真与 DesignDB 失败，再仅放行该有限子集并发布 `===` predicate；tagged/pattern 能力保持不支持；
 - Verilator `01f9f2a4b`、`6239de45e`：先证明同值 NBA 缺少赋值事件源，再仅由 DesignDB emitter 发布赋值所在直接敏感信号的 `event_*` 静态角色；不修改仿真调度、ABI 布局或 pass 顺序；
 - Verilator `90d5aa2ae`、`07d076a82`：先证明 force 被降级为普通赋值，再仅在既有 kind 字符串中恢复 `force` 类型；不改变 force/release lowering、仿真调度或 ABI 布局；
+- Verilator `8623446e6`、`a5232efb6`：先证明顶层点星 pattern wildcard 被 LinkParse 明确拒绝，再仅将无绑定的直接 item wildcard 规范化为 case 表达式与自身的四态精确比较；源码顺序与 X/Z 恒真语义有独立普通仿真覆盖，嵌套 pattern、变量绑定、tagged union 和独立 `matches` 运算符继续拒绝；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；

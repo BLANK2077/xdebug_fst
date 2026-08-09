@@ -13,7 +13,7 @@
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
 - xdebug-fst 当前功能与验收提交：`d67ef94`；精确表达式 `case matches` 的 Verilator 修改前证据为 `ea1d3c9b4`、最小实现为 `adc193c2f`；同值 NBA 事件依赖的 Verilator 修改前证据为 `01f9f2a4b`、最小实现为 `6239de45e`；复杂 output 表达式修改前失败证据为 `ae76785`，常量 NBA 修复为 `f3b5143`；过程/常量、多级端口、固件、架构说明与全量门禁证据均已登记
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
-- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `07d076a8296ddf6b89c3f9a84dc39225e436276e`
+- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `a5232efb6c3d04f42a5ef730cb2954ce419db2fe`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
 - 原版 xdebug runtime build ID：`8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 原版 schema revision：`c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
@@ -187,6 +187,7 @@
 - P6 第二十三批修改前证据：冻结原版 `trace.active_driver` 的 raw termination 在活动 force 时为 `force`，简化公开响应保留该 termination，同时只返回 force 的已解析源码路径。35ps 直接查询真实 FST 的 `forced_q` 时，当前 handler 把 force 与底层 NBA 都计为普通 active drivers，summary 错报 `assignment` 且 total_count=2。下一步在单步 action 内复用 force 优先级：唯一活动 force 覆盖底层 assignment，termination 为 force；多个 force 仍保留多条路径。不得改变 chain/X-origin 已有语义或从 FST 值推断 force。
 - P6 第二十三批实现：单步 action 在统一 predicate 求值后检测活动 force；存在时只投影 force statements，底层普通 assignment 及其 unresolved predicate 不影响结果，summary 为 `force/force` 且完整性保持 true。多个活动 force 均保留，继续受既有 `max_results` 响应裁剪，不任意选一。35ps 真实查询现在只返回第 52 行 `top.data → forced_q` 路径。至此 `trace.active_driver`、chain、X-origin 三个公开入口均有各自 force 回归。combined 44/44、全量 pytest 234/234、CTest 8/8 与冻结基线通过。
 - P6 第二十四批文档防漂移复核：按用户再次要求，把 `GOAL-FST-DIRECT-001` 固化为不可拆分的双断言——唯一且必须适配的波形输入是当前 session 原始 `.fst`；FST/Wellen 只提供运行时波形事实，分析责任仍属于冻结的 xdebug action 语义与必要的 Verilator DesignDB 静态事实。修正架构文档中可能误读为“FST 自身负责分析”的“接收和分析 FST 波形”措辞，并明确只证明 `.fst` 后缀不足以通过架构审查。Goal 系统不允许原地改写 active objective，因此继续由 objective 首句引用的任务书及其权威 Goal 附件承载该修正；Goal 保持 active，不结束、不重建。
+- P6 第二十五批 Verilator pattern 切片：`8623446e6` 先用独立普通仿真证明顶层点星 wildcard 在 `case matches` 与 `AstPatternStar` 两层均被拒绝；`a5232efb6` 仅在 LinkParse 将直接 item wildcard 规范化为 case 表达式与自身的四态精确比较，从而对零、一、X、Z 恒真并保留源码 item 顺序。新 wildcard、既有精确 matches 与两组 tagged 拒绝回归 4/4，完整 XDD 8/8、distribution 2/2 通过；未修改 DesignDB emitter、ABI/capability、调度或 Wellen。该批只关闭无绑定顶层 wildcard，tagged union、嵌套 pattern、pattern variable/作用域和独立 `matches` 运算符仍未完成，不得宣称通用 tagged/pattern 已关闭。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
