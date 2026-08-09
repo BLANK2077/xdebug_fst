@@ -135,6 +135,16 @@ def xprop_design_db() -> Path:
 
 
 @pytest.fixture(scope="session")
+def gcd_xorigin_fst(repo_root: Path) -> Path:
+    return repo_root.parent / "wellen" / "wellen" / "inputs" / "treadle" / "GCD.vcd.fst"
+
+
+@pytest.fixture(scope="session")
+def gcd_xorigin_design_db(xfst_bin: Path) -> Path:
+    return xfst_bin.parent / "testdata" / "fixtures" / "gcd_xorigin" / "obj_dir"
+
+
+@pytest.fixture(scope="session")
 def apb_fst() -> Path:
     return _fix("apb")
 

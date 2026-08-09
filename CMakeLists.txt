@@ -159,6 +159,24 @@ if(BUILD_TESTING)
         tests/cpp/xdd_v1_bundle.cpp
     )
 
+    set(XORIGIN_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/gcd_xorigin/obj_dir")
+    file(MAKE_DIRECTORY "${XORIGIN_XDD_BUNDLE_DIR}")
+    add_library(test-xorigin-xdd-bundle SHARED
+        tests/cpp/xorigin_xdd_bundle.cpp
+    )
+    target_include_directories(test-xorigin-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    set_target_properties(test-xorigin-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vgcd_xorigin__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${XORIGIN_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${XORIGIN_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVgcd_xorigin__DesignDb.so\"\n}\n"
+    )
+
     add_executable(test-xdd-design-backend
         tests/cpp/test_xdd_design_backend.cpp
         src/backend/xdd_design_backend.cpp
