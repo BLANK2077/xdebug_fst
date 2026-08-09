@@ -108,18 +108,32 @@ def test_list_export(loop_runner: StdioLoopRunner, counter_fst) -> None:
 
 def test_list_first_change(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
-    loop_runner.request("list.create", args={"name": "fc"})
-    loop_runner.request("list.add", args={
+    loop_runner.request("list.create", args={
         "name": "fc", "signals": ["top.counter_top.count", "top.clk"]})
     rsp = loop_runner.request("list.first_change", args={
-        "name": "fc", "begin": "0", "end": "200"})
+        "name": "fc", "time_range": {"begin": "0ps", "end": "200ps"},
+        "render_time_unit": "ps"})
     assert rsp.get("ok"), rsp
-    first = rsp["data"]["first_changes"]
-    assert len(first) == 2
-    by_sig = {f["signal"]: f for f in first}
-    # first change point in window (t=0 is the initial value row)
-    assert by_sig["top.counter_top.count"]["time"] == 0
-    assert by_sig["top.clk"]["time"] == 0
+    assert rsp["summary"] == {
+        "name": "fc", "diff_found": True, "diff_time": "10ps",
+        "changed_signal_count": 1}
+    assert rsp["data"]["changed_signals"][0]["signal"] == "top.clk"
+    assert rsp["data"]["changed_signals"][0]["before_time"] == "0ps"
+    assert rsp["data"]["changed_signals"][0]["change_time"] == "10ps"
+
+
+def test_list_first_change_no_difference(loop_runner: StdioLoopRunner,
+                                         counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    loop_runner.request("list.create", args={
+        "name": "stable", "signals": ["top.counter_top.count"]})
+    rsp = loop_runner.request("list.first_change", args={
+        "name": "stable", "time_range": {"begin": "490ps", "end": "490ps"}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"] == {
+        "name": "stable", "diff_found": False, "diff_time": None,
+        "changed_signal_count": 0}
+    assert rsp["data"]["changed_signals"] == []
 
 
 # ── event.* ──
