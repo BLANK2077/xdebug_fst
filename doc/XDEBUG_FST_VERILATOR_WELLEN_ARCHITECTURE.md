@@ -10,9 +10,9 @@
 4. 为什么对 Verilator 的修改必须保持克制；
 5. xdebug-fst 对 Wellen 的能力要求是什么；
 6. `wellen_capi` 与 `wellenx_capi` 如何分工；
-7. 当前已经实现了什么，仍有哪些差异需要在 P1 至 P7 收敛。
+7. 当前已经实现了什么，仍有哪些差异需要在 P3 至 P7 收敛。
 
-本文描述的是整体目标架构，同时明确标注 P0 已落地能力与后续阶段目标，避免把当前的过渡实现误认为已经与原版 xdebug 完全一致。
+本文描述的是整体目标架构，同时明确标注 P0 至 P2 已落地能力与后续阶段目标，避免把当前的协议、会话兼容误认为全部 73 个分析 action 已经与原版 xdebug 完全一致。
 
 ## 二、为什么需要两个相互独立的事实源
 
@@ -151,6 +151,37 @@ fingerprint、UDS 节点和 generation ping。`session.list` 根据严格解析�
 非法环境值 fail closed。engine 在 resource 打开后、active CAS 前重新采集 fingerprint，
 防止启动窗口内文件被替换。私有 `server.ping/version/quit` 也使用封闭字段合同，额外字段
 不会意外触发 quit。
+
+### 3.3 run manifest 与资源来源证明
+
+当调用方提供 `target.run_manifest` 时，session.open 不只检查资源“现在能否打开”，还要求
+资源能由一个已发布的运行清单证明。当前严格合同为 `xdebug.run-manifest.v1`，根对象只允许
+`schema_version`、`state` 和 `resources`，其中 `state` 必须为 `published`。`resources.fsdb`
+始终必需；combined 模式还必须有且只能有 `resources.daidir`，与公开 target 精确对应。
+
+每项资源声明只允许三个字段：相对 `path`、非负 `size_bytes` 和 64 位小写十六进制
+`sha256`。相对路径以 manifest 所在目录为根进行 canonicalize，必须与 session.open 已解析的
+真实资源路径一致。FST 按文件内容计算 SHA-256；DesignDB bundle 按排序后的目录树计算摘要，
+把目录记为 `D\n<relative>\n`，把文件记为 `F\n<relative>\n<content>`。路径、大小或摘要任一
+不一致都返回 `RESOURCE_PROVENANCE_MISMATCH`，并携带 manifest、resource、expected/actual
+路径、大小或摘要证据，不会尝试旁路 manifest 或猜测另一份资源。
+
+校验发生在 generation reservation 和 fork 之前，因此来源不可信不会遗留 opening record
+或子进程。校验成功后，响应中的 `data.run_manifest` 返回已经核验的 canonical manifest；
+未提供清单时明确返回 null。engine 启动完成到 active CAS 之前仍会再次检查资源 fingerprint，
+两层检查分别防止来源错配和启动窗口内替换。
+
+### 3.4 多会话提示与批量清理
+
+不同 session id 可以显式打开同一份资源，以便调用方独立管理生命周期。为了避免无意间
+重复占用资源，成功响应会按原版合同附加 `RESOURCE_SESSION_ALREADY_ALIVE` advisory，区分
+`same_fsdb`、`same_daidir` 和 `same_combined_resource`，但不会擅自复用或关闭已有 session。
+
+`session.close` 与 `session.kill` 支持 `target.session_id="all"`。frontend 先在锁保护下读取
+当前 generation 集合，再逐项执行同一套 generation-safe 清理，返回 requested/removed 计数
+和 `removed_sessions`；只要有一项失败，就返回 `SESSION_CLEANUP_PARTIAL_FAILURE`、失败 id
+以及已清理数量。批量模式禁止 ownership token，因为一个 token 只能作为一个精确 session
+generation 的条件清理证明。该能力没有放宽 cleanup_failed 保留规则。
 
 GCC 8 对 C++17 `std::filesystem` 仍使用独立的 `libstdc++fs`。CMake 现在对
 `xdebug-fst` 显式链接 `stdc++fs`，保证相同源码在当前冻结工具链中可重复配置和链接，
