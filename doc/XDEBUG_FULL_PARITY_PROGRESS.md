@@ -3,8 +3,8 @@
 ## 当前状态
 
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
-- 当前阶段：P3 进行中（Wellen FST 波形语义）
-- 当前任务：完成 P3 文档、全量门禁与阶段验收
+- 当前阶段：P3 已完成（Wellen FST 波形语义）
+- 当前任务：进入 P4，先以失败差分判断是否确有必要修改 Verilator
 - 全局硬门禁：生产、回归和最终验收只打开 FST 波形；VCD 仅可作为可重复生成 FST 的源文件，禁止作为输入或 fallback
 - xdebug-fst 当前功能提交：`f61670a`；当前测试提交：`e1779c9`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
@@ -21,7 +21,7 @@
 | P0 | 已完成 | `parity-p0` | 基线、依赖锁、Wellen/Verilator 独立回归和漂移检查均通过 |
 | P1 | 已完成 | `parity-p1` | 73 action、146 schema、请求/响应校验、canonical JSON/XOUT 与 stdio-loop 全部对齐 |
 | P2 | 已完成 | `parity-p2` | registry、真实 UDS engine、来源清单、批量生命周期、异常补偿及 MCP direct/fake-LSF 全部通过；TCP/file 按用户要求裁剪且无 fallback |
-| P3 | 进行中 | `parity-p3` | FST-only Wellen 层级、时间、类型、delta、采样、批量与完整性已实现，正在完成阶段总验收 |
+| P3 | 已完成 | `parity-p3` | FST-only Wellen 层级、时间、类型、delta、采样、批量与完整性已实现；Rust/C/C++、7 CTest、基线与双 C ABI 门禁全部通过 |
 | P4 | 未开始 | `parity-p4` | 克制扩展 DesignDB |
 | P5 | 未开始 | `parity-p5` | 全部公共 Action |
 | P6 | 未开始 | `parity-p6` | Active Driver 与 X Origin |
@@ -83,9 +83,10 @@
 - P2 fake-LSF CTest：使用 xverif 自带 fake bsub/bkill 和当前 `xdebug-fst`，真实覆盖 stdout scheduler noise、job id 识别、managed `open/doctor/close`、bkill 日志与 native registry 清空；未调用真实 LSF，也未切换 backend。
 - P3 Wellen：`cargo test -p wellen-capi` 3 项通过，C ABI `make` 通过；根/递归层级、1ns timescale、bit/string/real/event 类型化值均有真实断言。
 - P3 xdebug-fst：7/7 CTest 通过；`wellen-fst-backend` 的所有实际波形参数均以 `.fst` 结尾，真实覆盖 1ns/1ps、深层 leaf、alias、64 位 X、Z、UTF-8 string delta、real、event、raw/before/after、时钟采样、批量 load/unload/value、变化游标、范围扫描和完整性诊断。
+- P3 阶段总验收：Wellen Rust 3/3、Wellen C ABI、wellenx 2/2、xdebug-fst 7/7 CTest 和 `check_compat_baseline.py` 全部通过；xdebug-fst、Wellen、Verilator 三仓状态均干净，Verilator 仍停留在 `e04eb0ea8`，P3 未对其增加任何修改。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
 ## 剩余差异
 
-P0、P1、P2 已关闭。P3 的 FST 后端事实层已实现递归层级、alias、timescale、严格时间、四态/real/string/event、delta、raw/before/after、时钟采样、批量访问和完整性诊断，且生产与测试均禁止直接读取 VCD/FSDB 或 fallback。P3 尚需完成阶段总验收、基线复检、文档提交和 `parity-p3` tag；随后 P5 必须把全部公开 action 迁移到这些统一语义。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；schema enum 保留，实际选择必须 fail closed 且不得 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
+P0、P1、P2、P3 已关闭。P3 的 FST 后端事实层已实现递归层级、alias、timescale、严格时间、四态/real/string/event、delta、raw/before/after、时钟采样、批量访问和完整性诊断，且生产与测试均禁止直接读取 VCD/FSDB 或 fallback。下一步进入 P4：必须先用公开 action 的失败差分证明现有 XDD ABI 无法提供必要事实；如果 xdebug-fst 组合现有 FST 与 XDD 即可完成，则不修改 Verilator。随后 P5 必须把全部公开 action 迁移到这些统一语义。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；schema enum 保留，实际选择必须 fail closed 且不得 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
