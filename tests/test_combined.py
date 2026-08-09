@@ -195,11 +195,11 @@ def test_trace_x_origin_tracks_control_and_per_signal_width(
         "render_time_unit": "ps"})
     assert rsp.get("ok"), rsp
     origins = {chain["origin"]["signal"] for chain in rsp["data"]["chains"]}
-    assert origins == {"GCD.io_a", "GCD.T_13"}
+    assert origins == {"GCD.io_a", "GCD.y"}
     control_chain = next(chain for chain in rsp["data"]["chains"]
-                         if chain["origin"]["signal"] == "GCD.T_13")
+                         if chain["origin"]["signal"] == "GCD.y")
     assert control_chain["hops"][-1]["relation"] == "control"
-    assert control_chain["hops"][-1]["value"]["width"] == 1
+    assert control_chain["hops"][-1]["value"]["width"] == 32
     assert rsp["data"]["query"]["value"]["width"] == 33
 
 
@@ -248,7 +248,7 @@ def test_trace_x_origin_dependency_sampling_limit_is_explicit(
     chain = rsp["data"]["chains"][0]
     assert chain["complete"] is False
     assert chain["pending_x_dependencies"] == [{
-        "signal": "GCD.T_13", "relation": "control",
+        "signal": "GCD.y", "relation": "control",
         "reason": "max_trace_signals"}]
 
 
@@ -269,7 +269,7 @@ def test_trace_x_origin_chain_limit_preserves_omitted_branch(
     assert event["x_dependency_count"] == 2
     assert event["returned_x_dependency_count"] == 1
     assert event["omitted_x_dependency_count"] == 1
-    assert event["pending_x_dependencies"][0]["signal"] == "GCD.T_13"
+    assert event["pending_x_dependencies"][0]["signal"] == "GCD.y"
 
 
 def test_trace_x_origin_not_x_late(loop_runner: StdioLoopRunner, xprop_fst,

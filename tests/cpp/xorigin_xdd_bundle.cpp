@@ -28,7 +28,7 @@ const XddDriverRec kDrivers[] = {
     {5, 1, "cont_assign", "rhs", "gcd_xorigin.sv", 10},
     {5, 4, "cont_assign", "rhs", "gcd_xorigin.sv", 11},
     {6, 1, "cont_assign", "rhs", "gcd_xorigin.sv", 14},
-    {6, 7, "cont_assign", "control", "gcd_xorigin.sv", 14},
+    {6, 4, "cont_assign", "control", "gcd_xorigin.sv", 14},
 };
 
 const int kDriverStart[] = {0, 1, 2, 2, 4, 4, 6, 8};
@@ -41,10 +41,10 @@ const XddLoadRec kLoads[] = {
     {2, 1, "rhs_use", "gcd_xorigin.sv", 6},
     {4, 3, "rhs_use", "gcd_xorigin.sv", 9},
     {4, 5, "rhs_use", "gcd_xorigin.sv", 11},
-    {7, 6, "control_use", "gcd_xorigin.sv", 14},
+    {4, 6, "control_use", "gcd_xorigin.sv", 14},
 };
 
-const int kLoadStart[] = {0, 0, 4, 5, 5, 7, 7, 7};
+const int kLoadStart[] = {0, 0, 4, 5, 5, 8, 8, 8};
 
 constexpr int kSignalCount = 8;
 constexpr int kDriverCount = 8;
