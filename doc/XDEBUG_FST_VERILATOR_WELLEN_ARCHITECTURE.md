@@ -728,8 +728,15 @@ FST 转换、离线索引、全量快照或 fallback。
 通配，并把 `AstInsideRange` 转成包含上下界的比较合取；default 静态谓词否定全部此前
 item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST expression 值执行
 这些运算，未知 LHS 不会像 casex 一样被误当通配。该扩展复用既有 predicate 字符串 ABI，
-不新增 capability，也不把区间匹配下沉到 Wellen。通用 `case matches` 的 tagged pattern
-语义仍未声称支持；缺失时继续 fail closed，不能近似成 case inside。
+不新增 capability，也不把区间匹配下沉到 Wellen。
+
+`case matches` 只关闭有真实证据的精确表达式子集。Verilator `adc193c2f` 在 LinkParse 中
+仅放行“至少一个非 default 精确表达式 item，且条件树不含 tagged/pattern 节点”的构造，
+普通仿真继续走既有 case lowering；DesignDB 在既有 predicate 字符串中发布 `===`，default
+否定此前精确 item。xdebug 在 active time 仍通过 Wellen 直接读取当前原始 `.fst` 的 selector
+并执行四态谓词求值，FST 不是 pattern 或 driver 分析器。default-only、tagged union、tagged
+expression、tagged pattern、pattern variable/star 和独立 `matches` 运算符继续明确不支持，
+不得把本批次描述成通用 pattern matching 已完成，也不得近似成 case inside。
 
 显式文件产物必须与“离线 FST 分析”严格区分：
 
@@ -777,7 +784,7 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `8a5523487eea12b5389dca978bf73397b1387b9c`
+- revision `adc193c2f75147c413c7e8c8e6b2e13bbf4198d1`
 
 对应提交：
 
@@ -799,6 +806,7 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 - Verilator `5c19377e3`：仅为 `--design-db` 旁路保留 V3Tristate 删除的同强度连续多驱动静态描述，普通仿真与 XDD ABI 不变；
 - Verilator `3e7cca4f1`：在既有谓词字符串中发布 case inside 的 item-side wildcard 与闭区间语义，普通仿真与 XDD ABI 不变；
 - Verilator `007f1aa5c`、`8a5523487`：恢复 always-driven inout lowering 前原始 RHS，并替换而非叠加内部 strength 驱动；
+- Verilator `ea1d3c9b4`、`adc193c2f`：先记录精确表达式 `case matches` 被无条件拒绝的普通仿真与 DesignDB 失败，再仅放行该有限子集并发布 `===` predicate；tagged/pattern 能力保持不支持；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；

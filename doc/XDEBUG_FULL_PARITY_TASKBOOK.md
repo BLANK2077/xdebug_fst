@@ -624,8 +624,11 @@ RHS 的规则，将 `count <= count + 1` 的活动 NBA 正确终止为
 非三态连续赋值静态描述，不保留 AST、不改变普通仿真或 XDD ABI；chain 已按原版合同报告
 两条活动语句的 `ambiguous/multiple_active_candidates`。第九批又在独立失败证据后，以现有
 predicate 字符串表达 case inside 的仅 item 侧通配和闭区间，并由 xdebug 使用 Wellen
-直接读取的真实 FST 值判定；`case matches` 仍因其 tagged pattern 语义及上游支持边界单独
-保持未完成。第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
+直接读取的真实 FST 值判定；第十七批在普通仿真和 DesignDB 双重失败证据后，仅关闭
+`case matches` 的精确表达式 item/default 子集：Verilator 发布 `===` 静态谓词，xdebug
+使用 Wellen 从当前原始 FST 直接读取的 selector 在 active time 判定。tagged union、tagged
+pattern、pattern variable/star、default-only 与独立 `matches` 运算符仍明确不支持，不得
+冒充通用 matches 完成。第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和
 `inout_leaf.bus` 组成的真实两级 inout 网络；当前锁定的 DesignDB 已完整发布各级静态

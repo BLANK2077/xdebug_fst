@@ -165,6 +165,16 @@ def case_design_db() -> Path:
 
 
 @pytest.fixture(scope="session")
+def matches_fst() -> Path:
+    return _fix("matches")
+
+
+@pytest.fixture(scope="session")
+def matches_design_db() -> Path:
+    return FIXTURES / "matches" / "obj_dir"
+
+
+@pytest.fixture(scope="session")
 def axi_fst() -> Path:
     return _fix("axi")
 

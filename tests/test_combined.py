@@ -107,6 +107,27 @@ def test_trace_active_driver_selects_casez_and_casex_wildcards(
     assert casex["data"]["paths"][0]["line"] == 32
 
 
+def test_trace_active_driver_selects_exact_case_matches_item_and_default(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    selected = loop_runner.request("trace.active_driver", args={
+        "signal": "top.out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert selected.get("ok"), selected
+    assert selected["summary"]["analysis_complete"] is True
+    assert selected["summary"]["total_count"] == 1
+    assert selected["data"]["paths"][0]["line"] == 13
+
+    default = loop_runner.request("trace.active_driver", args={
+        "signal": "top.out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert default.get("ok"), default
+    assert default["summary"]["analysis_complete"] is True
+    assert default["summary"]["total_count"] == 1
+    assert default["data"]["paths"][0]["line"] == 14
+
+
 def test_trace_active_driver_preserves_lowered_nested_if_identity(
         loop_runner: StdioLoopRunner, case_fst, case_design_db) -> None:
     open_session(loop_runner, case_fst, case_design_db)
