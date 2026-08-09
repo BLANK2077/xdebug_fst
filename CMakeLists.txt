@@ -155,6 +155,27 @@ if(BUILD_TESTING)
     target_link_libraries(test-uds-transport PRIVATE pthread)
     add_test(NAME uds-transport COMMAND test-uds-transport)
 
+    add_executable(test-wellen-fst-backend
+        tests/cpp/test_wellen_fst_backend.cpp
+        src/backend/wellen_fst_backend.cpp
+    )
+    target_include_directories(test-wellen-fst-backend PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${WELLEN_CAPI_INCLUDE}
+        ${WELLENX_CAPI_INCLUDE}
+    )
+    target_link_libraries(test-wellen-fst-backend PRIVATE
+        "${WELLEN_CAPI_LIBRARY}"
+        "${WELLENX_CAPI_LIBRARY}"
+    )
+    set_target_properties(test-wellen-fst-backend PROPERTIES
+        BUILD_RPATH "${WELLEN_CAPI_LIB_DIR};${WELLENX_CAPI_LIB_DIR}")
+    add_test(
+        NAME wellen-fst-backend
+        COMMAND test-wellen-fst-backend
+            ${WELLEN_REPOSITORY_DIR}/wellen/inputs/scope_with_comment.vcd.fst
+    )
+
     add_test(
         NAME session-uds-lifecycle
         COMMAND ${Python3_EXECUTABLE}
