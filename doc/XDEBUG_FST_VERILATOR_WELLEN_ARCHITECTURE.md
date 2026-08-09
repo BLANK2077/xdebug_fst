@@ -677,4 +677,8 @@ activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为�
 - xdebug-fst `e2870e9`：在 active time 直接读取 FST 控制值并筛选 active-driver、chain 与 X-origin 分支。
 - xdebug-fst `a0b73bc`：以 APB 嵌套条件和普通 case/default 的真实 FST 回归扩展已证能力边界；
 - xdebug-fst `2815e61`：建立 casez/casex 静态匹配种类缺失的修改前失败证据；
-- xdebug-fst `9eac4a5`：按 `==?z`/`==?x` 与 Wellen 四态 FST 值判定 wildcard case 分支。
+- xdebug-fst `9eac4a5`：按 `==?z`/`==?x` 与 Wellen 四态 FST 值判定 wildcard case 分支；
+- xdebug-fst `ec8323c`：建立 lowering 后同目标嵌套条件身份丢失的修改前失败证据；
+- xdebug-fst `5e64ec1`：锁定 Verilator 条件叶子恢复 revision 并通过全量门禁；
+- xdebug-fst `ffbc888`：建立同源行三元信号/常量叶子被错误合并的修改前失败证据；
+- xdebug-fst `1119706`：将 predicate 纳入语句身份并以真实 FST 选择同源行三元叶子。
