@@ -526,7 +526,13 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 drivers,waveform,sample.active_time);
             std::vector<StatementGroup> groups;
             for (const auto& statement : evaluated.active) {
-                if (!statement.rhs.empty()) groups.push_back(statement);
+                const bool has_control=std::any_of(
+                    statement.records.begin(),statement.records.end(),
+                    [](const auto& driver) {
+                        return driver.dependency_role=="control";
+                    });
+                if (!statement.rhs.empty()||statement.kind=="nba"||has_control)
+                    groups.push_back(statement);
             }
             const IDesignBackend::DriverRecord* selected=nullptr;
             IDesignBackend::DriverRecord mapped_driver;
@@ -536,9 +542,9 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             else if (groups.size()>1) ambiguity_kind="multiple_active_candidates";
             else if (groups.size()==1&&groups[0].rhs.size()>1)
                 ambiguity_kind="multiple_rhs_sources";
-            if (!groups.empty()&&!groups[0].rhs.empty())
-                selected=&groups[0].rhs[0];
-            if (ambiguity_kind.empty()&&selected) {
+            if (!groups.empty()) selected=representative_driver(groups[0]);
+            if (ambiguity_kind.empty()&&selected&&
+                selected->dependency_role=="rhs") {
                 const std::string candidate=signal_name(design,selected->src_signal);
                 if (!candidate.empty()&&candidate!=current&&
                     sample_at(waveform,candidate,sample.active_time).ok)

@@ -681,6 +681,11 @@ group，会正确终止却丢失源码行。consumer 的责任边界是：所有
 参与 statement identity、ambiguity 和 hop source evidence；只有 group 的 RHS record 能
 形成下一跳。control record 可作为 representative evidence，但绝不能成为数据上游。
 
+实际实现还必须排除 lowering 噪声：两级 inout 固件包含无 RHS、无 control、仅
+`statement` role 的生成型 `proc_assign`。因此 chain 的可见活动 assignment 集合为“含
+RHS，或 kind 为 NBA，或含 control dependency”；这既保留常量 NBA，也不把裸生成节点
+算成第二条用户 driver。代表记录只供 source evidence，是否递归仍严格检查 role=`rhs`。
+
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
 xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为

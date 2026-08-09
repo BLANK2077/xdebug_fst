@@ -675,6 +675,12 @@ statement。DesignDB 已在 control 记录中保存第 103/107 行和精确 pred
 参与源码与歧义分组，但只有 `dependency_role=rhs` 可以继续上游；control 记录只能作为
 常量分支的动态/源码证据。禁止伪造常量波形信号或沿 control 当数据源追踪。
 
+最终 consumer 纳入三类活动 group：含 RHS、`kind=nba`、或至少有一个 control dependency。
+这覆盖有 control 的常量叶子与无 control 的直接 NBA，同时排除 lowering 生成的裸
+`statement`-only `proc_assign`，避免在 inout 链制造假 driver。`representative_driver`
+只负责 hop 的 file/line evidence；其 role 不是 `rhs` 时，chain 必须就地按 assignment
+终止，不能沿 control 或 statement source 继续。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。
