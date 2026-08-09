@@ -243,13 +243,31 @@ def test_event_find_limit_and_max_samples(loop_runner: StdioLoopRunner,
     assert rsp["summary"]["returned_count"] == 2
 
 
-def test_event_export(loop_runner: StdioLoopRunner, counter_fst) -> None:
+def test_event_export(loop_runner: StdioLoopRunner, counter_fst, tmp_path) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("event.export", args={
-        "signal": "top.clk", "event": "rising_edge",
-        "begin": "0", "end": "100"})
+        "clock": "top.clk", "edge": "posedge",
+        "signals": {"clk": "top.clk"}, "expr": "clk === clk",
+        "line_limit": 2, "time_range": {"begin": "0ps", "end": "100ps"},
+        "aggregate": {"events": True, "group_by": ["clk"]}})
     assert rsp.get("ok"), rsp
-    assert len(rsp["data"]["events"]) == 5
+    assert rsp["summary"]["status"] == "preview"
+    assert rsp["summary"]["row_count"] == 5
+    assert rsp["summary"]["response_truncated"] is True
+    assert len(rsp["data"]["events"]) == 2
+    assert rsp["data"]["aggregate"]["count"] == 5
+
+    output = tmp_path / "events.json"
+    written = loop_runner.request("event.export", args={
+        "clock": "top.clk", "edge": "posedge",
+        "signals": {"clk": "top.clk"}, "expr": "clk === clk",
+        "time_range": {"begin": "0ps", "end": "100ps"},
+        "output": {"path": str(output), "file_format": "json"}})
+    assert written.get("ok"), written
+    assert written["summary"]["status"] == "written"
+    artifact = json.loads(output.read_text())
+    assert len(artifact["events"]) == 5
+    assert artifact["sampling"]["effective"]["sample_point"] == "before"
 
 
 # ── waveform.cursor.* ──
