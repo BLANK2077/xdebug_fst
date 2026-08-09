@@ -7,12 +7,14 @@ static const XddSignalInfo kSignals[] = {
     {"top.reset", "port", 1, "counter_top.sv", 3},
     {"top.count", "port", 8, "counter_top.sv", 4},
     {"top.overflow", "port", 1, "counter_top.sv", 5},
-    {"top.counter_top.clk", "wire", 1, "counter_top.sv", 2},
-    {"top.counter_top.reset", "wire", 1, "counter_top.sv", 3},
-    {"top.counter_top.count", "wire", 8, "counter_top.sv", 4},
-    {"top.counter_top.overflow", "wire", 1, "counter_top.sv", 5},
+    {"top.counter_top.clk", "port", 1, "counter_top.sv", 2},
+    {"top.counter_top.reset", "port", 1, "counter_top.sv", 3},
+    {"top.counter_top.count", "port", 8, "counter_top.sv", 4},
+    {"top.counter_top.overflow", "port", 1, "counter_top.sv", 5},
 };
 static const int kSignalCount = 8;
+
+static const int kSignalDirections[] = {1, 1, 2, 2, 1, 1, 2, 2};
 
 static const XddNameEntry kNameIndex[] = {
     {"top.clk", 0},
@@ -40,6 +42,19 @@ static const XddDriverRec kDrivers[] = {
 static const int kDriverCount = 9;
 static const int kDriverStart[] = {0, 0, 0, 2, 5, 6, 7, 8};
 
+static const XddPortConnectionRec kPortConnections[] = {
+    {0, 4, "port_boundary"},
+    {1, 5, "port_boundary"},
+    {2, 6, "port_boundary"},
+    {3, 7, "port_boundary"},
+    {4, 0, "port_boundary"},
+    {5, 1, "port_boundary"},
+    {6, 2, "port_boundary"},
+    {7, 3, "port_boundary"},
+};
+static const int kPortConnectionCount = 8;
+static const int kPortConnectionStart[] = {0, 1, 2, 3, 4, 5, 6, 7};
+
 static const XddLoadRec kLoads[] = {
     {0, 4, "rhs_use", "counter_top.sv", 2},
     {1, 5, "rhs_use", "counter_top.sv", 3},
@@ -57,6 +72,11 @@ static const int kLoadStart[] = {0, 1, 6, 9, 10, 10, 10, 10};
 
 
 extern "C" {
+
+int xdd_abi_version(void) { return XDD_ABI_VERSION; }
+uint64_t xdd_capabilities(void) {
+    return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS;
+}
 
 XddDb* xdd_init(void) { return reinterpret_cast<XddDb*>(1); }
 void xdd_close(XddDb*) {}
@@ -89,6 +109,30 @@ const char* xdd_signal_file(XddDb*, int idx) {
 }
 int xdd_signal_line(XddDb*, int idx) {
     return (idx >= 0 && idx < kSignalCount) ? kSignals[idx].line : 0;
+}
+int xdd_signal_direction(XddDb*, int idx) {
+    return (idx >= 0 && idx < kSignalCount) ? kSignalDirections[idx] : 0;
+}
+
+int xdd_port_connection_count(XddDb*, int idx) {
+    if (idx < 0 || idx >= kSignalCount) return 0;
+    int e = (idx + 1 < kSignalCount) ? kPortConnectionStart[idx + 1]
+                                     : kPortConnectionCount;
+    return e - kPortConnectionStart[idx];
+}
+
+void xdd_port_connection(XddDb*, int idx, int i,
+                         int* connected_signal, const char** kind) {
+    *connected_signal = -1;
+    *kind = nullptr;
+    if (idx < 0 || idx >= kSignalCount) return;
+    int s = kPortConnectionStart[idx];
+    int e = (idx + 1 < kSignalCount) ? kPortConnectionStart[idx + 1]
+                                     : kPortConnectionCount;
+    if (i < 0 || i >= (e - s)) return;
+    const XddPortConnectionRec& connection = kPortConnections[s + i];
+    *connected_signal = connection.connected_signal;
+    *kind = connection.kind;
 }
 
 int xdd_trace_driver_count(XddDb*, int idx) {

@@ -13,29 +13,31 @@ static const XddSignalInfo kSignals[] = {
     {"top.prdata", "port", 8, "apb_top.sv", 38},
     {"top.pready", "port", 1, "apb_top.sv", 39},
     {"top.pslverr", "port", 1, "apb_top.sv", 40},
-    {"top.apb_top.pclk", "wire", 1, "apb_top.sv", 31},
-    {"top.apb_top.presetn", "wire", 1, "apb_top.sv", 32},
-    {"top.apb_top.psel", "wire", 1, "apb_top.sv", 33},
-    {"top.apb_top.penable", "wire", 1, "apb_top.sv", 34},
-    {"top.apb_top.pwrite", "wire", 1, "apb_top.sv", 35},
-    {"top.apb_top.paddr", "wire", 8, "apb_top.sv", 36},
-    {"top.apb_top.pwdata", "wire", 8, "apb_top.sv", 37},
-    {"top.apb_top.prdata", "wire", 8, "apb_top.sv", 38},
-    {"top.apb_top.pready", "wire", 1, "apb_top.sv", 39},
-    {"top.apb_top.pslverr", "wire", 1, "apb_top.sv", 40},
-    {"top.apb_top.u_slave.pclk", "wire", 1, "apb_top.sv", 3},
-    {"top.apb_top.u_slave.presetn", "wire", 1, "apb_top.sv", 4},
-    {"top.apb_top.u_slave.psel", "wire", 1, "apb_top.sv", 5},
-    {"top.apb_top.u_slave.penable", "wire", 1, "apb_top.sv", 6},
-    {"top.apb_top.u_slave.pwrite", "wire", 1, "apb_top.sv", 7},
-    {"top.apb_top.u_slave.paddr", "wire", 8, "apb_top.sv", 8},
-    {"top.apb_top.u_slave.pwdata", "wire", 8, "apb_top.sv", 9},
-    {"top.apb_top.u_slave.prdata", "wire", 8, "apb_top.sv", 10},
-    {"top.apb_top.u_slave.pready", "wire", 1, "apb_top.sv", 11},
-    {"top.apb_top.u_slave.pslverr", "wire", 1, "apb_top.sv", 12},
+    {"top.apb_top.pclk", "port", 1, "apb_top.sv", 31},
+    {"top.apb_top.presetn", "port", 1, "apb_top.sv", 32},
+    {"top.apb_top.psel", "port", 1, "apb_top.sv", 33},
+    {"top.apb_top.penable", "port", 1, "apb_top.sv", 34},
+    {"top.apb_top.pwrite", "port", 1, "apb_top.sv", 35},
+    {"top.apb_top.paddr", "port", 8, "apb_top.sv", 36},
+    {"top.apb_top.pwdata", "port", 8, "apb_top.sv", 37},
+    {"top.apb_top.prdata", "port", 8, "apb_top.sv", 38},
+    {"top.apb_top.pready", "port", 1, "apb_top.sv", 39},
+    {"top.apb_top.pslverr", "port", 1, "apb_top.sv", 40},
+    {"top.apb_top.u_slave.pclk", "port", 1, "apb_top.sv", 3},
+    {"top.apb_top.u_slave.presetn", "port", 1, "apb_top.sv", 4},
+    {"top.apb_top.u_slave.psel", "port", 1, "apb_top.sv", 5},
+    {"top.apb_top.u_slave.penable", "port", 1, "apb_top.sv", 6},
+    {"top.apb_top.u_slave.pwrite", "port", 1, "apb_top.sv", 7},
+    {"top.apb_top.u_slave.paddr", "port", 8, "apb_top.sv", 8},
+    {"top.apb_top.u_slave.pwdata", "port", 8, "apb_top.sv", 9},
+    {"top.apb_top.u_slave.prdata", "port", 8, "apb_top.sv", 10},
+    {"top.apb_top.u_slave.pready", "port", 1, "apb_top.sv", 11},
+    {"top.apb_top.u_slave.pslverr", "port", 1, "apb_top.sv", 12},
     {"top.apb_top.u_slave.mem", "wire", 8, "apb_top.sv", 14},
 };
 static const int kSignalCount = 31;
+
+static const int kSignalDirections[] = {1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 0};
 
 static const XddNameEntry kNameIndex[] = {
     {"top.apb_top.paddr", 15},
@@ -113,6 +115,51 @@ static const XddDriverRec kDrivers[] = {
 static const int kDriverCount = 36;
 static const int kDriverStart[] = {0, 0, 0, 0, 0, 0, 4, 4, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
 
+static const XddPortConnectionRec kPortConnections[] = {
+    {0, 10, "port_boundary"},
+    {0, 20, "port_boundary"},
+    {1, 11, "port_boundary"},
+    {1, 21, "port_boundary"},
+    {2, 12, "port_boundary"},
+    {2, 22, "port_boundary"},
+    {3, 13, "port_boundary"},
+    {3, 23, "port_boundary"},
+    {4, 14, "port_boundary"},
+    {4, 24, "port_boundary"},
+    {5, 15, "port_boundary"},
+    {5, 25, "port_boundary"},
+    {6, 16, "port_boundary"},
+    {6, 26, "port_boundary"},
+    {7, 17, "port_boundary"},
+    {7, 27, "port_boundary"},
+    {8, 18, "port_boundary"},
+    {8, 28, "port_boundary"},
+    {9, 19, "port_boundary"},
+    {9, 29, "port_boundary"},
+    {10, 0, "port_boundary"},
+    {11, 1, "port_boundary"},
+    {12, 2, "port_boundary"},
+    {13, 3, "port_boundary"},
+    {14, 4, "port_boundary"},
+    {15, 5, "port_boundary"},
+    {16, 6, "port_boundary"},
+    {17, 7, "port_boundary"},
+    {18, 8, "port_boundary"},
+    {19, 9, "port_boundary"},
+    {20, 0, "port_boundary"},
+    {21, 1, "port_boundary"},
+    {22, 2, "port_boundary"},
+    {23, 3, "port_boundary"},
+    {24, 4, "port_boundary"},
+    {25, 5, "port_boundary"},
+    {26, 6, "port_boundary"},
+    {27, 7, "port_boundary"},
+    {28, 8, "port_boundary"},
+    {29, 9, "port_boundary"},
+};
+static const int kPortConnectionCount = 40;
+static const int kPortConnectionStart[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40};
+
 static const XddLoadRec kLoads[] = {
     {0, 10, "rhs_use", "apb_top.sv", 31},
     {0, 20, "rhs_use", "apb_top.sv", 3},
@@ -155,6 +202,11 @@ static const int kLoadStart[] = {0, 2, 9, 13, 17, 21, 24, 27, 29, 31, 33, 33, 33
 
 extern "C" {
 
+int xdd_abi_version(void) { return XDD_ABI_VERSION; }
+uint64_t xdd_capabilities(void) {
+    return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS;
+}
+
 XddDb* xdd_init(void) { return reinterpret_cast<XddDb*>(1); }
 void xdd_close(XddDb*) {}
 
@@ -186,6 +238,30 @@ const char* xdd_signal_file(XddDb*, int idx) {
 }
 int xdd_signal_line(XddDb*, int idx) {
     return (idx >= 0 && idx < kSignalCount) ? kSignals[idx].line : 0;
+}
+int xdd_signal_direction(XddDb*, int idx) {
+    return (idx >= 0 && idx < kSignalCount) ? kSignalDirections[idx] : 0;
+}
+
+int xdd_port_connection_count(XddDb*, int idx) {
+    if (idx < 0 || idx >= kSignalCount) return 0;
+    int e = (idx + 1 < kSignalCount) ? kPortConnectionStart[idx + 1]
+                                     : kPortConnectionCount;
+    return e - kPortConnectionStart[idx];
+}
+
+void xdd_port_connection(XddDb*, int idx, int i,
+                         int* connected_signal, const char** kind) {
+    *connected_signal = -1;
+    *kind = nullptr;
+    if (idx < 0 || idx >= kSignalCount) return;
+    int s = kPortConnectionStart[idx];
+    int e = (idx + 1 < kSignalCount) ? kPortConnectionStart[idx + 1]
+                                     : kPortConnectionCount;
+    if (i < 0 || i >= (e - s)) return;
+    const XddPortConnectionRec& connection = kPortConnections[s + i];
+    *connected_signal = connection.connected_signal;
+    *kind = connection.kind;
 }
 
 int xdd_trace_driver_count(XddDb*, int idx) {

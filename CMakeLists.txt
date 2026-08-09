@@ -155,6 +155,25 @@ if(BUILD_TESTING)
     target_link_libraries(test-uds-transport PRIVATE pthread)
     add_test(NAME uds-transport COMMAND test-uds-transport)
 
+    add_library(test-xdd-v1-bundle SHARED
+        tests/cpp/xdd_v1_bundle.cpp
+    )
+
+    add_executable(test-xdd-design-backend
+        tests/cpp/test_xdd_design_backend.cpp
+        src/backend/xdd_design_backend.cpp
+    )
+    target_include_directories(test-xdd-design-backend PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+    )
+    target_link_libraries(test-xdd-design-backend PRIVATE dl)
+    add_test(
+        NAME xdd-design-backend
+        COMMAND test-xdd-design-backend
+            ${CMAKE_SOURCE_DIR}/testdata/fixtures/counter/obj_dir/libVcounter_top__DesignDb.so
+            $<TARGET_FILE:test-xdd-v1-bundle>
+    )
+
     add_executable(test-wellen-fst-backend
         tests/cpp/test_wellen_fst_backend.cpp
         src/backend/wellen_fst_backend.cpp

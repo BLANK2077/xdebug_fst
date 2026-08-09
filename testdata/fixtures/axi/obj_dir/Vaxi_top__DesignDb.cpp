@@ -30,60 +30,60 @@ static const XddSignalInfo kSignals[] = {
     {"top.rlast", "port", 1, "axi_top.sv", 109},
     {"top.rvalid", "port", 1, "axi_top.sv", 109},
     {"top.rready", "port", 1, "axi_top.sv", 109},
-    {"top.axi_top.aclk", "wire", 1, "axi_top.sv", 99},
-    {"top.axi_top.aresetn", "wire", 1, "axi_top.sv", 100},
-    {"top.axi_top.awid", "wire", 4, "axi_top.sv", 101},
-    {"top.axi_top.awaddr", "wire", 8, "axi_top.sv", 101},
-    {"top.axi_top.awlen", "wire", 8, "axi_top.sv", 101},
-    {"top.axi_top.awvalid", "wire", 1, "axi_top.sv", 102},
-    {"top.axi_top.awready", "wire", 1, "axi_top.sv", 102},
-    {"top.axi_top.wdata", "wire", 32, "axi_top.sv", 103},
-    {"top.axi_top.wstrb", "wire", 4, "axi_top.sv", 103},
-    {"top.axi_top.wlast", "wire", 1, "axi_top.sv", 103},
-    {"top.axi_top.wvalid", "wire", 1, "axi_top.sv", 104},
-    {"top.axi_top.wready", "wire", 1, "axi_top.sv", 104},
-    {"top.axi_top.bid", "wire", 4, "axi_top.sv", 105},
-    {"top.axi_top.bresp", "wire", 2, "axi_top.sv", 105},
-    {"top.axi_top.bvalid", "wire", 1, "axi_top.sv", 105},
-    {"top.axi_top.bready", "wire", 1, "axi_top.sv", 105},
-    {"top.axi_top.arid", "wire", 4, "axi_top.sv", 106},
-    {"top.axi_top.araddr", "wire", 8, "axi_top.sv", 106},
-    {"top.axi_top.arlen", "wire", 8, "axi_top.sv", 106},
-    {"top.axi_top.arvalid", "wire", 1, "axi_top.sv", 107},
-    {"top.axi_top.arready", "wire", 1, "axi_top.sv", 107},
-    {"top.axi_top.rid", "wire", 4, "axi_top.sv", 108},
-    {"top.axi_top.rdata", "wire", 32, "axi_top.sv", 108},
-    {"top.axi_top.rresp", "wire", 2, "axi_top.sv", 108},
-    {"top.axi_top.rlast", "wire", 1, "axi_top.sv", 109},
-    {"top.axi_top.rvalid", "wire", 1, "axi_top.sv", 109},
-    {"top.axi_top.rready", "wire", 1, "axi_top.sv", 109},
-    {"top.axi_top.u_slave.aclk", "wire", 1, "axi_top.sv", 7},
-    {"top.axi_top.u_slave.aresetn", "wire", 1, "axi_top.sv", 8},
-    {"top.axi_top.u_slave.awid", "wire", 4, "axi_top.sv", 9},
-    {"top.axi_top.u_slave.awaddr", "wire", 8, "axi_top.sv", 10},
-    {"top.axi_top.u_slave.awlen", "wire", 8, "axi_top.sv", 11},
-    {"top.axi_top.u_slave.awvalid", "wire", 1, "axi_top.sv", 12},
-    {"top.axi_top.u_slave.awready", "wire", 1, "axi_top.sv", 13},
-    {"top.axi_top.u_slave.wdata", "wire", 32, "axi_top.sv", 14},
-    {"top.axi_top.u_slave.wstrb", "wire", 4, "axi_top.sv", 15},
-    {"top.axi_top.u_slave.wlast", "wire", 1, "axi_top.sv", 16},
-    {"top.axi_top.u_slave.wvalid", "wire", 1, "axi_top.sv", 17},
-    {"top.axi_top.u_slave.wready", "wire", 1, "axi_top.sv", 18},
-    {"top.axi_top.u_slave.bid", "wire", 4, "axi_top.sv", 19},
-    {"top.axi_top.u_slave.bresp", "wire", 2, "axi_top.sv", 20},
-    {"top.axi_top.u_slave.bvalid", "wire", 1, "axi_top.sv", 21},
-    {"top.axi_top.u_slave.bready", "wire", 1, "axi_top.sv", 22},
-    {"top.axi_top.u_slave.arid", "wire", 4, "axi_top.sv", 23},
-    {"top.axi_top.u_slave.araddr", "wire", 8, "axi_top.sv", 24},
-    {"top.axi_top.u_slave.arlen", "wire", 8, "axi_top.sv", 25},
-    {"top.axi_top.u_slave.arvalid", "wire", 1, "axi_top.sv", 26},
-    {"top.axi_top.u_slave.arready", "wire", 1, "axi_top.sv", 27},
-    {"top.axi_top.u_slave.rid", "wire", 4, "axi_top.sv", 28},
-    {"top.axi_top.u_slave.rdata", "wire", 32, "axi_top.sv", 29},
-    {"top.axi_top.u_slave.rresp", "wire", 2, "axi_top.sv", 30},
-    {"top.axi_top.u_slave.rlast", "wire", 1, "axi_top.sv", 31},
-    {"top.axi_top.u_slave.rvalid", "wire", 1, "axi_top.sv", 32},
-    {"top.axi_top.u_slave.rready", "wire", 1, "axi_top.sv", 33},
+    {"top.axi_top.aclk", "port", 1, "axi_top.sv", 99},
+    {"top.axi_top.aresetn", "port", 1, "axi_top.sv", 100},
+    {"top.axi_top.awid", "port", 4, "axi_top.sv", 101},
+    {"top.axi_top.awaddr", "port", 8, "axi_top.sv", 101},
+    {"top.axi_top.awlen", "port", 8, "axi_top.sv", 101},
+    {"top.axi_top.awvalid", "port", 1, "axi_top.sv", 102},
+    {"top.axi_top.awready", "port", 1, "axi_top.sv", 102},
+    {"top.axi_top.wdata", "port", 32, "axi_top.sv", 103},
+    {"top.axi_top.wstrb", "port", 4, "axi_top.sv", 103},
+    {"top.axi_top.wlast", "port", 1, "axi_top.sv", 103},
+    {"top.axi_top.wvalid", "port", 1, "axi_top.sv", 104},
+    {"top.axi_top.wready", "port", 1, "axi_top.sv", 104},
+    {"top.axi_top.bid", "port", 4, "axi_top.sv", 105},
+    {"top.axi_top.bresp", "port", 2, "axi_top.sv", 105},
+    {"top.axi_top.bvalid", "port", 1, "axi_top.sv", 105},
+    {"top.axi_top.bready", "port", 1, "axi_top.sv", 105},
+    {"top.axi_top.arid", "port", 4, "axi_top.sv", 106},
+    {"top.axi_top.araddr", "port", 8, "axi_top.sv", 106},
+    {"top.axi_top.arlen", "port", 8, "axi_top.sv", 106},
+    {"top.axi_top.arvalid", "port", 1, "axi_top.sv", 107},
+    {"top.axi_top.arready", "port", 1, "axi_top.sv", 107},
+    {"top.axi_top.rid", "port", 4, "axi_top.sv", 108},
+    {"top.axi_top.rdata", "port", 32, "axi_top.sv", 108},
+    {"top.axi_top.rresp", "port", 2, "axi_top.sv", 108},
+    {"top.axi_top.rlast", "port", 1, "axi_top.sv", 109},
+    {"top.axi_top.rvalid", "port", 1, "axi_top.sv", 109},
+    {"top.axi_top.rready", "port", 1, "axi_top.sv", 109},
+    {"top.axi_top.u_slave.aclk", "port", 1, "axi_top.sv", 7},
+    {"top.axi_top.u_slave.aresetn", "port", 1, "axi_top.sv", 8},
+    {"top.axi_top.u_slave.awid", "port", 4, "axi_top.sv", 9},
+    {"top.axi_top.u_slave.awaddr", "port", 8, "axi_top.sv", 10},
+    {"top.axi_top.u_slave.awlen", "port", 8, "axi_top.sv", 11},
+    {"top.axi_top.u_slave.awvalid", "port", 1, "axi_top.sv", 12},
+    {"top.axi_top.u_slave.awready", "port", 1, "axi_top.sv", 13},
+    {"top.axi_top.u_slave.wdata", "port", 32, "axi_top.sv", 14},
+    {"top.axi_top.u_slave.wstrb", "port", 4, "axi_top.sv", 15},
+    {"top.axi_top.u_slave.wlast", "port", 1, "axi_top.sv", 16},
+    {"top.axi_top.u_slave.wvalid", "port", 1, "axi_top.sv", 17},
+    {"top.axi_top.u_slave.wready", "port", 1, "axi_top.sv", 18},
+    {"top.axi_top.u_slave.bid", "port", 4, "axi_top.sv", 19},
+    {"top.axi_top.u_slave.bresp", "port", 2, "axi_top.sv", 20},
+    {"top.axi_top.u_slave.bvalid", "port", 1, "axi_top.sv", 21},
+    {"top.axi_top.u_slave.bready", "port", 1, "axi_top.sv", 22},
+    {"top.axi_top.u_slave.arid", "port", 4, "axi_top.sv", 23},
+    {"top.axi_top.u_slave.araddr", "port", 8, "axi_top.sv", 24},
+    {"top.axi_top.u_slave.arlen", "port", 8, "axi_top.sv", 25},
+    {"top.axi_top.u_slave.arvalid", "port", 1, "axi_top.sv", 26},
+    {"top.axi_top.u_slave.arready", "port", 1, "axi_top.sv", 27},
+    {"top.axi_top.u_slave.rid", "port", 4, "axi_top.sv", 28},
+    {"top.axi_top.u_slave.rdata", "port", 32, "axi_top.sv", 29},
+    {"top.axi_top.u_slave.rresp", "port", 2, "axi_top.sv", 30},
+    {"top.axi_top.u_slave.rlast", "port", 1, "axi_top.sv", 31},
+    {"top.axi_top.u_slave.rvalid", "port", 1, "axi_top.sv", 32},
+    {"top.axi_top.u_slave.rready", "port", 1, "axi_top.sv", 33},
     {"top.axi_top.u_slave.mem", "wire", 32, "axi_top.sv", 35},
     {"top.axi_top.u_slave.awid_q", "wire", 4, "axi_top.sv", 36},
     {"top.axi_top.u_slave.awaddr_q", "wire", 8, "axi_top.sv", 36},
@@ -96,6 +96,8 @@ static const XddSignalInfo kSignals[] = {
     {"top.axi_top.u_slave.ar_pending", "wire", 1, "axi_top.sv", 40},
 };
 static const int kSignalCount = 91;
+
+static const int kSignalDirections[] = {1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 static const XddNameEntry kNameIndex[] = {
     {"top.aclk", 0},
@@ -326,6 +328,121 @@ static const XddDriverRec kDrivers[] = {
 static const int kDriverCount = 129;
 static const int kDriverStart[] = {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 6, 9, 13, 13, 13, 13, 13, 13, 14, 18, 27, 30, 36, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 93, 96, 99, 102, 109, 113, 117, 121, 125};
 
+static const XddPortConnectionRec kPortConnections[] = {
+    {0, 27, "port_boundary"},
+    {0, 54, "port_boundary"},
+    {1, 28, "port_boundary"},
+    {1, 55, "port_boundary"},
+    {2, 29, "port_boundary"},
+    {2, 56, "port_boundary"},
+    {3, 30, "port_boundary"},
+    {3, 57, "port_boundary"},
+    {4, 31, "port_boundary"},
+    {4, 58, "port_boundary"},
+    {5, 32, "port_boundary"},
+    {5, 59, "port_boundary"},
+    {6, 33, "port_boundary"},
+    {6, 60, "port_boundary"},
+    {7, 34, "port_boundary"},
+    {7, 61, "port_boundary"},
+    {8, 35, "port_boundary"},
+    {8, 62, "port_boundary"},
+    {9, 36, "port_boundary"},
+    {9, 63, "port_boundary"},
+    {10, 37, "port_boundary"},
+    {10, 64, "port_boundary"},
+    {11, 38, "port_boundary"},
+    {11, 65, "port_boundary"},
+    {12, 39, "port_boundary"},
+    {12, 66, "port_boundary"},
+    {13, 40, "port_boundary"},
+    {13, 67, "port_boundary"},
+    {14, 41, "port_boundary"},
+    {14, 68, "port_boundary"},
+    {15, 42, "port_boundary"},
+    {15, 69, "port_boundary"},
+    {16, 43, "port_boundary"},
+    {16, 70, "port_boundary"},
+    {17, 44, "port_boundary"},
+    {17, 71, "port_boundary"},
+    {18, 45, "port_boundary"},
+    {18, 72, "port_boundary"},
+    {19, 46, "port_boundary"},
+    {19, 73, "port_boundary"},
+    {20, 47, "port_boundary"},
+    {20, 74, "port_boundary"},
+    {20, 25, "port_boundary"},
+    {21, 48, "port_boundary"},
+    {21, 75, "port_boundary"},
+    {22, 49, "port_boundary"},
+    {22, 76, "port_boundary"},
+    {23, 50, "port_boundary"},
+    {23, 77, "port_boundary"},
+    {24, 51, "port_boundary"},
+    {24, 78, "port_boundary"},
+    {25, 52, "port_boundary"},
+    {25, 79, "port_boundary"},
+    {25, 20, "port_boundary"},
+    {26, 53, "port_boundary"},
+    {26, 80, "port_boundary"},
+    {27, 0, "port_boundary"},
+    {28, 1, "port_boundary"},
+    {29, 2, "port_boundary"},
+    {30, 3, "port_boundary"},
+    {31, 4, "port_boundary"},
+    {32, 5, "port_boundary"},
+    {33, 6, "port_boundary"},
+    {34, 7, "port_boundary"},
+    {35, 8, "port_boundary"},
+    {36, 9, "port_boundary"},
+    {37, 10, "port_boundary"},
+    {38, 11, "port_boundary"},
+    {39, 12, "port_boundary"},
+    {40, 13, "port_boundary"},
+    {41, 14, "port_boundary"},
+    {42, 15, "port_boundary"},
+    {43, 16, "port_boundary"},
+    {44, 17, "port_boundary"},
+    {45, 18, "port_boundary"},
+    {46, 19, "port_boundary"},
+    {47, 20, "port_boundary"},
+    {48, 21, "port_boundary"},
+    {49, 22, "port_boundary"},
+    {50, 23, "port_boundary"},
+    {51, 24, "port_boundary"},
+    {52, 25, "port_boundary"},
+    {53, 26, "port_boundary"},
+    {54, 0, "port_boundary"},
+    {55, 1, "port_boundary"},
+    {56, 2, "port_boundary"},
+    {57, 3, "port_boundary"},
+    {58, 4, "port_boundary"},
+    {59, 5, "port_boundary"},
+    {60, 6, "port_boundary"},
+    {61, 7, "port_boundary"},
+    {62, 8, "port_boundary"},
+    {63, 9, "port_boundary"},
+    {64, 10, "port_boundary"},
+    {65, 11, "port_boundary"},
+    {66, 12, "port_boundary"},
+    {67, 13, "port_boundary"},
+    {68, 14, "port_boundary"},
+    {69, 15, "port_boundary"},
+    {70, 16, "port_boundary"},
+    {71, 17, "port_boundary"},
+    {72, 18, "port_boundary"},
+    {73, 19, "port_boundary"},
+    {74, 20, "port_boundary"},
+    {75, 21, "port_boundary"},
+    {76, 22, "port_boundary"},
+    {77, 23, "port_boundary"},
+    {78, 24, "port_boundary"},
+    {79, 25, "port_boundary"},
+    {80, 26, "port_boundary"},
+};
+static const int kPortConnectionCount = 110;
+static const int kPortConnectionStart[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 43, 45, 47, 49, 51, 54, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 110, 110, 110, 110, 110, 110, 110, 110, 110};
+
 static const XddLoadRec kLoads[] = {
     {0, 27, "rhs_use", "axi_top.sv", 99},
     {0, 54, "rhs_use", "axi_top.sv", 7},
@@ -468,6 +585,11 @@ static const int kLoadStart[] = {0, 2, 21, 24, 27, 30, 36, 38, 41, 43, 49, 57, 5
 
 extern "C" {
 
+int xdd_abi_version(void) { return XDD_ABI_VERSION; }
+uint64_t xdd_capabilities(void) {
+    return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS;
+}
+
 XddDb* xdd_init(void) { return reinterpret_cast<XddDb*>(1); }
 void xdd_close(XddDb*) {}
 
@@ -499,6 +621,30 @@ const char* xdd_signal_file(XddDb*, int idx) {
 }
 int xdd_signal_line(XddDb*, int idx) {
     return (idx >= 0 && idx < kSignalCount) ? kSignals[idx].line : 0;
+}
+int xdd_signal_direction(XddDb*, int idx) {
+    return (idx >= 0 && idx < kSignalCount) ? kSignalDirections[idx] : 0;
+}
+
+int xdd_port_connection_count(XddDb*, int idx) {
+    if (idx < 0 || idx >= kSignalCount) return 0;
+    int e = (idx + 1 < kSignalCount) ? kPortConnectionStart[idx + 1]
+                                     : kPortConnectionCount;
+    return e - kPortConnectionStart[idx];
+}
+
+void xdd_port_connection(XddDb*, int idx, int i,
+                         int* connected_signal, const char** kind) {
+    *connected_signal = -1;
+    *kind = nullptr;
+    if (idx < 0 || idx >= kSignalCount) return;
+    int s = kPortConnectionStart[idx];
+    int e = (idx + 1 < kSignalCount) ? kPortConnectionStart[idx + 1]
+                                     : kPortConnectionCount;
+    if (i < 0 || i >= (e - s)) return;
+    const XddPortConnectionRec& connection = kPortConnections[s + i];
+    *connected_signal = connection.connected_signal;
+    *kind = connection.kind;
 }
 
 int xdd_trace_driver_count(XddDb*, int idx) {
