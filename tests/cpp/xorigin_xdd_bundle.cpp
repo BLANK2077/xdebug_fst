@@ -58,7 +58,7 @@ int xdd_abi_version() { return XDD_ABI_VERSION; }
 
 uint64_t xdd_capabilities() {
     return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS
-           | XDD_CAP_DRIVER_DEPENDENCY_ROLE;
+           | XDD_CAP_DRIVER_DEPENDENCY_ROLE | XDD_CAP_DRIVER_PREDICATE;
 }
 
 XddDb* xdd_init() { return reinterpret_cast<XddDb*>(1); }
@@ -128,6 +128,15 @@ const char* xdd_trace_driver_role(XddDb*, int index, int offset) {
                                              : kDriverCount;
     if (offset < 0 || offset >= end - start) return nullptr;
     return kDrivers[start + offset].role;
+}
+
+const char* xdd_trace_driver_predicate(XddDb*, int index, int offset) {
+    if (index < 0 || index >= kSignalCount) return nullptr;
+    const int start = kDriverStart[index];
+    const int end = index + 1 < kSignalCount ? kDriverStart[index + 1]
+                                             : kDriverCount;
+    if (offset < 0 || offset >= end - start) return nullptr;
+    return "1";
 }
 
 int xdd_trace_load_count(XddDb*, int index) {

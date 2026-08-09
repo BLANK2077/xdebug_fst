@@ -46,12 +46,16 @@ int main(int argc, char** argv) {
             "count has native driver evidence");
     bool saw_rhs = false;
     bool saw_control = false;
+    bool saw_predicate = false;
     for (const auto& driver : drivers) {
         saw_rhs |= driver.dependency_role == "rhs";
         saw_control |= driver.dependency_role == "control";
+        saw_predicate |= !driver.activation_predicate.empty();
     }
     require(saw_rhs && saw_control,
             "native driver evidence distinguishes RHS and control roles");
+    require(saw_predicate,
+            "native driver evidence publishes activation predicates");
     design.close();
     require(!design.is_open(), "ABI-v2 XDD bundle closes cleanly");
 

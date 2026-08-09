@@ -40,6 +40,17 @@ static const XddDriverRec kDrivers[] = {
     {7, 3, "cont_assign", "rhs", "counter_top.sv", 5},
 };
 static const int kDriverCount = 9;
+static const char* const kDriverPredicates[] = {
+    "(top.reset)",
+    "!(top.reset)",
+    "(top.reset)",
+    "!(top.reset)",
+    "!(top.reset)",
+    "1",
+    "1",
+    "1",
+    "1",
+};
 static const int kDriverStart[] = {0, 0, 0, 2, 5, 6, 7, 8};
 
 static const XddPortConnectionRec kPortConnections[] = {
@@ -76,7 +87,7 @@ extern "C" {
 int xdd_abi_version(void) { return XDD_ABI_VERSION; }
 uint64_t xdd_capabilities(void) {
     return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS
-           | XDD_CAP_DRIVER_DEPENDENCY_ROLE;
+           | XDD_CAP_DRIVER_DEPENDENCY_ROLE | XDD_CAP_DRIVER_PREDICATE;
 }
 
 XddDb* xdd_init(void) { return reinterpret_cast<XddDb*>(1); }
@@ -160,6 +171,14 @@ const char* xdd_trace_driver_role(XddDb*, int idx, int i) {
     int e = (idx + 1 < kSignalCount) ? kDriverStart[idx + 1] : kDriverCount;
     if (i < 0 || i >= (e - s)) return nullptr;
     return kDrivers[s + i].role;
+}
+
+const char* xdd_trace_driver_predicate(XddDb*, int idx, int i) {
+    if (idx < 0 || idx >= kSignalCount) return nullptr;
+    int s = kDriverStart[idx];
+    int e = (idx + 1 < kSignalCount) ? kDriverStart[idx + 1] : kDriverCount;
+    if (i < 0 || i >= (e - s)) return nullptr;
+    return kDriverPredicates[s + i];
 }
 
 int xdd_trace_load_count(XddDb*, int idx) {

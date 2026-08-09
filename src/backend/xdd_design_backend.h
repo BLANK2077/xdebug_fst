@@ -62,6 +62,7 @@ private:
     int   (*fn_drv_cnt_)(void*, int) = nullptr;
     void  (*fn_drv_)(void*, int, int, int*, const char**, const char**, int*) = nullptr;
     const char* (*fn_drv_role_)(void*, int, int) = nullptr;
+    const char* (*fn_drv_predicate_)(void*, int, int) = nullptr;
     int   (*fn_ld_cnt_)(void*, int) = nullptr;
     void  (*fn_ld_)(void*, int, int, int*, const char**, const char**, int*) = nullptr;
     int   (*fn_conn_cnt_)(void*, int) = nullptr;

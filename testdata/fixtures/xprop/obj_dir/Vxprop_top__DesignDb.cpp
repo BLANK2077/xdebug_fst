@@ -6,6 +6,7 @@ static const XddSignalInfo kSignals[] = {
     {"top.clk", "port", 1, "xprop_top.sv", 12},
     {"top.reset", "port", 1, "xprop_top.sv", 13},
     {"top.out", "port", 8, "xprop_top.sv", 14},
+    {"top.xprop_top.__vxrand___0", "wire", 8, "xprop_top.sv", 16},
     {"top.xprop_top.clk", "port", 1, "xprop_top.sv", 12},
     {"top.xprop_top.reset", "port", 1, "xprop_top.sv", 13},
     {"top.xprop_top.out", "port", 8, "xprop_top.sv", 14},
@@ -15,70 +16,85 @@ static const XddSignalInfo kSignals[] = {
     {"top.xprop_top.u_child.a", "port", 8, "xprop_top.sv", 3},
     {"top.xprop_top.u_child.y", "port", 8, "xprop_top.sv", 4},
 };
-static const int kSignalCount = 11;
+static const int kSignalCount = 12;
 
-static const int kSignalDirections[] = {1, 1, 2, 1, 1, 2, 0, 0, 1, 1, 2};
+static const int kSignalDirections[] = {1, 1, 2, 0, 1, 1, 2, 0, 0, 1, 1, 2};
 
 static const XddNameEntry kNameIndex[] = {
     {"top.clk", 0},
     {"top.out", 2},
     {"top.reset", 1},
-    {"top.xprop_top.a", 6},
-    {"top.xprop_top.clk", 3},
-    {"top.xprop_top.out", 5},
-    {"top.xprop_top.reset", 4},
-    {"top.xprop_top.u_child.a", 9},
-    {"top.xprop_top.u_child.clk", 8},
-    {"top.xprop_top.u_child.y", 10},
-    {"top.xprop_top.y", 7},
+    {"top.xprop_top.__vxrand___0", 3},
+    {"top.xprop_top.a", 7},
+    {"top.xprop_top.clk", 4},
+    {"top.xprop_top.out", 6},
+    {"top.xprop_top.reset", 5},
+    {"top.xprop_top.u_child.a", 10},
+    {"top.xprop_top.u_child.clk", 9},
+    {"top.xprop_top.u_child.y", 11},
+    {"top.xprop_top.y", 8},
 };
-static const int kNameIndexCount = 11;
+static const int kNameIndexCount = 12;
 
 static const XddDriverRec kDrivers[] = {
-    {2, 7, "cont_assign", "rhs", "xprop_top.sv", 19},
-    {3, 0, "cont_assign", "rhs", "xprop_top.sv", 12},
-    {4, 1, "cont_assign", "rhs", "xprop_top.sv", 13},
-    {5, 2, "cont_assign", "rhs", "xprop_top.sv", 14},
-    {6, -1, "proc_assign", "statement", "xprop_top.sv", 16},
-    {6, 1, "nba", "rhs", "xprop_top.sv", 21},
-    {7, 6, "nba", "rhs", "xprop_top.sv", 7},
-    {8, 0, "cont_assign", "rhs", "xprop_top.sv", 2},
-    {9, 6, "cont_assign", "rhs", "xprop_top.sv", 3},
-    {10, 7, "cont_assign", "rhs", "xprop_top.sv", 4},
+    {2, 8, "cont_assign", "rhs", "xprop_top.sv", 19},
+    {4, 0, "cont_assign", "rhs", "xprop_top.sv", 12},
+    {5, 1, "cont_assign", "rhs", "xprop_top.sv", 13},
+    {6, 2, "cont_assign", "rhs", "xprop_top.sv", 14},
+    {7, 3, "proc_assign", "rhs", "xprop_top.sv", 16},
+    {7, 1, "nba", "rhs", "xprop_top.sv", 21},
+    {8, 7, "nba", "rhs", "xprop_top.sv", 7},
+    {9, 0, "cont_assign", "rhs", "xprop_top.sv", 2},
+    {10, 7, "cont_assign", "rhs", "xprop_top.sv", 3},
+    {11, 8, "cont_assign", "rhs", "xprop_top.sv", 4},
 };
 static const int kDriverCount = 10;
-static const int kDriverStart[] = {0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+static const char* const kDriverPredicates[] = {
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+};
+static const int kDriverStart[] = {0, 0, 0, 1, 1, 2, 3, 4, 6, 7, 8, 9};
 
 static const XddPortConnectionRec kPortConnections[] = {
-    {0, 3, "port_boundary"},
-    {0, 8, "port_boundary"},
-    {1, 4, "port_boundary"},
-    {2, 5, "port_boundary"},
-    {2, 7, "port_boundary"},
-    {3, 0, "port_boundary"},
-    {4, 1, "port_boundary"},
-    {5, 2, "port_boundary"},
-    {8, 0, "port_boundary"},
-    {9, 6, "port_boundary"},
+    {0, 4, "port_boundary"},
+    {0, 9, "port_boundary"},
+    {1, 5, "port_boundary"},
+    {2, 6, "port_boundary"},
+    {2, 8, "port_boundary"},
+    {4, 0, "port_boundary"},
+    {5, 1, "port_boundary"},
+    {6, 2, "port_boundary"},
+    {9, 0, "port_boundary"},
     {10, 7, "port_boundary"},
+    {11, 8, "port_boundary"},
 };
 static const int kPortConnectionCount = 11;
-static const int kPortConnectionStart[] = {0, 2, 3, 5, 6, 7, 8, 8, 8, 9, 10};
+static const int kPortConnectionStart[] = {0, 2, 3, 5, 5, 6, 7, 8, 8, 8, 9, 10};
 
 static const XddLoadRec kLoads[] = {
-    {0, 3, "rhs_use", "xprop_top.sv", 12},
-    {0, 8, "rhs_use", "xprop_top.sv", 2},
-    {1, 4, "rhs_use", "xprop_top.sv", 13},
-    {1, 6, "rhs_use", "xprop_top.sv", 21},
-    {2, 5, "rhs_use", "xprop_top.sv", 14},
-    {6, 9, "rhs_use", "xprop_top.sv", 3},
-    {6, 6, "rhs_use", "xprop_top.sv", 21},
-    {6, 7, "rhs_use", "xprop_top.sv", 7},
-    {7, 10, "rhs_use", "xprop_top.sv", 4},
-    {7, 2, "rhs_use", "xprop_top.sv", 19},
+    {0, 4, "rhs_use", "xprop_top.sv", 12},
+    {0, 9, "rhs_use", "xprop_top.sv", 2},
+    {1, 5, "rhs_use", "xprop_top.sv", 13},
+    {1, 7, "rhs_use", "xprop_top.sv", 21},
+    {2, 6, "rhs_use", "xprop_top.sv", 14},
+    {3, 3, "rhs_use", "xprop_top.sv", 16},
+    {3, 7, "rhs_use", "xprop_top.sv", 16},
+    {7, 10, "rhs_use", "xprop_top.sv", 3},
+    {7, 7, "rhs_use", "xprop_top.sv", 21},
+    {7, 8, "rhs_use", "xprop_top.sv", 7},
+    {8, 11, "rhs_use", "xprop_top.sv", 4},
+    {8, 2, "rhs_use", "xprop_top.sv", 19},
 };
-static const int kLoadCount = 10;
-static const int kLoadStart[] = {0, 2, 4, 5, 5, 5, 5, 8, 10, 10, 10};
+static const int kLoadCount = 12;
+static const int kLoadStart[] = {0, 2, 4, 5, 7, 7, 7, 7, 10, 12, 12, 12};
 
 
 extern "C" {
@@ -86,7 +102,7 @@ extern "C" {
 int xdd_abi_version(void) { return XDD_ABI_VERSION; }
 uint64_t xdd_capabilities(void) {
     return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS
-           | XDD_CAP_DRIVER_DEPENDENCY_ROLE;
+           | XDD_CAP_DRIVER_DEPENDENCY_ROLE | XDD_CAP_DRIVER_PREDICATE;
 }
 
 XddDb* xdd_init(void) { return reinterpret_cast<XddDb*>(1); }
@@ -170,6 +186,14 @@ const char* xdd_trace_driver_role(XddDb*, int idx, int i) {
     int e = (idx + 1 < kSignalCount) ? kDriverStart[idx + 1] : kDriverCount;
     if (i < 0 || i >= (e - s)) return nullptr;
     return kDrivers[s + i].role;
+}
+
+const char* xdd_trace_driver_predicate(XddDb*, int idx, int i) {
+    if (idx < 0 || idx >= kSignalCount) return nullptr;
+    int s = kDriverStart[idx];
+    int e = (idx + 1 < kSignalCount) ? kDriverStart[idx + 1] : kDriverCount;
+    if (i < 0 || i >= (e - s)) return nullptr;
+    return kDriverPredicates[s + i];
 }
 
 int xdd_trace_load_count(XddDb*, int idx) {
