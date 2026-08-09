@@ -54,6 +54,7 @@ public:
         std::string activation_predicate;  // empty = unavailable, fail closed
         std::string file;
         int         line = 0;
+        std::string statement_identity;  // consumer-only hierarchy discriminator
     };
 
     /// Number of driver entries for a signal.

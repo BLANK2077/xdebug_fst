@@ -667,6 +667,14 @@ port 的父 net 连接、同实例 input port 的扁平化源区分两个实例�
 静态实例作用域加入聚合 identity。FST 不包含 HDL statement identity，也不能用内部临时
 信号是否被 dump 来增删 driver。
 
+修复不扩展 XDD：`statement_identity` 只存在于 xdebug-fst 内部 DriverRecord。consumer 先
+从目标父 net 的多个 output port 得到实例作用域，再从各实例 input port 的静态连接建立
+`flattened source → instance scope` 映射；只有一个基础 statement 的每条依赖都有唯一
+映射且最终出现多个实例时才写入 identity。聚合键于是成为
+`(file,line,kind,predicate,statement_identity)`。同一实例表达式的多个 RHS 映射到相同
+identity，仍正确保持一个 statement；任何不完整或多义映射保持未标注，绝不使用 FST
+值或 dump 可见性补全。active-driver、chain 与 X-origin 共用同一分组入口。
+
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
 xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为

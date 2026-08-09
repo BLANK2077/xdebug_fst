@@ -663,6 +663,12 @@ DesignDB 与 action 已直接通过，因此不修改 Verilator/Wellen/consumer�
 实例 identity 并纳入 statement key；FST 值、alias 可读性和内部临时信号都不得用于决定
 静态语句数量。这个修复不需要也不允许扩大 XDD ABI。
 
+实现只在 xdebug-fst 内部 `DriverRecord` 增加 consumer-only `statement_identity`。对同一父
+net 的多个 output port，consumer 以每个 output 的实例作用域收集同实例 input port 连接；
+只有同一基础 statement 的所有依赖都能唯一映射、且确有两个以上实例 identity 时，才把
+该 identity 加入聚合键。这样两个实例成为两个活动候选，而单实例的多个 RHS 仍保持一个
+statement。映射缺失或不唯一时不任选，不依据 FST 可读性裁剪静态候选。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。

@@ -159,6 +159,59 @@ std::vector<int> ports_connected_to(IDesignBackend& design,int connected,
     return ports;
 }
 
+void annotate_output_instance_identities(
+    IDesignBackend& design,int target,
+    std::vector<IDesignBackend::DriverRecord>& drivers) {
+    const std::vector<int> output_ports=ports_connected_to(design,target,2);
+    if (output_ports.size()<2) return;
+
+    std::map<int,std::set<std::string>> identities_by_source;
+    for (int output_port : output_ports) {
+        const std::string instance_scope=signal_scope(
+            signal_name(design,output_port));
+        if (instance_scope.empty()) continue;
+        for (int input_port=0;input_port<design.signal_count();++input_port) {
+            if (design.signal_direction(input_port)!=1||
+                signal_scope(signal_name(design,input_port))!=instance_scope) {
+                continue;
+            }
+            std::vector<IDesignBackend::PortConnection> connections;
+            design.port_connections(input_port,connections);
+            for (const auto& connection : connections) {
+                const int source=connection.port_signal==input_port
+                    ?connection.connected_signal:connection.port_signal;
+                if (source>=0) identities_by_source[source].insert(instance_scope);
+            }
+        }
+    }
+
+    using BaseKey=std::tuple<std::string,int,std::string,std::string>;
+    std::map<BaseKey,std::vector<size_t>> records_by_statement;
+    for (size_t index=0;index<drivers.size();++index) {
+        const auto& driver=drivers[index];
+        records_by_statement[{driver.file,driver.line,driver.kind,
+                              driver.activation_predicate}].push_back(index);
+    }
+    for (const auto& [base,indices] : records_by_statement) {
+        (void)base;
+        std::set<std::string> statement_identities;
+        bool complete=!indices.empty();
+        for (size_t index : indices) {
+            const auto found=identities_by_source.find(drivers[index].src_signal);
+            if (found==identities_by_source.end()||found->second.size()!=1) {
+                complete=false;
+                break;
+            }
+            statement_identities.insert(*found->second.begin());
+        }
+        if (!complete||statement_identities.size()<2) continue;
+        for (size_t index : indices) {
+            drivers[index].statement_identity=
+                *identities_by_source.at(drivers[index].src_signal).begin();
+        }
+    }
+}
+
 bool is_assignment_kind(const std::string& kind) {
     return kind=="nba"||kind=="proc_assign"||kind=="cont_assign";
 }
@@ -208,11 +261,13 @@ struct StatementGroup {
 
 std::vector<StatementGroup> statement_groups(
     const std::vector<IDesignBackend::DriverRecord>& drivers) {
-    std::map<std::tuple<std::string,int,std::string,std::string>,StatementGroup> grouped;
+    std::map<std::tuple<std::string,int,std::string,std::string,std::string>,
+             StatementGroup> grouped;
     for (const auto& driver : drivers) {
         if (driver.file.empty()||driver.line<=0) continue;
         const auto key=std::make_tuple(driver.file,driver.line,driver.kind,
-                                       driver.activation_predicate);
+                                       driver.activation_predicate,
+                                       driver.statement_identity);
         auto& statement=grouped[key];
         statement.kind=driver.kind;
         statement.file=driver.file;
@@ -400,8 +455,10 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
         const Json limits=request.value("limits",Json::object());
         const size_t max_results=limits.value("max_results",10u);
         Json paths=Json::array();
+        auto drivers=drivers_for(design,index);
+        annotate_output_instance_identities(design,index,drivers);
         const auto evaluated=active_statement_groups(
-            drivers_for(design,index),waveform,target.active_time);
+            drivers,waveform,target.active_time);
         std::vector<IDesignBackend::DriverRecord> active_drivers;
         for (const auto& statement : evaluated.active) {
             const auto* driver=representative_driver(statement);
@@ -464,6 +521,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             const Sample sample=sample_at(waveform,current,current_time);
             if (!sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST: "+current);
             auto drivers=drivers_for(design,index);
+            annotate_output_instance_identities(design,index,drivers);
             const auto evaluated=active_statement_groups(
                 drivers,waveform,sample.active_time);
             std::vector<StatementGroup> groups;
@@ -797,7 +855,8 @@ struct TraceXOriginHandler : public EngineActionHandler {
                 design,index,waveform,unit,format));
             ++nodes;
 
-            const auto all_drivers=drivers_for(design,index);
+            auto all_drivers=drivers_for(design,index);
+            annotate_output_instance_identities(design,index,all_drivers);
             const auto evaluated=active_statement_groups(
                 all_drivers,waveform,sample.active_time);
             if (!evaluated.unresolved.empty()) {
