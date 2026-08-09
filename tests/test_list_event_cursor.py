@@ -186,11 +186,18 @@ def test_event_export(loop_runner: StdioLoopRunner, counter_fst) -> None:
 def test_cursor_set_get(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("waveform.cursor.set", args={"name": "c1",
-                                                           "time": "300"})
+                                                           "time": "300ps"})
     assert rsp.get("ok"), rsp
+    assert rsp["summary"] == {
+        "name": "c1", "time": "0.3ns", "status": "set", "active": False}
+    assert rsp["data"]["resolved_time"] == {
+        "source": "explicit", "time": "0.3ns"}
     rsp = loop_runner.request("waveform.cursor.get", args={"name": "c1"})
     assert rsp.get("ok"), rsp
-    assert rsp["data"]["cursor"]["time"] == 300
+    assert rsp["summary"] == {
+        "name": "c1", "time": "0.3ns", "status": "found"}
+    assert rsp["data"]["metadata"] == {
+        "note": "", "origin": "user", "clock": ""}
 
 
 def test_cursor_get_unknown(loop_runner: StdioLoopRunner, counter_fst) -> None:
@@ -202,11 +209,12 @@ def test_cursor_get_unknown(loop_runner: StdioLoopRunner, counter_fst) -> None:
 
 def test_cursor_list_and_delete(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
-    loop_runner.request("waveform.cursor.set", args={"name": "a", "time": "10"})
-    loop_runner.request("waveform.cursor.set", args={"name": "b", "time": "20"})
+    loop_runner.request("waveform.cursor.set", args={"name": "a", "time": "10ps"})
+    loop_runner.request("waveform.cursor.set", args={"name": "b", "time": "20ps"})
     rsp = loop_runner.request("waveform.cursor.list")
     assert rsp.get("ok")
     assert len(rsp["data"]["cursors"]) == 2
+    assert rsp["summary"] == {"cursor_count": 2, "active_cursor": None}
     rsp = loop_runner.request("waveform.cursor.delete", args={"name": "a"})
     assert rsp.get("ok")
     rsp = loop_runner.request("waveform.cursor.list")
@@ -215,10 +223,14 @@ def test_cursor_list_and_delete(loop_runner: StdioLoopRunner, counter_fst) -> No
 
 def test_cursor_use(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
-    loop_runner.request("waveform.cursor.set", args={"name": "cu", "time": "150"})
-    rsp = loop_runner.request("waveform.cursor.use", args={"name": "cu"})
+    loop_runner.request("waveform.cursor.set", args={"name": "cu", "time": "150ps"})
+    rsp = loop_runner.request("waveform.cursor.use", args={
+        "name": "cu", "render_time_unit": "ps"})
     assert rsp.get("ok")
-    assert rsp["data"]["cursor"]["time"] == 150
+    assert rsp["summary"] == {
+        "status": "active", "active_cursor": "cu", "time": "150ps"}
+    listed = loop_runner.request("waveform.cursor.list")
+    assert listed["summary"]["active_cursor"] == "cu"
 
 
 # ── nwave.rc.generate ──
