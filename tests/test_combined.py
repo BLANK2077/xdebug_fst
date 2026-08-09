@@ -28,11 +28,25 @@ def test_trace_active_driver_preserves_query_and_active_time(
         loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
     open_session(loop_runner, counter_fst, counter_design_db)
     rsp = loop_runner.request("trace.active_driver", args={
-        "signal": "top.counter_top.count", "time": "305ps",
+        "signal": "top.count", "time": "305ps",
         "render_time_unit": "ps"})
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["time"] == "305ps"
     assert rsp["summary"]["active_time"] == "300ps"
+
+
+def test_trace_active_driver_selects_runtime_else_branch(
+        loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    rsp = loop_runner.request("trace.active_driver", args={
+        "signal": "top.count", "time": "305ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "assignment"
+    assert rsp["summary"]["total_count"] == 1
+    assert rsp["summary"]["returned_count"] == 1
+    assert rsp["data"]["paths"][0]["line"] == 12
+    assert rsp["data"]["paths"][0]["signal_path"] == ["top.reset", "top.count"]
 
 
 def test_trace_active_driver_counts_before_response_limit(
