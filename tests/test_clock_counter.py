@@ -58,38 +58,139 @@ def test_expr_eval_at_parse_error(loop_runner: StdioLoopRunner, counter_fst) -> 
 def test_counter_statistics(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("counter.statistics", args={
-        "signal": "top.counter_top.count", "clock": "top.clk",
-        "begin": "100", "end": "400"})
+        "cnt": "top.counter_top.count", "clock": "top.clk",
+        "vld": {"expr": "!rst", "signals": {"rst": "top.reset"}},
+        "edge": "posedge", "sample_point": "after",
+        "time_range": {"begin": "0ps", "end": "490ps"}})
     assert rsp.get("ok"), rsp
     s = rsp["summary"]
-    assert s["sample_count"] == 16
-    assert s["min_value"] == 1
-    assert s["max_value"] == 16
-    assert rsp["data"]["direction"] == "up"
+    assert s["sampling_mode"] == "clock_edge"
+    assert s["sample_count"] == 24
+    assert s["valid_count"] > 0
+    assert s["min_value"]["known"] is True
+    assert s["max_value"]["known"] is True
+    assert s["scan_complete"] is True
+    assert rsp["data"]["sampling"]["effective"]["sample_point"] == "after"
+    assert rsp["data"]["evidence"][0]["kind"] == "initial"
+
+
+def test_counter_statistics_sample_and_evidence_limits(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("counter.statistics", args={
+        "cnt": "top.count", "clock": "top.clk", "vld": "top.clk",
+        "edge": "posedge", "sample_point": "after",
+        "time_range": {"begin": "100ps", "end": "490ps"},
+        "max_samples": 3, "line_limit": 1})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["sample_count"] == 3
+    assert rsp["summary"]["scan_complete"] is False
+    assert "analysis_samples" in rsp["summary"]["truncation_scopes"]
+    assert rsp["summary"]["returned_count"] <= 1
+    assert rsp["summary"]["response_truncated"] is True
+    assert "response_evidence" in rsp["summary"]["truncation_scopes"]
+
+
+def test_counter_statistics_without_valid_counter_value(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("counter.statistics", args={
+        "cnt": "{top.count,top.overflow}", "clock": "top.clk",
+        "vld": "top.overflow", "edge": "negedge",
+        "time_range": {"begin": "0ps", "end": "490ps"}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["valid_count"] == 0
+    assert "min_value" not in rsp["summary"]
+    assert "max_value" not in rsp["summary"]
+    assert "average_value" not in rsp["summary"]
+    assert rsp["data"]["sampling"]["effective"]["sample_point"] is None
+
+
+def test_counter_statistics_rejects_bad_time_range(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("counter.statistics", args={
+        "cnt": "top.count", "clock": "top.clk", "vld": "top.reset",
+        "time_range": {"begin": "400ps", "end": "100ps"}})
+    assert not rsp.get("ok")
+    assert rsp["error"]["code"] == "TIME_RANGE_INVALID"
 
 
 def test_signal_sampled_pulse_inspect(loop_runner: StdioLoopRunner,
-                                      counter_fst) -> None:
-    open_session(loop_runner, counter_fst)
+                                      stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
     rsp = loop_runner.request("signal.sampled_pulse.inspect", args={
-        "signal": "top.counter_top.count", "clock": "top.clk",
-        "begin": "0", "end": "500"})
+        "valid": "top.in_valid", "clock": "top.clk",
+        "payloads": ["top.in_data"], "edge": "posedge",
+        "sample_point": "after",
+        "rules": {"payload_changed_without_sampled_valid": "all"},
+        "time_range": {"begin": "0ps", "end": "500ps"},
+        "line_limit": 2})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["pulse_count"] >= 0
-    if rsp["summary"]["pulse_count"] > 0:
-        for p in rsp["data"]["pulses"]:
-            assert "begin_time" in p and "end_time" in p
+    assert rsp["summary"]["sampling_mode"] == "clock_edge"
+    assert rsp["summary"]["sample_count"] > 0
+    assert rsp["summary"]["payload_changed_without_sampled_valid_reporting"] == "all"
+    assert rsp["data"]["valid"] == "top.in_valid"
+    assert rsp["data"]["payloads"] == [
+        {"alias": "payload0", "signal": "top.in_data"}]
+    assert rsp["summary"]["returned_count"] == len(rsp["data"]["findings"])
+
+
+def test_signal_sampled_pulse_rule_requires_payloads(
+        loop_runner: StdioLoopRunner, stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
+    rsp = loop_runner.request("signal.sampled_pulse.inspect", args={
+        "valid": "top.in_valid", "clock": "top.clk",
+        "rules": {"payload_changed_without_sampled_valid": "summary"}})
+    assert not rsp.get("ok")
+    assert rsp["error"]["code"] == "INVALID_REQUEST"
 
 
 def test_protocol_handshake_inspect(loop_runner: StdioLoopRunner,
-                                    counter_fst) -> None:
-    open_session(loop_runner, counter_fst)
+                                    stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
     rsp = loop_runner.request("protocol.handshake.inspect", args={
-        "req_signal": "top.clk", "ack_signal": "top.clk",
-        "begin": "0", "end": "500"})
+        "clock": "top.clk", "valid": "top.in_valid",
+        "ready": "top.in_ready", "data": "top.in_data",
+        "edge": "posedge", "sample_point": "after",
+        "rules": {"max_wait_cycles": 1,
+                  "check_data_stable_when_stalled": True,
+                  "ready_without_valid": "intervals"},
+        "time_range": {"begin": "0ps", "end": "500ps"}})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["handshake_count"] == 25
-    assert rsp["summary"]["min_latency"] == 0
+    assert rsp["summary"]["sampling_mode"] == "clock_edge"
+    assert rsp["summary"]["sample_count"] > 0
+    assert rsp["summary"]["transfer_count"] > 0
+    assert rsp["summary"]["ready_without_valid_reporting"] == "intervals"
+    assert "ready_without_valid_intervals" in rsp["data"]
+    assert rsp["data"]["sampling"]["effective"]["sample_point"] == "after"
+
+
+def test_protocol_handshake_data_rule_is_symmetric(
+        loop_runner: StdioLoopRunner, stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
+    rsp = loop_runner.request("protocol.handshake.inspect", args={
+        "clock": "top.clk", "valid": "top.in_valid",
+        "ready": "top.in_ready", "data": "top.in_data"})
+    assert not rsp.get("ok")
+    assert rsp["error"]["code"] == "INVALID_REQUEST"
+
+
+def test_protocol_handshake_all_reporting_and_line_limit(
+        loop_runner: StdioLoopRunner, stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
+    rsp = loop_runner.request("protocol.handshake.inspect", args={
+        "clock": "top.clk", "valid": "top.in_valid",
+        "ready": "top.in_ready", "edge": "posedge",
+        "sample_point": "after", "line_limit": 1,
+        "rules": {"ready_without_valid": "all"},
+        "time_range": {"begin": "0ps", "end": "500ps"}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["ready_without_valid_cycles"] > 1
+    assert rsp["summary"]["total_count"] > 1
+    assert rsp["summary"]["returned_count"] == 1
+    assert rsp["summary"]["response_truncated"] is True
+    assert "response_findings" in rsp["summary"]["truncation_scopes"]
 
 
 def test_protocol_handshake_inspect_missing_fields(loop_runner: StdioLoopRunner,
@@ -97,4 +198,4 @@ def test_protocol_handshake_inspect_missing_fields(loop_runner: StdioLoopRunner,
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("protocol.handshake.inspect", args={})
     assert not rsp.get("ok")
-    assert rsp["error"]["code"] == "MISSING_FIELD"
+    assert rsp["error"]["code"] == "INVALID_REQUEST"
