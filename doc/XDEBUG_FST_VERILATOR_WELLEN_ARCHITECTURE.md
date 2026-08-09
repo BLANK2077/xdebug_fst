@@ -16,6 +16,8 @@
 
 ### 1.1 FST-only 架构边界
 
+本架构边界受任务书永久 Goal 约束 **`GOAL-FST-DIRECT-001`** 管辖。它是所有后续实现选择的否决条件，不是可以在 action 迁移过程中临时放宽的偏好。
+
 xdebug-fst 只接收和分析 FST 波形。Wellen 在本方案中的职责是提供 FST 的层级、时间和值变化语义；VCD/FSDB 不属于产品输入，也不得成为测试 fallback。VCD 可以保留为可读的测试波形源描述，但必须先由固定生成链转换成 FST，测试和验收只能打开生成后的 `.fst`。如果转换后的 FST 丢失四态、delta 或类型信息，应修复生成链或 Wellen FST 读取层，不得直接读取 VCD 绕过问题。
 
 这里的“分析 FST”只表示 action 使用从原始 `.fst` 直接取得的波形事实，并不引入名为“FST 分析”的第二套系统。唯一数据流是“当前 session 的原始 `.fst` → Wellen 按需访问 → action 查询/推理”。禁止的数据流包括“FST → VCD/JSON/私有索引/离线数据库/全量内存快照 → action”。本项目只需要并且也必须完整适配 FST 波形；Wellen 即使具备其他格式能力，xdebug-fst adapter 也不得暴露或使用这些能力。
@@ -75,7 +77,7 @@ xdebug-fst 因而采用两个事实源：
                             ├─────────────┐
                             │             │
                             │             ▼
-FST/VCD/GHW ──► Wellen ──► WellenFstBackend ──► xdebug action engine
+原始 .fst ─────► Wellen ──► WellenFstBackend ──► xdebug action engine
                   │          ▲             │
                   │          │             ├─ waveform actions
                   ├─ wellen_capi            ├─ design actions
@@ -573,7 +575,7 @@ P5 当前已把发现、静态设计、`value.at`、list、event、cursor 和 RC
 
 ## 十、后续演进原则
 
-1. Wellen 负责波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；
+1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；
 2. 不把 backend 失败伪装成空结果；
 3. 不在 backend 之间自动 fallback；
 4. 不从 XOUT 反解析结构化事实；
@@ -583,6 +585,7 @@ P5 当前已把发现、静态设计、`value.at`、list、event、cursor 和 RC
 8. 每次 ABI 变化同时更新 header hash、依赖锁、C/Rust 测试和 xdebug consumer；
 9. 只保留仓库既有、由冻结开源 Verilator 可重复生成的 DesignDB 测试 `.so`；不新增仿真 ELF、普通 obj_dir 产物、FSDB、daidir 或 proprietary 内容；
 10. 最终验收以严格 73 action、全 schema、UDS/stdio transport、全差分和 clean worktree 为准；TCP/file 是明确登记的用户裁剪项。
+11. 不建立 FST 的 VCD/JSON/私有索引/离线数据库/全量内存快照副本用于分析，不重载显式 export 产物，不增加 backend 或 fixture fallback；违反任一项时，即使功能测试通过也不得完成 Goal。
 
 ## 十一、相关文件和提交
 
