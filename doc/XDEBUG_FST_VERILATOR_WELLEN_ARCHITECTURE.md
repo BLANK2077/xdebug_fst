@@ -653,6 +653,13 @@ Wellen/FST 仅验证选定 hop 在 active time 可读取并呈现其值，绝不
 定义完整性/歧义合同；不能把本批基本单输入/单输出模块边界算法外推到复杂 output 表达式
 或多驱动。
 
+两个独立过程对同一 reg 的 NBA 不需要新增波形或静态模型。第十三批的 DesignDB 以两个
+`nba` statement 分别保存第 83/87 行、RHS 与 `!reset`/`sel[0]` predicate；action 在各自
+active time 仍由 Wellen 直接读取原始 FST 控制值。只有一个谓词为真时返回唯一 driver，
+两者同时为真时保留两个 statement group 并报告活动候选歧义。这里没有按最终 FST 值判断
+“哪个 NBA 赢”，因为原版合同要求暴露同时活动的静态语句；FST 仍不是 HDL 调度分析器。
+该基础证明不覆盖不同 clock、连续+过程混合或跨实例多驱动。
+
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
 xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为

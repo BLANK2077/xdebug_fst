@@ -648,6 +648,14 @@ consumer 组合，或在证明确有静态事实缺口后对 Verilator 作最小
 top.data`。若任一步不唯一，不得靠 FST 同值搜索猜测。该批关闭基本单输入/单输出模块
 边界，复杂 output 表达式、多输入 RHS、多个 output port 与多驱动组合仍须独立差分。
 
+第十三批在同一真实 FST 固件中加入两个独立 `always @(posedge clk)` 对同一 reg 的 NBA：
+第一条受 `!reset` 控制，第二条受 `sel[0]` 控制。25ps 只有第一条活动，必须唯一返回第
+83 行；45ps 两个 predicate 同时为真，chain 必须返回
+`ambiguous/multiple_active_candidates`，并保留第 83/87 行两条语句。当前锁定的
+DesignDB 与 action 已直接通过，因此不修改 Verilator/Wellen/consumer。该证据关闭基本
+“互斥与重叠条件的双过程 NBA driver”，但不关闭跨层、连续+过程混合、不同调度区或
+时钟域竞争。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。

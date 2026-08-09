@@ -296,6 +296,37 @@ def test_trace_active_driver_chain_enters_child_output_from_parent_net(
         "top.case_top.data", "top.data"]
 
 
+def test_trace_active_driver_selects_one_conditional_procedural_driver(
+        loop_runner: StdioLoopRunner, case_fst,
+        case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    rsp = loop_runner.request("trace.active_driver", args={
+        "signal": "top.case_top.procedural_multi_out", "time": "25ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["total_count"] == 1
+    assert rsp["data"]["paths"][0]["line"] == 83
+
+
+def test_trace_active_driver_chain_reports_two_active_procedural_drivers(
+        loop_runner: StdioLoopRunner, case_fst,
+        case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.case_top.procedural_multi_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "ambiguous"
+    assert rsp["summary"]["termination_detail"] == \
+        "multiple_active_candidates"
+    evidence = rsp["data"]["ambiguity_evidence"]
+    assert evidence["statement_count"] == 2
+    assert {statement["line"] for statement in evidence["statements"]} == {
+        83, 87}
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:

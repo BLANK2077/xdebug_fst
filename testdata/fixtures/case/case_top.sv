@@ -76,6 +76,16 @@ module case_top (
         .data_i(data),
         .data_o(child_output_bus)
     );
+
+    reg [7:0] procedural_multi_out;
+    always @(posedge clk) begin
+        if (!reset)
+            procedural_multi_out <= data;
+    end
+    always @(posedge clk) begin
+        if (sel[0])
+            procedural_multi_out <= data + 8'h10;
+    end
 endmodule
 
 module inout_leaf (
