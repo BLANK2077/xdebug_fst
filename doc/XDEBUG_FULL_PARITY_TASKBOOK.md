@@ -12,6 +12,7 @@
 4. 某个 FST 固件不能保留 X/Z、delta-cycle、real、string、event 或层级信息时，必须修复 FST 固件生成链或 Wellen FST 读取能力；不得切换到 VCD、FSDB、其他 backend 或其他 fixture 作为 fallback。
 5. 所有测试清单和最终报告必须列出实际输入路径，并设置“全部为 FST”的自动门禁；发现非 `.fst` 波形输入立即失败。
 6. 本约束同时修订 Goal 中较早记录的 transport 范围：按用户后续指令，TCP 与 file transport 不实现、不验收，选择时必须明确失败且不得 fallback；会话只保留已规划的 UDS、MCP direct 与 fake-LSF 路径。
+7. “只适配 FST”不得退化为把 FST 预处理或转换成离线分析数据库：生产 action 必须由 Wellen 在会话中直接打开原始 `.fst` 并按需读取层级、时间和值变化，再与独立的 Verilator DesignDB 静态事实组合；不得把 FST 转换为 VCD、JSON、私有索引或全量内存快照作为事实来源。
 
 当前 Goal 的 objective 以本任务书为执行来源；Goal 系统不支持在 active 状态原地改写 objective，因此本节是对 Goal 的强制范围增补与后续用户指令的权威记录，不得因旧 objective 文本仍提及 TCP/file 而恢复这些已裁剪能力。
 
@@ -60,6 +61,8 @@
 必须完整实现全部 73 个 action，不区分 stable 与 experimental。value.at 必须支持 signal/list/APB/stream/AXI selector、time/times、clock sampling、sample_point、value_format、render_time_unit 和严格时间单位。必须完整实现 scope、signal、list、event、expression、verify、window、counter、APB、AXI、stream、cursor、export、session、trace.active_driver、trace.active_driver_chain 和 trace.x_origin 的当前合同、错误语义、limits、truncation 和 completeness。
 
 Wellen 侧必须补齐 signal ref 0、递归层级、alias、timescale、四态值、real/string/event、delta-cycle、before/after sampling、批量访问和真实非零测试数量。Verilator 仓库修改必须尽可能克制：优先在 xdebug-fst 和现有 XDD 数据上解决问题；只有先建立失败差分用例并证明现有 XDD ABI 无法提供必要事实时，才允许修改 Verilator。Verilator 修改必须是最小、附加、向后兼容和局部化的，不进行无关重构，不改变普通 Verilator 行为，不扩大到无关编译阶段。每项 Verilator 修改都必须有独立回归，simple/full/UART/metadata 测试必须真实执行并通过。
+
+FST 是唯一波形输入格式，但不得把 FST 预处理或转换成离线分析数据库。生产 action 必须由 Wellen 在会话中直接打开原始 `.fst` 并按需读取波形事实，再与独立的 Verilator DesignDB 静态事实组合；不得把 FST 转成 VCD、JSON、私有索引或全量内存快照，不得在能力缺失时切换 backend 或 fixture。
 
 本仓库及其 Wellen、Verilator、xdebug-fst 测试默认在沙箱内运行，因为开源实现本身不依赖 license。若命令出现异常，必须先保存原始命令、退出码、stdout/stderr 和环境摘要；确认异常可能来自沙箱的工具可见性、路径、网络、进程、IPC 或运行环境限制后，可以使用完全相同的命令和测试层级在沙箱外重试。沙箱外重试不得更换 EDA 工具、数据源、transport、backend、fixture 或测试目标，不得把切换环境冒充功能修复。若沙箱内外结果不同，必须记录差异和根因；只有可解释且可重复的结果才能作为验收证据。
 

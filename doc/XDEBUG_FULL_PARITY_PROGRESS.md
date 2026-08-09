@@ -3,12 +3,12 @@
 ## 当前状态
 
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
-- 当前阶段：P3 已完成（Wellen FST 波形语义）
-- 当前任务：进入 P4，先以失败差分判断是否确有必要修改 Verilator
+- 当前阶段：P4 已完成（克制扩展 Verilator DesignDB）
+- 当前任务：进入 P5，按 action 批次实现全部公共能力
 - 全局硬门禁：生产、回归和最终验收只打开 FST 波形；VCD 仅可作为可重复生成 FST 的源文件，禁止作为输入或 fallback
 - xdebug-fst 当前功能提交：`f61670a`；当前测试提交：`e1779c9`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
-- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `e04eb0ea8203028490400172396add8ec458932b`
+- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `50d8fff59df67a2eafcd19676e6ce6cc9827c0b7`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
 - 原版 xdebug runtime build ID：`8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 原版 schema revision：`c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
@@ -22,7 +22,7 @@
 | P1 | 已完成 | `parity-p1` | 73 action、146 schema、请求/响应校验、canonical JSON/XOUT 与 stdio-loop 全部对齐 |
 | P2 | 已完成 | `parity-p2` | registry、真实 UDS engine、来源清单、批量生命周期、异常补偿及 MCP direct/fake-LSF 全部通过；TCP/file 按用户要求裁剪且无 fallback |
 | P3 | 已完成 | `parity-p3` | FST-only Wellen 层级、时间、类型、delta、采样、批量与完整性已实现；Rust/C/C++、7 CTest、基线与双 C ABI 门禁全部通过 |
-| P4 | 未开始 | `parity-p4` | 克制扩展 DesignDB |
+| P4 | 已完成 | `parity-p4` | 两组修改前失败证据后，仅增加 ABI/capability、声明方向、预计算端口边和 driver dependency role；8 个 XDD 与普通回归通过 |
 | P5 | 未开始 | `parity-p5` | 全部公共 Action |
 | P6 | 未开始 | `parity-p6` | Active Driver 与 X Origin |
 | P7 | 未开始 | `parity-p7` | 全量差分与最终交付 |
@@ -61,6 +61,13 @@
 - `974bad8`、`e45eb6a`：实现并验证四态及非位值类型。
 - `f61670a`：实现 FST delta、raw/before/after、时钟采样、类型化批量值、变化游标和范围扫描。
 - `e1779c9`：建立生产与测试 FST-only 门禁并覆盖真实 FST 边界。
+- Verilator `a1f1aba1c`：导出声明方向与预计算跨层端口连接。
+- Verilator `6aae8d201`：覆盖 ABI v2、方向、端口边及旧接口兼容。
+- `d122c43`：要求 XDD v2 原生方向和连接证据并移除全表推断。
+- `d4f4da4`：覆盖旧 bundle 拒绝和 XDD v2 消费。
+- Verilator `50d8fff59`：以附加访问器区分 RHS、control 与 statement 依赖角色。
+- `4ab367d`：锁定最新 XDD 并消费原生 dependency role。
+- `7670e6c`：覆盖同一目标的数据依赖与控制依赖角色。
 
 ## 测试记录
 
@@ -84,9 +91,21 @@
 - P3 Wellen：`cargo test -p wellen-capi` 3 项通过，C ABI `make` 通过；根/递归层级、1ns timescale、bit/string/real/event 类型化值均有真实断言。
 - P3 xdebug-fst：7/7 CTest 通过；`wellen-fst-backend` 的所有实际波形参数均以 `.fst` 结尾，真实覆盖 1ns/1ps、深层 leaf、alias、64 位 X、Z、UTF-8 string delta、real、event、raw/before/after、时钟采样、批量 load/unload/value、变化游标、范围扫描和完整性诊断。
 - P3 阶段总验收：Wellen Rust 3/3、Wellen C ABI、wellenx 2/2、xdebug-fst 7/7 CTest 和 `check_compat_baseline.py` 全部通过；xdebug-fst、Wellen、Verilator 三仓状态均干净，Verilator 仍停留在 `e04eb0ea8`，P3 未对其增加任何修改。
+- P4 Verilator：`make -C src -j2` 通过；`t_xdd_trace_simple/full/uart/metadata/ops/trace`、`t_xdd_p3`、`t_xdd_p4` 共 8 个 DesignDB 用例逐一通过；普通非 DesignDB `t_a1_first_cc` 通过。
+- P4 xdebug-fst：依赖 revision/header hash 配置门禁通过，构建通过，8/8 CTest 通过；旧 XDD bundle、缺 capability 或缺符号均 fail closed，方向、端口边和 driver role 均使用原生事实。
+- P4 基线：`check_compat_baseline.py --original-root ${XDEBUG_ORIGINAL_ROOT}` 通过；五组 DesignDB 固件已重生成，但所有 `.fst` 文件保持未修改，测试继续由 Wellen 直接按需打开 FST。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
 ## 剩余差异
 
-P0、P1、P2、P3 已关闭。P3 的 FST 后端事实层已实现递归层级、alias、timescale、严格时间、四态/real/string/event、delta、raw/before/after、时钟采样、批量访问和完整性诊断，且生产与测试均禁止直接读取 VCD/FSDB 或 fallback。下一步进入 P4：必须先用公开 action 的失败差分证明现有 XDD ABI 无法提供必要事实；如果 xdebug-fst 组合现有 FST 与 XDD 即可完成，则不修改 Verilator。随后 P5 必须把全部公开 action 迁移到这些统一语义。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；schema enum 保留，实际选择必须 fail closed 且不得 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
+P0、P1、P2、P3、P4 已关闭。P3 的 FST 后端事实层已实现递归层级、alias、timescale、严格时间、四态/real/string/event、delta、raw/before/after、时钟采样、批量访问和完整性诊断，且生产与测试均禁止直接读取 VCD/FSDB 或 fallback。P4 在两组修改前失败证据后，仅为 XDD 增加声明方向、预计算端口边和 driver dependency role；没有证据的 process order、sequential boundary 未加入。下一步 P5 必须把全部公开 action 迁移到这些统一语义。FST 始终由 Wellen 在会话中按需读取，不转换成离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；schema enum 保留，实际选择必须 fail closed 且不得 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
+
+## P4 修改前失败证据
+
+- 定向 fixture：Verilator `t/t_xdd_p3.v`，包含普通 input/output、两级 module port、interface/modport、array 和控制流。
+- 现有生成物把 `top.p3_sem_top.u_mid.clk`、`u_mid.out` 及 `u_leaf` 的声明端口发布为 `wire`，XDD 不包含 `xdd_signal_direction`、`xdd_port_connection_*`、ABI version 或 capability 符号；xdebug-fst 只能逐信号扫描 driver/load 表启发式推断方向和跨层连接。
+- 修改前新增 `t/t_xdd_p4.py`，要求稳定 ABI/capability、声明方向与预计算 port boundary。执行 `python3 t/t_xdd_p4.py --vlt` 真实失败在缺少 `int xdd_abi_version(void)`，满足“先有失败用例再修改 Verilator”的门禁。
+- 一次无效命令 `python3 driver.py --make gmake t_xdd_p3` 把测试名误作额外参数并启动全套调度，已立即中断；它只触及 ignored `obj_*`，未修改源码，结果不计入验收。正确单用例命令 `python3 t/t_xdd_p3.py --vlt` 随后 1/1 通过。
+- 结论：方向和 port connection 是当前 XDD 无法由单个记录确定、且 xdebug-fst 只能用全表启发式扫描得到的不可靠事实，符合任务书“允许的最小扩展顺序”第 1 项。P4 先只扩展 ABI version/capability、声明方向和预计算端口边；active-driver 其它语义字段必须另有失败差分才允许加入。
+- 第二个定向差分使用同一 `t_xdd_p3.v` 中 `out` 的组合赋值：当前 XDD 把 RHS 数据依赖和外围 `if/case` 控制依赖压成结构完全相同的 driver 记录，消费者无法可靠判断 active-driver 的 `rhs_samples` 与 `control_only` 路径。先扩展 `t_xdd_p4.py` 要求逐 driver 的原生 dependency role，修改前执行真实失败在缺少 `xdd_trace_driver_role`。因此只允许增加该单一字段与 capability；没有证据支持的 process order、sequential boundary 等字段继续禁止加入。

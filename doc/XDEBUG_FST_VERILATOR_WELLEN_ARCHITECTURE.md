@@ -226,7 +226,8 @@ emitter 在 `V3Scope` 已经建立 `AstVarScope` 之后运行，因为此时能�
 - port/reg/wire 类型；
 - bit width；
 - 源文件；
-- 源代码行号。
+- 源代码行号；
+- HDL 声明方向（input/output/inout/ref）。
 
 参数和 Verilator 内部生成对象不会作为普通用户信号发布。重复名字只保留一个索引，后续 driver/load 表引用该索引。
 
@@ -238,6 +239,7 @@ emitter 在 `V3Scope` 已经建立 `AstVarScope` 之后运行，因为此时能�
 - 从 RHS 找到 source signals；
 - 区分 `cont_assign`、`proc_assign` 和 `nba`；
 - 向上查找所在的 `if` 或 `case`，把条件表达式中的信号加入静态依赖；
+- 为每条依赖原生标记 `rhs`、`control` 或 `statement`，避免消费者根据名称或行号猜测；
 - 记录 assignment 的源文件和行号；
 - 同时反向生成 load 记录。
 
@@ -251,6 +253,8 @@ emitter 在 `V3Scope` 已经建立 `AstVarScope` 之后运行，因为此时能�
 - 按名称排序的二分查找索引；
 - 按 target 分组的 driver table；
 - 按 source 分组的 load table；
+- 预计算并去重的跨层 port-boundary table；
+- ABI version、capability 位和 signal direction table；
 - `xdd_*` C ABI 实现。
 
 生成文件不链接 Verilator compiler 内部对象。它可以单独执行：
@@ -268,11 +272,13 @@ g++ -std=c++17 -shared -fPIC \
 
 当前公开 ABI 提供：
 
+- `xdd_abi_version` / `xdd_capabilities`，当前 ABI 为 v2；
 - `xdd_init` / `xdd_close`；
 - `xdd_signal_count`；
 - `xdd_resolve`；
-- signal name/type/width/file/line；
-- driver count 和第 N 条 driver；
+- signal name/type/width/file/line/direction；
+- port connection count 和第 N 条连接；
+- driver count、第 N 条 driver 及其 `rhs/control/statement` dependency role；
 - load count 和第 N 条 load。
 
 使用 C ABI 而不是直接暴露 C++ 容器的原因是：
@@ -289,8 +295,9 @@ g++ -std=c++17 -shared -fPIC \
 它把 C ABI 转换为 xdebug-fst 内部 `IDesignBackend`：
 
 - 名称解析和 signal metadata 直接映射；
-- driver/load 记录转换为 C++ value objects；
-- 当前 ABI 尚未原生发布 direction 和 port connection 时，过渡实现依据 driver/load 表推导；
+- driver/load 记录和 dependency role 转换为 C++ value objects；
+- direction 和 port connection 直接消费 XDD 原生确定性事实，不再全表启发式推导；
+- 强制要求 ABI v2 及 direction、port connection、driver role 三项 capability，旧 bundle、缺符号或 capability 不全都明确失败，不自动降级；
 - 后续 action 只依赖 `IDesignBackend`，不直接依赖 Verilator 头文件。
 
 这种接口隔离允许我们优先在 xdebug-fst 修正协议、schema、排序、错误合同和组合算法，而不为了上层表现差异频繁修改 Verilator。
@@ -315,7 +322,7 @@ Verilator 是上游大型编译器。对它的修改会影响解析、展开、�
 5. 每项新增能力有独立 Verilator 回归；
 6. 不重构无关 pass，不改变未启用 `--design-db` 的行为。
 
-P0 只提交了一个显式开关、一个只读 emitter、一个小型 C ABI 和对应测试，没有改写既有优化算法。
+截至 P4，只提交了一个显式开关、一个只读 emitter、一个小型附加 C ABI 和对应测试，没有改写既有优化、调度或仿真算法。P4 的 direction/port connection 与 dependency role 都先有修改前失败用例；没有失败证据的 process order、sequential boundary 没有加入。
 
 ## 六、Verilator 回归为什么要重做
 
@@ -417,6 +424,12 @@ Wellen 的 signal offset、`time_match`、`elements` 和 `next_index` 是实现�
 
 不能为了返回结果而悄悄截断宽度、变化数量或信号数量，也不能把资源失败当成空结果。
 
+### 7.7 不是把 FST 转成离线分析数据库
+
+FST 是本方案唯一允许的波形输入格式，但“适配 FST”不等于“把 FST 预处理成另一份分析数据库”。Wellen 在会话中打开原始 `.fst`，按 action 需要加载信号、查询时间表、读取值和遍历变化；xdebug-fst 在请求时把这些波形事实与 DesignDB 静态事实组合。不会先把 FST 转成 VCD、JSON、私有索引或全量内存快照，也不会因某项能力缺失改走 VCD/FSDB/backend fallback。
+
+因此两类数据的职责始终分离：Wellen 对 `.fst` 做按需波形访问，Verilator DesignDB 提供不在波形中的静态 HDL 关系，xdebug-fst 执行合同校验与组合推理。DesignDB 不是 FST 分析结果，也不含运行时波形值。
+
 ## 八、Wellen 双 C ABI 方案
 
 ### 8.1 为什么不让 C++ 直接链接 Rust 内部 API
@@ -495,7 +508,7 @@ C++ adapter 同时持有：
 - 原生 signal 0 与 C reference 1 的映射已修复；
 - `wellenx_capi` 同步改为 1 基并增加 2 个真实测试；
 - Verilator 建立显式 `--design-db`、只读 emitter 和最小 XDD ABI；
-- 7 个 Verilator DesignDB 用例真实通过；
+- 8 个 Verilator DesignDB 用例和 1 个普通非 DesignDB 用例真实通过；
 - Wellen revision、Verilator revision 和 ABI header hash 已写入依赖锁；
 - CMake 配置阶段严格校验 revision、header hash 和 release library。
 
@@ -519,6 +532,10 @@ C++ adapter 同时持有：
   游标和范围扫描，并区分完整分析与响应行数截断。
 - 生产 adapter 和测试入口都建立 FST-only 门禁：非 `.fst` 在解析前失败，全部 P3
   固件实际输入均为 FST；VCD 不作为输入或 fallback。
+- P4 已原生发布 ABI v2、capability、声明方向、预计算 port connection 和逐 driver
+  dependency role。xdebug-fst 要求完整 capability 并 fail closed；未加入无失败证据的
+  process order 或 sequential boundary，Verilator 修改保持在 emitter、C ABI header 和
+  对应定向测试内。
 
 ### 9.3 仍不能宣称完全一致的内容
 
@@ -548,7 +565,7 @@ C++ adapter 同时持有：
 6. 不为临时方便复制 Rust 内部结构到 C++；
 7. 先有失败差分，再扩展 XDD；
 8. 每次 ABI 变化同时更新 header hash、依赖锁、C/Rust 测试和 xdebug consumer；
-9. 不提交 `.so`、ELF、obj_dir、FSDB、daidir 或 proprietary 内容；
+9. 只保留仓库既有、由冻结开源 Verilator 可重复生成的 DesignDB 测试 `.so`；不新增仿真 ELF、普通 obj_dir 产物、FSDB、daidir 或 proprietary 内容；
 10. 最终验收以严格 73 action、全 schema、UDS/stdio transport、全差分和 clean worktree 为准；TCP/file 是明确登记的用户裁剪项。
 
 ## 十一、相关文件和提交
@@ -574,7 +591,7 @@ C++ adapter 同时持有：
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `e04eb0ea8203028490400172396add8ec458932b`
+- revision `50d8fff59df67a2eafcd19676e6ce6cc9827c0b7`
 
 对应提交：
 
@@ -585,6 +602,9 @@ C++ adapter 同时持有：
 - Wellen `066d86a`：通过容量感知 C ABI 保真发布 bit/real/string/event；
 - Verilator `80c4226ae`：增加最小化 DesignDB 生成接口；
 - Verilator `e04eb0ea8`：修复全量回归并覆盖独立设计；
+- Verilator `a1f1aba1c`：发布声明方向与预计算跨层端口边；
+- Verilator `6aae8d201`：覆盖 ABI v2、方向和端口连接回归；
+- Verilator `50d8fff59`：以附加访问器区分 RHS 与控制依赖；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
