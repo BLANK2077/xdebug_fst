@@ -681,6 +681,13 @@ statement。DesignDB 已在 control 记录中保存第 103/107 行和精确 pred
 只负责 hop 的 file/line evidence；其 role 不是 `rhs` 时，chain 必须就地按 assignment
 终止，不能沿 control 或 statement source 继续。
 
+第十六批建立复杂 output 表达式边界证据。父 net 上的 lowering driver 虽有两个 RHS，但
+原版链必须先显示 `parent net → child output`，随后在子模块第 143 行以一个 statement 的
+`multiple_rhs_sources` 报告 `data_i/sel_i`。现有 XDD 已分别保存 output→parent、两个
+input→flattened source 和父 statement RHS，故无需扩大 ABI。consumer 必须让唯一 output
+边界优先于父 net 的扁平化歧义，并在 output 实例内把每个 RHS 唯一映射回 input port；
+映射不完整或不唯一时不得用 FST 同值/可读性猜测。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。

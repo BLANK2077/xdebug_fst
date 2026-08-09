@@ -379,6 +379,32 @@ def test_trace_active_driver_selects_nested_nba_constant_and_signal_leaves(
         "top.data", "top.case_top.constant_nba_out"]
 
 
+def test_trace_active_driver_chain_enters_child_output_before_rhs_ambiguity(
+        loop_runner: StdioLoopRunner, case_fst,
+        case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.case_top.child_output_expr_bus", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "ambiguous"
+    assert rsp["summary"]["termination_detail"] == "multiple_rhs_sources"
+    assert [hop["signal"] for hop in rsp["data"]["hops"]] == [
+        "top.case_top.child_output_expr_bus",
+        "top.case_top.u_output_expr.data_o"]
+    evidence = rsp["data"]["ambiguity_evidence"]
+    assert evidence["statement_count"] == 1
+    assert evidence["rhs_signal_count"] == 2
+    assert {
+        sample["signal"]
+        for sample in evidence["statements"][0]["rhs_samples"]
+    } == {
+        "top.case_top.u_output_expr.data_i",
+        "top.case_top.u_output_expr.sel_i",
+    }
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:

@@ -686,6 +686,14 @@ group，会正确终止却丢失源码行。consumer 的责任边界是：所有
 RHS，或 kind 为 NBA，或含 control dependency”；这既保留常量 NBA，也不把裸生成节点
 算成第二条用户 driver。代表记录只供 source evidence，是否递归仍严格检查 role=`rhs`。
 
+复杂 output 表达式要求边界优先级。第十六批中父 net 的两个 lowering RHS 与子模块内部
+一个双 RHS assignment 是同一静态语句的不同层级视图；若在父 net 立即报告歧义，会丢失
+原版要求的 child output hop。XDD 已足够：output port 连接父 net，两个 input port 分别
+连接扁平化 source，父 driver 保存同一 file/line/predicate。consumer 应先沿唯一更深
+output port 进入实例，再以同实例 input port 替换父 statement 的 RHS signal index，最后
+在子 output 节点执行既有 statement grouping 与 ambiguity evidence。全部候选来自静态
+DesignDB；Wellen 只在映射完成后读取所选 port 的原始 FST 值。
+
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
 xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为
