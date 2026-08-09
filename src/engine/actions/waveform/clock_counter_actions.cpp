@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -75,6 +76,26 @@ static bool bits_to_u64(const std::string& bits, uint64_t& out) {
         else return false; // x/z
     }
     return true;
+}
+
+static bool bind_expr_aliases(ExprNode* node, const Json& aliases,
+                              std::string& error) {
+    if (!node) return false;
+    if (node->kind == ExprNode::Kind::Signal ||
+        node->kind == ExprNode::Kind::Slice) {
+        if (!aliases.contains(node->signal)) {
+            error = "expression references unknown alias: " + node->signal;
+            return false;
+        }
+        node->signal = aliases.at(node->signal).get<std::string>();
+    }
+    return (!node->left || bind_expr_aliases(node->left, aliases, error)) &&
+           (!node->right || bind_expr_aliases(node->right, aliases, error));
+}
+
+static std::string logic_status(const LogicValue& value) {
+    if (!value.known) return "unknown";
+    return value.bits.find('1') == std::string::npos ? "false" : "true";
 }
 
 // ── 1. clock_point_query ──
@@ -226,68 +247,109 @@ struct ExprEvalAtHandler : public EngineActionHandler {
                         {"error", {{"code", "WAVEFORM_NOT_LOADED"},
                                    {"message", "action requires waveform file: expr.eval_at"}}}};
         }
-        auto args = req.value("args", Json::object());
-        std::string expr = args.value("expression", args.value("expr", ""));
-        std::string ts = args.value("time", args.value("at", ""));
-
-        if (expr.empty() || ts.empty()) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "MISSING_FIELD"},
-                                   {"message", "args.expression and args.time are required"}}}};
-        }
-
-        uint64_t t = 0;
-        try { t = std::stoull(ts); }
-        catch (...) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "INVALID_TIME"}, {"message", "time must be an integer"}}}};
-        }
-
+        const Json args = req.at("args");
+        const std::string expr = args.at("expr");
+        const Json aliases = args.at("signals");
         auto* wf = g.waveform.get();
-
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
-
-        // Parse the expression first to detect syntax errors
-        std::string parse_error;
-        ExprNode* root = parse_expression(expr, parse_error);
-        if (!root) {
-            return Json{{"ok", false},
-                        {"error", {{"code", "PARSE_ERROR"},
-                                   {"message", "expression parse error: " + parse_error}}}};
+        uint64_t time = 0;
+        std::string error;
+        if (!wf->parse_time(args.at("time"), time, error))
+            return Json{{"ok", false}, {"error", {{"code", "INVALID_TIME"},
+                                                    {"message", error}}}};
+        TimeRenderUnit unit;
+        if (!parse_time_render_unit(args.value("render_time_unit", "ns"), unit,
+                                    error))
+            return Json{{"ok", false}, {"error", {{"code", "INVALID_TIME_UNIT"},
+                                                    {"message", error}}}};
+        ValueRenderFormat format = ValueRenderFormat::Hex;
+        parse_value_render_format(args.value("value_format", "hex"), format);
+        std::unique_ptr<ExprNode> root(parse_expression(expr, error));
+        if (!root || !bind_expr_aliases(root.get(), aliases, error))
+            return Json{{"ok", false}, {"error", {{"code", "PARSE_ERROR"},
+                                                    {"message", error}}}};
+        Json operands = Json::array();
+        for (auto it = aliases.begin(); it != aliases.end(); ++it) {
+            const std::string signal = it.value();
+            const uint32_t ref = wf->find_signal(signal);
+            if (!ref) return Json{{"ok", false}, {"error", {
+                {"code", "SIGNAL_NOT_FOUND"}, {"message", signal}}}};
+            wf->load_signals({ref});
         }
-
-        // Pre-load all referenced signals
-        std::vector<std::string> sig_names = expression_signals(root);
-        for (const auto& name : sig_names) {
-            uint32_t ref = wf->find_signal(name);
-            if (ref && !wf->is_loaded(ref)) wf->load_signals({ref});
+        const std::string clock = args.at("clock");
+        const uint32_t clock_ref = wf->find_signal(clock);
+        if (!clock_ref) return Json{{"ok", false}, {"error", {
+            {"code", "CLOCK_NOT_FOUND"}, {"message", clock}}}};
+        wf->load_signals({clock_ref});
+        const std::string edge = args.value("edge", "negedge");
+        const std::string requested_point = args.value("sample_point", "");
+        const bool negedge = edge == "negedge";
+        const std::string effective_point = negedge ? "" :
+            (requested_point.empty() ? "before" : requested_point);
+        const auto point = effective_point == "before"
+            ? IWaveformBackend::ObservationPoint::Before
+            : effective_point == "after" ? IWaveformBackend::ObservationPoint::After
+                                          : IWaveformBackend::ObservationPoint::Raw;
+        const uint32_t ti = wf->time_idx_of(time);
+        const LogicValue result = eval_expression(root.get(), *wf, ti, nullptr, point);
+        for (auto it = aliases.begin(); it != aliases.end(); ++it) {
+            const uint32_t ref = wf->find_signal(it.value());
+            IWaveformBackend::SignalInfo info;
+            IWaveformBackend::SampledValue sample;
+            wf->signal_info(ref, info);
+            wf->sampled_value_at(ref, ti, point, sample);
+            operands.push_back({{"alias", it.key()}, {"signal", it.value()},
+                {"value", render_value_json(sample.value.text, info.width, format)}});
         }
-
-        uint32_t ti = wf->time_idx_of(t);
-
-        LogicValue result;
-        std::string eval_error;
-        if (!expr_eval_at(expr, *wf, ti, result, eval_error)) {
-            delete root;
-            return Json{{"ok", false},
-                        {"error", {{"code", "EVAL_ERROR"},
-                                   {"message", eval_error}}}};
+        Json previous = nullptr, next = nullptr;
+        std::string exact_kind;
+        for (uint32_t edge_ti : wf->time_indices_of(clock_ref)) {
+            IWaveformBackend::SampledValue before, raw;
+            if (!wf->sampled_value_at(clock_ref, edge_ti,
+                    IWaveformBackend::ObservationPoint::Before, before) ||
+                !wf->sampled_value_at(clock_ref, edge_ti,
+                    IWaveformBackend::ObservationPoint::Raw, raw)) continue;
+            const bool rise = is_rising_edge(before.value.text, raw.value.text);
+            const bool fall = is_falling_edge(before.value.text, raw.value.text);
+            if (!rise && !fall) continue;
+            const std::string kind = rise ? "posedge" : "negedge";
+            const uint64_t edge_time = wf->time_at(edge_ti);
+            if (edge_time == time) exact_kind = kind;
+            if (!(edge == "dual" || edge == kind)) continue;
+            if (edge_time < time) previous = wf->format_time(edge_time, unit);
+            else if (edge_time > time && next.is_null())
+                next = wf->format_time(edge_time, unit);
         }
-        delete root;
-
-        Json out;
-        out["ok"] = true;
-        out["summary"] = {
-            {"expression", expr},
-            {"time", t},
-        };
-        out["data"] = {
-            {"expression", expr},
-            {"time", t},
-            {"value", logic_value_json(result, fmt)},
-        };
-        return out;
+        Json context{{"clock", clock},
+            {"requested_sampling", {{"edge", edge}, {"sample_point",
+                requested_point.empty() ? Json(nullptr) : Json(requested_point)}}},
+            {"effective_sampling", {{"edge", edge}, {"sample_point",
+                effective_point.empty() ? Json(nullptr) : Json(effective_point)}}},
+            {"sample_point_applied", !negedge},
+            {"sample_point_ignored_for_negedge", negedge && !requested_point.empty()},
+            {"requested_time", wf->format_time(time, unit)},
+            {"requested_any_edge_hit", !exact_kind.empty()},
+            {"clock_edge_kind", exact_kind.empty() ? Json(nullptr) : Json(exact_kind)},
+            {"requested_target_edge_hit", !exact_kind.empty() &&
+                (edge == "dual" || edge == exact_kind)},
+            {"previous_sample_time", previous}, {"next_sample_time", next},
+            {"bracket_complete", !previous.is_null() && !next.is_null()}};
+        if (negedge && !requested_point.empty())
+            context["sample_point_not_applied_reason"] =
+                "negedge keeps the established current-value sampling semantics";
+        const LogicValue before_value = eval_expression(root.get(), *wf, ti, nullptr,
+            IWaveformBackend::ObservationPoint::Before);
+        const LogicValue raw_value = eval_expression(root.get(), *wf, ti, nullptr,
+            IWaveformBackend::ObservationPoint::Raw);
+        const LogicValue after_value = eval_expression(root.get(), *wf, ti, nullptr,
+            IWaveformBackend::ObservationPoint::After);
+        return {{"ok", true}, {"summary", {{"expr", expr},
+            {"time", wf->format_time(time, unit)}, {"status", logic_status(result)},
+            {"known", result.known}}}, {"data", {
+            {"expr_value", result.known ? Json(logic_status(result) == "true") : Json(nullptr)},
+            {"operands", operands}, {"clock_context", context},
+            {"expr_samples", {{"before", logic_status(before_value)},
+                              {"middle", logic_status(raw_value)},
+                              {"after", logic_status(after_value)}}}}}};
     }
 };
 
