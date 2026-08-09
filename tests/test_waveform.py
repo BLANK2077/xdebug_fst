@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from conftest import open_session
+from conftest import AXI_CONFIG, open_session
 from runner import StdioLoopRunner
 
 
@@ -176,12 +176,15 @@ def test_value_at_apb_source(loop_runner: StdioLoopRunner, apb_fst) -> None:
 
 def test_value_at_axi_source(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
+    rsp = loop_runner.request("axi.config.load",
+                              args={"name": "axi0", "config": AXI_CONFIG})
+    assert rsp.get("ok"), rsp
     rsp = loop_runner.request("value.at", args={
-        "axi": "default", "times": ["0ps", "10ps"]})
+        "axi": "axi0", "times": ["0ps", "10ps"]})
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["source_kind"] == "axi"
     assert rsp["summary"]["time_count"] == 2
-    assert rsp["summary"]["entry_count"] == 24
+    assert rsp["summary"]["entry_count"] == 31
 
 
 def test_value_at_stream_source(loop_runner: StdioLoopRunner,

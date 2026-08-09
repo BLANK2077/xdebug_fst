@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from conftest import open_session
+from conftest import AXI_CONFIG, open_session
 from runner import StdioLoopRunner
 
 
@@ -198,122 +198,221 @@ def test_apb_missing_config(loop_runner: StdioLoopRunner, apb_fst) -> None:
 
 # ── AXI ──
 
+def _load_axi(loop_runner: StdioLoopRunner) -> dict:
+    rsp = loop_runner.request("axi.config.load",
+                              args={"name": "axi0", "config": AXI_CONFIG})
+    assert rsp.get("ok"), rsp
+    return rsp
+
 def test_axi_config_list(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
     rsp = loop_runner.request("axi.config.list")
     assert rsp.get("ok"), rsp
-    assert rsp["data"]["configs"][0]["name"] == "default"
+    assert rsp["summary"]["count"] == 0
 
 
 def test_axi_config_load(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
-    rsp = loop_runner.request("axi.config.load", args={"name": "default"})
+    rsp = _load_axi(loop_runner)
+    assert rsp["data"]["config"]["channels"]["aw"]["valid"] == "TOP.awvalid"
+    assert len(rsp["data"]["validation"]["signals"]) == 31
+
+    rsp = loop_runner.request("axi.config.list", args={"name": "axi0"})
     assert rsp.get("ok"), rsp
-    assert "awvalid" in rsp["data"]["signal_map"]
+    assert rsp["data"]["config"]["clock"] == "TOP.aclk"
 
 
 def test_axi_query(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
-    rsp = loop_runner.request("axi.query", args={"begin": "0", "end": "500"})
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.query",
+                              args={"name": "axi0", "direction": "write",
+                                    "query": {"line_limit": 10},
+                                    "render_time_unit": "ps"})
     assert rsp.get("ok"), rsp
     txns = rsp["data"]["transactions"]
-    assert rsp["summary"]["transaction_count"] == 2
-    write_txns = [t for t in txns if t["direction"] == "write"]
-    read_txns = [t for t in txns if t["direction"] == "read"]
-    assert len(write_txns) == 1
-    assert len(read_txns) == 1
-    w = write_txns[0]
-    assert w["address"]["value"] == "8'h10"
-    assert w["id"]["value"] == "4'h1"
-    assert w["length"]["value"] == "8'h02"
-    assert w["burst_status"] == "ok"
-    assert w["start_time"] == 60
-    assert w["end_time"] == 120
-    r = read_txns[0]
-    assert r["address"]["value"] == "8'h10"
-    assert r["id"]["value"] == "4'h2"
-    assert r["burst_status"] == "ok"
-    assert r["start_time"] == 180
-    assert r["end_time"] == 220
+    assert rsp["summary"]["total_count"] == 1
+    assert len(txns) == 1
+    w = txns[0]
+    assert w["address"]["addr"] == "8'h10"
+    assert w["address"]["id"] == "4'h1"
+    assert w["address"]["len"] == "8'h02"
+    assert w["address"]["size"] == "3'h2"
+    assert w["address"]["burst"] == "2'h1"
+    assert w["address"]["handshake_time"] == "60ps"
+    assert w["response"]["handshake_time"] == "120ps"
+
+    rsp = loop_runner.request("axi.query",
+                              args={"name": "axi0", "direction": "read",
+                                    "query": {"line_limit": 10},
+                                    "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    r = rsp["data"]["transactions"][0]
+    assert r["address"]["addr"] == "8'h10"
+    assert r["address"]["id"] == "4'h2"
+    assert r["address"]["handshake_time"] == "180ps"
+    assert r["response"]["handshake_time"] == "220ps"
+
+
+def test_axi_query_filters_selectors_and_errors(loop_runner: StdioLoopRunner,
+                                                axi_fst) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.query", args={"name": "axi0",
+        "direction": "write", "address": {"mode": "exact", "values": ["8'h10"]}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["query_mode"] == "count"
+    assert rsp["summary"]["total_count"] == 1
+
+    rsp = loop_runner.request("axi.query", args={"name": "axi0",
+        "direction": "write", "id": {"mode": "range", "begin": "1", "end": "1"},
+        "query": {"index": 1}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["found"] is True
+    assert rsp["data"]["transaction"]["address"]["id"] == "4'h1"
+
+    rsp = loop_runner.request("axi.query", args={"name": "axi0",
+        "direction": "read", "address": {"mode": "mask", "value": "8'h10",
+        "mask": "8'hf0"}, "last": True})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["query_mode"] == "last"
+
+    rsp = loop_runner.request("axi.query", args={"name": "missing",
+        "direction": "write"})
+    assert not rsp.get("ok")
+    assert rsp["error"]["code"] == "CONFIG_NOT_FOUND"
+
+    rsp = loop_runner.request("axi.query", args={"name": "axi0",
+        "direction": "write", "time_range": {"begin": "300ps", "end": "100ps"}})
+    assert not rsp.get("ok")
+    assert rsp["error"]["code"] == "TIME_RANGE_INVALID"
 
 
 def test_axi_analysis(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
-    rsp = loop_runner.request("axi.analysis", args={"begin": "0", "end": "500"})
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.analysis",
+                              args={"name": "axi0", "analysis": "latency",
+                                    "direction": "all"})
     assert rsp.get("ok"), rsp
-    channels = rsp["data"]["channels"]
-    assert len(channels["aw"]) == 1
-    assert len(channels["b"]) == 1
-    assert len(channels["ar"]) == 1
-    assert len(channels["w"]) == 3  # 3 data beats
-    assert len(channels["r"]) == 2  # 2 read beats
+    assert rsp["summary"]["completed_write_count"] == 1
+    assert rsp["summary"]["completed_read_count"] == 1
+    assert rsp["summary"]["channel_handshakes"] == {
+        "aw": 1, "w": 3, "b": 1, "ar": 1, "r": 2}
+    assert rsp["data"]["latency"]["write"]["samples"] == 1
+
+
+def test_axi_analysis_osd_and_pending(loop_runner: StdioLoopRunner, axi_fst) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.analysis",
+                              args={"name": "axi0", "analysis": "osd",
+                                    "direction": "all"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis"] == "osd"
+    assert rsp["data"]["osd"]["write"]["max"] >= 1
+
+    rsp = loop_runner.request("axi.analysis",
+                              args={"name": "axi0", "analysis": "pending",
+                                    "direction": "all", "line_limit": 1})
+    assert rsp.get("ok"), rsp
+    assert rsp["data"]["pending_transactions"] == []
 
 
 def test_axi_statistics(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
-    rsp = loop_runner.request("axi.statistics", args={"begin": "0", "end": "500"})
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.statistics",
+                              args={"name": "axi0", "filter": {"direction": "all"}})
     assert rsp.get("ok"), rsp
     s = rsp["summary"]
-    assert s["transaction_count"] == 2
-    assert s["write_count"] == 1
-    assert s["read_count"] == 1
-    assert s["error_count"] == 0
-    assert s["max_latency"] > 0
+    assert s["matched_transaction_count"] == 2
+    assert s["matched_write_count"] == 1
+    assert s["matched_read_count"] == 1
+    assert s["analysis_quality"] == "complete"
 
-
-def test_axi_export(loop_runner: StdioLoopRunner, axi_fst) -> None:
-    open_session(loop_runner, axi_fst)
-    rsp = loop_runner.request("axi.export", args={"begin": "0", "end": "500"})
+    rsp = loop_runner.request("axi.statistics", args={"name": "axi0",
+        "filter": {"direction": "write", "ids": ["1"],
+                   "address": {"mode": "range", "begin": "8'h10", "end": "8'h1f"}}})
     assert rsp.get("ok"), rsp
-    assert len(rsp["data"]["transactions"]) == 2
+    assert rsp["summary"]["matched_write_count"] == 1
+
+
+def test_axi_export(loop_runner: StdioLoopRunner, axi_fst, tmp_path) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    prefix = tmp_path / "axi_transactions"
+    rsp = loop_runner.request("axi.export", args={"name": "axi0",
+        "time_range": {"begin": "0ps", "end": "500ps"},
+        "output": {"path": str(prefix), "file_format": "tsv"}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["row_count"] == 2
+    assert (tmp_path / "axi_transactions.write.tsv").exists()
+    assert (tmp_path / "axi_transactions.read.tsv").exists()
+    assert (tmp_path / "axi_transactions.meta.json").exists()
 
 
 def test_axi_transaction_cursor(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
     rsp = loop_runner.request("axi.transaction.cursor",
-                              args={"begin": "0", "end": "500", "cursor": 0})
+                              args={"name": "axi0", "op": "begin"})
     assert rsp.get("ok"), rsp
-    assert len(rsp["data"]["transactions"]) == 2
-    assert rsp["data"]["has_more"] is False
+    assert rsp["summary"]["found"] is True
+    assert rsp["summary"]["index"] == 1
+    assert rsp["data"]["transaction"]["direction"] == "write"
 
 
 def test_axi_channel_stall(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
     rsp = loop_runner.request("axi.channel_stall",
-                              args={"begin": "0", "end": "500"})
+                              args={"name": "axi0", "channel": "aw"})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["stall_count"] >= 0
-    for stall in rsp["data"]["stalls"]:
-        assert "channel" in stall
-        assert stall["duration"] >= 0
+    assert rsp["summary"]["channel"] == "aw"
+    assert rsp["summary"]["max_stall_cycles"] >= 0
+    for finding in rsp["data"]["findings"]:
+        assert finding["type"] == "long_stall"
+        assert finding["cycles"] >= 0
 
 
 def test_axi_latency_outlier(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
     rsp = loop_runner.request("axi.latency_outlier",
-                              args={"begin": "0", "end": "500"})
+                              args={"name": "axi0", "direction": "all",
+                                    "method": "top_n", "top_n": 1})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["outlier_count"] >= 0
-    assert rsp["summary"]["avg_latency"] > 0
+    assert rsp["summary"]["candidate_count"] == 2
+    assert rsp["summary"]["returned_count"] == 1
+    assert rsp["data"]["classification"] == "slowest_ranking"
+
+    rsp = loop_runner.request("axi.latency_outlier", args={"name": "axi0",
+        "direction": "all", "method": "threshold", "threshold": "50ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["data"]["classification"] == "threshold_exceeded"
+    assert rsp["summary"]["total_count"] == 1
 
 
 def test_axi_outstanding_timeline(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
     rsp = loop_runner.request("axi.outstanding_timeline",
-                              args={"begin": "0", "end": "500"})
+                              args={"name": "axi0", "direction": "all"})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["max_outstanding"] >= 1
-    for point in rsp["data"]["timeline"]:
-        assert point["outstanding"] >= 0
+    assert max(rsp["summary"]["peak_read"], rsp["summary"]["peak_write"]) >= 1
+    for point in rsp["data"]["change_points"]:
+        assert point["read"] >= 0 and point["write"] >= 0
 
 
 def test_axi_request_response_pair(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
     rsp = loop_runner.request("axi.request_response_pair",
-                              args={"begin": "0", "end": "500"})
+                              args={"name": "axi0", "direction": "all"})
     assert rsp.get("ok"), rsp
-    pairs = rsp["data"]["pairs"]
-    assert rsp["summary"]["pair_count"] == 2
-    for p in pairs:
-        assert p["latency"] > 0
-        assert "request" in p and "response" in p
+    pairs = rsp["data"]["transactions"]
+    assert rsp["summary"]["total_count"] == 2
+    for pair in pairs:
+        assert pair["latency"] != "0ns"
+        assert "address" in pair and "response" in pair

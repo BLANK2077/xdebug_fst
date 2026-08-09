@@ -9,6 +9,8 @@ module axi_slave #(
     input  wire [ID-1:0]     awid,
     input  wire [AW-1:0]     awaddr,
     input  wire [7:0]        awlen,
+    input  wire [2:0]        awsize,
+    input  wire [1:0]        awburst,
     input  wire              awvalid,
     output wire              awready,
     input  wire [DW-1:0]     wdata,
@@ -23,6 +25,8 @@ module axi_slave #(
     input  wire [ID-1:0]     arid,
     input  wire [AW-1:0]     araddr,
     input  wire [7:0]        arlen,
+    input  wire [2:0]        arsize,
+    input  wire [1:0]        arburst,
     input  wire              arvalid,
     output wire              arready,
     output reg  [ID-1:0]     rid,
@@ -99,21 +103,25 @@ module axi_top (
     input  wire        aclk,
     input  wire        aresetn,
     input  wire [3:0]  awid,   input  wire [7:0] awaddr, input  wire [7:0] awlen,
+    input  wire [2:0]  awsize, input  wire [1:0] awburst,
     input  wire        awvalid, output wire        awready,
     input  wire [31:0] wdata,  input  wire [3:0]  wstrb,  input  wire        wlast,
     input  wire        wvalid, output wire        wready,
     output wire [3:0]  bid,    output wire [1:0]  bresp,  output wire        bvalid, input wire bready,
     input  wire [3:0]  arid,   input  wire [7:0]  araddr, input  wire [7:0]  arlen,
+    input  wire [2:0]  arsize, input  wire [1:0] arburst,
     input  wire        arvalid, output wire        arready,
     output wire [3:0]  rid,    output wire [31:0] rdata,  output wire [1:0]  rresp,
     output wire        rlast,  output wire        rvalid, input  wire        rready
 );
     axi_slave #(.AW(8), .DW(32), .ID(4)) u_slave (
         .aclk(aclk), .aresetn(aresetn),
-        .awid(awid), .awaddr(awaddr), .awlen(awlen), .awvalid(awvalid), .awready(awready),
+        .awid(awid), .awaddr(awaddr), .awlen(awlen), .awsize(awsize),
+        .awburst(awburst), .awvalid(awvalid), .awready(awready),
         .wdata(wdata), .wstrb(wstrb), .wlast(wlast), .wvalid(wvalid), .wready(wready),
         .bid(bid), .bresp(bresp), .bvalid(bvalid), .bready(bready),
-        .arid(arid), .araddr(araddr), .arlen(arlen), .arvalid(arvalid), .arready(arready),
+        .arid(arid), .araddr(araddr), .arlen(arlen), .arsize(arsize),
+        .arburst(arburst), .arvalid(arvalid), .arready(arready),
         .rid(rid), .rdata(rdata), .rresp(rresp), .rlast(rlast), .rvalid(rvalid), .rready(rready)
     );
 endmodule

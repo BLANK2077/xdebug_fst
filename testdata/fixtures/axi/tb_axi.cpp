@@ -10,9 +10,10 @@ int main(int argc, char** argv) {
     top->trace(tfp, 99);
     tfp->open("waves.fst");
     top->aclk = 0; top->aresetn = 0;
-    top->awid=0; top->awaddr=0; top->awlen=0; top->awvalid=0;
+    top->awid=0; top->awaddr=0; top->awlen=0; top->awsize=2; top->awburst=1; top->awvalid=0;
     top->wdata=0; top->wstrb=0xF; top->wlast=0; top->wvalid=0;
-    top->bready=1; top->arid=0; top->araddr=0; top->arlen=0; top->arvalid=0;
+    top->bready=1; top->arid=0; top->araddr=0; top->arlen=0;
+    top->arsize=2; top->arburst=1; top->arvalid=0;
     top->rready=1;
     long t = 0;
     auto tick = [&]() { top->aclk = !top->aclk; top->eval(); tfp->dump(static_cast<uint64_t>(t++) * 10); };

@@ -12,6 +12,24 @@ from runner import CliRunner, StdioLoopRunner
 
 Json = Any
 
+AXI_CONFIG = {
+    "clock": "TOP.aclk",
+    "reset": {"signal": "TOP.aresetn", "polarity": "active_low"},
+    "edge": "posedge", "sample_point": "after",
+    "awaddr": "TOP.awaddr", "awid": "TOP.awid", "awlen": "TOP.awlen",
+    "awsize": "TOP.awsize", "awburst": "TOP.awburst",
+    "awvalid": "TOP.awvalid", "awready": "TOP.awready",
+    "wdata": "TOP.wdata", "wstrb": "TOP.wstrb", "wlast": "TOP.wlast",
+    "wvalid": "TOP.wvalid", "wready": "TOP.wready",
+    "bid": "TOP.bid", "bresp": "TOP.bresp",
+    "bvalid": "TOP.bvalid", "bready": "TOP.bready",
+    "araddr": "TOP.araddr", "arid": "TOP.arid", "arlen": "TOP.arlen",
+    "arsize": "TOP.arsize", "arburst": "TOP.arburst",
+    "arvalid": "TOP.arvalid", "arready": "TOP.arready",
+    "rid": "TOP.rid", "rdata": "TOP.rdata", "rresp": "TOP.rresp",
+    "rlast": "TOP.rlast", "rvalid": "TOP.rvalid", "rready": "TOP.rready",
+}
+
 TESTS_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_ROOT.parent
 FIXTURES = REPO_ROOT / "testdata" / "fixtures"
