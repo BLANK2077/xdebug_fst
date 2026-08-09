@@ -40,7 +40,13 @@ module matches_top (
             async_q <= 8'h00;
         else
             async_q <= data;
-    end
+  end
+
+  reg [7:0] changed_q;
+  wire [7:0] changed_out;
+  assign changed_out = changed_q;
+  always @(clk)
+    changed_q <= data;
 
   reg [7:0] forced_q;
   wire [7:0] forced_out;

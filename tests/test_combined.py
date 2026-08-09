@@ -197,6 +197,26 @@ def test_trace_active_driver_chain_uses_async_reset_event_time(
     assert hops[1]["active_time"] == "30ps"
 
 
+def test_trace_active_driver_chain_uses_changed_event_time(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.matches_top.changed_out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "primary_input"
+    hops = rsp["data"]["hops"]
+    assert [hop["signal"] for hop in hops] == [
+        "top.matches_top.changed_out",
+        "top.matches_top.changed_q",
+        "top.data",
+    ]
+    assert [hop["active_time"] for hop in hops[:2]] == ["60ps", "60ps"]
+    assert hops[1]["time"] == "60ps"
+
+
 def test_trace_active_driver_chain_stops_at_force(
         loop_runner: StdioLoopRunner, matches_fst,
         matches_design_db) -> None:
@@ -241,7 +261,7 @@ def test_trace_active_driver_reports_force_as_resolved_driver(
     assert rsp["summary"]["total_count"] == 1
     assert rsp["data"]["paths"] == [{
         "file": "testdata/fixtures/matches/matches_top.sv",
-        "line": 52,
+        "line": 58,
         "source_context": [],
         "signal_path": [
             "top.data",
