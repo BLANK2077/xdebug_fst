@@ -689,4 +689,6 @@ DesignDB 仍只提供静态边，Wellen 仍只提供该 alias 在原始 FST 中�
 - xdebug-fst `ec8323c`：建立 lowering 后同目标嵌套条件身份丢失的修改前失败证据；
 - xdebug-fst `5e64ec1`：锁定 Verilator 条件叶子恢复 revision 并通过全量门禁；
 - xdebug-fst `ffbc888`：建立同源行三元信号/常量叶子被错误合并的修改前失败证据；
-- xdebug-fst `1119706`：将 predicate 纳入语句身份并以真实 FST 选择同源行三元叶子。
+- xdebug-fst `1119706`：将 predicate 纳入语句身份并以真实 FST 选择同源行三元叶子；
+- xdebug-fst `09fd61a`：建立内部 input alias 沿对称端口边反向折返的修改前失败证据；
+- xdebug-fst `4a1a4c0`：只允许 input 端口向较浅父级上溯并在 primary input 终止。
