@@ -84,17 +84,33 @@ static Json dispatch_handler(const Json& request) {
         if (!args.contains("requests") || !args["requests"].is_array()) {
             return error_response("MISSING_FIELD", "batch requires args.requests[]");
         }
-        Json responses = Json::array();
+        Json results = Json::array();
+        Json failed_indexes = Json::array(), failed_codes = Json::array(),
+             failed_layers = Json::array();
+        size_t index = 0;
         for (auto& sub : args["requests"]) {
+            Json result;
             if (!sub.is_object()) {
-                responses.push_back(error_response("MISSING_ACTION", "batch item must be an object"));
-                continue;
+                result = error_response("MISSING_ACTION", "batch item must be an object");
+            } else {
+                result = dispatch(sub);
             }
-            responses.push_back(dispatch(sub));
+            if (!result.value("ok",false)) {
+                failed_indexes.push_back(index);
+                const Json error=result.value("error",Json::object());
+                failed_codes.push_back(error.value("code","UNKNOWN_ERROR"));
+                failed_layers.push_back(error.value("error_layer","handler"));
+            }
+            results.push_back(std::move(result));
+            ++index;
         }
+        const size_t failed_count=failed_indexes.size();
         return Json{{"ok", true},
-                    {"summary", {{"request_count", responses.size()}}},
-                    {"data", {{"responses", responses}}}};
+                    {"summary", {{"count", results.size()},
+                        {"all_ok",failed_count==0},{"failed_count",failed_count},
+                        {"failed_indexes",failed_indexes},{"failed_codes",failed_codes},
+                        {"failed_layers",failed_layers}}},
+                    {"data", {{"results", results}}}};
     }
 
     // Dispatch to registered handlers
