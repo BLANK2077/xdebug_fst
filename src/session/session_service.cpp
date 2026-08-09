@@ -1,5 +1,6 @@
 #include "session/session_service.h"
 
+#include "common/env_config.h"
 #include "common/sha256.h"
 #include "session/session_paths.h"
 #include "session/session_registry.h"
@@ -28,10 +29,15 @@ namespace fs = std::filesystem;
 
 Json failure(const std::string& code, const std::string& message,
              const std::string& layer = "session_manager",
-             bool recoverable = true) {
-    return {{"ok", false},
-            {"error", {{"code", code}, {"message", message},
-                       {"recoverable", recoverable}, {"error_layer", layer}}}};
+             bool recoverable = true, const Json& details = Json::object()) {
+    Json error{{"code", code}, {"message", message},
+               {"recoverable", recoverable}, {"error_layer", layer}};
+    if (details.is_object()) {
+        for (auto item = details.begin(); item != details.end(); ++item) {
+            error[item.key()] = item.value();
+        }
+    }
+    return {{"ok", false}, {"error", std::move(error)}};
 }
 
 bool random_hex_256(std::string& value) {
@@ -190,6 +196,95 @@ bool endpoint_is_generation(const SessionInfo& session) {
                "generation", std::string()) == session.generation;
 }
 
+bool process_is_running(pid_t pid) {
+    if (pid <= 0) return false;
+    int status = 0;
+    const pid_t child = waitpid(pid, &status, WNOHANG);
+    if (child == pid) return false;
+    if (kill(pid, 0) == 0) return true;
+    return errno == EPERM;
+}
+
+bool process_matches_generation(const SessionInfo& session) {
+    if (!process_is_running(session.server_pid)) return false;
+    const std::string path =
+        "/proc/" + std::to_string(session.server_pid) + "/cmdline";
+    std::ifstream input(path, std::ios::in | std::ios::binary);
+    if (!input) return false;
+    const std::string command((std::istreambuf_iterator<char>(input)),
+                              std::istreambuf_iterator<char>());
+    return command.find("xdebug-fst") != std::string::npos &&
+           command.find(session.session_id) != std::string::npos &&
+           command.find(session.generation) != std::string::npos;
+}
+
+bool wait_process_exit(pid_t pid, int timeout_ms) {
+    for (int elapsed = 0; elapsed < timeout_ms; elapsed += 10) {
+        if (!process_is_running(pid)) return true;
+        usleep(10000);
+    }
+    return !process_is_running(pid);
+}
+
+struct HealthResult {
+    bool healthy = false;
+    std::string status;
+    std::string message;
+};
+
+HealthResult diagnose(const SessionInfo& session) {
+    if (session.lifecycle_state != "active") {
+        return {false, session.lifecycle_state == "opening"
+                           ? "connect_failed" : "process_exited",
+                "Session generation is not active"};
+    }
+    if (!xdebug_design::xdebug_design_generation_matches(
+            session.session_id, session.generation)) {
+        return {false, "registry_missing",
+                "Session registry and generation marker do not match"};
+    }
+    struct stat info {};
+    if (!session.dbdir_path.empty()) {
+        if (stat(session.dbdir_path.c_str(), &info) != 0 || !S_ISDIR(info.st_mode)) {
+            return {false, "dbdir_missing", "Daidir path is missing"};
+        }
+        if (!xdebug_core::resource_content_matches(
+                session.dbdir_mtime, session.dbdir_size,
+                info.st_mtime, info.st_size)) {
+            return {false, "dbdir_changed",
+                    "Daidir metadata changed since session.open"};
+        }
+    }
+    if (!session.fsdb_file.empty()) {
+        if (stat(session.fsdb_file.c_str(), &info) != 0 || !S_ISREG(info.st_mode)) {
+            return {false, "fsdb_missing", "Waveform path is missing"};
+        }
+        if (!xdebug_core::resource_content_matches(
+                session.fsdb_mtime, session.fsdb_size,
+                info.st_mtime, info.st_size)) {
+            return {false, "fsdb_changed",
+                    "Waveform metadata changed since session.open"};
+        }
+    }
+    struct stat socket_info {};
+    if (lstat(session.socket_path.c_str(), &socket_info) != 0 ||
+        !S_ISSOCK(socket_info.st_mode)) {
+        return {false, process_is_running(session.server_pid)
+                           ? "socket_missing" : "process_exited",
+                process_is_running(session.server_pid)
+                    ? "Session socket is missing"
+                    : "Server process is not running"};
+    }
+    if (!endpoint_is_generation(session)) {
+        return {false, process_is_running(session.server_pid)
+                           ? "ping_failed" : "process_exited",
+                process_is_running(session.server_pid)
+                    ? "Session ping failed or generation differs"
+                    : "Server process is not running"};
+    }
+    return {true, "healthy", "Session is healthy"};
+}
+
 bool cleanup_generation(SessionRegistry& registry, const SessionInfo& session) {
     const bool artifacts = xdebug_design::xdebug_design_remove_session_generation(
         session.session_id, session.generation);
@@ -197,6 +292,37 @@ bool cleanup_generation(SessionRegistry& registry, const SessionInfo& session) {
     const SessionRegistryResult removed = registry.remove_if_generation(
         session.session_id, session.generation);
     return removed.ok();
+}
+
+bool cleanup_managed_session(SessionRegistry& registry, SessionInfo session,
+                             bool force) {
+    SessionInfo retained = session;
+    retained.lifecycle_state = "cleanup_failed";
+    if (!registry.mark_cleanup_failed(retained, session.generation).ok()) {
+        return false;
+    }
+
+    bool stopped = !process_is_running(session.server_pid);
+    const bool endpoint_owned = endpoint_is_generation(session);
+    if (!stopped && endpoint_owned && !force) {
+        Json ignored;
+        std::string error;
+        endpoint_control(session, "server.quit", ignored, error);
+        stopped = wait_process_exit(session.server_pid, 1500);
+    }
+    const bool process_owned = endpoint_owned || process_matches_generation(session);
+    if (!stopped && process_owned) {
+        if (kill(session.server_pid, SIGTERM) == 0 || errno == ESRCH) {
+            stopped = wait_process_exit(session.server_pid, 1500);
+        }
+    }
+    if (!stopped && process_owned) {
+        if (kill(session.server_pid, SIGKILL) == 0 || errno == ESRCH) {
+            stopped = wait_process_exit(session.server_pid, 1500);
+        }
+    }
+    if (!stopped) return false;
+    return cleanup_generation(registry, retained);
 }
 
 std::string self_executable() {
@@ -256,6 +382,13 @@ Json open_session(const Json& request) {
                        "requested transport is not implemented yet: " + transport,
                        "transport");
     }
+    std::string error;
+    const int startup_timeout_sec =
+        xdebug_core::xdebug_session_start_timeout_sec(error);
+    if (startup_timeout_sec < 0) {
+        return failure("INVALID_ENVIRONMENT", error,
+                       "session_manager", false);
+    }
 
     SessionInfo session;
     session.session_id = session_id;
@@ -278,7 +411,6 @@ Json open_session(const Json& request) {
     }
 
     std::string design_library;
-    std::string error;
     if (target.contains("daidir")) {
         if (!resolve_design_bundle(target["daidir"].get<std::string>(),
                                    session.dbdir_path, design_library, error) ||
@@ -324,22 +456,59 @@ Json open_session(const Json& request) {
     }
 
     bool ready = false;
+    bool child_exited = false;
     int exit_status = 0;
-    for (int attempt = 0; attempt < 500; ++attempt) {
+    const long long startup_attempts =
+        static_cast<long long>(startup_timeout_sec) * 100LL;
+    for (long long attempt = 0; attempt < startup_attempts; ++attempt) {
         if (endpoint_is_generation(session)) {
             ready = true;
             break;
         }
         const pid_t exited = waitpid(child, &exit_status, WNOHANG);
-        if (exited == child) break;
+        if (exited == child) {
+            child_exited = true;
+            break;
+        }
         usleep(10000);
     }
     if (!ready) {
-        if (kill(child, 0) == 0) kill(child, SIGKILL);
+        if (!child_exited && kill(child, 0) == 0) kill(child, SIGKILL);
+        if (!child_exited) waitpid(child, &exit_status, 0);
+        cleanup_generation(registry, session);
+        const int exit_code = WIFEXITED(exit_status)
+            ? WEXITSTATUS(exit_status)
+            : (WIFSIGNALED(exit_status) ? 128 + WTERMSIG(exit_status) : -1);
+        return failure(
+            child_exited ? "SESSION_START_FAILED" : "SESSION_START_TIMEOUT",
+            child_exited
+                ? "engine exited before publishing a healthy endpoint"
+                : "engine did not become ready within " +
+                      std::to_string(
+                          static_cast<long long>(startup_timeout_sec) * 1000LL) +
+                      " ms",
+            "session_manager", true,
+            {{"timeout_ms",
+              static_cast<long long>(startup_timeout_sec) * 1000LL},
+             {"exit_status", exit_code}});
+    }
+
+    SessionInfo current = session;
+    if ((!session.dbdir_path.empty() &&
+         !populate_fingerprint(session.dbdir_path, true, current)) ||
+        (!session.fsdb_file.empty() &&
+         !populate_fingerprint(session.fsdb_file, false, current)) ||
+        current.dbdir_mtime != session.dbdir_mtime ||
+        current.dbdir_size != session.dbdir_size ||
+        current.fsdb_mtime != session.fsdb_mtime ||
+        current.fsdb_size != session.fsdb_size) {
+        Json ignored;
+        endpoint_control(session, "server.quit", ignored, error);
+        kill(child, SIGKILL);
         waitpid(child, nullptr, 0);
         cleanup_generation(registry, session);
-        return failure("SESSION_START_TIMEOUT",
-                       "engine did not become ready within 5000 ms");
+        return failure("SESSION_RESOURCE_CHANGED",
+                       "session resource changed while the engine was opening");
     }
 
     session.lifecycle_state = "active";
@@ -363,12 +532,36 @@ Json list_sessions() {
     std::vector<SessionInfo> sessions;
     const SessionRegistryResult loaded = registry.load_all(sessions);
     if (!loaded.ok()) return failure("SESSION_REGISTRY_FAILED", loaded.message);
+    std::string timeout_error;
+    const int idle_timeout_sec =
+        xdebug_core::xdebug_session_idle_timeout_sec(timeout_error);
+    if (idle_timeout_sec < 0) {
+        return failure("INVALID_ENVIRONMENT", timeout_error,
+                       "session_manager", false);
+    }
     Json visible = Json::array();
-    for (const SessionInfo& session : sessions) visible.push_back(public_session(session));
+    Json removed = Json::array();
+    const time_t now = time(nullptr);
+    for (const SessionInfo& session : sessions) {
+        const long long idle_sec = session.last_active > 0 && now > session.last_active
+            ? static_cast<long long>(now - session.last_active) : 0;
+        if (session.lifecycle_state == "active" &&
+            idle_sec >= idle_timeout_sec &&
+            cleanup_managed_session(registry, session, false)) {
+            removed.push_back({{"removed_session", public_session(session)},
+                               {"reason", "idle_timeout"},
+                               {"idle_sec", idle_sec},
+                               {"idle_timeout_sec", idle_timeout_sec}});
+            continue;
+        }
+        visible.push_back(public_session(session));
+    }
+    Json data{{"sessions", visible}};
+    if (!removed.empty()) data["removed"] = removed;
     return {{"ok", true},
             {"summary", {{"session_count", visible.size()},
-                         {"expired_removed_count", 0}}},
-            {"data", {{"sessions", visible}}}};
+                         {"expired_removed_count", removed.size()}}},
+            {"data", std::move(data)}};
 }
 
 Json doctor_session(const Json& request) {
@@ -377,8 +570,16 @@ Json doctor_session(const Json& request) {
     SessionInfo session;
     const SessionRegistryResult found = registry.get(id, session);
     if (!found.ok()) return failure("SESSION_NOT_FOUND", found.message);
-    if (session.lifecycle_state != "active" || !endpoint_is_generation(session)) {
-        return failure("SESSION_UNHEALTHY", "Session server is not healthy");
+    const HealthResult health = diagnose(session);
+    if (!health.healthy) {
+        return failure("SESSION_UNHEALTHY", health.message,
+                       "session_manager", true,
+                       {{"health_status", health.status},
+                        {"session_id", session.session_id},
+                        {"session_mode", session.dbdir_path.empty()
+                             ? "waveform"
+                             : (session.fsdb_file.empty() ? "design" : "combined")},
+                        {"session_transport", session.transport}});
     }
     registry.touch_if_generation(id, session.generation, time(nullptr));
     return {{"ok", true}, {"session", public_session(session)},
@@ -403,24 +604,13 @@ Json remove_session(const Json& request, bool force) {
         }
     }
 
-    const bool owned_endpoint = endpoint_is_generation(session);
-    if (owned_endpoint && !force) {
-        Json ignored;
-        std::string error;
-        endpoint_control(session, "server.quit", ignored, error);
-    } else if (owned_endpoint && session.server_pid > 0) {
-        kill(session.server_pid, SIGTERM);
-    }
-    if (force && owned_endpoint && session.server_pid > 0) {
-        for (int attempt = 0; attempt < 100 && kill(session.server_pid, 0) == 0;
-             ++attempt) usleep(10000);
-        if (kill(session.server_pid, 0) == 0) kill(session.server_pid, SIGKILL);
-    }
-    if (!cleanup_generation(registry, session)) {
-        session.lifecycle_state = "cleanup_failed";
-        registry.mark_cleanup_failed(session, session.generation);
+    if (!cleanup_managed_session(registry, session, force)) {
         return failure("SESSION_CLEANUP_FAILED",
-                       "session stopped but generation cleanup failed");
+                       "session generation cleanup failed and evidence was retained",
+                       "session_manager", true,
+                       {{"cleanup_succeeded", false},
+                        {"lifecycle_state", "cleanup_failed"},
+                        {"compensation_status", "cleanup_failed"}});
     }
     return {{"ok", true}, {"summary", {{"removed", true}}},
             {"data", {{"removed_session", public_session(session)}}}};
@@ -434,17 +624,18 @@ Json gc_sessions() {
     Json kept = Json::array();
     Json removed = Json::array();
     for (const SessionInfo& session : sessions) {
-        if (session.lifecycle_state == "active" && endpoint_is_generation(session)) {
+        const HealthResult health = diagnose(session);
+        if (health.healthy) {
             kept.push_back(public_session(session));
             continue;
         }
-        if (cleanup_generation(registry, session)) {
+        if (cleanup_managed_session(registry, session, true)) {
             removed.push_back({
                 {"removed_session", public_session(session)},
                 {"reason", "unhealthy"},
                 {"health_evidence", {{"code", "SESSION_UNHEALTHY"},
-                                     {"message", "Server process is not running"},
-                                     {"health_status", "process_exited"}}}});
+                                     {"message", health.message},
+                                     {"health_status", health.status}}}});
         } else {
             kept.push_back(public_session(session));
         }

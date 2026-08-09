@@ -26,7 +26,8 @@ bool socket_address(const std::string& path, sockaddr_un& address,
 bool write_all(int fd, const std::string& text, std::string& error) {
     size_t offset = 0;
     while (offset < text.size()) {
-        const ssize_t count = write(fd, text.data() + offset, text.size() - offset);
+        const ssize_t count = send(fd, text.data() + offset,
+                                   text.size() - offset, MSG_NOSIGNAL);
         if (count < 0 && errno == EINTR) continue;
         if (count <= 0) {
             error = std::string("UDS write failed: ") + std::strerror(errno);
@@ -118,6 +119,10 @@ bool uds_send_response(int client_fd, const Json& response, std::string& error) 
 
 bool uds_request(const std::string& socket_path, const Json& request,
                  Json& response, int timeout_ms, std::string& error) {
+    if (timeout_ms <= 0) {
+        error = "UDS timeout must be positive";
+        return false;
+    }
     sockaddr_un address;
     if (!socket_address(socket_path, address, error)) return false;
     const int fd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
@@ -126,8 +131,12 @@ bool uds_request(const std::string& socket_path, const Json& request,
         return false;
     }
     timeval timeout{timeout_ms / 1000, (timeout_ms % 1000) * 1000};
-    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != 0 ||
+        setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) != 0) {
+        error = std::string("cannot configure UDS timeout: ") + std::strerror(errno);
+        close(fd);
+        return false;
+    }
     if (connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) != 0) {
         error = std::string("UDS connect failed: ") + std::strerror(errno);
         close(fd);

@@ -38,6 +38,19 @@ static Json error_response(const std::string& code,
                            {"error_layer", layer}}}};
 }
 
+static bool valid_internal_control_request(const Json& request,
+                                           const std::string& action) {
+    if (!request.is_object() || request.size() != 3 ||
+        request.value("api_version", std::string()) != "xdebug.internal.v1" ||
+        request.value("action", std::string()) != action ||
+        !request.contains("args") || !request["args"].is_object() ||
+        !request["args"].empty()) {
+        return false;
+    }
+    return action == "server.ping" || action == "server.version" ||
+           action == "server.quit";
+}
+
 static Json dispatch(const Json& request);
 
 static Json dispatch_handler(const Json& request) {
@@ -234,7 +247,13 @@ int server_main(int argc, char** argv) {
         const std::string api_version =
             request.value("api_version", std::string());
         const std::string action = request.value("action", std::string());
-        if (api_version == "xdebug.internal.v1" && action == "server.ping") {
+        if (api_version == "xdebug.internal.v1" &&
+            !valid_internal_control_request(request, action)) {
+            response = error_response(
+                "INVALID_INTERNAL_REQUEST",
+                "internal control request must match the strict private envelope",
+                "transport", false);
+        } else if (api_version == "xdebug.internal.v1" && action == "server.ping") {
             response = {{"ok", true},
                         {"data", {{"pong", true}, {"generation", generation}}}};
         } else if (api_version == "xdebug.internal.v1" &&

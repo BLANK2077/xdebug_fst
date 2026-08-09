@@ -4,7 +4,7 @@
 
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
 - 当前阶段：P2 进行中（registry、真实 engine 与 UDS 已完成首轮集成）
-- 当前任务：补齐 UDS idle timeout、失败补偿与 managed lifecycle 对齐
+- 当前任务：完成 MCP direct/fake-LSF 生命周期对齐并关闭 P2
 - xdebug-fst 基线：`1009e5c`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `1d66a9ea5111d1e80d16273a604f92e8c6a51cbd`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `e04eb0ea8203028490400172396add8ec458932b`
@@ -19,7 +19,7 @@
 | --- | --- | --- | --- |
 | P0 | 已完成 | `parity-p0` | 基线、依赖锁、Wellen/Verilator 独立回归和漂移检查均通过 |
 | P1 | 已完成 | `parity-p1` | 73 action、146 schema、请求/响应校验、canonical JSON/XOUT 与 stdio-loop 全部对齐 |
-| P2 | 进行中 | `parity-p2` | registry/generation 与真实 UDS engine 已落地；异常矩阵待完成，TCP/file 已按用户要求裁剪 |
+| P2 | 进行中 | `parity-p2` | registry/generation、真实 UDS engine、idle GC 与失败补偿已落地；MCP/fake-LSF 待完成，TCP/file 已裁剪 |
 | P3 | 未开始 | `parity-p3` | Wellen 波形语义 |
 | P4 | 未开始 | `parity-p4` | 克制扩展 DesignDB |
 | P5 | 未开始 | `parity-p5` | 全部公共 Action |
@@ -68,4 +68,4 @@
 
 ## 剩余差异
 
-P0、P1 已关闭。P2 已完成 registry/generation、真实 engine 子进程、UDS 与严格 DesignDB bundle 首轮实现，旧单进程 session 和邻近目录 `.so` 猜测已删除。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；schema enum 保留，实际选择必须 fail closed 且不得 fallback。下一项是 UDS idle timeout、启动崩溃与 cleanup_failed 补偿矩阵，以及 MCP direct/fake-LSF 生命周期；严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
+P0、P1 已关闭。P2 已完成 registry/generation、真实 engine 子进程、UDS、严格 DesignDB bundle、idle timeout、启动退出诊断、资源 fingerprint 复检、进程崩溃回收与 cleanup_failed 补偿。旧单进程 session 和邻近目录 `.so` 猜测已删除。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；schema enum 保留，实际选择必须 fail closed 且不得 fallback。下一项是 MCP direct/fake-LSF 生命周期；严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。

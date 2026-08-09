@@ -138,6 +138,20 @@ UDS 连接、超时或解析失败直接返回 transport error，绝不自动切
 根据 2026-08-09 用户范围决定，TCP 与 file server 不实现；冻结 schema 中仍保留原版
 enum，但请求这两种模式时 fail closed 返回 `TRANSPORT_UNAVAILABLE`。
 
+清理不是“先删 registry 再尽力杀进程”。frontend 先把同一 generation 原子转成
+`cleanup_failed`，保留可管理证据；随后优先发送 `server.quit`，必要时只有在 ping
+generation 相同或 `/proc/<pid>/cmdline` 同时包含 session id 与 256 bit generation
+时才发送 `SIGTERM/SIGKILL`。进程停止、generation marker 对齐、artifact 删除和
+registry 条件删除全部成功后，记录才真正消失。这避免 PID 复用时误杀无关进程，也让
+中途失败可以由 `session.gc` 重试。
+
+`session.doctor` 不只检查 PID：它依次验证 lifecycle、generation marker、daidir/FST
+fingerprint、UDS 节点和 generation ping。`session.list` 根据严格解析的
+`XDEBUG_SESSION_IDLE_TIMEOUT_SEC` 回收 idle session，并返回结构化 removal evidence；
+非法环境值 fail closed。engine 在 resource 打开后、active CAS 前重新采集 fingerprint，
+防止启动窗口内文件被替换。私有 `server.ping/version/quit` 也使用封闭字段合同，额外字段
+不会意外触发 quit。
+
 GCC 8 对 C++17 `std::filesystem` 仍使用独立的 `libstdc++fs`。CMake 现在对
 `xdebug-fst` 显式链接 `stdc++fs`，保证相同源码在当前冻结工具链中可重复配置和链接，
 无需更换编译器或绕开构建环境。
