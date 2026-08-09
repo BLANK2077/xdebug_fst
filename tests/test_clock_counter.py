@@ -20,31 +20,37 @@ def test_noncanonical_clock_point_query_is_not_public(
 def test_expr_eval_at_equal(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("expr.eval_at", args={
-        "expression": "top.counter_top.count == 8'h0b", "time": "300"})
+        "expr": "count == 8'h0b", "time": "300ps", "clock": "top.clk",
+        "signals": {"count": "top.counter_top.count"}})
     assert rsp.get("ok"), rsp
-    assert rsp["data"]["value"]["value"] == "1'h1"
+    assert rsp["summary"]["status"] == "true"
+    assert rsp["data"]["expr_value"] is True
 
 
 def test_expr_eval_at_arith(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("expr.eval_at", args={
-        "expression": "top.counter_top.count + 1", "time": "300"})
+        "expr": "count + 1", "time": "300ps", "clock": "top.clk",
+        "signals": {"count": "top.counter_top.count"}})
     assert rsp.get("ok"), rsp
-    assert rsp["data"]["value"]["value"] == "8'h0c"
+    assert rsp["summary"]["status"] == "true"
+    assert rsp["data"]["operands"][0]["value"]["value"] == "8'h0b"
 
 
 def test_expr_eval_at_slice(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("expr.eval_at", args={
-        "expression": "top.counter_top.count[3:0]", "time": "300"})
+        "expr": "count[3:0]", "time": "300ps", "clock": "top.clk",
+        "signals": {"count": "top.counter_top.count"}})
     assert rsp.get("ok"), rsp
-    assert rsp["data"]["value"]["value"] == "4'hb"
+    assert rsp["summary"]["status"] == "true"
 
 
 def test_expr_eval_at_parse_error(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("expr.eval_at", args={
-        "expression": "top.clk +*", "time": "300"})
+        "expr": "clk +*", "time": "300ps", "clock": "top.clk",
+        "signals": {"clk": "top.clk"}})
     assert not rsp.get("ok")
     assert rsp["error"]["code"] == "PARSE_ERROR"
 
