@@ -658,6 +658,8 @@ NBA。所有状态判断来自 DesignDB 静态类型/谓词/事件与原始 FST 
 第二十三批覆盖最后一个 force 消费入口 `trace.active_driver`：修改前它仍把 force 与底层
 NBA 同列并报告 assignment/2 paths；冻结原版要求保留 termination=force 且只投影活动
 force 路径。修复只复用既有静态 group/predicate，不增加任何后端事实。
+实现存在活动 force 时只投影 force groups，summary 保留 `force/force`；多个 force 全部保留并
+走既有结果上限裁剪。底层 assignment 与其未决谓词不再污染已解析 force 结果。
 第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和

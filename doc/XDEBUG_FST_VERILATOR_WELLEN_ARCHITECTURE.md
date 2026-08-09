@@ -766,6 +766,9 @@ RHS/control 枚举均不再执行。该优先级与冻结原版一致，同时�
 修改前真实查询仍把 force 和底层 NBA 同时作为普通路径，错误报告 assignment。公开合同
 要求 termination 保留 force 且路径只来自活动 force statement；实现仍应复用同一
 DesignDB group/predicate 结果，不扫描目标 FST 值辨认强制状态。
+最终单步 handler 只在 predicate 已求值后筛选 force，存在活动 force 时仅投影 force
+statements 并返回 `force/force`；多个 force 不合并，仍由公开 `max_results` 控制投影数量。
+这与 chain 的终止和 X-origin 的 proven force_x 各自保持独立响应合同。
 
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终

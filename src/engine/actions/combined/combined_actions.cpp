@@ -545,8 +545,12 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
         annotate_output_instance_identities(design,index,drivers);
         const auto evaluated=active_statement_groups(
             drivers,design,waveform,target.active_time);
+        const bool has_active_force=std::any_of(
+            evaluated.active.begin(),evaluated.active.end(),
+            [](const auto& statement) { return statement.kind=="force"; });
         std::vector<IDesignBackend::DriverRecord> active_drivers;
         for (const auto& statement : evaluated.active) {
+            if (has_active_force&&statement.kind!="force") continue;
             const auto* driver=representative_driver(statement);
             if (driver&&driver->line>0&&!driver->file.empty())
                 active_drivers.push_back(*driver);
@@ -561,12 +565,14 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
         const std::string rendered_time=waveform.format_time(time,unit);
         const std::string active_time=waveform.format_time(target.active_time,unit);
         Json summary{{"signal",signal},{"time",rendered_time},{"active_time",active_time},
-            {"termination",!evaluated.unresolved.empty()?"unresolved":
-                (paths.empty()?"no_driver":"assignment")},
-            {"termination_detail",!evaluated.unresolved.empty()?"predicate_unresolved":
-                (paths.empty()?"no_driver":"assignment")},
-            {"scan_complete",evaluated.unresolved.empty()},
-            {"analysis_complete",evaluated.unresolved.empty()},
+            {"termination",has_active_force?"force":
+                (!evaluated.unresolved.empty()?"unresolved":
+                    (paths.empty()?"no_driver":"assignment"))},
+            {"termination_detail",has_active_force?"force":
+                (!evaluated.unresolved.empty()?"predicate_unresolved":
+                    (paths.empty()?"no_driver":"assignment"))},
+            {"scan_complete",has_active_force||evaluated.unresolved.empty()},
+            {"analysis_complete",has_active_force||evaluated.unresolved.empty()},
             {"response_truncated",truncated},{"total_count",total},
             {"returned_count",paths.size()},
             {"truncation_scopes",truncated?Json::array({"response_paths"}):Json::array()}};
