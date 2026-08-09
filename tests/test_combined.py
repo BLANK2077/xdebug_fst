@@ -56,9 +56,9 @@ def test_trace_x_origin_not_x(loop_runner: StdioLoopRunner, counter_fst,
     assert rsp["data"]["value"]["value"] == "8'h0b"
 
 
-def test_trace_x_origin_x_propagation(loop_runner: StdioLoopRunner, xprop_vcd,
+def test_trace_x_origin_x_propagation(loop_runner: StdioLoopRunner, xprop_fst,
                                       xprop_design_db) -> None:
-    open_session(loop_runner, xprop_vcd, xprop_design_db)
+    open_session(loop_runner, xprop_fst, xprop_design_db)
     rsp = loop_runner.request("trace.x_origin", args={
         "signal": "top.out", "time": "20"})
     assert rsp.get("ok"), rsp
@@ -74,18 +74,18 @@ def test_trace_x_origin_x_propagation(loop_runner: StdioLoopRunner, xprop_vcd,
         "driver_x", "primary_input", "no_driver", "max_depth")
 
 
-def test_trace_x_origin_not_x_late(loop_runner: StdioLoopRunner, xprop_vcd,
+def test_trace_x_origin_not_x_late(loop_runner: StdioLoopRunner, xprop_fst,
                                    xprop_design_db) -> None:
-    open_session(loop_runner, xprop_vcd, xprop_design_db)
+    open_session(loop_runner, xprop_fst, xprop_design_db)
     rsp = loop_runner.request("trace.x_origin", args={
         "signal": "top.out", "time": "200"})
     assert rsp.get("ok"), rsp
     assert rsp["data"]["is_x"] is False
 
 
-def test_trace_x_origin_missing_signal(loop_runner: StdioLoopRunner, xprop_vcd,
+def test_trace_x_origin_missing_signal(loop_runner: StdioLoopRunner, xprop_fst,
                                        xprop_design_db) -> None:
-    open_session(loop_runner, xprop_vcd, xprop_design_db)
+    open_session(loop_runner, xprop_fst, xprop_design_db)
     rsp = loop_runner.request("trace.x_origin", args={
         "signal": "nope", "time": "20"})
     assert not rsp.get("ok")

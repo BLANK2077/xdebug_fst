@@ -89,8 +89,8 @@ def counter_design_db() -> Path:
 
 
 @pytest.fixture(scope="session")
-def xprop_vcd() -> Path:
-    return FIXTURES / "xprop" / "waves.vcd"
+def xprop_fst() -> Path:
+    return FIXTURES / "xprop" / "waves.fst"
 
 
 @pytest.fixture(scope="session")

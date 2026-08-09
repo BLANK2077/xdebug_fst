@@ -58,9 +58,9 @@ def test_signal_xz_verify_pass(loop_runner: StdioLoopRunner, counter_fst) -> Non
     assert rsp["data"]["summary"]["always_matched"] is False
 
 
-def test_signal_xz_verify_x_present(loop_runner: StdioLoopRunner, xprop_vcd,
+def test_signal_xz_verify_x_present(loop_runner: StdioLoopRunner, xprop_fst,
                                     xprop_design_db) -> None:
-    open_session(loop_runner, xprop_vcd, xprop_design_db)
+    open_session(loop_runner, xprop_fst, xprop_design_db)
     rsp = loop_runner.request("signal.xz_verify", args={
         "signal": "top.xprop_top.a", "expected_state": "x",
         "begin": "0", "end": "50"})
@@ -88,9 +88,9 @@ def test_signal_anomaly_inspect_no_anomaly(loop_runner: StdioLoopRunner,
     assert rsp["summary"]["anomaly_count"] == 0
 
 
-def test_signal_anomaly_inspect_x(loop_runner: StdioLoopRunner, xprop_vcd,
+def test_signal_anomaly_inspect_x(loop_runner: StdioLoopRunner, xprop_fst,
                                   xprop_design_db) -> None:
-    open_session(loop_runner, xprop_vcd, xprop_design_db)
+    open_session(loop_runner, xprop_fst, xprop_design_db)
     rsp = loop_runner.request("signal.anomaly.inspect", args={
         "signal": "top.xprop_top.a", "begin": "0", "end": "500"})
     assert rsp.get("ok"), rsp

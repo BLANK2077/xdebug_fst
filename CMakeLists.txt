@@ -158,6 +158,7 @@ if(BUILD_TESTING)
     add_executable(test-wellen-fst-backend
         tests/cpp/test_wellen_fst_backend.cpp
         src/backend/wellen_fst_backend.cpp
+        src/waveform/clock_sampling.cpp
         src/waveform/time_contract.cpp
     )
     target_include_directories(test-wellen-fst-backend PRIVATE
@@ -175,7 +176,7 @@ if(BUILD_TESTING)
         NAME wellen-fst-backend
         COMMAND test-wellen-fst-backend
             ${WELLEN_REPOSITORY_DIR}/wellen/inputs/scope_with_comment.vcd.fst
-            ${CMAKE_SOURCE_DIR}/testdata/fixtures/xprop/waves.vcd
+            ${WELLEN_REPOSITORY_DIR}/wellen/inputs/xilinx_isim/test2x2_regex22_string1.vcd.fst
             ${WELLEN_REPOSITORY_DIR}/wellen/inputs/nvc/shortstring.fst
             ${WELLEN_REPOSITORY_DIR}/wellen/inputs/verilator/many_sv_datatypes.fst
             ${WELLEN_REPOSITORY_DIR}/wellen/inputs/icarus/pull_67_event_example.fst

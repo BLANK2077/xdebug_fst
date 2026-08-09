@@ -162,9 +162,9 @@ def test_event_find_value_equals(loop_runner: StdioLoopRunner, counter_fst) -> N
     assert rsp["data"]["events"][0]["time"] == 180
 
 
-def test_event_find_x_occurrence(loop_runner: StdioLoopRunner, xprop_vcd,
+def test_event_find_x_occurrence(loop_runner: StdioLoopRunner, xprop_fst,
                                  xprop_design_db) -> None:
-    open_session(loop_runner, xprop_vcd, xprop_design_db)
+    open_session(loop_runner, xprop_fst, xprop_design_db)
     rsp = loop_runner.request("event.find", args={
         "signal": "top.xprop_top.a", "event": "x_occurrence",
         "begin": "0", "end": "200"})
