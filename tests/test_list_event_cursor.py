@@ -93,17 +93,32 @@ def test_list_validate_ok_and_bad(loop_runner: StdioLoopRunner, counter_fst) -> 
     assert bad["error"]["code"] == "SIGNAL_NOT_FOUND"
 
 
-def test_list_export(loop_runner: StdioLoopRunner, counter_fst) -> None:
+def test_list_export(loop_runner: StdioLoopRunner, counter_fst, tmp_path) -> None:
     open_session(loop_runner, counter_fst)
-    loop_runner.request("list.create", args={"name": "ex"})
-    loop_runner.request("list.add", args={"name": "ex",
-                                          "signals": ["top.clk"]})
-    rsp = loop_runner.request("list.export", args={"name": "ex",
-                                                   "begin": "0", "end": "100"})
+    loop_runner.request("list.create", args={
+        "name": "ex", "signals": ["top.clk"]})
+    rsp = loop_runner.request("list.export", args={
+        "name": "ex", "time_range": {"begin": "0ps", "end": "100ps"},
+        "line_limit": 1, "render_time_unit": "ps"})
     assert rsp.get("ok"), rsp
-    exports = rsp["data"]["exports"]
-    assert len(exports) == 1
-    assert len(exports[0]["changes"]) >= 2
+    assert rsp["summary"]["status"] == "preview"
+    assert rsp["summary"]["row_count"] == 0
+    assert rsp["summary"]["begin"] == "0ps"
+    assert rsp["data"]["signals"] == [{"index": 0, "signal": "top.clk"}]
+
+    output = tmp_path / "list-export"
+    written = loop_runner.request("list.export", args={
+        "name": "ex", "time_range": {"begin": "0ps", "end": "100ps"},
+        "output": {"path": str(output), "file_format": "u64bin"}})
+    assert written.get("ok"), written
+    assert written["summary"]["status"] == "written"
+    manifest = json.loads((output / "manifest.json").read_text())
+    assert manifest["format"] == "u64bin.v1"
+    assert manifest["row_layout"] == \
+        "uint64_le: time_tick, value_words, known_mask_words"
+    assert manifest["signals"][0]["signal"] == "top.clk"
+    data_file = output / manifest["signals"][0]["file"]
+    assert data_file.stat().st_size == manifest["signals"][0]["row_count"] * 24
 
 
 def test_list_first_change(loop_runner: StdioLoopRunner, counter_fst) -> None:
