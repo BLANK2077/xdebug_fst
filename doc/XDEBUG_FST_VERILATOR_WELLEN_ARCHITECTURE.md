@@ -810,3 +810,4 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 - xdebug-fst `7e07599`、`970aae1`：冻结 output 边界折叠失败，并仅组合既有 XDD 端口/驱动事实恢复原版五跳模块链。
 - xdebug-fst `bac0886`：以原始 FST/DesignDB 组合验证双条件过程 NBA 的唯一活动和双活动歧义，无实现或 ABI 修改。
 - xdebug-fst `888de09`、`fc27f1d`：冻结同源行跨实例 output driver 误合并，并以 consumer-only 静态实例 identity 恢复两条活动候选。
+- xdebug-fst `7c5b0a2`、`f3b5143`：冻结常量 NBA hop 源行丢失，并在不沿 control 追踪的前提下恢复活动 assignment 源码证据。
