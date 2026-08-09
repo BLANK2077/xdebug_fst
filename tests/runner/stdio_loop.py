@@ -38,6 +38,10 @@ class StdioLoopRunner:
         self._seq = 0
         self._session_id: Optional[str] = None
 
+    @property
+    def has_current_session(self) -> bool:
+        return self._session_id is not None
+
     def start(self, timeout_sec: float = 30.0) -> Json:
         self.proc = subprocess.Popen(
             self.command,

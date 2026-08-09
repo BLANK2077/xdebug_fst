@@ -51,20 +51,29 @@ def xfst_bin(pytestconfig: pytest.Config) -> Path:
     return Path(pytestconfig.getoption("--xfst-bin")).expanduser().resolve()
 
 
-def _base_env() -> dict:
+def _base_env(test_home: Path | None = None) -> dict:
     env = dict(os.environ)
     env["LD_LIBRARY_PATH"] = ":".join(_LD_EXTRA)
+    if test_home is not None:
+        env["HOME"] = str(test_home)
     return env
 
 
 @pytest.fixture(scope="session")
-def cli_runner(xfst_bin: Path, repo_root: Path) -> CliRunner:
-    return CliRunner(xfst_bin, cwd=repo_root, env=_base_env())
+def test_home(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    return tmp_path_factory.mktemp("xdebug-home")
 
 
 @pytest.fixture(scope="session")
-def loop_runner(xfst_bin: Path, repo_root: Path) -> StdioLoopRunner:
-    runner = StdioLoopRunner(xfst_bin, cwd=repo_root, env=_base_env())
+def cli_runner(xfst_bin: Path, repo_root: Path, test_home: Path) -> CliRunner:
+    return CliRunner(xfst_bin, cwd=repo_root, env=_base_env(test_home))
+
+
+@pytest.fixture(scope="session")
+def loop_runner(xfst_bin: Path, repo_root: Path,
+                test_home: Path) -> StdioLoopRunner:
+    runner = StdioLoopRunner(xfst_bin, cwd=repo_root,
+                             env=_base_env(test_home))
     runner.start()
     try:
         yield runner
@@ -85,7 +94,7 @@ def counter_fst() -> Path:
 
 @pytest.fixture(scope="session")
 def counter_design_db() -> Path:
-    return FIXTURES / "counter" / "obj_dir" / "libVcounter_top__DesignDb.so"
+    return FIXTURES / "counter" / "obj_dir"
 
 
 @pytest.fixture(scope="session")
@@ -95,7 +104,7 @@ def xprop_fst() -> Path:
 
 @pytest.fixture(scope="session")
 def xprop_design_db() -> Path:
-    return FIXTURES / "xprop" / "obj_dir" / "libVxprop_top__DesignDb.so"
+    return FIXTURES / "xprop" / "obj_dir"
 
 
 @pytest.fixture(scope="session")
@@ -105,7 +114,7 @@ def apb_fst() -> Path:
 
 @pytest.fixture(scope="session")
 def apb_design_db() -> Path:
-    return FIXTURES / "apb" / "obj_dir" / "libVapb_top__DesignDb.so"
+    return FIXTURES / "apb" / "obj_dir"
 
 
 @pytest.fixture(scope="session")
@@ -115,7 +124,7 @@ def axi_fst() -> Path:
 
 @pytest.fixture(scope="session")
 def axi_design_db() -> Path:
-    return FIXTURES / "axi" / "obj_dir" / "libVaxi_top__DesignDb.so"
+    return FIXTURES / "axi" / "obj_dir"
 
 
 @pytest.fixture(scope="session")
@@ -126,6 +135,9 @@ def stream_fst() -> Path:
 # ── Helpers ──
 
 def open_session(loop: StdioLoopRunner, fsdb: Path, design_db: Path | None = None) -> Json:
+    if loop.has_current_session:
+        closed = loop.request("session.close", args={})
+        assert closed.get("ok"), closed
     target: dict = {"fsdb": str(fsdb)}
     if design_db is not None:
         target["daidir"] = str(design_db)
