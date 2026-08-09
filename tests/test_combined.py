@@ -261,6 +261,24 @@ def test_trace_active_driver_chain_traverses_inout_alias_toward_parent_driver(
         "top.case_top.data", "top.data"]
 
 
+def test_trace_active_driver_chain_traverses_two_inout_boundaries_parentward(
+        loop_runner: StdioLoopRunner, case_fst,
+        case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.case_top.u_inout_mid.u_leaf.bus", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "primary_input"
+    assert [hop["signal"] for hop in rsp["data"]["hops"]] == [
+        "top.case_top.u_inout_mid.u_leaf.bus",
+        "top.case_top.u_inout_mid.leaf_bus",
+        "top.case_top.u_inout_mid.bus",
+        "top.case_top.nested_inout_bus",
+        "top.case_top.data", "top.data"]
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:

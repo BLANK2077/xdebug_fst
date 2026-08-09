@@ -563,7 +563,7 @@ C++ adapter 同时持有：
 - active-driver 已禁止选择第一条静态 driver，并能用真实 FST 控制值判定已覆盖的
   `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` 及 V3Inst 折叠后的
   同目标嵌套条件分支，并能对基础双连续赋值报告两条活动候选；基本 input/inout alias
-  已覆盖，复杂 output/inout alias、
+  及带独立中间 net 的真实两级 inout 链已覆盖，复杂 output/inout alias、
   条件/过程/跨层多 driver 和更多 NBA 边界仍须逐项差分，不能据当前用例宣称全部关闭；
 - XDD 已表达普通 `if/else`、普通 `case/default`、`casez/casex` predicate，并在当前
   emitter 内拆分 V3Inst 合并的 `AstCond` RHS，恢复叶子源位置与条件；case inside 已覆盖
@@ -620,6 +620,15 @@ inout net 的 always-driven 连续赋值会被 V3Tristate 改写成内部 streng
 目标声明位置和实例全名共同约束替换范围，不触碰其他真实 driver。Wellen 仍只读取原始
 FST 中子端口、父 net 与输入 alias 的值，端口方向和 RHS 来自 DesignDB，四跳链的选择与
 终止仍由 xdebug action 完成。
+
+第十一批进一步验证层级组合，而没有增加新实现：case 固件中的父级
+`nested_inout_bus` 连接 `inout_mid.bus`，中间模块再以独立连续赋值驱动 `leaf_bus` 并连接
+`inout_leaf.bus`。从最深端口回溯时，DesignDB 的静态边和原始 RHS 依次给出
+`u_leaf.bus → leaf_bus → u_inout_mid.bus → nested_inout_bus → case_top.data → top.data`；
+Wellen 只在每个 hop 的 active time 从同一原始 `.fst` 按需取值。纯端口透传可能被
+Verilator 合法折叠成直接连接，所以独立中间 net 是为了让两级边界可观测，并非建立新的
+波形事实或分析缓存。现有 Verilator `8a5523487`、Wellen `066d86a` 与 xdebug consumer
+已经通过该用例，本批不修改三者代码，也不把这一单向上溯证据夸大为复杂双向 inout 已完成。
 
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；

@@ -625,8 +625,12 @@ predicate 字符串表达 case inside 的仅 item 侧通配和闭区间，并由
 直接读取的真实 FST 值判定；`case matches` 仍因其 tagged pattern 语义及上游支持边界单独
 保持未完成。第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
-input。更多连续/过程/NBA 时序边界与常量组合、复杂 output/inout alias、更多跨端口层级，
-以及条件/过程/跨层多驱动差分仍是 P6 必做项。
+input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和
+`inout_leaf.bus` 组成的真实两级 inout 网络；当前锁定的 DesignDB 已完整发布各级静态
+端口/赋值关系，既有 xdebug action 沿 Wellen 按需读取的六个 FST 层级名/alias 正确上溯到
+顶层 primary input，因此无需修改 Verilator、Wellen 或 consumer。该证据关闭“基本多级
+inout 跨端口链”，但不能外推为任意双向驱动。更多连续/过程/NBA 时序边界与常量组合、
+复杂 output/inout alias，以及条件/过程/跨层多驱动差分仍是 P6 必做项。
 
 #### trace.active_driver
 
