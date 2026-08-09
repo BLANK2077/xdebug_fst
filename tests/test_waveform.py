@@ -154,13 +154,23 @@ def test_value_at_clock_miss_reports_missing_value(
 
 def test_value_at_apb_source(loop_runner: StdioLoopRunner, apb_fst) -> None:
     open_session(loop_runner, apb_fst)
+    loaded = loop_runner.request("apb.config.load", args={
+        "name": "apb0", "config": {
+            "clock": "top.pclk", "edge": "posedge", "sample_point": "after",
+            "reset": {"signal": "top.presetn", "polarity": "active_low"},
+            "paddr": "top.paddr", "psel": "top.psel",
+            "penable": "top.penable", "pwrite": "top.pwrite",
+            "pwdata": "top.pwdata", "prdata": "top.prdata",
+            "pready": "top.pready", "pslverr": "top.pslverr",
+        }})
+    assert loaded.get("ok"), loaded
     rsp = loop_runner.request("value.at", args={
-        "apb": "default", "time": "0ps"})
+        "apb": "apb0", "time": "0ps"})
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["source_kind"] == "apb"
-    assert rsp["summary"]["entry_count"] == 9
+    assert rsp["summary"]["entry_count"] == 10
     assert [entry["key"] for entry in rsp["data"]["entries"]] == [
-        "pclk", "psel", "penable", "pwrite", "paddr", "pwdata",
+        "clock", "reset", "paddr", "psel", "penable", "pwrite", "pwdata",
         "prdata", "pready", "pslverr"]
 
 
