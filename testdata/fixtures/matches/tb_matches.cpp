@@ -12,11 +12,14 @@ int main(int argc, char** argv) {
 
     top.clk = 0;
     top.reset = 1;
+    top.async_reset_n = 1;
     top.sel = 0;
     top.data = 0x20;
     for (int step = 0; step < 8; ++step) {
         if (step == 2) top.reset = 0;
+        if (step == 3) top.async_reset_n = 0;
         if (step == 4) top.sel = 1;
+        if (step == 5) top.async_reset_n = 1;
         if (step == 6) top.sel = 2;
         top.clk = !top.clk;
         top.eval();

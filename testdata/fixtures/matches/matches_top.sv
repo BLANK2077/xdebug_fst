@@ -1,6 +1,7 @@
 module matches_top (
     input  wire       clk,
     input  wire       reset,
+    input  wire       async_reset_n,
     input  wire [1:0] sel,
     input  wire [7:0] data,
     output reg  [7:0] out
@@ -28,5 +29,15 @@ module matches_top (
             temporal_q <= 8'h00;
         else
             temporal_q <= data;
+    end
+
+  reg [7:0] async_q;
+  wire [7:0] async_out;
+  assign async_out = async_q;
+  always @(posedge clk or negedge async_reset_n) begin
+        if (!async_reset_n)
+            async_q <= 8'h00;
+        else
+            async_q <= data;
     end
 endmodule

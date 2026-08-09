@@ -738,6 +738,11 @@ Wellen 也能读取原始 FST 中所有相关信号，但 consumer 只前看一�
 环。到达唯一 NBA 的 `event_*` 才返回因果时间。未决谓词、多 statement、多 RHS、非连续
 类型、缺失波形或环均失败关闭该时间传播路径，不改变既有驱动歧义报告，也不触发其他
 backend。两级 alias 因而从同一原始 FST 得到 60ps，而 Verilator/Wellen 无需再修改。
+异步复位审计又把 `negedge async_reset_n` 安排在 30ps 的时钟下降沿，确保它不是 posedge 的
+替身；复位 NBA 写入同值，使目标 FST 不产生 30ps 变化。DesignDB 同一 statement 的
+`event_posedge(clk)` 与 `event_negedge(async_reset_n)` 都参与候选，action 选择原始 FST 中
+最近真实事件 30ps，并在该时刻求值复位 predicate。该用例无需新增实现即通过，进一步
+证明事件源选择来自静态敏感列表，事件发生来自 FST 运行时边沿，二者职责没有漂移。
 
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终

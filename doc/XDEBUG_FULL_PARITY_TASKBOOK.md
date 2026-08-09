@@ -640,6 +640,9 @@ Verilator `01f9f2a4b` 先以独立失败回归锁定简单 posedge 与异步 res
 实现以请求 `max_nodes` 为静态前瞻预算并维护 signal visited set；只有谓词可解、唯一活动
 statement、连续赋值、唯一 RHS 四项同时成立才继续，到达唯一 NBA `event_*` 后才传播时间。
 两级 alias 已全部恢复 60ps；歧义、环、缺失或非连续边界一律停止而不 fallback。
+第二十批进一步用不与 posedge 重合的 30ps `negedge async_reset_n` 写入同值，证明 consumer
+会从 DesignDB 的多敏感项中选择真实最近事件，并在该时刻判定复位常量分支；现有实现
+直接返回 30ps 并按常量 assignment 终止，因此不修改任何仓库算法或 ABI。
 第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和

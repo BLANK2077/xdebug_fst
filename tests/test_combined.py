@@ -117,7 +117,7 @@ def test_trace_active_driver_selects_exact_case_matches_item_and_default(
     assert selected.get("ok"), selected
     assert selected["summary"]["analysis_complete"] is True
     assert selected["summary"]["total_count"] == 1
-    assert selected["data"]["paths"][0]["line"] == 13
+    assert selected["data"]["paths"][0]["line"] == 14
 
     default = loop_runner.request("trace.active_driver", args={
         "signal": "top.out", "time": "65ps",
@@ -125,7 +125,7 @@ def test_trace_active_driver_selects_exact_case_matches_item_and_default(
     assert default.get("ok"), default
     assert default["summary"]["analysis_complete"] is True
     assert default["summary"]["total_count"] == 1
-    assert default["data"]["paths"][0]["line"] == 14
+    assert default["data"]["paths"][0]["line"] == 15
 
 
 def test_trace_active_driver_chain_propagates_through_nba_active_time(
@@ -172,6 +172,29 @@ def test_trace_active_driver_chain_propagates_nba_time_through_alias_chain(
     ]
     assert hops[1]["time"] == "60ps"
     assert hops[2]["time"] == "60ps"
+
+
+def test_trace_active_driver_chain_uses_async_reset_event_time(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.matches_top.async_out", "time": "35ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "assignment"
+    assert rsp["summary"]["termination_detail"] == \
+        "constant_or_no_rhs_signal"
+    hops = rsp["data"]["hops"]
+    assert [hop["signal"] for hop in hops] == [
+        "top.matches_top.async_out",
+        "top.matches_top.async_q",
+    ]
+    assert hops[0]["time"] == "35ps"
+    assert hops[0]["active_time"] == "30ps"
+    assert hops[1]["time"] == "30ps"
+    assert hops[1]["active_time"] == "30ps"
 
 
 def test_trace_active_driver_preserves_lowered_nested_if_identity(
