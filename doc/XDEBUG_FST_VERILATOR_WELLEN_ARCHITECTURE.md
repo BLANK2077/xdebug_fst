@@ -18,11 +18,13 @@
 
 本架构边界受任务书永久 Goal 约束 **`GOAL-FST-DIRECT-001`** 及其权威执行附件 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 管辖。它是所有后续实现选择的否决条件，不是可以在 action 迁移过程中临时放宽的偏好。
 
-xdebug-fst 只接收和分析 FST 波形。Wellen 在本方案中的职责是提供 FST 的层级、时间和值变化语义；VCD/FSDB 不属于产品输入，也不得成为测试 fallback。VCD 可以保留为可读的测试波形源描述，但必须先由固定生成链转换成 FST，测试和验收只能打开生成后的 `.fst`。如果转换后的 FST 丢失四态、delta 或类型信息，应修复生成链或 Wellen FST 读取层，不得直接读取 VCD 绕过问题。
+xdebug-fst 只接收 FST 波形，并把原版 xdebug 的调试分析能力完整适配到这些 FST 波形事实；FST 格式本身不承担分析。Wellen 在本方案中的职责仅是提供 FST 的层级、时间和值变化语义；VCD/FSDB 不属于产品输入，也不得成为测试 fallback。VCD 可以保留为可读的测试波形源描述，但必须先由固定生成链转换成 FST，测试和验收只能打开生成后的 `.fst`。如果转换后的 FST 丢失四态、delta 或类型信息，应修复生成链或 Wellen FST 读取层，不得直接读取 VCD 绕过问题。
 
 这里的“分析 FST”只表示 action 使用从原始 `.fst` 直接取得的波形事实，并不引入名为“FST 分析”的第二套系统。唯一数据流是“当前 session 的原始 `.fst` → Wellen 按需访问 → action 查询/推理”。禁止的数据流包括“FST → VCD/JSON/私有索引/离线数据库/全量内存快照 → action”。本项目只需要并且也必须完整适配 FST 波形；Wellen 即使具备其他格式能力，xdebug-fst adapter 也不得暴露或使用这些能力。
 
 Verilator DesignDB 与这条边界不冲突：它只提供源文件位置、driver/load、端口连接、控制依赖等 FST 天生不携带的静态设计事实。它既不读取 FST，也不替代 Wellen，更不保存或重建波形值。显式 export action 的文件同样只是最终用户产物，不进入上述数据流，也不得被重新加载用于分析。
+
+架构审查必须同时验证 `GOAL-FST-DIRECT-001` 的两项不可拆分断言：唯一波形输入确实是原始 `.fst`，且分析责任确实留在 xdebug action 语义与必要的 Verilator DesignDB 静态事实中。只证明文件后缀为 `.fst` 不足以通过审查；若 action 被降级成只枚举 FST 信号或值变化、Wellen 被扩张为调试分析器，仍属于架构漂移。
 
 ## 二、为什么需要两个相互独立的事实源
 
