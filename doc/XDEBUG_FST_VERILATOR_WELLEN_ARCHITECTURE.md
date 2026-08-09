@@ -762,6 +762,10 @@ force RHS。修复仍只消费 DesignDB kind 与原始 FST X 值，不增加波�
 最终 DFS 在 predicate 求值后先查活动 force，命中即用 force statement 更新当前 hop 源码，
 并生成 `kind=force/reason=force_x/evidence_status=proven` 的当前信号 origin；普通 unresolved、
 RHS/control 枚举均不再执行。该优先级与冻结原版一致，同时保持 FST 只提供 X 值事实。
+单步 `trace.active_driver` 另有独立响应投影，不能由 chain/X-origin 的修复代替。第二十三批
+修改前真实查询仍把 force 和底层 NBA 同时作为普通路径，错误报告 assignment。公开合同
+要求 termination 保留 force 且路径只来自活动 force statement；实现仍应复用同一
+DesignDB group/predicate 结果，不扫描目标 FST 值辨认强制状态。
 
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终

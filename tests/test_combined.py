@@ -227,6 +227,29 @@ def test_trace_active_driver_chain_stops_at_force(
     ]
 
 
+def test_trace_active_driver_reports_force_as_resolved_driver(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    rsp = loop_runner.request("trace.active_driver", args={
+        "signal": "top.matches_top.forced_q", "time": "35ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "force"
+    assert rsp["summary"]["termination_detail"] == "force"
+    assert rsp["summary"]["total_count"] == 1
+    assert rsp["data"]["paths"] == [{
+        "file": "testdata/fixtures/matches/matches_top.sv",
+        "line": 52,
+        "source_context": [],
+        "signal_path": [
+            "top.data",
+            "top.matches_top.forced_q",
+        ],
+    }]
+
+
 def test_trace_active_driver_preserves_lowered_nested_if_identity(
         loop_runner: StdioLoopRunner, case_fst, case_design_db) -> None:
     open_session(loop_runner, case_fst, case_design_db)

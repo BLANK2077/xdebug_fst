@@ -655,6 +655,9 @@ NBA。所有状态判断来自 DesignDB 静态类型/谓词/事件与原始 FST 
 修复必须在 X-origin 自身应用活动 force 优先级，不能假定 chain 修复会自动覆盖。
 实现让活动 force 在普通 unresolved/依赖枚举之前终止 DFS，origin 和当前 hop 都引用 force
 源码，RHS 不再展开；chain 也不再让无关普通 driver 的未决谓词覆盖已明确活动的 force。
+第二十三批覆盖最后一个 force 消费入口 `trace.active_driver`：修改前它仍把 force 与底层
+NBA 同列并报告 assignment/2 paths；冻结原版要求保留 termination=force 且只投影活动
+force 路径。修复只复用既有静态 group/predicate，不增加任何后端事实。
 第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和
