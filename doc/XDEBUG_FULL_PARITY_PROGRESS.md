@@ -13,7 +13,7 @@
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
 - xdebug-fst 当前功能与验收提交：`d67ef94`；精确表达式 `case matches` 的 Verilator 修改前证据为 `ea1d3c9b4`、最小实现为 `adc193c2f`；同值 NBA 事件依赖的 Verilator 修改前证据为 `01f9f2a4b`、最小实现为 `6239de45e`；复杂 output 表达式修改前失败证据为 `ae76785`，常量 NBA 修复为 `f3b5143`；过程/常量、多级端口、固件、架构说明与全量门禁证据均已登记
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
-- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `6239de45ef94f88e5b3f4efa4e78356741d58bdc`
+- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `07d076a8296ddf6b89c3f9a84dc39225e436276e`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
 - 原版 xdebug runtime build ID：`8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 原版 schema revision：`c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
@@ -180,6 +180,7 @@
 - P6 第十九批修改前证据：在同一最小固件增加 `temporal_deep → temporal_mid → temporal_q(NBA)` 两级连续 alias。DesignDB 已精确给出两条唯一 `cont_assign/rhs` 和下游 NBA 的 `event_posedge(clk)`；原始 FST 也保真包含三个信号及 clk，因此无需扩展 Verilator/Wellen。当前 consumer 只向前查看一个直接 alias，65ps 查询虽得到正确四跳与 primary input 终止，却把前三跳 active time 全报为 20ps，而非 60ps。失败证明事件时间传播必须沿 DesignDB 唯一连续 RHS 链有界递归，不能写死一层；禁止按 FST 等值寻找 alias、建立事件索引或扩大 XDD ABI。
 - P6 第十九批实现：xdebug action 增加请求内的有界静态前瞻，只沿“谓词可解、唯一活动 statement、kind=cont_assign、唯一 RHS”的 DesignDB 链继续，并以 `max_nodes` 作为预算、以 signal visited set 阻断环；到达带 `event_*` 的唯一 NBA 后才把事件时间反向应用于当前连续 hop。任何未决谓词、多 statement、多 RHS、非连续节点、缺失信号或环都会停止传播，不用 FST 值相等补猜。两级真实 FST 用例现返回 `deep(active=60ps) → mid(time/active=60ps) → q(time/active=60ps) → data`。Verilator/Wellen 与 ABI 未修改；combined 40/40、全量 pytest 230/230、CTest 8/8、冻结基线通过。
 - P6 第二十批：真实 FST 固件加入 `always @(posedge clk or negedge async_reset_n)`，在 30ps 令 reset 独立下降且不与 posedge 重合；reset 写入与当前值相同，因此 `async_q/async_out` 没有 30ps 值变化。35ps chain 仅凭 DesignDB 已发布的 `event_negedge(async_reset_n)` 静态事实，让 Wellen 按需读取原始 FST reset 边沿，在 30ps 求值 `!async_reset_n` 并选择常量 NBA；结果为 `async_out(active=30ps) → async_q(time/active=30ps)`，以 `assignment/constant_or_no_rhs_signal` 终止。现有实现直接通过，证明 posedge/negedge 多敏感项的基本 consumer 语义已闭环，无需再修改 Verilator/Wellen/action。combined 41/41、全量 pytest 231/231、CTest 8/8 与冻结基线通过。
+- P6 第二十一批修改前证据：冻结原版把 active `force` 作为优先于普通 assignment 的终止类型。Verilator `90d5aa2ae` 先证明 DesignDB 把 `AstAssignForce` 错标为 `proc_assign`，`07d076a82` 仅在既有 kind 字符串中恢复 `force`，XDD 8/8、distribution 2/2 通过。xdebug 真实 FST 固件在 20ps 同一 posedge 激活 force，同时保留 forced_q 的普通 NBA；35ps 查询应为 `forced_out → forced_q → force`。当前 consumer 把 force 与底层 NBA 当两条同级活动 statement，错误返回 `ambiguous`。下一步只允许在 action 中实现原版 force 优先级和终止，不得从 FST 推断静态 force，不得修改 Wellen 或扩大 XDD ABI。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 

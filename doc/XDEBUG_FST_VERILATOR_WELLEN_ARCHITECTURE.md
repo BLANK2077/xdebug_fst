@@ -744,6 +744,12 @@ backend。两级 alias 因而从同一原始 FST 得到 60ps，而 Verilator/Wel
 最近真实事件 30ps，并在该时刻求值复位 predicate。该用例无需新增实现即通过，进一步
 证明事件源选择来自静态敏感列表，事件发生来自 FST 运行时边沿，二者职责没有漂移。
 
+force 审计证明静态 driver kind 也不能由 FST 值反推。Verilator `90d5aa2ae` 的失败回归先
+锁定 `AstAssignForce` 被错误降级为 `proc_assign`，`07d076a82` 只复用既有 kind 字符串发布
+`force`，不改变 ABI 布局、force lowering 或仿真调度。真实 FST 仍只呈现 force 后的运行时
+值；当前 xdebug 在 force 与底层 NBA 同时活动时误报双 driver 歧义，而原版要求 force 优先
+并终止。后续 consumer 必须依据 DesignDB kind 处理优先级，不能靠波形值猜测强制状态。
+
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终
 运行时值，既不包含被删除的 HDL 语句，也不能证明该值由几条静态赋值共同驱动；因此绝不
@@ -821,7 +827,7 @@ expression、tagged pattern、pattern variable/star 和独立 `matches` 运算�
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `6239de45ef94f88e5b3f4efa4e78356741d58bdc`
+- revision `07d076a8296ddf6b89c3f9a84dc39225e436276e`
 
 对应提交：
 
@@ -845,6 +851,7 @@ expression、tagged pattern、pattern variable/star 和独立 `matches` 运算�
 - Verilator `007f1aa5c`、`8a5523487`：恢复 always-driven inout lowering 前原始 RHS，并替换而非叠加内部 strength 驱动；
 - Verilator `ea1d3c9b4`、`adc193c2f`：先记录精确表达式 `case matches` 被无条件拒绝的普通仿真与 DesignDB 失败，再仅放行该有限子集并发布 `===` predicate；tagged/pattern 能力保持不支持；
 - Verilator `01f9f2a4b`、`6239de45e`：先证明同值 NBA 缺少赋值事件源，再仅由 DesignDB emitter 发布赋值所在直接敏感信号的 `event_*` 静态角色；不修改仿真调度、ABI 布局或 pass 顺序；
+- Verilator `90d5aa2ae`、`07d076a82`：先证明 force 被降级为普通赋值，再仅在既有 kind 字符串中恢复 `force` 类型；不改变 force/release lowering、仿真调度或 ABI 布局；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；

@@ -643,6 +643,10 @@ statement、连续赋值、唯一 RHS 四项同时成立才继续，到达唯一
 第二十批进一步用不与 posedge 重合的 30ps `negedge async_reset_n` 写入同值，证明 consumer
 会从 DesignDB 的多敏感项中选择真实最近事件，并在该时刻判定复位常量分支；现有实现
 直接返回 30ps 并按常量 assignment 终止，因此不修改任何仓库算法或 ABI。
+第二十一批审计 force：Verilator 先用独立失败回归证明 kind 丢失，再仅把
+`AstAssignForce` 通过现有字符串标为 `force`。真实 FST 中 force 与底层 NBA 同时可见时，
+当前 consumer 错误按普通双 driver 报 ambiguous；冻结原版要求活动 force 优先并就地终止。
+修复只属于 action 分组优先级，FST 不负责识别 force，Wellen 与 ABI 不再修改。
 第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和

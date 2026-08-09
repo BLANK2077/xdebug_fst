@@ -2,6 +2,7 @@ module matches_top (
     input  wire       clk,
     input  wire       reset,
     input  wire       async_reset_n,
+    input  wire       force_en,
     input  wire [1:0] sel,
     input  wire [7:0] data,
     output reg  [7:0] out
@@ -40,4 +41,16 @@ module matches_top (
         else
             async_q <= data;
     end
+
+  reg [7:0] forced_q;
+  wire [7:0] forced_out;
+  assign forced_out = forced_q;
+  always @(posedge clk)
+    forced_q <= 8'h11;
+  always @(posedge clk) begin
+    if (force_en)
+      force forced_q = data;
+    else
+      release forced_q;
+  end
 endmodule
