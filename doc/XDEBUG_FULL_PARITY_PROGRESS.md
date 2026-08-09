@@ -61,8 +61,8 @@
 - P1 CLI：one-shot JSON、actions/schema/error XOUT、INVALID_JSON、退出码、stdio-loop ready、payload override、错误双载荷和 quit envelope 与原版比较一致；PID 是唯一易变字段。
 - P1 pytest：13 项 CLI/request/catalog 专项测试通过；common/waveform 中已改用正式公共合同的 21 项基础测试在启用 response gate 前通过。
 - P2 registry CTest：覆盖 opening→active CAS、重复名称、双 registry 实例、单调 touch、generation mismatch、条件删除和严格 endpoint round-trip。
-- P2 UDS CTest：真实 fork server/client 往返通过，覆盖 `0600` socket、换行 JSON framing、非法 JSON 拒绝和 listener 隔离。
-- P2 lifecycle CTest：真实 `xdebug-fst --server` 子进程完成 `open/list/doctor/kill/list`；覆盖重复名称、公开 action 经 UDS 路由、ownership token mismatch 保活、正确 token 强制清理和 socket 消失。
+- P2 UDS CTest：真实 fork server/client 往返通过，覆盖 `0600` socket、换行 JSON framing、非法 JSON 拒绝、listener 隔离、非正 timeout 拒绝和断连写入不触发 SIGPIPE。
+- P2 lifecycle CTest：真实 `xdebug-fst --server` 子进程覆盖 TCP/file 明确拒绝且无 fallback、非法 timeout 环境、严格私有控制合同、重复名称、双前端并发 open、启动提前退出补偿、公开 action 经 UDS 路由、ownership token mismatch 保活、正确 token kill、engine SIGKILL 后 doctor/gc、FST fingerprint 变化、idle list 回收，以及同一 stdio-loop 内 open/close 的 child reap；最终 socket 与 active registry 均清空。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 

@@ -83,6 +83,9 @@ int main() {
     const Json request{{"action", "server.ping"}, {"nonce", "round-trip"}};
     Json response;
     std::string error;
+    require(!xdebug_fst::uds_request(socket_path, request, response, 0, error) &&
+                error == "UDS timeout must be positive",
+            "non-positive timeout was not rejected before connect");
     require(xdebug_fst::uds_request(socket_path, request, response, 1000, error),
             "round-trip failed: " + error);
     require(response == Json{{"ok", true}, {"echo", request}},
