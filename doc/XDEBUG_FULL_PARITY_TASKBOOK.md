@@ -688,6 +688,12 @@ input→flattened source 和父 statement RHS，故无需扩大 ABI。consumer �
 边界优先于父 net 的扁平化歧义，并在 output 实例内把每个 RHS 唯一映射回 input port；
 映射不完整或不唯一时不得用 FST 同值/可读性猜测。
 
+实现中仅当父级 predicate 无 unresolved 且唯一更深 output port 的 FST hop 可读取时，才让
+边界优先于父 lowering driver；predicate 未决仍在父级失败关闭。进入 output 后要求父级
+恰有一个活动 statement，且其中每个 RHS 都能在同一实例找到唯一 input port，才整体替换
+signal index。任何一个 RHS 映射失败都不会部分改写。完成映射后复用既有
+`multiple_rhs_sources` evidence，保证普通单实例表达式仍是一个 statement。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。

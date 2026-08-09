@@ -694,6 +694,12 @@ output port 进入实例，再以同实例 input port 替换父 statement 的 RH
 在子 output 节点执行既有 statement grouping 与 ambiguity evidence。全部候选来自静态
 DesignDB；Wellen 只在映射完成后读取所选 port 的原始 FST 值。
 
+边界优先不是无条件覆盖：父级 activation predicate unresolved 时仍按原合同停止；只有
+唯一更深 output 静态候选且对应 FST port 可读取时才跨界。output 侧的父 statement 必须
+唯一，每个 RHS 必须在该实例内恰好命中一个 input port，映射采用全有或全无事务语义，
+禁止部分替换。映射后的 group 保留父 statement 的 file/line/kind/predicate，只替换 RHS
+signal index，因此 ambiguity 分类仍由统一逻辑决定，不产生第二套 output 专用分析器。
+
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
 xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为

@@ -552,7 +552,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             }
 
             const int direction=design.signal_direction(index);
-            if (ambiguity_kind.empty()&&direction==0) {
+            if (direction==0&&evaluated.unresolved.empty()) {
                 std::vector<int> output_ports=ports_connected_to(design,index,2);
                 output_ports.erase(std::remove_if(output_ports.begin(),output_ports.end(),
                     [&](int port) {
@@ -563,6 +563,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     ?signal_name(design,output_ports.front()):std::string();
                 if (!output_candidate.empty()&&
                     sample_at(waveform,output_candidate,sample.active_time).ok) {
+                    ambiguity_kind.clear();
                     upstream=output_candidate;
                     selected=nullptr;
                 }
@@ -575,20 +576,42 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     drivers_for(design,parent_index),waveform,sample.active_time);
                 if (parent_evaluated.unresolved.empty()&&
                     parent_evaluated.active.size()==1&&
-                    parent_evaluated.active[0].rhs.size()==1) {
-                    const auto& flattened=parent_evaluated.active[0].rhs[0];
-                    std::vector<int> input_ports=ports_connected_to(
-                        design,flattened.src_signal,1);
+                    !parent_evaluated.active[0].rhs.empty()) {
                     const std::string instance_scope=signal_scope(current);
-                    input_ports.erase(std::remove_if(input_ports.begin(),input_ports.end(),
-                        [&](int port) {
-                            return signal_scope(signal_name(design,port))!=instance_scope;
-                        }),input_ports.end());
-                    if (input_ports.size()==1) {
-                        mapped_driver=flattened;
-                        mapped_driver.src_signal=input_ports.front();
-                        selected=&mapped_driver;
-                        upstream=signal_name(design,input_ports.front());
+                    StatementGroup mapped_group=parent_evaluated.active[0];
+                    std::map<int,int> mapped_sources;
+                    bool mapping_complete=true;
+                    for (const auto& flattened : mapped_group.rhs) {
+                        std::vector<int> input_ports=ports_connected_to(
+                            design,flattened.src_signal,1);
+                        input_ports.erase(std::remove_if(
+                            input_ports.begin(),input_ports.end(),[&](int port) {
+                                return signal_scope(signal_name(design,port))!=
+                                    instance_scope;
+                            }),input_ports.end());
+                        if (input_ports.size()!=1) {
+                            mapping_complete=false;
+                            break;
+                        }
+                        mapped_sources[flattened.src_signal]=input_ports.front();
+                    }
+                    if (mapping_complete) {
+                        for (auto& record : mapped_group.records) {
+                            if (record.dependency_role!="rhs") continue;
+                            const auto found=mapped_sources.find(record.src_signal);
+                            if (found!=mapped_sources.end())
+                                record.src_signal=found->second;
+                        }
+                        for (auto& rhs : mapped_group.rhs)
+                            rhs.src_signal=mapped_sources.at(rhs.src_signal);
+                        groups={std::move(mapped_group)};
+                        selected=representative_driver(groups[0]);
+                        if (groups[0].rhs.size()>1) {
+                            upstream.clear();
+                            ambiguity_kind="multiple_rhs_sources";
+                        } else {
+                            upstream=signal_name(design,groups[0].rhs[0].src_signal);
+                        }
                     }
                 }
             }
