@@ -1,5 +1,7 @@
 # xdebug_oc 全能力兼容修复、Goal 执行与分批提交计划
 
+配套架构说明：[`XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md`](XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md)。该文档说明 Verilator DesignDB 修改的范围、原因和数据流，以及 xdebug-fst 对 Wellen 波形能力的需求、双 C ABI 方案和后续收敛边界。
+
 ## 一、强制执行顺序
 
 进入实施阶段后，必须严格按照以下顺序开始，不得提前修改其他源码。
