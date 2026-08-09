@@ -708,6 +708,16 @@ xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无�
 剩余记录恰好只有 control role 就降级成 `control_only`。该判断来自 DesignDB assignment
 kind，不是从 FST 值变化猜测 HDL 时序；Wellen 只提供 active time 和对应波形值。
 
+NBA 的“最近赋值事件时间”与“最近值变化时间”必须继续分开。冻结原版 active trace 的
+`activeTime` 来自赋值事件，即使连续多个 posedge 写入相同值也会前进；标准 FST 对普通
+signal 只保存值变化，因此 Wellen 对不变值只能返回首次变化时间。第十八批等价固件在
+20ps、40ps、60ps 均执行 `temporal_q <= data`，而 `data` 恒为 `8'h20`：65ps 查询时原版
+语义要求 active time 为 60ps，当前原始 FST 对 `temporal_q/temporal_out` 只能证明 20ps。
+现有 DesignDB 虽有 `nba`、RHS、reset predicate 和源码行，却没有该 statement 的 event
+control（clock signal、posedge/negedge）。因此不得用最终值、固定周期或“最近任意时钟”
+猜测 60ps；下一步只有在独立 XDD 失败回归证明必要后，才允许发布最小 sequential-boundary
+静态事实，再由 xdebug 用 Wellen 直接读取原始 FST 时钟边沿求最近活动事件。
+
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终
 运行时值，既不包含被删除的 HDL 语句，也不能证明该值由几条静态赋值共同驱动；因此绝不

@@ -628,7 +628,11 @@ predicate 字符串表达 case inside 的仅 item 侧通配和闭区间，并由
 `case matches` 的精确表达式 item/default 子集：Verilator 发布 `===` 静态谓词，xdebug
 使用 Wellen 从当前原始 FST 直接读取的 selector 在 active time 判定。tagged union、tagged
 pattern、pattern variable/star、default-only 与独立 `matches` 运算符仍明确不支持，不得
-冒充通用 matches 完成。第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
+冒充通用 matches 完成。第十八批又以等价 NBA 时序固件证明“最近赋值事件”不能退化为
+FST 的“最近值变化”：同值 NBA 在 20ps/40ps/60ps 均执行，但 65ps 查询的当前 chain 只
+得到 20ps。现有 XDD 缺少 clock/edge event-control 静态事实，禁止按最终值、固定周期或
+任意时钟猜测；必须先建立 Verilator 独立失败回归，再决定最小 sequential-boundary 扩展。
+第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和
 `inout_leaf.bus` 组成的真实两级 inout 网络；当前锁定的 DesignDB 已完整发布各级静态

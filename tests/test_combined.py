@@ -128,6 +128,28 @@ def test_trace_active_driver_selects_exact_case_matches_item_and_default(
     assert default["data"]["paths"][0]["line"] == 14
 
 
+def test_trace_active_driver_chain_propagates_through_nba_active_time(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.matches_top.temporal_out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "primary_input"
+    hops = rsp["data"]["hops"]
+    assert [hop["signal"] for hop in hops] == [
+        "top.matches_top.temporal_out",
+        "top.matches_top.temporal_q",
+        "top.data",
+    ]
+    assert hops[0]["time"] == "65ps"
+    assert hops[0]["active_time"] == "60ps"
+    assert hops[1]["time"] == "60ps"
+    assert hops[1]["active_time"] == "60ps"
+
+
 def test_trace_active_driver_preserves_lowered_nested_if_identity(
         loop_runner: StdioLoopRunner, case_fst, case_design_db) -> None:
     open_session(loop_runner, case_fst, case_design_db)

@@ -15,4 +15,14 @@ module matches_top (
             endcase
         end
     end
+
+    reg [7:0] temporal_q;
+    wire [7:0] temporal_out;
+    assign temporal_out = temporal_q;
+    always @(posedge clk) begin
+        if (reset)
+            temporal_q <= 8'h00;
+        else
+            temporal_q <= data;
+    end
 endmodule
