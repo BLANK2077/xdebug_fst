@@ -571,7 +571,7 @@ APB 命名配置只保存时钟、复位和总线叶子信号路径以及采样�
 
 AXI 命名配置同样只保存 clock/reset、edge/sample point 和五个 channel 的 31 个最终叶子路径。每个 AXI action 都从当前 session 的 Wellen backend 重新采样选定时钟边沿，在请求内按 AXI4 规则把 AW、W、B 以及 AR、R 握手临时配对；ID FIFO、W beat FIFO、outstanding 深度、latency 样本和 pending 状态只在该请求的有界内存中存在，不持久化为事务索引或离线波形库。`axi.export` 写出的 TSV/CSV/meta 是调用者显式要求的最终产物，任何 action 都不会重新加载它们。
 
-stream 命名配置只保存 signal alias、clock/edge/sample point、reset、vld/rdy、可选 sop/eop 与 beat field 表达式。当前已落地的 transfer 扫描、summary、动态 validate 和 export 每次请求都直接从当前 session 的 Wellen backend 读取原始 FST 中涉及的 clock、vld、rdy 与 data 叶子，在请求期间形成有限的 transfer 行和统计；`cache_scope` 在该实现中只约束本次扫描范围，不产生可跨请求重载的基础分析缓存。显式 `stream.export` 只把当次结果写为最终 TSV/CSV 与 meta，meta 标记事实源为 `current_session_fst`，任何 action 都不会回灌这些文件。packet、stall、filter 和复杂 beat field 表达式仍是后续独立批次，当前基础批次不冒充 stream 全合同完成。
+stream 命名配置只保存 signal alias、clock/edge/sample point、reset、vld 及可选 rdy/bp、sop/eop 与 field 表达式。transfer、stall、packet、filter、动态 validate 和 export 每次请求都直接从当前 session 的 Wellen backend 读取原始 FST 中涉及的叶子，在请求期间形成有限的 sample、transfer、stall window 与 packet；`cache_scope` 在该实现中只约束本次扫描范围，不产生可跨请求重载的基础分析缓存。当前已支持全部 11 种 query、exact/range/mask packet filter、alias/slice/comparison/concatenation beat field、纯 vld、vld/rdy 与 vld/bp 流控，以及 transfer/packet/packet_beats preview 或显式最终文件。显式 `stream.export` 的 meta 标记事实源为 `current_session_fst`，任何 action 都不会回灌这些文件。channel interleaving 与 packet-stable field 的更深组合仍须独立回归，因此当前批次不冒充 stream 全合同最终关闭。
 
 显式文件产物必须与“离线 FST 分析”严格区分：
 
