@@ -53,4 +53,13 @@ module case_top (
     wire [7:0] multiple_driver_out;
     assign multiple_driver_out = data;
     assign multiple_driver_out = {6'b0, sel};
+
+    reg [7:0] inside_out;
+    always @(posedge clk) begin
+        case (sel) inside
+            2'b1?: inside_out <= data;
+            [2'd0:2'd1]: inside_out <= data + 8'h02;
+            default: inside_out <= 8'hfb;
+        endcase
+    end
 endmodule

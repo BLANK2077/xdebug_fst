@@ -227,6 +227,25 @@ def test_trace_active_driver_chain_reports_real_multiple_active_drivers(
         54, 55}
 
 
+def test_trace_active_driver_selects_case_inside_pattern_and_range(
+        loop_runner: StdioLoopRunner, case_fst,
+        case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    pattern = loop_runner.request("trace.active_driver", args={
+        "signal": "top.case_top.inside_out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert pattern.get("ok"), pattern
+    assert pattern["summary"]["analysis_complete"] is True
+    assert {path["line"] for path in pattern["data"]["paths"]} == {60}
+
+    range_item = loop_runner.request("trace.active_driver", args={
+        "signal": "top.case_top.inside_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert range_item.get("ok"), range_item
+    assert range_item["summary"]["analysis_complete"] is True
+    assert {path["line"] for path in range_item["data"]["paths"]} == {61}
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:
