@@ -51,6 +51,8 @@ Verilator DesignDB 只提供 FST 不包含的源位置、driver/load、端口连
 
 active-driver 的 activation predicate 也属于上述静态 HDL 事实，而不是波形分析结果。运行时分支是否成立必须由 xdebug-fst 在目标 active time 通过 Wellen 直接按需读取当前原始 `.fst` 的控制叶子并做四态求值；predicate 缺失、不可解析、引用缺失或结果为 X/Z 时必须 unresolved/fail closed。禁止把 predicate 预先扫成离线索引，禁止缓存整份 FST，禁止读取导出文件，也禁止退回“第一条静态 driver”。
 
+同值 NBA 的赋值事件时间同样受 `GOAL-FST-DIRECT-001` 约束：FST 只记录值变化，不能也不得被伪装成赋值事件数据库。Verilator DesignDB 只发布赋值语句所在敏感列表的直接信号与边沿这一静态事实；xdebug action 再要求 Wellen 对当前原始 `.fst` 中这些已确定的时钟/复位信号按需查找真实边沿。不得假定固定周期、任选全局时钟、扫描等值信号、让测试数据每拍变化，或生成事件索引来补洞。这个组合仍是“DesignDB 静态语义 + 原始 FST 运行时事实 → xdebug action 分析”，不是“用 FST 做分析”。
+
 ## 三、范围锁定
 
 - 波形输入：只支持 FST，并且必须把冻结的 xdebug action 能力完整适配到 FST。

@@ -8,6 +8,7 @@
 #include "waveform/expr/expr_eval.h"
 
 #include <algorithm>
+#include <cctype>
 #include <deque>
 #include <iterator>
 #include <map>
@@ -255,6 +256,8 @@ Json trace_hop(size_t index, const std::string& signal, const Sample& sample,
 struct StatementGroup {
     std::string kind,file,predicate;
     int line=0;
+    bool has_event_time=false;
+    uint64_t event_time=0;
     std::vector<IDesignBackend::DriverRecord> records;
     std::vector<IDesignBackend::DriverRecord> rhs;
 };
@@ -295,6 +298,56 @@ std::vector<StatementGroup> statement_groups(
 
 enum class PredicateState { Active, Inactive, Unresolved };
 
+bool event_edge_matches(const std::string& role,const std::string& before,
+                        const std::string& after) {
+    if (before.size()!=1||after.size()!=1) return false;
+    const char left=static_cast<char>(std::tolower(
+        static_cast<unsigned char>(before.front())));
+    const char right=static_cast<char>(std::tolower(
+        static_cast<unsigned char>(after.front())));
+    const auto unknown=[](char bit) { return bit!='0'&&bit!='1'; };
+    const bool posedge=(left=='0'&&(right=='1'||unknown(right)))||
+        (unknown(left)&&right=='1');
+    const bool negedge=(left=='1'&&(right=='0'||unknown(right)))||
+        (unknown(left)&&right=='0');
+    if (role=="event_posedge") return posedge;
+    if (role=="event_negedge") return negedge;
+    if (role=="event_bothedge") return posedge||negedge;
+    return role=="event_changed"&&left!=right;
+}
+
+bool latest_statement_event_time(const StatementGroup& statement,
+                                 IDesignBackend& design,
+                                 IWaveformBackend& waveform,uint64_t horizon,
+                                 uint64_t& event_time) {
+    bool found=false;
+    const uint32_t horizon_index=waveform.time_idx_of(horizon);
+    for (const auto& record : statement.records) {
+        if (record.src_signal<0||record.dependency_role.rfind("event_",0)!=0)
+            continue;
+        const std::string event_signal=signal_name(design,record.src_signal);
+        const uint32_t ref=waveform.find_signal(event_signal);
+        if (ref==IWaveformBackend::kInvalidSignalRef) continue;
+        if (!waveform.is_loaded(ref)&&waveform.load_signals({ref})!=1) continue;
+        const auto indices=waveform.time_indices_of(ref);
+        for (auto it=indices.rbegin();it!=indices.rend();++it) {
+            if (*it>horizon_index||waveform.time_at(*it)>horizon) continue;
+            IWaveformBackend::SampledValue before,after;
+            if (!waveform.sampled_value_at(
+                    ref,*it,IWaveformBackend::ObservationPoint::Before,before)||
+                !waveform.sampled_value_at(
+                    ref,*it,IWaveformBackend::ObservationPoint::Raw,after)) continue;
+            if (!event_edge_matches(record.dependency_role,
+                                    before.value.text,after.value.text)) continue;
+            const uint64_t candidate=waveform.time_at(*it);
+            if (!found||candidate>event_time) event_time=candidate;
+            found=true;
+            break;
+        }
+    }
+    return found;
+}
+
 PredicateState evaluate_predicate(const StatementGroup& statement,
                                   IWaveformBackend& waveform,
                                   uint64_t active_time) {
@@ -326,11 +379,17 @@ struct EvaluatedStatements {
 
 EvaluatedStatements active_statement_groups(
     const std::vector<IDesignBackend::DriverRecord>& drivers,
-    IWaveformBackend& waveform,uint64_t active_time) {
+    IDesignBackend& design,IWaveformBackend& waveform,uint64_t active_time,
+    uint64_t event_horizon=0) {
     EvaluatedStatements result;
     for (auto& statement : statement_groups(drivers)) {
+        if (event_horizon>0) {
+            statement.has_event_time=latest_statement_event_time(
+                statement,design,waveform,event_horizon,statement.event_time);
+        }
         const PredicateState state=evaluate_predicate(
-            statement,waveform,active_time);
+            statement,waveform,statement.has_event_time
+                ?statement.event_time:active_time);
         if (state==PredicateState::Active)
             result.active.push_back(std::move(statement));
         else if (state==PredicateState::Unresolved)
@@ -458,7 +517,7 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
         auto drivers=drivers_for(design,index);
         annotate_output_instance_identities(design,index,drivers);
         const auto evaluated=active_statement_groups(
-            drivers,waveform,target.active_time);
+            drivers,design,waveform,target.active_time);
         std::vector<IDesignBackend::DriverRecord> active_drivers;
         for (const auto& statement : evaluated.active) {
             const auto* driver=representative_driver(statement);
@@ -518,12 +577,12 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             }
             const int index=design.resolve(current.c_str());
             if (index<0) return action_error("SIGNAL_NOT_FOUND","signal not found in design: "+current);
-            const Sample sample=sample_at(waveform,current,current_time);
+            Sample sample=sample_at(waveform,current,current_time);
             if (!sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST: "+current);
             auto drivers=drivers_for(design,index);
             annotate_output_instance_identities(design,index,drivers);
             const auto evaluated=active_statement_groups(
-                drivers,waveform,sample.active_time);
+                drivers,design,waveform,sample.active_time,current_time);
             std::vector<StatementGroup> groups;
             for (const auto& statement : evaluated.active) {
                 const bool has_control=std::any_of(
@@ -573,7 +632,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 upstream==previous) {
                 const int parent_index=design.resolve(previous.c_str());
                 const auto parent_evaluated=active_statement_groups(
-                    drivers_for(design,parent_index),waveform,sample.active_time);
+                    drivers_for(design,parent_index),design,waveform,
+                    sample.active_time,current_time);
                 if (parent_evaluated.unresolved.empty()&&
                     parent_evaluated.active.size()==1&&
                     !parent_evaluated.active[0].rhs.empty()) {
@@ -648,6 +708,32 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                             upstream=candidate;
                         }
                     }
+                }
+            }
+
+            // FST records value changes, while an NBA executes on every
+            // matching sensitivity event.  Refine a sequential hop from its
+            // DesignDB event dependency, and propagate that causal time across
+            // one direct continuous alias so the downstream hop reports the
+            // same assignment event as the original active-trace semantics.
+            if (ambiguity_kind.empty()&&groups.size()==1&&
+                groups[0].kind=="nba"&&groups[0].has_event_time) {
+                sample.query_time=groups[0].event_time;
+                sample.active_time=groups[0].event_time;
+            } else if (ambiguity_kind.empty()&&groups.size()==1&&
+                       groups[0].kind=="cont_assign"&&!upstream.empty()) {
+                const int upstream_index=design.resolve(upstream.c_str());
+                const Sample upstream_sample=sample_at(
+                    waveform,upstream,current_time);
+                const auto upstream_evaluated=active_statement_groups(
+                    drivers_for(design,upstream_index),design,waveform,
+                    upstream_sample.active_time,current_time);
+                if (upstream_evaluated.unresolved.empty()&&
+                    upstream_evaluated.active.size()==1&&
+                    upstream_evaluated.active[0].kind=="nba"&&
+                    upstream_evaluated.active[0].has_event_time) {
+                    sample.active_time=
+                        upstream_evaluated.active[0].event_time;
                 }
             }
             hops.push_back(trace_hop(depth,current,sample,depth==0?"root":"driver",
@@ -887,7 +973,7 @@ struct TraceXOriginHandler : public EngineActionHandler {
             auto all_drivers=drivers_for(design,index);
             annotate_output_instance_identities(design,index,all_drivers);
             const auto evaluated=active_statement_groups(
-                all_drivers,waveform,sample.active_time);
+                all_drivers,design,waveform,sample.active_time);
             if (!evaluated.unresolved.empty()) {
                 limitations.push_back(
                     "activation predicate unresolved at "+state.signal);

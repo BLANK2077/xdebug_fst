@@ -712,11 +712,21 @@ NBA 的“最近赋值事件时间”与“最近值变化时间”必须继续�
 `activeTime` 来自赋值事件，即使连续多个 posedge 写入相同值也会前进；标准 FST 对普通
 signal 只保存值变化，因此 Wellen 对不变值只能返回首次变化时间。第十八批等价固件在
 20ps、40ps、60ps 均执行 `temporal_q <= data`，而 `data` 恒为 `8'h20`：65ps 查询时原版
-语义要求 active time 为 60ps，当前原始 FST 对 `temporal_q/temporal_out` 只能证明 20ps。
-现有 DesignDB 虽有 `nba`、RHS、reset predicate 和源码行，却没有该 statement 的 event
-control（clock signal、posedge/negedge）。因此不得用最终值、固定周期或“最近任意时钟”
-猜测 60ps；下一步只有在独立 XDD 失败回归证明必要后，才允许发布最小 sequential-boundary
-静态事实，再由 xdebug 用 Wellen 直接读取原始 FST 时钟边沿求最近活动事件。
+语义要求 active time 为 60ps，原始 FST 对 `temporal_q/temporal_out` 本身只能证明 20ps。
+Verilator `01f9f2a4b` 先以简单 posedge 和异步 reset 独立失败回归证明 statement-local
+event-control 必要；`6239de45e` 随后只在既有 DesignDB emitter 中读取赋值祖先
+`AstAlways` 的直接 `AstSenItem`，以 `event_posedge`、`event_negedge`、`event_bothedge`、
+`event_changed` driver role 关联敏感信号。记录沿用既有字符串 ABI，不改变结构、版本、
+capability、仿真调度、pass 顺序或普通仿真；非直接信号的复杂敏感表达式不近似发布。
+
+xdebug 将同一 file/line/kind/predicate 的 `event_*` 与 RHS/control 聚为同一静态 statement，
+只对 DesignDB 已明确命名的事件信号调用 Wellen。Wellen 仍直接访问当前 session 原始 `.fst`，
+从目标查询时刻向前按需检查该信号的 Before/Raw 值并匹配边沿；action 在最近事件时刻求值
+activation predicate。当前直接 `temporal_out = temporal_q` alias 会继承下游唯一 NBA 的
+60ps 因果事件，下一 hop 也以 60ps 查询 `temporal_q`，随后沿静态 RHS 到 `top.data`。
+DesignDB 决定“哪条语句、哪些事件源”，FST/Wellen 只提供“这些信号何时真实跳变”，action
+决定 active-driver 时间与链语义；因此没有把 FST 升格为分析器，也没有固定周期、任意时钟、
+同值扫描、转换、离线事件索引、全量波形快照或 fallback。
 
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终
@@ -795,7 +805,7 @@ expression、tagged pattern、pattern variable/star 和独立 `matches` 运算�
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `adc193c2f75147c413c7e8c8e6b2e13bbf4198d1`
+- revision `6239de45ef94f88e5b3f4efa4e78356741d58bdc`
 
 对应提交：
 
@@ -818,6 +828,7 @@ expression、tagged pattern、pattern variable/star 和独立 `matches` 运算�
 - Verilator `3e7cca4f1`：在既有谓词字符串中发布 case inside 的 item-side wildcard 与闭区间语义，普通仿真与 XDD ABI 不变；
 - Verilator `007f1aa5c`、`8a5523487`：恢复 always-driven inout lowering 前原始 RHS，并替换而非叠加内部 strength 驱动；
 - Verilator `ea1d3c9b4`、`adc193c2f`：先记录精确表达式 `case matches` 被无条件拒绝的普通仿真与 DesignDB 失败，再仅放行该有限子集并发布 `===` predicate；tagged/pattern 能力保持不支持；
+- Verilator `01f9f2a4b`、`6239de45e`：先证明同值 NBA 缺少赋值事件源，再仅由 DesignDB emitter 发布赋值所在直接敏感信号的 `event_*` 静态角色；不修改仿真调度、ABI 布局或 pass 顺序；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
