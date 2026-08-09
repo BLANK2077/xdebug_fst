@@ -345,6 +345,40 @@ def test_trace_active_driver_chain_reports_cross_instance_output_drivers(
     assert evidence["rhs_signal_count"] == 2
 
 
+def test_trace_active_driver_selects_nested_nba_constant_and_signal_leaves(
+        loop_runner: StdioLoopRunner, case_fst,
+        case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    reset_constant = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.case_top.constant_nba_out", "time": "5ps",
+        "render_time_unit": "ps"})
+    assert reset_constant.get("ok"), reset_constant
+    assert reset_constant["summary"]["analysis_complete"] is True
+    assert reset_constant["summary"]["termination"] == "assignment"
+    assert reset_constant["summary"]["termination_detail"] == \
+        "constant_or_no_rhs_signal"
+    assert reset_constant["data"]["hops"][0]["line"] == 103
+
+    else_constant = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.case_top.constant_nba_out", "time": "25ps",
+        "render_time_unit": "ps"})
+    assert else_constant.get("ok"), else_constant
+    assert else_constant["summary"]["analysis_complete"] is True
+    assert else_constant["summary"]["termination_detail"] == \
+        "constant_or_no_rhs_signal"
+    assert else_constant["data"]["hops"][0]["line"] == 107
+
+    signal_leaf = loop_runner.request("trace.active_driver", args={
+        "signal": "top.case_top.constant_nba_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert signal_leaf.get("ok"), signal_leaf
+    assert signal_leaf["summary"]["analysis_complete"] is True
+    assert signal_leaf["summary"]["total_count"] == 1
+    assert signal_leaf["data"]["paths"][0]["line"] == 105
+    assert signal_leaf["data"]["paths"][0]["signal_path"] == [
+        "top.data", "top.case_top.constant_nba_out"]
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:

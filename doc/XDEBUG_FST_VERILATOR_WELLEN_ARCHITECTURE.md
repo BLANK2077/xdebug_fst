@@ -675,6 +675,12 @@ port 的父 net 连接、同实例 input port 的扁平化源区分两个实例�
 identity，仍正确保持一个 statement；任何不完整或多义映射保持未标注，绝不使用 FST
 值或 dump 可见性补全。active-driver、chain 与 X-origin 共用同一分组入口。
 
+常量 NBA 叶子没有 RHS signal，但仍是完整 assignment statement。第十五批证明 DesignDB
+已通过该叶子的 control dependency 保存精确 file/line/predicate；chain 若只保留含 RHS 的
+group，会正确终止却丢失源码行。consumer 的责任边界是：所有活动 assignment group 都
+参与 statement identity、ambiguity 和 hop source evidence；只有 group 的 RHS record 能
+形成下一跳。control record 可作为 representative evidence，但绝不能成为数据上游。
+
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
 xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为

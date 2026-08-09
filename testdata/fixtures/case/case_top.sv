@@ -96,6 +96,16 @@ module case_top (
         .data_i({6'b0, sel}),
         .data_o(cross_instance_multi_out)
     );
+
+    reg [7:0] constant_nba_out;
+    always @(posedge clk) begin
+        if (reset)
+            constant_nba_out <= 8'ha5;
+        else if (sel[0])
+            constant_nba_out <= data;
+        else
+            constant_nba_out <= 8'h5a;
+    end
 endmodule
 
 module inout_leaf (
