@@ -50,6 +50,7 @@ public:
     struct DriverRecord {
         int         src_signal = -1;   // source signal index, -1 = statement-only
         std::string kind;              // "proc_assign", "cont_assign", "nba"
+        std::string dependency_role;   // "rhs", "control", or "statement"
         std::string file;
         int         line = 0;
     };

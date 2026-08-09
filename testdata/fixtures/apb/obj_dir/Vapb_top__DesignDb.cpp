@@ -75,42 +75,42 @@ static const XddNameEntry kNameIndex[] = {
 static const int kNameIndexCount = 31;
 
 static const XddDriverRec kDrivers[] = {
-    {5, 6, "nba", "apb_top.sv", 23},
-    {5, 2, "nba", "apb_top.sv", 23},
-    {5, 3, "nba", "apb_top.sv", 23},
-    {5, 4, "nba", "apb_top.sv", 23},
-    {7, 30, "nba", "apb_top.sv", 25},
-    {7, 5, "nba", "apb_top.sv", 25},
-    {7, 2, "nba", "apb_top.sv", 25},
-    {7, 3, "nba", "apb_top.sv", 25},
-    {7, 4, "nba", "apb_top.sv", 25},
-    {7, 1, "nba", "apb_top.sv", 20},
-    {8, -1, "proc_assign", "apb_top.sv", 15},
-    {9, -1, "proc_assign", "apb_top.sv", 16},
-    {10, 0, "cont_assign", "apb_top.sv", 31},
-    {11, 1, "cont_assign", "apb_top.sv", 32},
-    {12, 2, "cont_assign", "apb_top.sv", 33},
-    {13, 3, "cont_assign", "apb_top.sv", 34},
-    {14, 4, "cont_assign", "apb_top.sv", 35},
-    {15, 5, "cont_assign", "apb_top.sv", 36},
-    {16, 6, "cont_assign", "apb_top.sv", 37},
-    {17, 7, "cont_assign", "apb_top.sv", 38},
-    {18, 8, "cont_assign", "apb_top.sv", 39},
-    {19, 9, "cont_assign", "apb_top.sv", 40},
-    {20, 0, "cont_assign", "apb_top.sv", 3},
-    {21, 1, "cont_assign", "apb_top.sv", 4},
-    {22, 2, "cont_assign", "apb_top.sv", 5},
-    {23, 3, "cont_assign", "apb_top.sv", 6},
-    {24, 4, "cont_assign", "apb_top.sv", 7},
-    {25, 5, "cont_assign", "apb_top.sv", 8},
-    {26, 6, "cont_assign", "apb_top.sv", 9},
-    {27, 7, "cont_assign", "apb_top.sv", 10},
-    {28, 8, "cont_assign", "apb_top.sv", 11},
-    {29, 9, "cont_assign", "apb_top.sv", 12},
-    {30, 1, "nba", "apb_top.sv", 19},
-    {30, 1, "nba", "apb_top.sv", 19},
-    {30, 1, "nba", "apb_top.sv", 19},
-    {30, 1, "nba", "apb_top.sv", 19},
+    {5, 6, "nba", "rhs", "apb_top.sv", 23},
+    {5, 2, "nba", "control", "apb_top.sv", 23},
+    {5, 3, "nba", "control", "apb_top.sv", 23},
+    {5, 4, "nba", "control", "apb_top.sv", 23},
+    {7, 30, "nba", "rhs", "apb_top.sv", 25},
+    {7, 5, "nba", "rhs", "apb_top.sv", 25},
+    {7, 2, "nba", "control", "apb_top.sv", 25},
+    {7, 3, "nba", "control", "apb_top.sv", 25},
+    {7, 4, "nba", "control", "apb_top.sv", 25},
+    {7, 1, "nba", "control", "apb_top.sv", 20},
+    {8, -1, "proc_assign", "statement", "apb_top.sv", 15},
+    {9, -1, "proc_assign", "statement", "apb_top.sv", 16},
+    {10, 0, "cont_assign", "rhs", "apb_top.sv", 31},
+    {11, 1, "cont_assign", "rhs", "apb_top.sv", 32},
+    {12, 2, "cont_assign", "rhs", "apb_top.sv", 33},
+    {13, 3, "cont_assign", "rhs", "apb_top.sv", 34},
+    {14, 4, "cont_assign", "rhs", "apb_top.sv", 35},
+    {15, 5, "cont_assign", "rhs", "apb_top.sv", 36},
+    {16, 6, "cont_assign", "rhs", "apb_top.sv", 37},
+    {17, 7, "cont_assign", "rhs", "apb_top.sv", 38},
+    {18, 8, "cont_assign", "rhs", "apb_top.sv", 39},
+    {19, 9, "cont_assign", "rhs", "apb_top.sv", 40},
+    {20, 0, "cont_assign", "rhs", "apb_top.sv", 3},
+    {21, 1, "cont_assign", "rhs", "apb_top.sv", 4},
+    {22, 2, "cont_assign", "rhs", "apb_top.sv", 5},
+    {23, 3, "cont_assign", "rhs", "apb_top.sv", 6},
+    {24, 4, "cont_assign", "rhs", "apb_top.sv", 7},
+    {25, 5, "cont_assign", "rhs", "apb_top.sv", 8},
+    {26, 6, "cont_assign", "rhs", "apb_top.sv", 9},
+    {27, 7, "cont_assign", "rhs", "apb_top.sv", 10},
+    {28, 8, "cont_assign", "rhs", "apb_top.sv", 11},
+    {29, 9, "cont_assign", "rhs", "apb_top.sv", 12},
+    {30, 1, "nba", "control", "apb_top.sv", 19},
+    {30, 1, "nba", "control", "apb_top.sv", 19},
+    {30, 1, "nba", "control", "apb_top.sv", 19},
+    {30, 1, "nba", "control", "apb_top.sv", 19},
 };
 static const int kDriverCount = 36;
 static const int kDriverStart[] = {0, 0, 0, 0, 0, 0, 4, 4, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32};
@@ -165,23 +165,23 @@ static const XddLoadRec kLoads[] = {
     {0, 20, "rhs_use", "apb_top.sv", 3},
     {1, 11, "rhs_use", "apb_top.sv", 32},
     {1, 21, "rhs_use", "apb_top.sv", 4},
-    {1, 30, "rhs_use", "apb_top.sv", 19},
-    {1, 30, "rhs_use", "apb_top.sv", 19},
-    {1, 30, "rhs_use", "apb_top.sv", 19},
-    {1, 30, "rhs_use", "apb_top.sv", 19},
-    {1, 7, "rhs_use", "apb_top.sv", 20},
+    {1, 30, "control_use", "apb_top.sv", 19},
+    {1, 30, "control_use", "apb_top.sv", 19},
+    {1, 30, "control_use", "apb_top.sv", 19},
+    {1, 30, "control_use", "apb_top.sv", 19},
+    {1, 7, "control_use", "apb_top.sv", 20},
     {2, 12, "rhs_use", "apb_top.sv", 33},
     {2, 22, "rhs_use", "apb_top.sv", 5},
-    {2, 5, "rhs_use", "apb_top.sv", 23},
-    {2, 7, "rhs_use", "apb_top.sv", 25},
+    {2, 5, "control_use", "apb_top.sv", 23},
+    {2, 7, "control_use", "apb_top.sv", 25},
     {3, 13, "rhs_use", "apb_top.sv", 34},
     {3, 23, "rhs_use", "apb_top.sv", 6},
-    {3, 5, "rhs_use", "apb_top.sv", 23},
-    {3, 7, "rhs_use", "apb_top.sv", 25},
+    {3, 5, "control_use", "apb_top.sv", 23},
+    {3, 7, "control_use", "apb_top.sv", 25},
     {4, 14, "rhs_use", "apb_top.sv", 35},
     {4, 24, "rhs_use", "apb_top.sv", 7},
-    {4, 5, "rhs_use", "apb_top.sv", 23},
-    {4, 7, "rhs_use", "apb_top.sv", 25},
+    {4, 5, "control_use", "apb_top.sv", 23},
+    {4, 7, "control_use", "apb_top.sv", 25},
     {5, 15, "rhs_use", "apb_top.sv", 36},
     {5, 25, "rhs_use", "apb_top.sv", 8},
     {5, 7, "rhs_use", "apb_top.sv", 25},
@@ -204,7 +204,8 @@ extern "C" {
 
 int xdd_abi_version(void) { return XDD_ABI_VERSION; }
 uint64_t xdd_capabilities(void) {
-    return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS;
+    return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS
+           | XDD_CAP_DRIVER_DEPENDENCY_ROLE;
 }
 
 XddDb* xdd_init(void) { return reinterpret_cast<XddDb*>(1); }
@@ -280,6 +281,14 @@ void xdd_trace_driver(XddDb*, int idx, int i,
     if (i < 0 || i >= (e - s)) return;
     const XddDriverRec& d = kDrivers[s + i];
     *src_signal = d.src_signal; *kind = d.kind; *file = d.file; *line = d.line;
+}
+
+const char* xdd_trace_driver_role(XddDb*, int idx, int i) {
+    if (idx < 0 || idx >= kSignalCount) return nullptr;
+    int s = kDriverStart[idx];
+    int e = (idx + 1 < kSignalCount) ? kDriverStart[idx + 1] : kDriverCount;
+    if (i < 0 || i >= (e - s)) return nullptr;
+    return kDrivers[s + i].role;
 }
 
 int xdd_trace_load_count(XddDb*, int idx) {

@@ -35,6 +35,8 @@ void XddDesignBackend::load_symbols() {
     fn_dir_     = reinterpret_cast<decltype(fn_dir_)>(dlsym(so_handle_, "xdd_signal_direction"));
     fn_drv_cnt_ = reinterpret_cast<decltype(fn_drv_cnt_)>(dlsym(so_handle_, "xdd_trace_driver_count"));
     fn_drv_     = reinterpret_cast<decltype(fn_drv_)>(dlsym(so_handle_, "xdd_trace_driver"));
+    fn_drv_role_ = reinterpret_cast<decltype(fn_drv_role_)>(
+        dlsym(so_handle_, "xdd_trace_driver_role"));
     fn_ld_cnt_  = reinterpret_cast<decltype(fn_ld_cnt_)>(dlsym(so_handle_, "xdd_trace_load_count"));
     fn_ld_      = reinterpret_cast<decltype(fn_ld_)>(dlsym(so_handle_, "xdd_trace_load"));
     fn_conn_cnt_ = reinterpret_cast<decltype(fn_conn_cnt_)>(
@@ -55,7 +57,7 @@ bool XddDesignBackend::open(const std::string& so_path) {
     load_symbols();
 
     constexpr int kRequiredAbiVersion = 2;
-    constexpr uint64_t kRequiredCapabilities = UINT64_C(3);
+    constexpr uint64_t kRequiredCapabilities = UINT64_C(7);
     if (!fn_abi_version_ || !fn_capabilities_) {
         fprintf(stderr,
                 "xdd_design_backend: incompatible legacy bundle without ABI "
@@ -82,7 +84,7 @@ bool XddDesignBackend::open(const std::string& so_path) {
     }
     if (!fn_init_ || !fn_close_ || !fn_count_ || !fn_resolve_ || !fn_name_ ||
         !fn_type_ || !fn_width_ || !fn_file_ || !fn_line_ || !fn_dir_ ||
-        !fn_drv_cnt_ || !fn_drv_ || !fn_ld_cnt_ || !fn_ld_ ||
+        !fn_drv_cnt_ || !fn_drv_ || !fn_drv_role_ || !fn_ld_cnt_ || !fn_ld_ ||
         !fn_conn_cnt_ || !fn_conn_) {
         fprintf(stderr,
                 "xdd_design_backend: ABI v2 bundle is missing required symbols: %s\n",
@@ -170,6 +172,8 @@ int XddDesignBackend::trace_driver(int signal_idx,
         DriverRecord rec;
         rec.src_signal = src;
         rec.kind = kind ? kind : "";
+        const char* role = fn_drv_role_(db_, signal_idx, i);
+        rec.dependency_role = role ? role : "";
         rec.file = file ? file : "";
         rec.line = line;
         out.push_back(rec);

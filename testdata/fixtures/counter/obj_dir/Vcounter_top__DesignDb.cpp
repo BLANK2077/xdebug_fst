@@ -29,15 +29,15 @@ static const XddNameEntry kNameIndex[] = {
 static const int kNameIndexCount = 8;
 
 static const XddDriverRec kDrivers[] = {
-    {2, 1, "nba", "counter_top.sv", 9},
-    {2, 1, "nba", "counter_top.sv", 12},
-    {3, 1, "nba", "counter_top.sv", 10},
-    {3, 2, "nba", "counter_top.sv", 13},
-    {3, 1, "nba", "counter_top.sv", 13},
-    {4, 0, "cont_assign", "counter_top.sv", 2},
-    {5, 1, "cont_assign", "counter_top.sv", 3},
-    {6, 2, "cont_assign", "counter_top.sv", 4},
-    {7, 3, "cont_assign", "counter_top.sv", 5},
+    {2, 1, "nba", "control", "counter_top.sv", 9},
+    {2, 1, "nba", "control", "counter_top.sv", 12},
+    {3, 1, "nba", "control", "counter_top.sv", 10},
+    {3, 2, "nba", "rhs", "counter_top.sv", 13},
+    {3, 1, "nba", "control", "counter_top.sv", 13},
+    {4, 0, "cont_assign", "rhs", "counter_top.sv", 2},
+    {5, 1, "cont_assign", "rhs", "counter_top.sv", 3},
+    {6, 2, "cont_assign", "rhs", "counter_top.sv", 4},
+    {7, 3, "cont_assign", "rhs", "counter_top.sv", 5},
 };
 static const int kDriverCount = 9;
 static const int kDriverStart[] = {0, 0, 0, 2, 5, 6, 7, 8};
@@ -58,10 +58,10 @@ static const int kPortConnectionStart[] = {0, 1, 2, 3, 4, 5, 6, 7};
 static const XddLoadRec kLoads[] = {
     {0, 4, "rhs_use", "counter_top.sv", 2},
     {1, 5, "rhs_use", "counter_top.sv", 3},
-    {1, 2, "rhs_use", "counter_top.sv", 9},
-    {1, 3, "rhs_use", "counter_top.sv", 10},
-    {1, 2, "rhs_use", "counter_top.sv", 12},
-    {1, 3, "rhs_use", "counter_top.sv", 13},
+    {1, 2, "control_use", "counter_top.sv", 9},
+    {1, 3, "control_use", "counter_top.sv", 10},
+    {1, 2, "control_use", "counter_top.sv", 12},
+    {1, 3, "control_use", "counter_top.sv", 13},
     {2, 6, "rhs_use", "counter_top.sv", 4},
     {2, 2, "rhs_use", "counter_top.sv", 12},
     {2, 3, "rhs_use", "counter_top.sv", 13},
@@ -75,7 +75,8 @@ extern "C" {
 
 int xdd_abi_version(void) { return XDD_ABI_VERSION; }
 uint64_t xdd_capabilities(void) {
-    return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS;
+    return XDD_CAP_SIGNAL_DIRECTION | XDD_CAP_PORT_CONNECTIONS
+           | XDD_CAP_DRIVER_DEPENDENCY_ROLE;
 }
 
 XddDb* xdd_init(void) { return reinterpret_cast<XddDb*>(1); }
@@ -151,6 +152,14 @@ void xdd_trace_driver(XddDb*, int idx, int i,
     if (i < 0 || i >= (e - s)) return;
     const XddDriverRec& d = kDrivers[s + i];
     *src_signal = d.src_signal; *kind = d.kind; *file = d.file; *line = d.line;
+}
+
+const char* xdd_trace_driver_role(XddDb*, int idx, int i) {
+    if (idx < 0 || idx >= kSignalCount) return nullptr;
+    int s = kDriverStart[idx];
+    int e = (idx + 1 < kSignalCount) ? kDriverStart[idx + 1] : kDriverCount;
+    if (i < 0 || i >= (e - s)) return nullptr;
+    return kDrivers[s + i].role;
 }
 
 int xdd_trace_load_count(XddDb*, int idx) {
