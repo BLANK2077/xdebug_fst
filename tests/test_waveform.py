@@ -228,26 +228,29 @@ def test_signal_changes(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("signal.changes", args={
         "signal": "top.counter_top.count",
-        "time_range": {"begin": "0", "end": "490"}})
+        "time_range": {"begin": "0ps", "end": "490ps"},
+        "render_time_unit": "ps"})
     assert rsp.get("ok")
     changes = rsp["data"]["changes"]
     assert len(changes) == 21
-    assert changes[0]["time"] == 0
+    assert changes[0]["time"] == "0ps"
     assert changes[0]["value"]["value"] == "8'h00"
-    assert changes[1]["time"] == 100
+    assert changes[1]["time"] == "100ps"
     assert changes[1]["value"]["value"] == "8'h01"
-    assert rsp["summary"]["change_count"] == 21
+    assert rsp["summary"]["actual_transition_count"] == 20
+    assert rsp["summary"]["total_count"] == 21
 
 
 def test_signal_changes_window(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("signal.changes", args={
         "signal": "top.counter_top.count",
-        "time_range": {"begin": "200", "end": "300"}})
+        "time_range": {"begin": "200ps", "end": "300ps"},
+        "render_time_unit": "ps"})
     assert rsp.get("ok")
     changes = rsp["data"]["changes"]
-    assert changes[0]["time"] == 200
-    assert changes[-1]["time"] == 300
+    assert changes[0]["time"] == "200ps"
+    assert changes[-1]["time"] == "300ps"
     assert len(changes) == 6
 
 
@@ -257,6 +260,26 @@ def test_signal_changes_missing_signal(loop_runner: StdioLoopRunner,
     rsp = loop_runner.request("signal.changes", args={"signal": "nope"})
     assert not rsp.get("ok")
     assert rsp["error"]["code"] == "SIGNAL_NOT_FOUND"
+
+
+def test_signal_changes_summary_and_timeline_limit(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    summary = loop_runner.request("signal.changes", args={
+        "signal": "top.counter_top.count", "mode": "summary",
+        "time_range": {"begin": "0ps", "end": "300ps"}})
+    assert summary.get("ok"), summary
+    assert summary["data"]["mode"] == "summary"
+    assert "changes" not in summary["data"]
+    assert summary["summary"]["actual_transition_count"] == 11
+    limited = loop_runner.request("signal.changes", args={
+        "signal": "top.counter_top.count", "mode": "timeline", "line_limit": 2,
+        "time_range": {"begin": "0ps", "end": "300ps"}})
+    assert limited.get("ok"), limited
+    assert limited["summary"]["response_truncated"] is True
+    assert limited["summary"]["total_count"] == 12
+    assert limited["summary"]["returned_count"] == 2
+    assert len(limited["data"]["changes"]) == 2
 
 
 def test_scope_roots(loop_runner: StdioLoopRunner, counter_fst) -> None:
