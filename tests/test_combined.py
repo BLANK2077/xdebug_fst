@@ -107,6 +107,18 @@ def test_trace_active_driver_selects_casez_and_casex_wildcards(
     assert casex["data"]["paths"][0]["line"] == 32
 
 
+def test_trace_active_driver_preserves_lowered_nested_if_identity(
+        loop_runner: StdioLoopRunner, case_fst, case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    rsp = loop_runner.request("trace.active_driver", args={
+        "signal": "top.case_top.nested_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["total_count"] == 1
+    assert rsp["data"]["paths"][0]["line"] == 45
+
+
 def test_trace_active_driver_counts_before_response_limit(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:

@@ -34,4 +34,16 @@ module case_top (
             endcase
         end
     end
+
+    reg [7:0] nested_out;
+    always @(posedge clk) begin
+        if (reset)
+            nested_out <= 8'h00;
+        else if (sel == 2'd0)
+            nested_out <= data;
+        else if (sel == 2'd1)
+            nested_out <= data + 8'h01;
+        else
+            nested_out <= 8'hfc;
+    end
 endmodule
