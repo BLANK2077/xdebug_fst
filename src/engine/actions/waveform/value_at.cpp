@@ -319,10 +319,21 @@ struct SignalChangesHandler : public EngineActionHandler {
         }
         if (!wf->is_loaded(ref)) wf->load_signals({ref});
 
-        uint64_t begin = 0, end = wf->max_time();
+        uint64_t begin = wf->min_time(), end = wf->max_time();
         const Json time_range = args.value("time_range", Json::object());
-        if (time_range.contains("begin")) begin = std::stoull(time_range["begin"].get<std::string>());
-        if (time_range.contains("end")) end = std::stoull(time_range["end"].get<std::string>());
+        std::string time_error;
+        if (time_range.contains("begin") &&
+            !wf->parse_time(time_range.at("begin"), begin, time_error))
+            return value_error("INVALID_TIME", time_error);
+        if (time_range.contains("end") &&
+            !wf->parse_time(time_range.at("end"), end, time_error, true))
+            return value_error("INVALID_TIME", time_error);
+        if (begin > end)
+            return value_error("TIME_RANGE_INVALID", "end is before begin");
+        TimeRenderUnit render_unit;
+        if (!parse_time_render_unit(args.value("render_time_unit", "ns"),
+                                    render_unit, time_error))
+            return value_error("INVALID_TIME_UNIT", time_error);
 
         ValueRenderFormat fmt = ValueRenderFormat::Hex;
         parse_value_render_format(args.value("value_format", "hex"), fmt);
@@ -330,35 +341,68 @@ struct SignalChangesHandler : public EngineActionHandler {
         IWaveformBackend::SignalInfo info;
         wf->signal_info(ref, info);
 
-        Json changes = Json::array();
-        // O(N) iteration over the signal's change-time indices
-        std::vector<uint32_t> indices = wf->time_indices_of(ref);
-        int limit = args.value("line_limit", 1000);
-        for (uint32_t ti : indices) {
-            if ((int)changes.size() >= limit) break;
-            uint64_t t = wf->time_at(ti);
-            if (t < begin || t > end) continue;
-            IWaveformBackend::SignalOffset off;
-            if (!wf->signal_offset_at(ref, ti, off)) continue;
-            if (!off.time_match) continue;
-            std::string bits = wf->signal_value_str(ref, off.start, 0);
-            changes.push_back({
-                {"time", t},
-                {"time_idx", ti},
-                {"value", render_value_json(bits, info.width, fmt)},
-            });
+        const uint32_t begin_ti = wf->time_idx_of(begin);
+        const uint32_t end_ti = wf->time_idx_of(end);
+        IWaveformBackend::SampledValue initial, final;
+        const bool has_initial = wf->sampled_value_at(
+            ref, begin_ti, IWaveformBackend::ObservationPoint::Raw, initial);
+        const bool has_final = wf->sampled_value_at(
+            ref, end_ti, IWaveformBackend::ObservationPoint::Raw, final);
+        struct Row { uint64_t time; IWaveformBackend::WaveformValue value; };
+        std::vector<Row> rows;
+        if (has_initial) rows.push_back({begin, initial.value});
+        size_t transition_count = 0;
+        IWaveformBackend::WaveformValue previous = initial.value;
+        bool have_previous = has_initial;
+        for (uint32_t ti : wf->time_indices_of(ref)) {
+            const uint64_t time = wf->time_at(ti);
+            if (time <= begin || time > end) continue;
+            IWaveformBackend::SampledValue sampled;
+            if (!wf->sampled_value_at(ref, ti,
+                    IWaveformBackend::ObservationPoint::Raw, sampled)) continue;
+            bool changed = !have_previous || sampled.value.kind != previous.kind ||
+                (sampled.value.kind == IWaveformBackend::ValueKind::Real
+                    ? sampled.value.real != previous.real
+                    : sampled.value.text != previous.text);
+            if (!changed) continue;
+            ++transition_count;
+            rows.push_back({time, sampled.value});
+            previous = sampled.value;
+            have_previous = true;
         }
-
-        Json out;
-        out["ok"] = true;
-        out["summary"] = {
-            {"signal", sig},
-            {"change_count", changes.size()},
-            {"range", {{"begin", begin}, {"end", end}}},
-            {"truncated", (int)changes.size() >= limit},
-        };
-        out["data"] = {{"changes", changes}};
-        return out;
+        const std::string mode = args.value("mode", "timeline");
+        const size_t line_limit = args.value("line_limit", 1000u);
+        const size_t returned_count = mode == "timeline"
+            ? std::min(rows.size(), line_limit) : 0;
+        const bool truncated = mode == "timeline" && returned_count < rows.size();
+        Json summary{{"signal", sig}, {"actual_transition_count", transition_count},
+            {"scan_complete", true}, {"analysis_complete", true},
+            {"response_truncated", truncated}, {"total_count", rows.size()},
+            {"returned_count", returned_count}, {"truncation_scopes", truncated
+                ? Json::array({"response_changes"}) : Json::array()}};
+        const std::string note =
+            "signal.changes returns value-change rows for timeline inspection. "
+            "Do not use row counts as sampled high cycles; use "
+            "signal.statistics.high_cycles for clock-sampled activity.";
+        Json data{{"begin", wf->format_time(begin, render_unit)},
+                  {"end", wf->format_time(end, render_unit)},
+                  {"includes_initial_value", has_initial},
+                  {"semantic_note", note}, {"mode", mode}};
+        if (has_initial && has_final) {
+            data["initial_value"] = typed_logic_value(initial.value, info.width, fmt);
+            data["final_value"] = typed_logic_value(final.value, info.width, fmt);
+            data["first_change"] = wf->format_time(rows.front().time, render_unit);
+            data["last_change"] = wf->format_time(rows.back().time, render_unit);
+        }
+        if (mode == "timeline") {
+            Json changes = Json::array();
+            for (size_t index = 0; index < returned_count; ++index)
+                changes.push_back({{"time", wf->format_time(rows[index].time,
+                                                              render_unit)},
+                    {"value", typed_logic_value(rows[index].value, info.width, fmt)}});
+            data["changes"] = changes;
+        }
+        return {{"ok", true}, {"summary", summary}, {"data", data}};
     }
 };
 
