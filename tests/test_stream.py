@@ -19,6 +19,18 @@ PACKET_STREAM_CONFIG = {
                         "joined": "{data[7:4], data[3:0]}"}}],
 }
 
+VLD_STREAM_CONFIG = {"streams": [{"name": "vld_fifo",
+    "signals": {"clk": "top.clk", "vld": "top.in_valid",
+                "data": "top.in_data"},
+    "clock": "clk", "edge": "posedge", "sample_point": "after",
+    "vld": "vld", "beat_fields": {"data": "data"}}]}
+
+BP_STREAM_CONFIG = {"streams": [{"name": "bp_fifo",
+    "signals": {"clk": "top.clk", "vld": "top.in_valid",
+                "bp": "top.reset", "data": "top.in_data"},
+    "clock": "clk", "edge": "posedge", "sample_point": "after",
+    "vld": "vld", "bp": "bp", "beat_fields": {"data": "data"}}]}
+
 
 def test_stream_config_list(loop_runner: StdioLoopRunner, stream_fst) -> None:
     open_session(loop_runner, stream_fst)
@@ -201,6 +213,24 @@ def test_stream_packet_filter_modes(loop_runner: StdioLoopRunner, stream_fst,
     assert rsp.get("ok"), rsp
     assert [packet["last_fields"]["byte"]["value"]
             for packet in rsp["data"]["packets"]] == expected
+
+
+@pytest.mark.parametrize("config,name,handshake", [
+    (VLD_STREAM_CONFIG, "vld_fifo", "vld"),
+    (BP_STREAM_CONFIG, "bp_fifo", "vld/bp"),
+])
+def test_stream_optional_flow_control(loop_runner: StdioLoopRunner, stream_fst,
+                                      config: dict, name: str,
+                                      handshake: str) -> None:
+    open_session(loop_runner, stream_fst)
+    loaded = loop_runner.request("stream.config.load", args={"config": config})
+    assert loaded.get("ok"), loaded
+    rsp = loop_runner.request("stream.query", args={
+        "stream": name, "query": "transfer_window", "cache_scope": "full",
+        "line_limit": 16, "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["handshake"] == handshake
+    assert rsp["summary"]["transfer_count"] == 5
 
 
 def test_stream_export(loop_runner: StdioLoopRunner, stream_fst, tmp_path) -> None:
