@@ -193,6 +193,21 @@ def test_trace_active_driver_chain_stops_at_parent_primary_input_alias(
         "top.counter_top.clk", "top.clk"]
 
 
+def test_trace_active_driver_chain_classifies_nba_self_rhs_as_assignment(
+        loop_runner: StdioLoopRunner, counter_fst,
+        counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.count", "time": "305ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "assignment"
+    assert rsp["summary"]["termination_detail"] == \
+        "constant_or_no_rhs_signal"
+    assert [hop["signal"] for hop in rsp["data"]["hops"]] == ["top.count"]
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:
