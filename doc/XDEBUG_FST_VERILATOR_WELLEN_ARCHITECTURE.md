@@ -728,3 +728,4 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 - xdebug-fst `72ede46`：建立 NBA 目标自引用被误判为 control-only 的修改前失败证据；
 - xdebug-fst `97ed236`：按静态赋值 kind 对无非自身 RHS 的 NBA 返回 assignment 终止。
 - xdebug-fst `9e6dbbe`：锁定 Verilator 多驱动修复并以真实 FST/DesignDB 组合恢复双连续活动候选歧义。
+- xdebug-fst `6d5adcd`：以 RHS-only 四态通配与闭区间求值消费 case inside 谓词，运行时值仍直接来自原始 FST。
