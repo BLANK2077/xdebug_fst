@@ -89,6 +89,7 @@ target_link_libraries(xdebug-fst PRIVATE
     "${WELLENX_CAPI_LIBRARY}"
     dl
     pthread
+    stdc++fs
 )
 
 set_target_properties(xdebug-fst PROPERTIES
@@ -100,6 +101,7 @@ install(TARGETS xdebug-fst DESTINATION bin)
 
 include(CTest)
 if(BUILD_TESTING)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
     add_executable(test-runtime-schema-validator
         tests/cpp/test_runtime_schema_validator.cpp
         src/core/common/env_config.cpp
@@ -137,4 +139,23 @@ if(BUILD_TESTING)
     )
     target_link_libraries(test-session-registry PRIVATE stdc++fs)
     add_test(NAME session-registry COMMAND test-session-registry)
+
+    add_executable(test-uds-transport
+        tests/cpp/test_uds_transport.cpp
+        src/session/uds_transport.cpp
+    )
+    target_include_directories(test-uds-transport PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/third_party
+    )
+    target_link_libraries(test-uds-transport PRIVATE pthread)
+    add_test(NAME uds-transport COMMAND test-uds-transport)
+
+    add_test(
+        NAME session-uds-lifecycle
+        COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_SOURCE_DIR}/tests/test_session_uds_lifecycle.py
+            $<TARGET_FILE:xdebug-fst>
+            ${CMAKE_SOURCE_DIR}/testdata/fixtures/waves.fst
+    )
 endif()

@@ -82,7 +82,63 @@ FST/VCD/GHW ──► Wellen ──► WellenFstBackend ──► xdebug action 
 - `target.fsdb` 可以指向 FST 文件；
 - `target.daidir` 指向一个 Verilator DesignDB bundle；
 - bundle manifest 唯一确定要加载的 `.so`；
-- 过渡字段 `target.design_db` 将在 P2 删除，不作为最终公开合同。
+- 不接受公开字段 `target.design_db`，也不扫描波形邻近目录猜测 `.so`。
+
+### 3.1 DesignDB bundle 合同
+
+`target.daidir` 必须是一个真实存在的目录。目录根部必须包含
+`xdebug-design-db.json`，当前严格格式是：
+
+```json
+{
+  "schema_version": "xdebug.design-db-bundle.v1",
+  "library": "libVtop__DesignDb.so"
+}
+```
+
+manifest 只允许这两个字段。`library` 必须是 bundle 内的相对路径，规范化后必须仍位于 bundle 内，并且必须指向普通 `.so` 文件。绝对路径、逃逸 bundle
+的 `..`/符号链接、缺失文件、多个候选的目录扫描都被拒绝。这样做有四个原因：
+
+1. `target.daidir` 保持与原版公开合同一致；
+2. 选择结果确定，不依赖目录遍历顺序或命名猜测；
+3. registry 记录的是公开 bundle，而 engine 只接收 manifest 解析出的私有库路径；
+4. bundle 可独立做版本、完整性和兼容性检查，不把 Verilator 构建目录布局泄漏进 action 层。
+
+### 3.2 Session、engine 与 UDS 架构
+
+P2 已移除旧的“当前进程里覆盖一份全局资源”过渡语义。当前 UDS 路径为：
+
+```text
+one-shot / stdio frontend
+        │
+        ├─ session.open
+        │     ├─ 规范化资源并记录 fingerprint
+        │     ├─ reserve opening generation
+        │     ├─ 原子写 generation marker
+        │     ├─ fork + exec 同一 xdebug-fst --server
+        │     ├─ 私有 server.ping 校验 generation
+        │     └─ CAS opening → active
+        │
+        └─ target.session_id 请求
+              └─ registry 定位 endpoint
+                    └─ 0600 AF_UNIX socket
+                          └─ 持久 engine（Wellen/XDD 资源只打开一次）
+```
+
+registry 用独占文件锁、临时文件、`fsync`、原子 `rename` 和 generation
+compare-and-swap 防止同名并发打开、旧进程清理新会话以及时间戳倒退。generation 是
+`/dev/urandom` 产生的 256 bit 随机值；managed wrapper 提供的 ownership token
+只以 SHA-256 摘要持久化，明文不写 registry、日志或响应。
+
+UDS 使用一行一个 JSON object 的 framing，单帧上限 16 MiB，socket 权限固定为
+`0600`。`server.ping` 返回 engine generation，frontend 只有在 endpoint generation
+与 registry generation 相同时才把它视为所管理的进程；`session.close` 走私有
+`server.quit`，`session.kill` 的信号操作也受同一 generation endpoint 证明约束。
+transport 连接、超时或解析失败直接返回 transport error，绝不自动切换 TCP 或 file。
+
+GCC 8 对 C++17 `std::filesystem` 仍使用独立的 `libstdc++fs`。CMake 现在对
+`xdebug-fst` 显式链接 `stdc++fs`，保证相同源码在当前冻结工具链中可重复配置和链接，
+无需更换编译器或绕开构建环境。
 
 ## 四、我们对 Verilator 做了什么
 
@@ -392,12 +448,19 @@ C++ adapter 同时持有：
 - Wellen revision、Verilator revision 和 ABI header hash 已写入依赖锁；
 - CMake 配置阶段严格校验 revision、header hash 和 release library。
 
-### 9.2 仍不能宣称完全一致的内容
+### 9.2 P1 与 P2 当前进展
+
+- P1 的严格 73 action、146 个公开 schema、请求/响应 runtime gate、canonical
+  JSON/XOUT 和 stdio-loop 已完成；
+- P2 的 registry、generation 状态机、真实 engine 子进程、UDS transport、严格
+  DesignDB bundle manifest、ownership token 摘要和 generation 条件清理已落地；
+- UDS 回归真实覆盖父子进程 round-trip、`0600` 权限、非法 JSON、重复名称、
+  `open/list/doctor/kill`、token mismatch、公开 action 路由及最终资源清理。
+
+### 9.3 仍不能宣称完全一致的内容
 
 当前过渡实现仍有明确缺口，后续阶段不得用文档掩盖：
 
-- 完整 schema/runtime 协议尚未迁移完成；
-- public action 尚需从 74 收敛到严格 73；
 - timescale 与 `ps/ns/us` 解析仍需 P3 对齐；
 - real/string/event 和宽总线的 canonical value 仍需完善；
 - delta-cycle、before/after/clock sampled 仍需系统回归；
@@ -405,7 +468,9 @@ C++ adapter 同时持有：
 - current active-driver 不能只选择第一条可读静态 driver；
 - XDD 当前控制依赖只提供静态候选，尚未表达完整条件表达式和嵌套 provenance；
 - direction/port connection 仍有上层推导逻辑；
-- session、UDS/TCP/file、MCP direct 和 fake-LSF 尚需 P2 实现。
+- P2 仍需完成 TCP、file、idle timeout、完整失败补偿、MCP direct 和 fake-LSF；
+- UDS 已打通真实 engine，但大部分 action 的成功 payload 仍需 P3/P5 对齐严格
+  response schema，不能把 transport 已通等同于 action 能力已兼容。
 
 特别是 Verilator emitter 当前输出的某些 interface pseudo signal 可能 width 为 0，array 可能只显示聚合名；是否扩展 XDD 必须先用原版差分证明这些事实确实是某个公开 action 的必要输入。
 

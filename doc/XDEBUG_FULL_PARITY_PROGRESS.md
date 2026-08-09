@@ -3,8 +3,8 @@
 ## 当前状态
 
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
-- 当前阶段：P1 已完成，准备进入 P2
-- 当前任务：实现真实 Session registry、engine 生命周期与 UDS/TCP/file transport
+- 当前阶段：P2 进行中（registry、真实 engine 与 UDS 已完成首轮集成）
+- 当前任务：补齐 TCP/file、idle timeout、失败补偿与 managed lifecycle 对齐
 - xdebug-fst 基线：`1009e5c`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `1d66a9ea5111d1e80d16273a604f92e8c6a51cbd`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `e04eb0ea8203028490400172396add8ec458932b`
@@ -19,7 +19,7 @@
 | --- | --- | --- | --- |
 | P0 | 已完成 | `parity-p0` | 基线、依赖锁、Wellen/Verilator 独立回归和漂移检查均通过 |
 | P1 | 已完成 | `parity-p1` | 73 action、146 schema、请求/响应校验、canonical JSON/XOUT 与 stdio-loop 全部对齐 |
-| P2 | 未开始 | `parity-p2` | Session 与 Transport |
+| P2 | 进行中 | `parity-p2` | registry/generation 与真实 UDS engine 已落地；TCP/file 及异常矩阵待完成 |
 | P3 | 未开始 | `parity-p3` | Wellen 波形语义 |
 | P4 | 未开始 | `parity-p4` | 克制扩展 DesignDB |
 | P5 | 未开始 | `parity-p5` | 全部公共 Action |
@@ -44,6 +44,7 @@
 - `eb00b49`：在 handler 前执行 action-specific 严格请求校验，batch 子请求同样 fail closed。
 - `bf5c7fc`：在输出前执行响应合同校验，并遍历验证全部冻结请求/响应示例。
 - `8994fc6`：对齐 one-shot JSON、默认 XOUT、退出码和 stdio-loop wire protocol。
+- `f67e6f9`：迁移多会话注册表、严格 endpoint 合同与 generation 生命周期状态机。
 
 ## 测试记录
 
@@ -59,9 +60,12 @@
 - P1 protocol：`python3 tools/check_p1_protocol_parity.py --original-root ${XDEBUG_ORIGINAL_ROOT}` 通过，原版与 xdebug-fst 的 73 action catalog、73×2=146 个 schema action 完整 JSON 响应完全一致。
 - P1 CLI：one-shot JSON、actions/schema/error XOUT、INVALID_JSON、退出码、stdio-loop ready、payload override、错误双载荷和 quit envelope 与原版比较一致；PID 是唯一易变字段。
 - P1 pytest：13 项 CLI/request/catalog 专项测试通过；common/waveform 中已改用正式公共合同的 21 项基础测试在启用 response gate 前通过。
+- P2 registry CTest：覆盖 opening→active CAS、重复名称、双 registry 实例、单调 touch、generation mismatch、条件删除和严格 endpoint round-trip。
+- P2 UDS CTest：真实 fork server/client 往返通过，覆盖 `0600` socket、换行 JSON framing、非法 JSON 拒绝和 listener 隔离。
+- P2 lifecycle CTest：真实 `xdebug-fst --server` 子进程完成 `open/list/doctor/kill/list`；覆盖重复名称、公开 action 经 UDS 路由、ownership token mismatch 保活、正确 token 强制清理和 socket 消失。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
 ## 剩余差异
 
-P0、P1 已关闭。剩余工作以任务书 P2 至 P7 为准。下一项是用真实 registry/engine/transport 替换当前单进程 session 过渡实现，并删除公开合同外的 `target.design_db` 假设；严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
+P0、P1 已关闭。P2 已完成 registry/generation、真实 engine 子进程、UDS 与严格 DesignDB bundle 首轮实现，旧单进程 session 和邻近目录 `.so` 猜测已删除。下一项是 TCP/file transport、idle timeout、启动崩溃与 cleanup_failed 补偿矩阵，以及 MCP direct/fake-LSF 生命周期；严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。

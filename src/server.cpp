@@ -4,25 +4,26 @@
 #include "engine/engine_globals.h"
 #include "engine/engine_action_handler.h"
 #include "engine/action_registry.h"
-#include "backend/wellen_fst_backend.h"
-#include "backend/xdd_design_backend.h"
-#include "waveform/list/list_manager.h"
-#include "waveform/cursor/cursor_manager.h"
 #include "api/json_types.h"
 #include "protocol/public_catalog.h"
 #include "protocol/response.h"
 #include "protocol/contract.h"
 #include "protocol/xout_renderer.h"
+#include "session/session_paths.h"
+#include "session/session_registry.h"
+#include "session/session_service.h"
+#include "session/uds_transport.h"
 
 #include <cstdio>
 #include <unistd.h>
-#include <dirent.h>
 #include <cstring>
 #include <iostream>
 #include <sstream>
 #include <string>
 
 namespace xdebug_fst {
+
+static bool s_engine_server_context = false;
 
 // ── Helpers ──
 
@@ -61,160 +62,6 @@ static Json dispatch_handler(const Json& request) {
         return Json{{"ok", true},
                     {"summary", catalog.summary},
                     {"data", catalog.data}};
-    }
-
-    if (action == "session.open") {
-        auto target = request.value("target", Json::object());
-        // session_id comes from args.name (xverif MCP convention) or
-        // target.session_id (xdebug-fst native convention)
-        auto args = request.value("args", Json::object());
-        std::string session_id = args.value("name",
-            target.value("session_id", "default"));
-        std::string fsdb_path  = target.value("fsdb", "");
-        std::string design_db  = target.value("daidir", "");
-
-        auto& g = engine_globals();
-        g.session_id = session_id;
-
-        // Auto-detect the Verilator DesignDB .so next to the waveform when
-        // design_db was not given explicitly (xverif MCP only passes fsdb).
-        // Verilator fixtures keep the .so either beside the .fst or under an
-        // obj_dir/ subdirectory.
-        if (design_db.empty() && !fsdb_path.empty()) {
-            size_t slash = fsdb_path.find_last_of('/');
-            std::string dir = (slash == std::string::npos)
-                ? "." : fsdb_path.substr(0, slash);
-            std::string candidates[2] = {dir, dir + "/obj_dir"};
-            for (const auto& cand : candidates) {
-                DIR* d = opendir(cand.c_str());
-                if (!d) continue;
-                struct dirent* e;
-                while ((e = readdir(d)) != nullptr) {
-                    std::string name = e->d_name;
-                    if (name.size() > 13 &&
-                        name.rfind("libV", 0) == 0 &&
-                        name.rfind("__DesignDb.so") == name.size() - 13) {
-                        design_db = cand + "/" + name;
-                        break;
-                    }
-                }
-                closedir(d);
-                if (!design_db.empty()) break;
-            }
-        }
-
-        // Session-scoped state is reset for the new session
-        ListManager::instance().clear();
-        CursorManager::instance().clear();
-        extern void clear_stream_configs();
-        clear_stream_configs();
-
-        // A new session.open replaces any previous session resources
-        // (xdebug session semantics: open creates a fresh session).
-        if (!fsdb_path.empty() || !design_db.empty()) {
-            if (g.waveform) {
-                g.waveform->close();
-                g.waveform.reset();
-                g.has_waveform = false;
-            }
-            if (g.design) {
-                g.design->close();
-                g.design.reset();
-                g.has_design = false;
-            }
-        }
-        if (!fsdb_path.empty()) {
-            g.waveform = std::make_unique<WellenFstBackend>();
-            g.has_waveform = g.waveform->open(fsdb_path);
-            g.waveform_path = fsdb_path;
-            if (!g.has_waveform) {
-                g.waveform.reset();
-                return Json{{"ok", false},
-                            {"error", {{"code", "WAVEFORM_OPEN_FAILED"},
-                                       {"message", "failed to open waveform: " + fsdb_path}}}};
-            }
-        }
-
-        if (!design_db.empty()) {
-            g.design = std::make_unique<XddDesignBackend>();
-            g.has_design = g.design->open(design_db);
-            g.design_path = design_db;
-            if (!g.has_design) {
-                g.design.reset();
-                return Json{{"ok", false},
-                            {"error", {{"code", "DESIGN_OPEN_FAILED"},
-                                       {"message", "failed to open design db: " + design_db}}}};
-            }
-        }
-
-        return Json{
-            {"ok", true},
-            {"session", {
-                {"session_id", session_id},
-                {"state", "alive"},
-                {"has_waveform", g.has_waveform},
-                {"has_design", g.has_design},
-            }}
-        };
-    }
-
-    if (action == "session.close") {
-        auto& g = engine_globals();
-        if (g.waveform) g.waveform->close();
-        if (g.design) g.design->close();
-        g.has_waveform = false;
-        g.has_design = false;
-        return Json{{"ok", true}, {"session", {{"state", "closed"}}}};
-    }
-
-    // ── Session management (single-session process semantics) ──
-
-    if (action == "session.list") {
-        auto& g = engine_globals();
-        Json sessions = Json::array();
-        sessions.push_back({
-            {"session_id", g.session_id},
-            {"state", g.has_waveform ? "alive" : "idle"},
-            {"has_waveform", g.has_waveform},
-            {"has_design", g.has_design},
-            {"waveform_path", g.waveform_path},
-            {"design_path", g.design_path},
-        });
-        return Json{{"ok", true},
-                    {"summary", {{"session_count", sessions.size()}}},
-                    {"data", {{"sessions", sessions}}}};
-    }
-
-    if (action == "session.doctor") {
-        auto& g = engine_globals();
-        Json checks = Json::array();
-        auto add_check = [&](const std::string& name, bool ok, const std::string& detail) {
-            checks.push_back({{"check", name}, {"ok", ok}, {"detail", detail}});
-        };
-        add_check("waveform_loaded", g.has_waveform,
-                  g.has_waveform ? g.waveform_path : "no waveform file loaded");
-        add_check("design_loaded", g.has_design,
-                  g.has_design ? g.design_path : "no design db loaded");
-        bool healthy = g.has_waveform || true;  // waveform optional for design-only sessions
-        return Json{{"ok", true},
-                    {"summary", {{"session_id", g.session_id}, {"healthy", healthy}}},
-                    {"data", {{"checks", checks}}}};
-    }
-
-    if (action == "session.gc" || action == "session.kill") {
-        // Single-session process: nothing else to collect. Kill closes the
-        // session (same as session.close for this process model).
-        auto& g = engine_globals();
-        if (action == "session.kill" && g.waveform) g.waveform->close();
-        if (action == "session.kill" && g.design) g.design->close();
-        if (action == "session.kill") {
-            g.has_waveform = false;
-            g.has_design = false;
-        }
-        return Json{{"ok", true},
-                    {"summary", {{"action", action},
-                                 {"reclaimed", 0},
-                                 {"session_id", g.session_id}}}};
     }
 
     // ── batch: run multiple requests in one call ──
@@ -264,6 +111,43 @@ static Json dispatch(const Json& request) {
     const std::string action = request.is_object() ? request.value("action", "") : "";
     const ContractResult validation = validate_public_request(request);
     if (!validation.ok) return canonical_error(request, action, validation.error);
+
+    if (!s_engine_server_context && is_frontend_session_action(action)) {
+        Json response = canonical_response(
+            request, action, handle_frontend_session_action(request));
+        const ContractResult response_validation =
+            validate_public_response(action, response);
+        if (!response_validation.ok) {
+            return canonical_error(request, action, response_validation.error);
+        }
+        return response;
+    }
+    if (s_engine_server_context && is_frontend_session_action(action)) {
+        Json response = canonical_error(
+            request, action,
+            {{"code", "SESSION_ACTION_NOT_ALLOWED"},
+             {"message", "session lifecycle actions must be handled by the frontend"},
+             {"recoverable", true}, {"error_layer", "session_manager"}});
+        const ContractResult response_validation =
+            validate_public_response(action, response);
+        if (!response_validation.ok) {
+            return canonical_error(request, action, response_validation.error);
+        }
+        return response;
+    }
+    if (!s_engine_server_context && request_targets_managed_session(request)) {
+        Json response = forward_to_managed_session(request);
+        if (!response.value("ok", false) ||
+            response.value("api_version", std::string()) != "xdebug.v1") {
+            response = canonical_response(request, action, response);
+        }
+        const ContractResult response_validation =
+            validate_public_response(action, response);
+        if (!response_validation.ok) {
+            return canonical_error(request, action, response_validation.error);
+        }
+        return response;
+    }
     Json response = canonical_response(request, action, dispatch_handler(request));
     const ContractResult response_validation =
         validate_public_response(action, response);
@@ -306,22 +190,72 @@ int oneshot_main(bool json_mode) {
 int server_main(int argc, char** argv) {
     fprintf(stderr, "[xdebug-fst] server mode starting...\n");
 
+    std::string socket_path;
+    std::string generation;
+    std::string session_id;
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--socket-path") == 0 && i + 1 < argc) {
+            socket_path = argv[++i];
+        } else if (std::strcmp(argv[i], "--generation") == 0 && i + 1 < argc) {
+            generation = argv[++i];
+        } else if (std::strcmp(argv[i], "--session-id") == 0 && i + 1 < argc) {
+            session_id = argv[++i];
+        }
+    }
+    if (socket_path.empty() || generation.empty() || session_id.empty() ||
+        !xdebug_design::xdebug_design_generation_matches(session_id, generation)) {
+        fprintf(stderr, "[xdebug-fst] invalid or stale UDS engine generation\n");
+        return 1;
+    }
+
     if (!init_engine_globals(argc, argv)) {
         fprintf(stderr, "[xdebug-fst] failed to initialize engine\n");
         return 1;
     }
 
-    // In full implementation: set up UDS/TCP transport, accept loop.
-    // For now: process stdin as one-shot.
-    std::ostringstream oss;
-    oss << std::cin.rdbuf();
-    std::string input = oss.str();
-
-    if (!input.empty()) {
-        Json request = Json::parse(input);
-        Json response = dispatch(request);
-        fprintf(stdout, "%s\n", response.dump().c_str());
+    std::string transport_error;
+    const int listener = create_uds_listener(socket_path, transport_error);
+    if (listener < 0) {
+        fprintf(stderr, "[xdebug-fst] %s\n", transport_error.c_str());
+        return 1;
     }
+
+    s_engine_server_context = true;
+    xdebug_engine::SessionRegistry registry;
+    bool should_quit = false;
+    while (!should_quit) {
+        Json request;
+        int client = -1;
+        if (!uds_receive_request(listener, request, client, transport_error)) {
+            fprintf(stderr, "[xdebug-fst] %s\n", transport_error.c_str());
+            continue;
+        }
+        Json response;
+        const std::string api_version =
+            request.value("api_version", std::string());
+        const std::string action = request.value("action", std::string());
+        if (api_version == "xdebug.internal.v1" && action == "server.ping") {
+            response = {{"ok", true},
+                        {"data", {{"pong", true}, {"generation", generation}}}};
+        } else if (api_version == "xdebug.internal.v1" &&
+                   action == "server.version") {
+            response = {{"ok", true},
+                        {"data", {{"api_version", "xdebug.internal.v1"},
+                                  {"generation", generation}}}};
+        } else if (api_version == "xdebug.internal.v1" &&
+                   action == "server.quit") {
+            response = {{"ok", true}, {"data", Json::object()}};
+            should_quit = true;
+        } else {
+            response = dispatch(request);
+        }
+        registry.touch_if_generation(session_id, generation, time(nullptr));
+        if (!uds_send_response(client, response, transport_error)) {
+            fprintf(stderr, "[xdebug-fst] %s\n", transport_error.c_str());
+        }
+    }
+    close(listener);
+    unlink(socket_path.c_str());
 
     fprintf(stderr, "[xdebug-fst] server exiting\n");
     return 0;
