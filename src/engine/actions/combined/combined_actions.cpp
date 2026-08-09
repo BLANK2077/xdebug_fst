@@ -5,10 +5,12 @@
 #include "api/json_types.h"
 #include "core/value/logic_value.h"
 #include "waveform/clock_sampling.h"
+#include "waveform/expr/expr_eval.h"
 
 #include <algorithm>
 #include <deque>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <tuple>
@@ -159,24 +161,30 @@ Json trace_hop(size_t index, const std::string& signal, const Sample& sample,
 }
 
 struct StatementGroup {
-    std::string kind,file;
+    std::string kind,file,predicate;
     int line=0;
+    std::vector<IDesignBackend::DriverRecord> records;
     std::vector<IDesignBackend::DriverRecord> rhs;
 };
 
-std::vector<StatementGroup> rhs_statement_groups(
+std::vector<StatementGroup> statement_groups(
     const std::vector<IDesignBackend::DriverRecord>& drivers) {
     std::map<std::tuple<std::string,int,std::string>,StatementGroup> grouped;
     for (const auto& driver : drivers) {
-        if (driver.dependency_role!="rhs"||driver.src_signal<0) continue;
+        if (driver.file.empty()||driver.line<=0) continue;
         const auto key=std::make_tuple(driver.file,driver.line,driver.kind);
         auto& statement=grouped[key];
         statement.kind=driver.kind;
         statement.file=driver.file;
         statement.line=driver.line;
-        if (std::none_of(statement.rhs.begin(),statement.rhs.end(),
-                [&](const auto& item){return item.src_signal==driver.src_signal;}))
+        if (statement.predicate.empty())
+            statement.predicate=driver.activation_predicate;
+        statement.records.push_back(driver);
+        if (driver.dependency_role=="rhs"&&driver.src_signal>=0&&
+            std::none_of(statement.rhs.begin(),statement.rhs.end(),
+                [&](const auto& item){return item.src_signal==driver.src_signal;})) {
             statement.rhs.push_back(driver);
+        }
     }
     std::vector<StatementGroup> statements;
     for (auto& [key,statement] : grouped) {
@@ -188,6 +196,61 @@ std::vector<StatementGroup> rhs_statement_groups(
         statements.push_back(std::move(statement));
     }
     return statements;
+}
+
+enum class PredicateState { Active, Inactive, Unresolved };
+
+PredicateState evaluate_predicate(const StatementGroup& statement,
+                                  IWaveformBackend& waveform,
+                                  uint64_t active_time) {
+    if (statement.predicate.empty()) return PredicateState::Unresolved;
+    std::string error;
+    std::unique_ptr<ExprNode> expression(
+        parse_expression(statement.predicate,error));
+    if (!expression) return PredicateState::Unresolved;
+    std::vector<uint32_t> refs;
+    for (const std::string& signal : expression_signals(expression.get())) {
+        const uint32_t ref=waveform.find_signal(signal);
+        if (ref==IWaveformBackend::kInvalidSignalRef)
+            return PredicateState::Unresolved;
+        refs.push_back(ref);
+    }
+    if (!refs.empty()&&static_cast<size_t>(waveform.load_signals(refs))!=refs.size())
+        return PredicateState::Unresolved;
+    const LogicValue value=eval_expression(
+        expression.get(),waveform,waveform.time_idx_of(active_time));
+    if (!value.known||value.bits.empty()) return PredicateState::Unresolved;
+    return value.bits.find('1')==std::string::npos
+        ?PredicateState::Inactive:PredicateState::Active;
+}
+
+struct EvaluatedStatements {
+    std::vector<StatementGroup> active;
+    std::vector<StatementGroup> unresolved;
+};
+
+EvaluatedStatements active_statement_groups(
+    const std::vector<IDesignBackend::DriverRecord>& drivers,
+    IWaveformBackend& waveform,uint64_t active_time) {
+    EvaluatedStatements result;
+    for (auto& statement : statement_groups(drivers)) {
+        const PredicateState state=evaluate_predicate(
+            statement,waveform,active_time);
+        if (state==PredicateState::Active)
+            result.active.push_back(std::move(statement));
+        else if (state==PredicateState::Unresolved)
+            result.unresolved.push_back(std::move(statement));
+    }
+    return result;
+}
+
+const IDesignBackend::DriverRecord* representative_driver(
+    const StatementGroup& statement) {
+    if (!statement.rhs.empty()) return &statement.rhs.front();
+    const auto control=std::find_if(statement.records.begin(),statement.records.end(),
+        [](const auto& driver){return driver.dependency_role=="control";});
+    return control==statement.records.end()
+        ?(statement.records.empty()?nullptr:&statement.records.front()):&*control;
 }
 
 Sample sample_before(IWaveformBackend& waveform,const std::string& signal,
@@ -297,26 +360,30 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
         const Json limits=request.value("limits",Json::object());
         const size_t max_results=limits.value("max_results",10u);
         Json paths=Json::array();
-        std::set<std::pair<std::string,int>> statements;
-        std::vector<IDesignBackend::DriverRecord> unique_drivers;
-        for (const auto& driver : drivers_for(design,index)) {
-            if (driver.line<=0||driver.file.empty()) continue;
-            if (!statements.insert({driver.file,driver.line}).second) continue;
-            unique_drivers.push_back(driver);
+        const auto evaluated=active_statement_groups(
+            drivers_for(design,index),waveform,target.active_time);
+        std::vector<IDesignBackend::DriverRecord> active_drivers;
+        for (const auto& statement : evaluated.active) {
+            const auto* driver=representative_driver(statement);
+            if (driver&&driver->line>0&&!driver->file.empty())
+                active_drivers.push_back(*driver);
         }
-        for (const auto& driver : unique_drivers) {
+        for (const auto& driver : active_drivers) {
             if (paths.size()>=max_results) break;
             const std::string source=signal_name(design,driver.src_signal);
             paths.push_back(source_path(driver,source,signal));
         }
-        const size_t total=unique_drivers.size();
+        const size_t total=active_drivers.size();
         const bool truncated=paths.size()<total;
         const std::string rendered_time=waveform.format_time(time,unit);
         const std::string active_time=waveform.format_time(target.active_time,unit);
         Json summary{{"signal",signal},{"time",rendered_time},{"active_time",active_time},
-            {"termination",paths.empty()?"no_driver":"assignment"},
-            {"termination_detail",paths.empty()?"no_driver":"assignment"},
-            {"scan_complete",true},{"analysis_complete",true},
+            {"termination",!evaluated.unresolved.empty()?"unresolved":
+                (paths.empty()?"no_driver":"assignment")},
+            {"termination_detail",!evaluated.unresolved.empty()?"predicate_unresolved":
+                (paths.empty()?"no_driver":"assignment")},
+            {"scan_complete",evaluated.unresolved.empty()},
+            {"analysis_complete",evaluated.unresolved.empty()},
             {"response_truncated",truncated},{"total_count",total},
             {"returned_count",paths.size()},
             {"truncation_scopes",truncated?Json::array({"response_paths"}):Json::array()}};
@@ -343,7 +410,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         std::set<std::string> visited;
         std::string current=root,termination="no_driver",detail="no_driver";
         uint64_t current_time=time;
-        bool limited=false,ambiguity_limited=false;
+        bool limited=false,ambiguity_limited=false,ambiguity_incomplete=false;
         std::string frontier_signal; Sample frontier_sample;
         Json ambiguity=nullptr;
         for (size_t depth=0;;++depth) {
@@ -356,11 +423,17 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             const Sample sample=sample_at(waveform,current,current_time);
             if (!sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST: "+current);
             auto drivers=drivers_for(design,index);
-            auto groups=rhs_statement_groups(drivers);
+            const auto evaluated=active_statement_groups(
+                drivers,waveform,sample.active_time);
+            std::vector<StatementGroup> groups;
+            for (const auto& statement : evaluated.active) {
+                if (!statement.rhs.empty()) groups.push_back(statement);
+            }
             const IDesignBackend::DriverRecord* selected=nullptr;
             std::string upstream;
             std::string ambiguity_kind;
-            if (groups.size()>1) ambiguity_kind="multiple_active_candidates";
+            if (!evaluated.unresolved.empty()) ambiguity_kind="predicate_unresolved";
+            else if (groups.size()>1) ambiguity_kind="multiple_active_candidates";
             else if (groups.size()==1&&groups[0].rhs.size()>1)
                 ambiguity_kind="multiple_rhs_sources";
             if (!groups.empty()&&!groups[0].rhs.empty())
@@ -375,10 +448,17 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 selected,design,index,waveform,unit,format));
 
             if (!ambiguity_kind.empty()) {
+                const auto& evidence_groups=ambiguity_kind=="predicate_unresolved"
+                    ?evaluated.unresolved:groups;
                 ambiguity=ambiguity_evidence(ambiguity_kind,current,
-                    sample.active_time,hops.size()-1,groups,max_trace_signals,
+                    sample.active_time,hops.size()-1,evidence_groups,max_trace_signals,
                     design,waveform,unit,format);
-                ambiguity_limited=!ambiguity["analysis_complete"].get<bool>();
+                if (ambiguity_kind=="predicate_unresolved") {
+                    ambiguity["analysis_complete"]=false;
+                    ambiguity_incomplete=true;
+                } else {
+                    ambiguity_limited=!ambiguity["analysis_complete"].get<bool>();
+                }
                 termination="ambiguous"; detail=ambiguity_kind; break;
             }
 
@@ -448,7 +528,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         }
         if (!ambiguity.is_null()) data["ambiguity_evidence"]=ambiguity;
         if (ambiguity_limited) truncation.push_back("ambiguity_rhs_samples");
-        const bool complete=!limited&&!ambiguity_limited;
+        const bool complete=!limited&&!ambiguity_limited&&!ambiguity_incomplete;
         Json summary{{"signal",root},{"time",waveform.format_time(time,unit)},
             {"termination",termination},{"termination_detail",detail},
             {"scan_complete",complete},{"analysis_complete",complete},
@@ -585,9 +665,32 @@ struct TraceXOriginHandler : public EngineActionHandler {
                 design,index,waveform,unit,format));
             ++nodes;
 
+            const auto all_drivers=drivers_for(design,index);
+            const auto evaluated=active_statement_groups(
+                all_drivers,waveform,sample.active_time);
+            if (!evaluated.unresolved.empty()) {
+                limitations.push_back(
+                    "activation predicate unresolved at "+state.signal);
+                chains.push_back(finish_chain(state,sample,onset,"unresolved",
+                    "predicate_unresolved",false,false));
+                continue;
+            }
+            std::vector<IDesignBackend::DriverRecord> active_drivers;
+            for (const auto& statement : evaluated.active) {
+                active_drivers.insert(active_drivers.end(),
+                    statement.records.begin(),statement.records.end());
+            }
+            if (!all_drivers.empty()&&active_drivers.empty()) {
+                limitations.push_back(
+                    "no active statement matched waveform controls at "+state.signal);
+                chains.push_back(finish_chain(state,sample,onset,"unresolved",
+                    "no_active_statement",false,false));
+                continue;
+            }
+
             std::vector<IDesignBackend::DriverRecord> dependencies;
             std::set<std::pair<int,std::string>> dependency_keys;
-            for (const auto& driver : drivers_for(design,index)) {
+            for (const auto& driver : active_drivers) {
                 if ((driver.dependency_role!="rhs"&&
                      driver.dependency_role!="control")||driver.src_signal<0)
                     continue;
@@ -705,7 +808,8 @@ struct TraceXOriginHandler : public EngineActionHandler {
 
         Json depth_frontiers=Json::array();
         Json suggested=Json::array();
-        size_t completed_count=0,limited_count=0,hop_count=0,origin_count=0;
+        size_t completed_count=0,limited_count=0,unresolved_count=0;
+        size_t hop_count=0,origin_count=0;
         for (size_t index=0;index<chains.size();++index) {
             Json& chain=chains[index];
             const std::string chain_id="c"+std::to_string(index);
@@ -715,6 +819,7 @@ struct TraceXOriginHandler : public EngineActionHandler {
             if (chain.contains("origin")) ++origin_count;
             const bool chain_limited=chain.value("status","")=="limit"||
                 !chain.value("complete",true);
+            if (chain.value("status","")=="unresolved") ++unresolved_count;
             if (chain_limited) ++limited_count; else ++completed_count;
             if (chain.value("status","")=="limit"&&
                 chain.value("termination_detail","")=="max_depth") {
@@ -746,8 +851,9 @@ struct TraceXOriginHandler : public EngineActionHandler {
         }
 
         const bool complete=limited_count==0;
-        const std::string termination=limited_count
-            ?(completed_count?"partial":"limit")
+        const std::string termination=unresolved_count
+            ?(completed_count?"partial":"unresolved")
+            :limited_count?(completed_count?"partial":"limit")
             :(origin_count?"origin_found":"x_not_observable_upstream");
         Json data{{"query",query},{"chains",chains},{"limitations",limitations}};
         if (!depth_frontiers.empty()) data["depth_frontiers"]=depth_frontiers;
