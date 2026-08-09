@@ -121,7 +121,7 @@ def test_stream_query_all_beat_field_expressions(
     fields = rsp["data"]["row"]["fields"]
     assert fields["byte"]["value"] == "8'haa"
     assert fields["low"]["value"] == "4'ha"
-    assert fields["is_aa"]["value"] == "1'b1"
+    assert fields["is_aa"]["value"] == "1'h1"
     assert fields["joined"]["value"] == "8'haa"
 
 
@@ -163,6 +163,46 @@ def test_stream_query_packet_window_and_filter(
     assert filtered["data"]["packets"][0]["first_fields"]["byte"]["value"] == "8'hbb"
 
 
+@pytest.mark.parametrize("query,extra", [
+    ("summary", {}), ("first_transfer", {}), ("last_transfer", {}),
+    ("transfer_window", {"line_limit": 16}),
+    ("first_stall", {}), ("last_stall", {}),
+    ("stall_window", {"line_limit": 16}),
+    ("first_packet", {}), ("last_packet", {}),
+    ("packet_at", {"packet_index": 2}),
+    ("packet_window", {"line_limit": 16}),
+])
+def test_stream_all_query_kinds(loop_runner: StdioLoopRunner, stream_fst,
+                                query: str, extra: dict) -> None:
+    open_session(loop_runner, stream_fst)
+    loop_runner.request("stream.config.load", args={"config": PACKET_STREAM_CONFIG})
+    args = {"stream": "packet_fifo", "query": query,
+            "cache_scope": "full", "render_time_unit": "ps", **extra}
+    rsp = loop_runner.request("stream.query", args=args)
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["query"] == query
+
+
+@pytest.mark.parametrize("rule,expected", [
+    ({"mode": "range", "begin": "8'hbb", "end": "8'hcc"},
+     ["8'hbb", "8'hcc"]),
+    ({"mode": "mask", "value": "8'ha0", "mask": "8'hf0"},
+     ["8'haa"]),
+])
+def test_stream_packet_filter_modes(loop_runner: StdioLoopRunner, stream_fst,
+                                    rule: dict, expected: list[str]) -> None:
+    open_session(loop_runner, stream_fst)
+    loop_runner.request("stream.config.load", args={"config": PACKET_STREAM_CONFIG})
+    rsp = loop_runner.request("stream.query", args={
+        "stream": "packet_fifo", "query": "packet_window",
+        "cache_scope": "full", "line_limit": 16,
+        "render_time_unit": "ps", "filter": {
+            "position": "eop", "fields": {"byte": rule}}})
+    assert rsp.get("ok"), rsp
+    assert [packet["last_fields"]["byte"]["value"]
+            for packet in rsp["data"]["packets"]] == expected
+
+
 def test_stream_export(loop_runner: StdioLoopRunner, stream_fst, tmp_path) -> None:
     open_session(loop_runner, stream_fst)
     loop_runner.request("stream.config.load", args={"config": STREAM_CONFIG})
@@ -179,6 +219,37 @@ def test_stream_export(loop_runner: StdioLoopRunner, stream_fst, tmp_path) -> No
     assert output.with_name(output.name + ".meta.json").is_file()
 
 
+@pytest.mark.parametrize("kind,expected", [
+    ("transfer", 4), ("packet", 4), ("packet_beats", 4),
+])
+def test_stream_export_preview_kinds(loop_runner: StdioLoopRunner, stream_fst,
+                                     kind: str, expected: int) -> None:
+    open_session(loop_runner, stream_fst)
+    loop_runner.request("stream.config.load", args={"config": PACKET_STREAM_CONFIG})
+    rsp = loop_runner.request("stream.export", args={
+        "stream": "packet_fifo", "kind": kind, "cache_scope": "full",
+        "line_limit": 16, "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["status"] == "preview"
+    assert rsp["summary"]["output_written"] is False
+    assert len(rsp["data"]["preview"]) == expected
+
+
+def test_stream_export_packet_final_artifact(
+        loop_runner: StdioLoopRunner, stream_fst, tmp_path) -> None:
+    open_session(loop_runner, stream_fst)
+    loop_runner.request("stream.config.load", args={"config": PACKET_STREAM_CONFIG})
+    output = tmp_path / "packets.jsonl"
+    rsp = loop_runner.request("stream.export", args={
+        "stream": "packet_fifo", "kind": "packet", "cache_scope": "full",
+        "render_time_unit": "ps",
+        "output": {"path": str(output), "file_format": "xout"}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["row_count"] == 4
+    assert rsp["data"] == {}
+    assert '"packet_index":0' in output.read_text()
+
+
 def test_stream_validate(loop_runner: StdioLoopRunner, stream_fst) -> None:
     open_session(loop_runner, stream_fst)
     loop_runner.request("stream.config.load", args={"config": STREAM_CONFIG})
@@ -191,6 +262,18 @@ def test_stream_validate(loop_runner: StdioLoopRunner, stream_fst) -> None:
     assert rsp["summary"]["scan_complete"] is True
     assert rsp["data"]["issues"] == []
     assert rsp["data"]["dynamic"]["transfer_count"] == 4
+
+
+def test_stream_validate_packet_dynamic(loop_runner: StdioLoopRunner,
+                                        stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
+    loop_runner.request("stream.config.load", args={"config": PACKET_STREAM_CONFIG})
+    rsp = loop_runner.request("stream.validate", args={
+        "stream": "packet_fifo", "dynamic": True, "cache_scope": "full",
+        "line_limit": 32, "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["data"]["dynamic"]["complete_packet_count"] == 4
+    assert rsp["data"]["dynamic"]["partial_packet_count"] == 0
 
 
 def test_stream_validate_bad_config(loop_runner: StdioLoopRunner, stream_fst) -> None:
