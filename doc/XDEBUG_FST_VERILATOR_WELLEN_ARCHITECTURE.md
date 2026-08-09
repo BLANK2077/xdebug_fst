@@ -733,6 +733,11 @@ DesignDB 决定“哪条语句、哪些事件源”，FST/Wellen 只提供“这
 Wellen 也能读取原始 FST 中所有相关信号，但 consumer 只前看一层，故前三跳仍错误停在
 20ps。后续实现只能在请求期间沿 DesignDB 唯一连续 RHS 做有界、带环检测的静态遍历，再
 对明确事件源查询原始 FST；不能从波形值相等反向发现连接，不能产生持久事件索引。
+最终 consumer 复用统一 statement 聚合与 predicate 求值，仅在活动 statement 唯一、类型为
+`cont_assign` 且 RHS 唯一时递归；预算直接取请求 `max_nodes`，signal visited set 防止组合
+环。到达唯一 NBA 的 `event_*` 才返回因果时间。未决谓词、多 statement、多 RHS、非连续
+类型、缺失波形或环均失败关闭该时间传播路径，不改变既有驱动歧义报告，也不触发其他
+backend。两级 alias 因而从同一原始 FST 得到 60ps，而 Verilator/Wellen 无需再修改。
 
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终

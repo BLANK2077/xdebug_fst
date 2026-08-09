@@ -398,6 +398,33 @@ EvaluatedStatements active_statement_groups(
     return result;
 }
 
+bool causal_event_time_through_unique_chain(
+    IDesignBackend& design,IWaveformBackend& waveform,
+    const std::string& signal,uint64_t horizon,size_t remaining,
+    std::set<std::string>& visited,uint64_t& event_time) {
+    if (remaining==0||!visited.insert(signal).second) return false;
+    const int index=design.resolve(signal.c_str());
+    if (index<0) return false;
+    const Sample sample=sample_at(waveform,signal,horizon);
+    if (!sample.ok) return false;
+    auto drivers=drivers_for(design,index);
+    annotate_output_instance_identities(design,index,drivers);
+    const auto evaluated=active_statement_groups(
+        drivers,design,waveform,sample.active_time,horizon);
+    if (!evaluated.unresolved.empty()||evaluated.active.size()!=1) return false;
+    const StatementGroup& statement=evaluated.active.front();
+    if (statement.kind=="nba"&&statement.has_event_time) {
+        event_time=statement.event_time;
+        return true;
+    }
+    if (statement.kind!="cont_assign"||statement.rhs.size()!=1) return false;
+    const std::string upstream=signal_name(
+        design,statement.rhs.front().src_signal);
+    if (upstream.empty()||upstream==signal) return false;
+    return causal_event_time_through_unique_chain(
+        design,waveform,upstream,horizon,remaining-1,visited,event_time);
+}
+
 const IDesignBackend::DriverRecord* representative_driver(
     const StatementGroup& statement) {
     if (!statement.rhs.empty()) return &statement.rhs.front();
@@ -722,18 +749,12 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 sample.active_time=groups[0].event_time;
             } else if (ambiguity_kind.empty()&&groups.size()==1&&
                        groups[0].kind=="cont_assign"&&!upstream.empty()) {
-                const int upstream_index=design.resolve(upstream.c_str());
-                const Sample upstream_sample=sample_at(
-                    waveform,upstream,current_time);
-                const auto upstream_evaluated=active_statement_groups(
-                    drivers_for(design,upstream_index),design,waveform,
-                    upstream_sample.active_time,current_time);
-                if (upstream_evaluated.unresolved.empty()&&
-                    upstream_evaluated.active.size()==1&&
-                    upstream_evaluated.active[0].kind=="nba"&&
-                    upstream_evaluated.active[0].has_event_time) {
-                    sample.active_time=
-                        upstream_evaluated.active[0].event_time;
+                std::set<std::string> causal_visited;
+                uint64_t causal_event_time=0;
+                if (causal_event_time_through_unique_chain(
+                        design,waveform,upstream,current_time,max_nodes,
+                        causal_visited,causal_event_time)) {
+                    sample.active_time=causal_event_time;
                 }
             }
             hops.push_back(trace_hop(depth,current,sample,depth==0?"root":"driver",

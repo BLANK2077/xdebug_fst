@@ -637,6 +637,9 @@ Verilator `01f9f2a4b` 先以独立失败回归锁定简单 posedge 与异步 res
 第十九批继续以两级连续 alias 建立 consumer 修改前证据：静态链和原始 FST 都已充分，但
 当前只向前查看一层，前三跳仍为 20ps。修复只能沿 DesignDB 唯一 `cont_assign/rhs` 有界
 递归到 NBA event，不得用 FST 值相等发现 alias，也不得为此扩展 Verilator 或 Wellen。
+实现以请求 `max_nodes` 为静态前瞻预算并维护 signal visited set；只有谓词可解、唯一活动
+statement、连续赋值、唯一 RHS 四项同时成立才继续，到达唯一 NBA `event_*` 后才传播时间。
+两级 alias 已全部恢复 60ps；歧义、环、缺失或非连续边界一律停止而不 fallback。
 第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和
