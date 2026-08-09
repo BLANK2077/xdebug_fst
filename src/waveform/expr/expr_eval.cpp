@@ -594,7 +594,8 @@ ExprNode* parse_expression(const std::string& text, std::string& error) {
 
 LogicValue eval_expression(const ExprNode* root, const IWaveformBackend& wf,
                            uint32_t time_idx,
-                           std::map<std::string, LogicValue>* samples) {
+                           std::map<std::string, LogicValue>* samples,
+                           IWaveformBackend::ObservationPoint point) {
     if (!root) return LogicValue{};
     switch (root->kind) {
         case ExprNode::Kind::Const:
@@ -612,9 +613,9 @@ LogicValue eval_expression(const ExprNode* root, const IWaveformBackend& wf,
             uint32_t ref = wf.find_signal(root->signal);
             LogicValue v;
             if (ref) {
-                IWaveformBackend::SignalOffset off;
-                if (wf.signal_offset_at(ref, time_idx, off)) {
-                    std::string bits = wf.signal_value_str(ref, off.start, 0);
+                IWaveformBackend::SampledValue sampled;
+                if (wf.sampled_value_at(ref, time_idx, point, sampled)) {
+                    std::string bits = sampled.value.text;
                     IWaveformBackend::SignalInfo info;
                     wf.signal_info(ref, info);
                     v = logic_value_from_bits(bits, static_cast<int>(info.width));
@@ -648,7 +649,7 @@ LogicValue eval_expression(const ExprNode* root, const IWaveformBackend& wf,
             return v;
         }
         case ExprNode::Kind::Unary: {
-            LogicValue r = eval_expression(root->right, wf, time_idx, samples);
+            LogicValue r = eval_expression(root->right, wf, time_idx, samples, point);
             if (root->op == "~") {
                 if (!r.known) {
                     LogicValue v;
@@ -673,8 +674,8 @@ LogicValue eval_expression(const ExprNode* root, const IWaveformBackend& wf,
             return reduce(r, root->op);  // '!'
         }
         case ExprNode::Kind::Binary: {
-            LogicValue l = eval_expression(root->left, wf, time_idx, samples);
-            LogicValue r = eval_expression(root->right, wf, time_idx, samples);
+            LogicValue l = eval_expression(root->left, wf, time_idx, samples, point);
+            LogicValue r = eval_expression(root->right, wf, time_idx, samples, point);
             const std::string& op = root->op;
             if (op == "&" || op == "|" || op == "^") return bitwise(l, r, op.c_str());
             if (op == "&&") return from_bool(truthy(l) && truthy(r));

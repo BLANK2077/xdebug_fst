@@ -6,6 +6,8 @@
 #include "waveform/list/list_manager.h"
 #include "waveform/cursor/cursor_manager.h"
 #include "waveform/time_contract.h"
+#include "waveform/expr/expr_eval.h"
+#include "waveform/clock_sampling.h"
 #include "api/json_types.h"
 
 #include <algorithm>
@@ -868,6 +870,185 @@ static void find_events_on_signal(IWaveformBackend* wf, uint32_t ref,
     }
 }
 
+static bool bind_event_expression(ExprNode* node, const Json& signals,
+                                  const Json& fields, std::string& error) {
+    if (!node) return false;
+    if (node->kind == ExprNode::Kind::Signal ||
+        node->kind == ExprNode::Kind::Slice) {
+        if (signals.contains(node->signal)) {
+            node->signal = signals.at(node->signal).get<std::string>();
+        } else if (fields.contains(node->signal)) {
+            const Json field = fields.at(node->signal);
+            node->signal = signals.at(field.at("signal").get<std::string>());
+            node->kind = ExprNode::Kind::Slice;
+            node->msb = field.at("left");
+            node->lsb = field.at("right");
+        } else {
+            error = "expression references unknown event alias: " + node->signal;
+            return false;
+        }
+    }
+    if (node->left && !bind_event_expression(node->left, signals, fields, error))
+        return false;
+    if (node->right && !bind_event_expression(node->right, signals, fields, error))
+        return false;
+    return true;
+}
+
+static Json event_sampling_contract(const std::string& edge,
+                                    const std::string& requested_point) {
+    const bool negedge = edge == "negedge";
+    const std::string effective_point = negedge ? "" :
+        (requested_point.empty() ? "before" : requested_point);
+    Json result{{"requested", {{"edge", edge}, {"sample_point",
+        requested_point.empty() ? Json(nullptr) : Json(requested_point)}}},
+        {"effective", {{"edge", edge}, {"sample_point",
+        effective_point.empty() ? Json(nullptr) : Json(effective_point)}}},
+        {"sample_point_applied", !negedge},
+        {"sample_point_ignored_for_negedge", negedge && !requested_point.empty()}};
+    if (negedge && !requested_point.empty())
+        result["sample_point_not_applied_reason"] =
+            "negedge keeps the established current-value sampling semantics";
+    return result;
+}
+
+static Json run_event_find(const Json& args) {
+    auto* wf = engine_globals().waveform.get();
+    Json config;
+    const bool named = args.contains("name");
+    if (named) {
+        auto found = event_configs().find(args.at("name").get<std::string>());
+        if (found == event_configs().end())
+            return make_error("CONFIG_NOT_FOUND", "event config not found");
+        config = found->second;
+    } else {
+        config = {{"clock", args.at("clock")},
+                  {"edge", args.value("edge", "negedge")},
+                  {"signals", args.at("signals")}, {"fields", Json::object()}};
+        if (args.contains("sample_point")) config["sample_point"] = args.at("sample_point");
+        if (args.contains("reset")) config["reset"] = args.at("reset");
+    }
+    const std::string clock = config.at("clock");
+    const uint32_t clock_ref = wf->find_signal(clock);
+    if (!clock_ref) return make_error("CLOCK_NOT_FOUND", "clock signal not found: " + clock);
+    wf->load_signals({clock_ref});
+    const Json signals = config.at("signals");
+    const Json fields = config.value("fields", Json::object());
+    for (auto it = signals.begin(); it != signals.end(); ++it) {
+        const uint32_t ref = wf->find_signal(it.value().get<std::string>());
+        if (!ref) return make_error("SIGNAL_NOT_FOUND", "event signal not found");
+        wf->load_signals({ref});
+    }
+    std::string parse_error;
+    std::unique_ptr<ExprNode> expression(parse_expression(args.at("expr"), parse_error));
+    if (!expression || !bind_event_expression(expression.get(), signals, fields,
+                                               parse_error))
+        return make_error("EXPRESSION_INVALID", parse_error);
+    uint64_t begin = wf->min_time(), end = wf->max_time();
+    const Json range = args.value("time_range", Json::object());
+    if (range.contains("begin") && !wf->parse_time(range.at("begin"), begin, parse_error))
+        return make_error("INVALID_TIME", parse_error);
+    if (range.contains("end") && !wf->parse_time(range.at("end"), end, parse_error, true))
+        return make_error("INVALID_TIME", parse_error);
+    if (begin > end) return make_error("TIME_RANGE_INVALID", "end is before begin");
+    TimeRenderUnit unit;
+    Json unit_error;
+    if (!cursor_render_unit(args, unit, unit_error)) return unit_error;
+    ValueRenderFormat format = ValueRenderFormat::Hex;
+    parse_value_render_format(args.value("value_format", "hex"), format);
+    const std::string edge = config.value("edge", "negedge");
+    const std::string requested_point = config.value("sample_point", "");
+    const IWaveformBackend::ObservationPoint point = edge == "negedge"
+        ? IWaveformBackend::ObservationPoint::Raw
+        : (requested_point == "after" ? IWaveformBackend::ObservationPoint::After
+                                       : IWaveformBackend::ObservationPoint::Before);
+    const std::string mode = args.value("mode", "first");
+    const size_t line_limit = args.value("line_limit", 16u);
+    const size_t max_samples = args.value("max_samples",
+                                          std::numeric_limits<size_t>::max());
+    Json all_events = Json::array();
+    size_t sample_count = 0, total_count = 0;
+    bool analysis_complete = true;
+    for (uint32_t ti : wf->time_indices_of(clock_ref)) {
+        const uint64_t time = wf->time_at(ti);
+        if (time < begin || time > end) continue;
+        IWaveformBackend::SampledValue before_clock, raw_clock;
+        if (!wf->sampled_value_at(clock_ref, ti,
+                IWaveformBackend::ObservationPoint::Before, before_clock) ||
+            !wf->sampled_value_at(clock_ref, ti,
+                IWaveformBackend::ObservationPoint::Raw, raw_clock)) continue;
+        const bool rise = is_rising_edge(before_clock.value.text, raw_clock.value.text);
+        const bool fall = is_falling_edge(before_clock.value.text, raw_clock.value.text);
+        if (!(edge == "dual" ? (rise || fall) : edge == "posedge" ? rise : fall)) continue;
+        if (sample_count >= max_samples) { analysis_complete = false; break; }
+        ++sample_count;
+        if (config.contains("reset")) {
+            const Json reset = config.at("reset");
+            const uint32_t reset_ref = wf->find_signal(reset.at("signal"));
+            IWaveformBackend::SampledValue reset_value;
+            if (!reset_ref || !wf->sampled_value_at(reset_ref, ti, point, reset_value) ||
+                reset_value.value.text.empty() ||
+                (reset.at("polarity") == "active_low"
+                    ? reset_value.value.text.back() != '1'
+                    : reset_value.value.text.back() != '0')) continue;
+        }
+        const LogicValue matched = eval_expression(expression.get(), *wf, ti, nullptr, point);
+        if (!matched.known || matched.bits.find('1') == std::string::npos) continue;
+        ++total_count;
+        Json signal_values = Json::object();
+        for (auto it = signals.begin(); it != signals.end(); ++it) {
+            const uint32_t ref = wf->find_signal(it.value());
+            IWaveformBackend::SignalInfo info;
+            IWaveformBackend::SampledValue sampled;
+            wf->signal_info(ref, info);
+            wf->sampled_value_at(ref, ti, point, sampled);
+            signal_values[it.key()] = render_typed_value_json(sampled.value,
+                                                               info.width, format);
+        }
+        Json field_values = Json::object();
+        for (auto it = fields.begin(); it != fields.end(); ++it) {
+            const Json field = it.value();
+            const std::string alias = field.at("signal");
+            const Json value = signal_values.at(alias);
+            LogicValue logic;
+            if (parse_sv_literal(value.at("value"), logic)) {
+                const int left = field.at("left"), right = field.at("right");
+                const int width = static_cast<int>(logic.bits.size());
+                std::string bits;
+                for (int bit = left; bit >= right; --bit) {
+                    const int index = width - 1 - bit;
+                    bits.push_back(index >= 0 && index < width ? logic.bits[index] : '0');
+                }
+                field_values[it.key()] = render_value_json(bits, bits.size(), format);
+            }
+        }
+        all_events.push_back({{"time", wf->format_time(time, unit)},
+                              {"signals", signal_values}, {"fields", field_values}});
+        if (mode == "first") break;
+    }
+    Json returned = Json::array();
+    if (mode == "last" && !all_events.empty()) returned.push_back(all_events.back());
+    else if (mode == "first") returned = all_events;
+    else for (size_t i = 0; i < std::min(all_events.size(), line_limit); ++i)
+        returned.push_back(all_events[i]);
+    const bool truncated = mode == "all" && returned.size() < all_events.size();
+    Json summary{{"sample_count", sample_count}, {"mode", mode}, {"inline", !named},
+        {"sampling_mode", "clock_edge"}, {"clock", clock},
+        {"sample_time_semantics", "time is sample_time"},
+        {"begin", wf->format_time(begin, unit)}, {"end", wf->format_time(end, unit)},
+        {"scan_complete", analysis_complete}, {"analysis_complete", analysis_complete},
+        {"response_truncated", truncated}, {"total_count", total_count},
+        {"returned_count", returned.size()}, {"truncation_scopes", truncated
+            ? Json::array({"response_events"}) : Json::array()}};
+    if (total_count) {
+        summary["first"] = all_events.front().at("time");
+        summary["last"] = all_events.back().at("time");
+    }
+    return {{"ok", true}, {"summary", summary},
+            {"data", {{"events", returned},
+                      {"sampling", event_sampling_contract(edge, requested_point)}}}};
+}
+
 // ============================================================================
 // 11. event.find
 // ============================================================================
@@ -881,49 +1062,7 @@ struct EventFindHandler : public EngineActionHandler {
         Json err = check_waveform(action_name());
         if (!err.is_null()) return err;
 
-        auto args = req.value("args", Json::object());
-        std::string signal = args.value("signal", "");
-        if (signal.empty())
-            return make_error("MISSING_FIELD", "args.signal is required for event.find");
-
-        std::string event_kind = args.value("event", "any_change");
-
-        auto* wf = engine_globals().waveform.get();
-        uint32_t ref = wf->find_signal(signal);
-        if (ref == IWaveformBackend::kInvalidSignalRef)
-            return make_error("SIGNAL_NOT_FOUND", "signal not found in waveform: " + signal);
-
-        uint64_t begin = 0, end = wf->max_time();
-        if (args.contains("begin") && !parse_time_arg(args["begin"], begin))
-            return make_error("INVALID_TIME", "args.begin must be an integer");
-        if (args.contains("end") && !parse_time_arg(args["end"], end))
-            return make_error("INVALID_TIME", "args.end must be an integer");
-
-        uint32_t begin_ti = wf->time_idx_of(begin);
-        uint32_t end_ti = wf->time_idx_of(end);
-
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
-
-        std::string target_value = args.value("value", "");
-
-        Json events_arr = Json::array();
-        int found_count = 0;
-        int max_results = args.value("max_results", 1000);
-
-        find_events_on_signal(wf, ref, event_kind, begin_ti, end_ti,
-                              target_value, fmt, events_arr, found_count, max_results);
-
-        Json out;
-        out["ok"] = true;
-        out["summary"] = {
-            {"signal", signal},
-            {"event", event_kind},
-            {"event_count", found_count},
-            {"range", {{"begin", begin}, {"end", end}}}
-        };
-        out["data"] = {{"events", events_arr}};
-        return out;
+        return run_event_find(req.at("args"));
     }
 };
 

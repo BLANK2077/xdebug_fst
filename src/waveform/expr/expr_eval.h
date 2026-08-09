@@ -31,7 +31,9 @@ ExprNode* parse_expression(const std::string& text, std::string& error);
 /// `samples` may be used to memoize signal values (optional; pass nullptr).
 LogicValue eval_expression(const ExprNode* root, const IWaveformBackend& wf,
                            uint32_t time_idx,
-                           std::map<std::string, LogicValue>* samples = nullptr);
+                           std::map<std::string, LogicValue>* samples = nullptr,
+                           IWaveformBackend::ObservationPoint point =
+                               IWaveformBackend::ObservationPoint::Raw);
 
 /// Convenience: parse + evaluate at a time index. Returns false on error.
 bool expr_eval_at(const std::string& text, const IWaveformBackend& wf,
