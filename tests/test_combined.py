@@ -208,6 +208,25 @@ def test_trace_active_driver_chain_classifies_nba_self_rhs_as_assignment(
     assert [hop["signal"] for hop in rsp["data"]["hops"]] == ["top.count"]
 
 
+def test_trace_active_driver_chain_reports_real_multiple_active_drivers(
+        loop_runner: StdioLoopRunner, case_fst,
+        case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.case_top.multiple_driver_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "ambiguous"
+    assert rsp["summary"]["termination_detail"] == \
+        "multiple_active_candidates"
+    evidence = rsp["data"]["ambiguity_evidence"]
+    assert evidence["kind"] == "multiple_active_candidates"
+    assert evidence["statement_count"] == 2
+    assert evidence["rhs_signal_count"] == 2
+    assert {statement["line"] for statement in evidence["statements"]} == {
+        54, 55}
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:

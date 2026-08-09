@@ -49,4 +49,8 @@ module case_top (
 
     reg [7:0] ternary_out;
     always @(posedge clk) ternary_out <= sel[0] ? data : 8'h5a;
+
+    wire [7:0] multiple_driver_out;
+    assign multiple_driver_out = data;
+    assign multiple_driver_out = {6'b0, sel};
 endmodule
