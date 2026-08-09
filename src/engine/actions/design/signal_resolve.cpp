@@ -1,63 +1,149 @@
 // signal_resolve.cpp — signal.resolve, trace.driver, trace.load (BSD-3-Clause)
 #include "engine/engine_action_handler.h"
 #include "engine/engine_globals.h"
-#include "api/json_types.h"
+
+#include <string>
+#include <vector>
 
 namespace xdebug_fst {
+namespace {
 
-struct SignalResolveHandler : public EngineActionHandler {
+Json failure(const char* code, const std::string& message) {
+    return Json{{"ok", false},
+                {"error", {{"code", code}, {"message", message}}}};
+}
+
+Json completeness_summary(const std::string& signal, const char* mode,
+                          size_t count) {
+    return Json{{"signal", signal},
+                {"mode", mode},
+                {"scan_complete", true},
+                {"analysis_complete", true},
+                {"response_truncated", false},
+                {"total_count", count},
+                {"returned_count", count},
+                {"truncation_scopes", Json::array()}};
+}
+
+std::string signal_name(IDesignBackend& design, int index) {
+    const char* name = index >= 0 ? design.signal_name(index) : nullptr;
+    return name ? name : "";
+}
+
+struct SignalResolveHandler final : EngineActionHandler {
     const char* action_name() const override { return "signal.resolve"; }
     bool needs_design() const override { return true; }
     bool needs_waveform() const override { return false; }
+
     Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_design||!g.design) return Json{{"ok",false},{"error",{{"code","DESIGN_NOT_LOADED"}}}};
-        std::string sig = req.value("args",Json::object()).value("signal","");
-        if (sig.empty()) return Json{{"ok",false},{"error",{{"code","MISSING_FIELD"}}}};
-        int idx = g.design->resolve(sig.c_str());
-        if (idx<0) return Json{{"ok",false},{"error",{{"code","SIGNAL_NOT_FOUND"}}}};
-        return Json{{"ok",true},{"data",{{"signal",sig},{"index",idx},{"name",g.design->signal_name(idx)?g.design->signal_name(idx):""},{"type",g.design->signal_type(idx)?g.design->signal_type(idx):""},{"width",g.design->signal_width(idx)}}}};
+        auto& design = *engine_globals().design;
+        const std::string query = req.at("args").at("signal").get<std::string>();
+        const int index = design.resolve(query.c_str());
+        if (index < 0) {
+            return failure("SIGNAL_NOT_FOUND", "signal not found: " + query);
+        }
+        const std::string resolved = signal_name(design, index);
+        Json match{{"signal", resolved},
+                   {"type", design.signal_type(index)
+                                ? design.signal_type(index) : ""},
+                   {"file", design.signal_file(index)
+                                ? design.signal_file(index) : ""},
+                   {"line", design.signal_line(index)}};
+        Json summary{{"status", "found"},
+                     {"query", query},
+                     {"scan_complete", true},
+                     {"analysis_complete", true},
+                     {"response_truncated", false},
+                     {"total_count", 1},
+                     {"returned_count", 1},
+                     {"truncation_scopes", Json::array()}};
+        return Json{{"ok", true}, {"summary", summary},
+                    {"data", {{"matches", Json::array({match})}}}};
     }
 };
 
-struct TraceDriverHandler : public EngineActionHandler {
+struct TraceDriverHandler final : EngineActionHandler {
     const char* action_name() const override { return "trace.driver"; }
     bool needs_design() const override { return true; }
     bool needs_waveform() const override { return false; }
+
     Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_design||!g.design) return Json{{"ok",false},{"error",{{"code","DESIGN_NOT_LOADED"}}}};
-        std::string sig = req.value("args",Json::object()).value("signal","");
-        int idx = g.design->resolve(sig.c_str());
-        if (idx<0) return Json{{"ok",false},{"error",{{"code","SIGNAL_NOT_FOUND"}}}};
-        std::vector<IDesignBackend::DriverRecord> drivers;
-        g.design->trace_driver(idx, drivers);
-        Json arr = Json::array();
-        for (auto& d:drivers) arr.push_back({{"src_signal",d.src_signal>=0?g.design->signal_name(d.src_signal):nullptr},{"kind",d.kind},{"file",d.file},{"line",d.line}});
-        return Json{{"ok",true},{"summary",{{"signal",sig},{"driver_count",drivers.size()}}},{"data",{{"drivers",arr}}}};
+        auto& design = *engine_globals().design;
+        const Json& args = req.at("args");
+        const std::string query = args.at("signal").get<std::string>();
+        const int index = design.resolve(query.c_str());
+        if (index < 0) {
+            return failure("SIGNAL_NOT_FOUND", "signal not found: " + query);
+        }
+        const bool no_statement_only = args.value("no_statement_only", false);
+        const std::string role_filter = args.value("role", std::string());
+        std::vector<IDesignBackend::DriverRecord> records;
+        design.trace_driver(index, records);
+        Json paths = Json::array();
+        for (const auto& record : records) {
+            if (no_statement_only && record.src_signal < 0) continue;
+            if (!role_filter.empty() && record.dependency_role != role_filter)
+                continue;
+            Json signal_path = Json::array();
+            if (record.src_signal >= 0) {
+                const std::string source = signal_name(design, record.src_signal);
+                if (!source.empty()) signal_path.push_back(source);
+            }
+            signal_path.push_back(signal_name(design, index));
+            paths.push_back({{"file", record.file},
+                             {"line", record.line},
+                             {"source_context", Json::array()},
+                             {"signal_path", signal_path}});
+        }
+        return Json{{"ok", true},
+                    {"summary", completeness_summary(query, "driver", paths.size())},
+                    {"data", {{"paths", paths}}}};
     }
 };
 
-struct TraceLoadHandler : public EngineActionHandler {
+struct TraceLoadHandler final : EngineActionHandler {
     const char* action_name() const override { return "trace.load"; }
     bool needs_design() const override { return true; }
     bool needs_waveform() const override { return false; }
+
     Json run(const Json& req) override {
-        auto& g = engine_globals();
-        if (!g.has_design||!g.design) return Json{{"ok",false},{"error",{{"code","DESIGN_NOT_LOADED"}}}};
-        std::string sig = req.value("args",Json::object()).value("signal","");
-        int idx = g.design->resolve(sig.c_str());
-        if (idx<0) return Json{{"ok",false},{"error",{{"code","SIGNAL_NOT_FOUND"}}}};
-        std::vector<IDesignBackend::LoadRecord> loads;
-        g.design->trace_load(idx, loads);
-        Json arr = Json::array();
-        for (auto& l:loads) arr.push_back({{"consumer",l.consumer>=0?g.design->signal_name(l.consumer):nullptr},{"kind",l.kind},{"file",l.file},{"line",l.line}});
-        return Json{{"ok",true},{"summary",{{"signal",sig},{"load_count",loads.size()}}},{"data",{{"loads",arr}}}};
+        auto& design = *engine_globals().design;
+        const Json& args = req.at("args");
+        const std::string query = args.at("signal").get<std::string>();
+        const int index = design.resolve(query.c_str());
+        if (index < 0) {
+            return failure("SIGNAL_NOT_FOUND", "signal not found: " + query);
+        }
+        const std::string role_filter = args.value("role", std::string());
+        std::vector<IDesignBackend::LoadRecord> records;
+        design.trace_load(index, records);
+        Json paths = Json::array();
+        for (const auto& record : records) {
+            if (!role_filter.empty() && record.kind != role_filter) continue;
+            Json signal_path = Json::array({signal_name(design, index)});
+            const std::string consumer = signal_name(design, record.consumer);
+            if (!consumer.empty()) signal_path.push_back(consumer);
+            paths.push_back({{"file", record.file},
+                             {"line", record.line},
+                             {"source_context", Json::array()},
+                             {"signal_path", signal_path}});
+        }
+        return Json{{"ok", true},
+                    {"summary", completeness_summary(query, "load", paths.size())},
+                    {"data", {{"paths", paths}}}};
     }
 };
 
-std::unique_ptr<EngineActionHandler> make_signal_resolve_handler() { return std::make_unique<SignalResolveHandler>(); }
-std::unique_ptr<EngineActionHandler> make_trace_driver_handler() { return std::make_unique<TraceDriverHandler>(); }
-std::unique_ptr<EngineActionHandler> make_trace_load_handler() { return std::make_unique<TraceLoadHandler>(); }
+}  // namespace
 
-} // namespace xdebug_fst
+std::unique_ptr<EngineActionHandler> make_signal_resolve_handler() {
+    return std::make_unique<SignalResolveHandler>();
+}
+std::unique_ptr<EngineActionHandler> make_trace_driver_handler() {
+    return std::make_unique<TraceDriverHandler>();
+}
+std::unique_ptr<EngineActionHandler> make_trace_load_handler() {
+    return std::make_unique<TraceLoadHandler>();
+}
+
+}  // namespace xdebug_fst
