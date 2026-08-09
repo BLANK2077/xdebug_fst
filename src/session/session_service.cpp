@@ -13,6 +13,8 @@
 #include <filesystem>
 #include <fstream>
 #include <fcntl.h>
+#include <initializer_list>
+#include <set>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -128,6 +130,236 @@ bool resolve_design_bundle(const std::string& bundle_input,
     return true;
 }
 
+bool object_has_only(const Json& value,
+                     std::initializer_list<const char*> allowed,
+                     std::string& unexpected) {
+    if (!value.is_object()) return false;
+    std::set<std::string> fields;
+    for (const char* field : allowed) fields.insert(field);
+    for (auto item = value.begin(); item != value.end(); ++item) {
+        if (fields.count(item.key()) == 0) {
+            unexpected = item.key();
+            return false;
+        }
+    }
+    return true;
+}
+
+bool lowercase_sha256(const std::string& digest) {
+    if (digest.size() != 64) return false;
+    for (char character : digest) {
+        if (!((character >= '0' && character <= '9') ||
+              (character >= 'a' && character <= 'f'))) return false;
+    }
+    return true;
+}
+
+bool nonnegative_size(const Json& value, unsigned long long& result) {
+    try {
+        if (value.is_number_unsigned()) {
+            result = value.get<unsigned long long>();
+            return true;
+        }
+        if (!value.is_number_integer()) return false;
+        const long long signed_value = value.get<long long>();
+        if (signed_value < 0) return false;
+        result = static_cast<unsigned long long>(signed_value);
+        return true;
+    } catch (const std::exception&) {
+        return false;
+    }
+}
+
+Json provenance_failure(const std::string& message, Json evidence) {
+    Json details = Json::object();
+    for (const char* field : {
+             "manifest_path", "resource", "expected_path", "actual_path",
+             "expected_size_bytes", "actual_size_bytes", "expected_sha256",
+             "actual_sha256"}) {
+        if (evidence.contains(field)) details[field] = evidence[field];
+    }
+    if (evidence.contains("schema_version")) {
+        details["manifest_schema_version"] = evidence["schema_version"];
+    }
+    if (evidence.contains("state")) {
+        details["manifest_state"] = evidence["state"];
+    }
+    return failure("RESOURCE_PROVENANCE_MISMATCH", message,
+                   "handler", true, details);
+}
+
+bool validate_manifest_resource(const std::string& manifest_path,
+                                const std::string& key,
+                                const Json& declaration,
+                                const std::string& target_path,
+                                const Json& common_evidence,
+                                Json& error_response) {
+    Json evidence = common_evidence;
+    evidence["resource"] = key;
+    std::string unexpected;
+    unsigned long long expected_size = 0;
+    if (!object_has_only(declaration, {"path", "size_bytes", "sha256"},
+                         unexpected)) {
+        error_response = provenance_failure(
+            declaration.is_object()
+                ? "run manifest resource " + key +
+                      " contains unknown field: " + unexpected
+                : "run manifest resource " + key +
+                      " must be a JSON object",
+            evidence);
+        return false;
+    }
+    if (declaration.size() != 3 || !declaration.contains("path") ||
+        !declaration["path"].is_string() ||
+        declaration["path"].get<std::string>().empty() ||
+        fs::path(declaration["path"].get<std::string>()).is_absolute() ||
+        !declaration.contains("size_bytes") ||
+        !nonnegative_size(declaration["size_bytes"], expected_size) ||
+        !declaration.contains("sha256") ||
+        !declaration["sha256"].is_string() ||
+        !lowercase_sha256(declaration["sha256"].get<std::string>())) {
+        error_response = provenance_failure(
+            "run manifest resource " + key +
+                " must contain exactly relative path, non-negative size_bytes, "
+                "and lowercase 64-hex sha256",
+            evidence);
+        return false;
+    }
+    const std::string relative = declaration["path"].get<std::string>();
+    const std::string expected_sha = declaration["sha256"].get<std::string>();
+    evidence["expected_path"] = relative;
+    evidence["expected_size_bytes"] = expected_size;
+    evidence["expected_sha256"] = expected_sha;
+    std::error_code ec;
+    const fs::path expected = fs::canonical(
+        fs::path(manifest_path).parent_path() / relative, ec);
+    if (ec || expected.string() != target_path) {
+        evidence["actual_path"] = target_path;
+        error_response = provenance_failure(
+            "run manifest resource path does not match target: " + key,
+            evidence);
+        return false;
+    }
+    evidence["actual_path"] = target_path;
+    struct stat info {};
+    const int stat_result = stat(target_path.c_str(), &info);
+    if (stat_result != 0 || info.st_size < 0 ||
+        static_cast<unsigned long long>(info.st_size) != expected_size) {
+        evidence["actual_size_bytes"] = stat_result == 0 && info.st_size >= 0
+            ? Json(static_cast<unsigned long long>(info.st_size))
+            : Json(nullptr);
+        error_response = provenance_failure(
+            "run manifest resource size does not match target: " + key,
+            evidence);
+        return false;
+    }
+    std::string actual_sha;
+    std::string sha_error;
+    const bool digest_ok = S_ISDIR(info.st_mode)
+        ? xdebug_core::sha256_directory_tree(target_path, actual_sha, sha_error)
+        : xdebug_core::sha256_file(target_path, actual_sha, sha_error);
+    if (!digest_ok || actual_sha != expected_sha) {
+        evidence["actual_sha256"] = actual_sha.empty()
+            ? Json(nullptr) : Json(actual_sha);
+        error_response = provenance_failure(
+            "run manifest resource SHA-256 does not match target: " + key,
+            evidence);
+        return false;
+    }
+    return true;
+}
+
+bool validate_run_manifest(const Json& target, const SessionInfo& session,
+                           Json& details, Json& error_response) {
+    details = Json::object();
+    if (!target.contains("run_manifest")) return true;
+    const std::string requested_manifest =
+        target["run_manifest"].get<std::string>();
+    std::error_code ec;
+    const fs::path canonical_manifest = fs::canonical(requested_manifest, ec);
+    if (ec) {
+        error_response = provenance_failure(
+            "run manifest is missing or cannot be resolved",
+            {{"manifest_path", requested_manifest}});
+        return false;
+    }
+    const std::string manifest_path = canonical_manifest.string();
+    std::ifstream input(manifest_path);
+    if (!input.good()) {
+        error_response = provenance_failure(
+            "run manifest cannot be opened",
+            {{"manifest_path", manifest_path}});
+        return false;
+    }
+    Json parsed;
+    try {
+        input >> parsed;
+    } catch (const std::exception&) {
+        error_response = provenance_failure(
+            "run manifest is not valid JSON",
+            {{"manifest_path", manifest_path}});
+        return false;
+    }
+    std::string unexpected;
+    if (!parsed.is_object() ||
+        !object_has_only(parsed, {"schema_version", "state", "resources"},
+                         unexpected)) {
+        error_response = provenance_failure(
+            parsed.is_object()
+                ? "run manifest contains unknown root field: " + unexpected
+                : "run manifest root must be a JSON object",
+            {{"manifest_path", manifest_path}});
+        return false;
+    }
+    const std::string schema_version =
+        parsed.value("schema_version", std::string());
+    const std::string state = parsed.value("state", std::string());
+    Json evidence{{"manifest_path", manifest_path},
+                  {"schema_version", schema_version}, {"state", state}};
+    if (schema_version != "xdebug.run-manifest.v1" || state != "published") {
+        error_response = provenance_failure(
+            "run manifest must be xdebug.run-manifest.v1 in published state",
+            evidence);
+        return false;
+    }
+    if (!parsed.contains("resources") || !parsed["resources"].is_object()) {
+        error_response = provenance_failure(
+            "run manifest resources must be a JSON object",
+            evidence);
+        return false;
+    }
+    Json& resources = parsed["resources"];
+    if (!object_has_only(resources, {"fsdb", "daidir"}, unexpected) ||
+        !resources.contains("fsdb")) {
+        error_response = provenance_failure(
+            resources.contains("fsdb")
+                ? "run manifest resources contains unknown field: " +
+                      unexpected
+                : "run manifest resources must declare fsdb",
+            evidence);
+        return false;
+    }
+    const bool target_has_design = !session.dbdir_path.empty();
+    if (resources.contains("daidir") != target_has_design) {
+        error_response = provenance_failure(
+            "run manifest resources must exactly match target.fsdb and optional target.daidir",
+            evidence);
+        return false;
+    }
+    if (!validate_manifest_resource(manifest_path, "fsdb", resources["fsdb"],
+                                    session.fsdb_file, evidence, error_response)) {
+        return false;
+    }
+    if (target_has_design &&
+        !validate_manifest_resource(manifest_path, "daidir", resources["daidir"],
+                                    session.dbdir_path, evidence, error_response)) {
+        return false;
+    }
+    details = {{"schema_version", schema_version}, {"state", state},
+               {"resources", resources}, {"manifest_path", manifest_path}};
+    return true;
+}
+
 bool populate_fingerprint(const std::string& path, bool design,
                           SessionInfo& session) {
     struct stat info {};
@@ -171,6 +403,50 @@ Json public_session(const SessionInfo& session) {
     if (session.created_at > 0) value["created_at"] = session.created_at;
     if (session.last_active > 0) value["last_active"] = session.last_active;
     return value;
+}
+
+std::string session_mode(const SessionInfo& session) {
+    if (!session.dbdir_path.empty() && !session.fsdb_file.empty()) {
+        return "combined";
+    }
+    return session.dbdir_path.empty() ? "waveform" : "design";
+}
+
+bool same_resource(const SessionInfo& lhs, const SessionInfo& rhs) {
+    const std::string mode = session_mode(lhs);
+    if (mode != session_mode(rhs)) return false;
+    if (mode == "design") return lhs.dbdir_path == rhs.dbdir_path;
+    if (mode == "waveform") return lhs.fsdb_file == rhs.fsdb_file;
+    return lhs.dbdir_path == rhs.dbdir_path &&
+           lhs.fsdb_file == rhs.fsdb_file;
+}
+
+std::string resource_match_kind(const SessionInfo& session) {
+    const std::string mode = session_mode(session);
+    if (mode == "design") return "same_daidir";
+    if (mode == "waveform") return "same_fsdb";
+    return "same_combined_resource";
+}
+
+Json duplicate_resource_advisories(
+    const std::vector<SessionInfo>& before, const SessionInfo& opened) {
+    Json advisories = Json::array();
+    for (const SessionInfo& existing : before) {
+        if (existing.session_id == opened.session_id ||
+            !same_resource(existing, opened)) {
+            continue;
+        }
+        advisories.push_back({
+            {"code", "RESOURCE_SESSION_ALREADY_ALIVE"},
+            {"severity", "info"},
+            {"match_kind", resource_match_kind(opened)},
+            {"existing_session_id", existing.session_id},
+            {"existing_mode", session_mode(existing)},
+            {"message", "same resource already has an alive session; "
+                        "consider closing one to save resources"},
+        });
+    }
+    return advisories;
 }
 
 bool endpoint_control(const SessionInfo& session, const std::string& action,
@@ -425,8 +701,20 @@ Json open_session(const Json& request) {
             return failure("WAVEFORM_OPEN_FAILED", error);
         }
     }
+    Json manifest_details;
+    Json manifest_error;
+    if (!validate_run_manifest(
+            target, session, manifest_details, manifest_error)) {
+        return manifest_error;
+    }
 
     SessionRegistry registry;
+    std::vector<SessionInfo> before_sessions;
+    const SessionRegistryResult before_loaded =
+        registry.load_all(before_sessions);
+    if (!before_loaded.ok()) {
+        return failure("SESSION_REGISTRY_FAILED", before_loaded.message);
+    }
     SessionRegistryResult reserved = registry.reserve_opening(session);
     if (!reserved.ok()) {
         return failure(
@@ -522,9 +810,15 @@ Json open_session(const Json& request) {
         return failure("SESSION_REGISTRY_FAILED",
                        "failed to finalize the active generation");
     }
-    return {{"ok", true}, {"session", public_session(session)},
-            {"summary", {{"status", "opened"}}},
-            {"data", {{"run_manifest", nullptr}}}};
+    Json response{{"ok", true}, {"session", public_session(session)},
+                  {"summary", {{"status", "opened"}}},
+                  {"data", {{"run_manifest", manifest_details.empty()
+                                                 ? Json(nullptr)
+                                                 : manifest_details}}}};
+    Json advisories =
+        duplicate_resource_advisories(before_sessions, session);
+    if (!advisories.empty()) response["advisories"] = std::move(advisories);
+    return response;
 }
 
 Json list_sessions() {
@@ -590,6 +884,42 @@ Json doctor_session(const Json& request) {
 Json remove_session(const Json& request, bool force) {
     const std::string id = request["target"].value("session_id", std::string());
     SessionRegistry registry;
+    if (id == "all") {
+        const Json args = request.value("args", Json::object());
+        if (args.contains("ownership_token")) {
+            return failure(
+                "SESSION_OWNERSHIP_TOKEN_FORBIDDEN",
+                "args.ownership_token is only valid for one exact session_id",
+                "session_manager", false);
+        }
+        std::vector<SessionInfo> sessions;
+        const SessionRegistryResult loaded = registry.load_all(sessions);
+        if (!loaded.ok()) {
+            return failure("SESSION_REGISTRY_FAILED", loaded.message);
+        }
+        Json removed_sessions = Json::array();
+        Json failed_session_ids = Json::array();
+        for (const SessionInfo& session : sessions) {
+            if (cleanup_managed_session(registry, session, force)) {
+                removed_sessions.push_back(public_session(session));
+            } else {
+                failed_session_ids.push_back(session.session_id);
+            }
+        }
+        if (!failed_session_ids.empty()) {
+            return failure(
+                "SESSION_CLEANUP_PARTIAL_FAILURE",
+                "one or more session engines could not be stopped",
+                "session_manager", true,
+                {{"requested_count", sessions.size()},
+                 {"removed_count", removed_sessions.size()},
+                 {"failed_session_ids", failed_session_ids}});
+        }
+        return {{"ok", true},
+                {"summary", {{"requested_count", sessions.size()},
+                             {"removed_count", removed_sessions.size()}}},
+                {"data", {{"removed_sessions", removed_sessions}}}};
+    }
     SessionInfo session;
     const SessionRegistryResult found = registry.get(id, session);
     if (!found.ok()) return failure("SESSION_NOT_FOUND", found.message);

@@ -59,7 +59,8 @@ Json canonical_response(const Json& request,
     response["session"] = handler_response.value("session", Json(nullptr));
     response["summary"] = handler_response.value("summary", Json::object());
     response["data"] = handler_response.value("data", Json::object());
-    for (const char* field : {"findings", "warnings", "suggested_next_actions"}) {
+    for (const char* field : {
+             "findings", "warnings", "suggested_next_actions", "advisories"}) {
         if (handler_response.contains(field)) response[field] = handler_response[field];
     }
     response["error"] = nullptr;
