@@ -596,6 +596,15 @@ P1 验收：
 
 ### P6：活动驱动与 X 根因能力
 
+当前实施检查点（2026-08-10）：已先提交 counter `if/else` 修改前失败证据，并证明
+原 XDD 的 source/role/file/line 无法表达 then/else 极性；Verilator 随后只附加 driver
+activation predicate capability 和只读访问器，ABI 仍为 v2。xdebug-fst 在目标
+`active_time` 通过 Wellen 直接按需读取当前原始 `.fst` 的 predicate 叶子并做四态求值，
+不生成中间波形、离线索引或全量快照。缺 predicate、解析失败、信号缺失或 X/Z 结果
+必须 unresolved/fail closed，禁止选择静态首项。此检查点只关闭已验证的 counter
+`if/else` 基础语义；case/casez/casex、被前序 lowering 合并的嵌套语句、更多
+连续/过程/NBA、常量、alias、跨端口、多 driver 和原版差分仍是 P6 必做项。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。

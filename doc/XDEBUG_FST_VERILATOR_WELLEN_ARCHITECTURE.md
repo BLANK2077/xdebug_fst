@@ -246,10 +246,15 @@ emitter 在 `V3Scope` 已经建立 `AstVarScope` 之后运行，因为此时能�
 - 区分 `cont_assign`、`proc_assign` 和 `nba`；
 - 向上查找所在的 `if` 或 `case`，把条件表达式中的信号加入静态依赖；
 - 为每条依赖原生标记 `rhs`、`control` 或 `statement`，避免消费者根据名称或行号猜测；
+- 为 `if/else` 与普通 `case/default` 生成使用完整层级信号名的 activation predicate；
 - 记录 assignment 的源文件和行号；
 - 同时反向生成 load 记录。
 
-这些记录回答的是“哪些信号和语句可能影响 target”，不是“某个时刻哪一条分支已经被证明激活”。后者必须由 xdebug-fst 结合 FST 值、条件表达式和采样语义判断。
+predicate 仍是静态设计事实，不包含任何运行时值。无法精确表达的 wildcard case
+不会被近似成普通 case，而是发布空 predicate，要求消费者失败关闭。这些记录回答的是
+“哪些信号和语句可能影响 target”以及“激活该语句需要满足什么静态条件”，不是“某个
+时刻哪一条分支已经被证明激活”。后者必须由 xdebug-fst 在 active time 通过 Wellen 直接
+读取原始 FST 中的控制值并执行四态求值。
 
 ### 4.5 生成可独立编译的静态数据库
 
@@ -258,6 +263,7 @@ emitter 在 `V3Scope` 已经建立 `AstVarScope` 之后运行，因为此时能�
 - signal table；
 - 按名称排序的二分查找索引；
 - 按 target 分组的 driver table；
+- 与 driver table 等长的 activation predicate table；
 - 按 source 分组的 load table；
 - 预计算并去重的跨层 port-boundary table；
 - ABI version、capability 位和 signal direction table；
@@ -284,7 +290,7 @@ g++ -std=c++17 -shared -fPIC \
 - `xdd_resolve`；
 - signal name/type/width/file/line/direction；
 - port connection count 和第 N 条连接；
-- driver count、第 N 条 driver 及其 `rhs/control/statement` dependency role；
+- driver count、第 N 条 driver、其 `rhs/control/statement` dependency role 及 activation predicate；
 - load count 和第 N 条 load。
 
 使用 C ABI 而不是直接暴露 C++ 容器的原因是：
@@ -301,9 +307,9 @@ g++ -std=c++17 -shared -fPIC \
 它把 C ABI 转换为 xdebug-fst 内部 `IDesignBackend`：
 
 - 名称解析和 signal metadata 直接映射；
-- driver/load 记录和 dependency role 转换为 C++ value objects；
+- driver/load、dependency role 和 activation predicate 转换为 C++ value objects；
 - direction 和 port connection 直接消费 XDD 原生确定性事实，不再全表启发式推导；
-- 强制要求 ABI v2 及 direction、port connection、driver role 三项 capability，旧 bundle、缺符号或 capability 不全都明确失败，不自动降级；
+- 强制要求 ABI v2 及 direction、port connection、driver role、driver predicate 四项 capability，旧 bundle、缺符号或 capability 不全都明确失败，不自动降级；
 - 后续 action 只依赖 `IDesignBackend`，不直接依赖 Verilator 头文件。
 
 这种接口隔离允许我们优先在 xdebug-fst 修正协议、schema、排序、错误合同和组合算法，而不为了上层表现差异频繁修改 Verilator。
@@ -328,7 +334,7 @@ Verilator 是上游大型编译器。对它的修改会影响解析、展开、�
 5. 每项新增能力有独立 Verilator 回归；
 6. 不重构无关 pass，不改变未启用 `--design-db` 的行为。
 
-截至 P4，只提交了一个显式开关、一个只读 emitter、一个小型附加 C ABI 和对应测试，没有改写既有优化、调度或仿真算法。P4 的 direction/port connection 与 dependency role 都先有修改前失败用例；没有失败证据的 process order、sequential boundary 没有加入。
+截至当前 P6 批次，只提交了一个显式开关、一个只读 emitter、一个小型附加 C ABI 和对应测试，没有改写既有优化、调度或仿真算法。P4 的 direction/port connection 与 dependency role 都先有修改前失败用例。P6 又先用 counter fixture 证明同一 reset 控制记录无法区分 then/else，随后只增加并行 predicate table、单一 capability 和只读访问器；ABI 仍为 v2，既有函数签名与公开记录布局不变。没有失败证据的 process order、sequential boundary 仍未加入。
 
 ## 六、Verilator 回归为什么要重做
 
@@ -539,7 +545,8 @@ C++ adapter 同时持有：
 - 生产 adapter 和测试入口都建立 FST-only 门禁：非 `.fst` 在解析前失败，全部 P3
   固件实际输入均为 FST；VCD 不作为输入或 fallback。
 - P4 已原生发布 ABI v2、capability、声明方向、预计算 port connection 和逐 driver
-  dependency role。xdebug-fst 要求完整 capability 并 fail closed；未加入无失败证据的
+  dependency role；P6 的独立失败证据后又附加逐 driver activation predicate。
+  xdebug-fst 要求完整 capability 并 fail closed；未加入无失败证据的
   process order 或 sequential boundary，Verilator 修改保持在 emitter、C ABI header 和
   对应定向测试内。
 
@@ -551,8 +558,11 @@ C++ adapter 同时持有：
   和完整性接口，不能继续直接选择第一个 delta element；
 - interface/array/struct leaf 已用深层 FST hierarchy 回归覆盖，仍需在 P5 对应公开
   scope/signal action 中通过冻结 schema 和原版差分确认响应形状；
-- current active-driver 不能只选择第一条可读静态 driver；
-- XDD 当前控制依赖只提供静态候选，尚未表达完整条件表达式和嵌套 provenance；
+- active-driver 已禁止选择第一条静态 driver，并能用真实 FST 控制值判定已覆盖的
+  `if/else` 分支；普通 case、嵌套条件、wildcard case、alias、多 driver 和更多 NBA
+  边界仍须逐项差分，不能据当前 counter 用例宣称全部关闭；
+- XDD 已表达普通 `if/else` 与普通 `case/default` predicate；在当前 DesignDB 挂接点之前
+  已被 Verilator 合并的同目标内层语句，以及 casez/casex，仍明确 unresolved，不恢复或猜测；
 - direction/port connection 仍有上层推导逻辑；
 - P2 已完成 UDS idle timeout、完整失败补偿、MCP direct 和 fake-LSF；TCP/file
   已按用户明确要求裁剪，不作为实现或验收项；
@@ -572,6 +582,13 @@ APB 命名配置只保存时钟、复位和总线叶子信号路径以及采样�
 AXI 命名配置同样只保存 clock/reset、edge/sample point 和五个 channel 的 31 个最终叶子路径。每个 AXI action 都从当前 session 的 Wellen backend 重新采样选定时钟边沿，在请求内按 AXI4 规则把 AW、W、B 以及 AR、R 握手临时配对；ID FIFO、W beat FIFO、outstanding 深度、latency 样本和 pending 状态只在该请求的有界内存中存在，不持久化为事务索引或离线波形库。`axi.export` 写出的 TSV/CSV/meta 是调用者显式要求的最终产物，任何 action 都不会重新加载它们。
 
 stream 命名配置只保存 signal alias、clock/edge/sample point、reset、vld 及可选 rdy/bp、sop/eop 与 field 表达式。transfer、stall、packet、filter、动态 validate 和 export 每次请求都直接从当前 session 的 Wellen backend 读取原始 FST 中涉及的叶子，在请求期间形成有限的 sample、transfer、stall window 与 packet；`cache_scope` 在该实现中只约束本次扫描范围，不产生可跨请求重载的基础分析缓存。当前已支持全部 11 种 query、exact/range/mask packet filter、alias/slice/comparison/concatenation beat field、纯 vld、vld/rdy 与 vld/bp 流控，以及 transfer/packet/packet_beats preview 或显式最终文件。显式 `stream.export` 的 meta 标记事实源为 `current_session_fst`，任何 action 都不会回灌这些文件。channel interleaving 与 packet-stable field 的更深组合仍须独立回归，因此当前批次不冒充 stream 全合同最终关闭。
+
+P6 的 active-driver 数据流同样没有增加第二套波形系统：DesignDB 只给出语句、依赖、
+源码位置和静态 activation predicate；`trace.active_driver`、chain 与 X-origin 在请求期间
+提取 predicate 引用的最终叶子信号，通过当前 `WellenFstBackend` 直接按需加载原始
+`.fst`，在目标变化的 `active_time` 做四态求值，并只沿谓词为真的语句继续。谓词缺失、
+解析失败、FST 信号缺失或控制值含 X/Z 时返回 unresolved/ambiguity evidence，不读取
+VCD/JSON/export，不建立 predicate-value cache 或离线 FST 索引，也不回退到静态首项。
 
 显式文件产物必须与“离线 FST 分析”严格区分：
 
@@ -619,7 +636,7 @@ stream 命名配置只保存 signal alias、clock/edge/sample point、reset、vl
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `50d8fff59df67a2eafcd19676e6ce6cc9827c0b7`
+- revision `02f4a2259ff491b25da7a6b67bb3d2d61a335025`
 
 对应提交：
 
@@ -633,7 +650,12 @@ stream 命名配置只保存 signal alias、clock/edge/sample point、reset、vl
 - Verilator `a1f1aba1c`：发布声明方向与预计算跨层端口边；
 - Verilator `6aae8d201`：覆盖 ABI v2、方向和端口连接回归；
 - Verilator `50d8fff59`：以附加访问器区分 RHS 与控制依赖；
+- Verilator `c3abd3999`：建立 then/else activation predicate 缺失的修改前失败证据；
+- Verilator `02f4a2259`：附加驱动谓词 capability 和只读访问器，并对无法精确表示的构造失败关闭；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
 - xdebug-fst `e1779c9`：建立生产与回归 FST-only 硬门禁。
+- xdebug-fst `0188cd0`：锁定并严格消费 DesignDB driver predicate capability；
+- xdebug-fst `1529647`：修复 predicate 所需的括号逻辑与四态 X/Z 语义；
+- xdebug-fst `e2870e9`：在 active time 直接读取 FST 控制值并筛选 active-driver、chain 与 X-origin 分支。

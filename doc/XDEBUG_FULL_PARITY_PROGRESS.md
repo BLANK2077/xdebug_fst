@@ -4,15 +4,15 @@
 
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
 - Goal 永久门禁：`GOAL-FST-DIRECT-001`；当前 session 原始 `.fst` → Wellen 按需访问 → action 查询/推理，是唯一允许的波形事实路径。该门禁已写入 Goal 权威任务书和架构文档，并作为每批提交审查及最终 `complete` 的否决条件
-- 当前阶段：P4 已完成（克制扩展 Verilator DesignDB）
-- 当前任务：P5 进行中；发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake、APB 及 AXI 已完成，继续 stream
+- 当前阶段：P5 功能批次已覆盖；P6 进行中（Active Driver 与 X Origin）
+- 当前任务：继续补齐 P6 的 case/casez/casex、嵌套语句、连续/过程/NBA、常量、alias、跨端口和多 driver 原版差分；当前 counter `if/else` 与真实四态 FST 基础链已完成，但不得据此宣称 P6 全部关闭
 - 全局硬门禁：生产、回归和最终验收只打开 FST 波形；VCD 仅可作为可重复生成 FST 的源文件，禁止作为输入或 fallback
 - 2026-08-10 用户再次确认：项目只需要并且也必须完整适配 FST 波形；唯一波形事实路径是当前 session 中由 Wellen 直接按需读取原始 `.fst`。不得建立独立“FST 分析”数据库，不得转成 VCD/JSON/私有索引/离线库/全量内存快照后分析；显式 export 产物永不回灌。该约束已写入 Goal 权威任务书，覆盖旧 Goal 或历史文档中的相反表述
 - 2026-08-10 用户进一步锁定职责边界：FST 只是唯一波形输入容器，Wellen 只是保真按需访问层；分析能力属于冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合。禁止把“必须适配 FST”偷换成“由 FST 自身做分析”，也禁止据此简化 driver/load、active-driver、chain、X-origin、协议、表达式、完整性或错误合同。该定义已加入任务书与 Goal 权威附件，作为逐批门禁和 Goal 完成否决项
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
-- xdebug-fst 当前功能提交：`0e17e7a`；当前测试提交：`a12599a`
+- xdebug-fst 当前功能提交：`e2870e9`；当前测试提交：`57c4603`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
-- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `50d8fff59df67a2eafcd19676e6ce6cc9827c0b7`
+- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `02f4a2259ff491b25da7a6b67bb3d2d61a335025`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
 - 原版 xdebug runtime build ID：`8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 原版 schema revision：`c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
@@ -27,8 +27,8 @@
 | P2 | 已完成 | `parity-p2` | registry、真实 UDS engine、来源清单、批量生命周期、异常补偿及 MCP direct/fake-LSF 全部通过；TCP/file 按用户要求裁剪且无 fallback |
 | P3 | 已完成 | `parity-p3` | FST-only Wellen 层级、时间、类型、delta、采样、批量与完整性已实现；Rust/C/C++、7 CTest、基线与双 C ABI 门禁全部通过 |
 | P4 | 已完成 | `parity-p4` | 两组修改前失败证据后，仅增加 ABI/capability、声明方向、预计算端口边和 driver dependency role；8 个 XDD 与普通回归通过 |
-| P5 | 进行中 | `parity-p5` | 已完成发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake、APB 及 AXI；stream/combined trace 继续分批迁移 |
-| P6 | 未开始 | `parity-p6` | Active Driver 与 X Origin |
+| P5 | 功能批次已覆盖 | `parity-p5` | 发现/静态设计、value/list/event/cursor/RC/expr、signal、verify/window、counter/pulse/handshake、APB、AXI、stream 与 combined 基础合同已迁移；阶段总差分仍随 P6/P7 复核 |
+| P6 | 进行中 | `parity-p6` | 已完成多分支 X DFS、时间/限制证据、driver role 和 counter if/else 运行时谓词选择；复杂控制与原版差分继续 |
 | P7 | 未开始 | `parity-p7` | 全量差分与最终交付 |
 
 ## Commit 记录
@@ -85,6 +85,12 @@
 - `0b6a831`、`5c94e86`：对齐并验证 APB 命名配置、时钟采样事务、query/statistics/cursor/window 六项合同及 `value.at(apb)` 值源集成。
 - `0e17e7a`、`a12599a`：对齐并验证 AXI 命名配置、五通道事务重建、query/statistics/cursor、latency/osd/pending、stall/outlier/outstanding/pair/export 及 `value.at(axi)` 值源集成。
 - `8091689`、`f2f54ff`：对齐并验证 `verify.conditions/window.verify` 的 alias 表达式、clock context、三态结果、always/eventually/never、决定性早停与完整性。
+- `57c4603`：建立 counter 同一 reset 控制记录无法区分 then/else 的 active-driver 修改前失败证据。
+- Verilator `c3abd3999`：在自身 P4 回归中固化 driver predicate 缺失失败。
+- Verilator `02f4a2259`：保持 ABI v2 和既有函数签名，仅附加 activation predicate capability/访问器；8/8 DesignDB 与 2/2 分发门禁通过。
+- `0188cd0`：锁定新 XDD header/revision，严格要求 predicate capability，并仅刷新五组 DesignDB 静态 fixture；所有 FST 保持原样。
+- `1529647`：修复括号内逻辑解析及 `!`、`&&`、`||` 的四态 X/Z 传播。
+- `e2870e9`：在 active time 由 Wellen 直接读取原始 FST 控制值，筛选 active-driver、chain 与 X-origin 语句；不可判定时 unresolved，不回退静态首项。
 
 ## 测试记录
 
@@ -121,12 +127,13 @@
 - P5 全量 pytest 修改前证据：当前 160/170 通过，剩余 10 项集中在 combined trace 6 项、batch 1 项、session 旧断言 2 项和 waveform 错误旧断言 1 项；本轮已迁移的 stream 用例无失败。旧断言也必须按冻结合同核实后修改，不通过放宽 schema 消除失败。
 - P5 全量 pytest 复核：APB、AXI 及各自 `value.at` 值源不再出现在失败列表；剩余 20 项失败集中在尚未迁移的 stream、combined trace，以及仍断言早期 batch/session/error envelope 的旧测试。严格 request/response gate 保持开启，未为这些失败放宽 schema。
 - P5 导出边界：`list.export` 的 `u64bin.v1`、`event.export` 的 JSON 和 `nwave.rc.generate` 的 RC 仅是用户显式请求的最终产物，不是 file transport，也从不作为后续分析输入；所有事件发现、采样、首次差异和导出数据收集仍由 Wellen 在当前 FST 会话中按需执行。
+- P6 第一批：Verilator 修改前 `t_xdd_p4` 失败在缺少 `xdd_trace_driver_predicate`；最小实现后 trace/simple/full/metadata/operators/UART/P3/P4 8/8、distribution copyright/cppstyle 2/2 通过。xdebug-fst 的 counter 305ps 查询在 300ps active time 读取 `top.reset=0`，只返回 else/NBA 第 12 行；combined 20/20、clock/counter 联合 37/37、全量 pytest 209/209、CTest 8/8 和冻结基线检查均通过。实际波形仍只有 `.fst`，未修改五组 FST，未生成 VCD/JSON/离线索引。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
 ## 剩余差异
 
-P0、P1、P2、P3、P4 已关闭，P5 正在执行。P5 已完成发现/静态设计、value/list/event/cursor/RC/expr、signal 全族、verify/window、counter/pulse/handshake、APB 及 AXI，但 stream 与 combined trace 尚未全部关闭，因此仍不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。2026-08-10 新增 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 作为当前 active Goal 的权威执行附件；后续每个批次按 `GOAL-FST-DIRECT-001` 审查唯一 FST 数据流、禁止转换/离线分析/fallback、TCP/file 裁剪及 Verilator 克制修改，任一违反即否决提交与 Goal 完成。
+P0、P1、P2、P3、P4 已关闭，P5 的功能迁移批次已覆盖，P6 正在执行。当前已完成 active-driver 的 counter `if/else` 运行时选择和 X-origin 多分支基础语义，但普通/通配 case、嵌套语句身份、更多 NBA/常量/alias/跨端口/多 driver 与原版差分仍未关闭，因此绝不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。2026-08-10 新增 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 作为当前 active Goal 的权威执行附件；后续每个批次按 `GOAL-FST-DIRECT-001` 审查唯一 FST 数据流、禁止转换/离线分析/fallback、TCP/file 裁剪及 Verilator 克制修改，任一违反即否决提交与 Goal 完成。
 
 ## P4 修改前失败证据
 

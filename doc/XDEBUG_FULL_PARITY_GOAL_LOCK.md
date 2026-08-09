@@ -37,6 +37,8 @@ VCD 只允许作为可读的 fixture 源描述来生成 FST；测试、差分和
 
 Verilator DesignDB 只提供 FST 不包含的源位置、driver/load、端口连接、控制依赖等静态 HDL 事实。它不得读取、保存、重建或替代运行时波形。对 Verilator 的任何修改仍须先有失败差分和现有 XDD ABI 不足的证据，并保持最小、附加、局部、向后兼容。
 
+active-driver 的 activation predicate 也属于上述静态 HDL 事实，而不是波形分析结果。运行时分支是否成立必须由 xdebug-fst 在目标 active time 通过 Wellen 直接按需读取当前原始 `.fst` 的控制叶子并做四态求值；predicate 缺失、不可解析、引用缺失或结果为 X/Z 时必须 unresolved/fail closed。禁止把 predicate 预先扫成离线索引，禁止缓存整份 FST，禁止读取导出文件，也禁止退回“第一条静态 driver”。
+
 ## 三、范围锁定
 
 - 波形输入：只支持 FST，并且必须把冻结的 xdebug action 能力完整适配到 FST。
