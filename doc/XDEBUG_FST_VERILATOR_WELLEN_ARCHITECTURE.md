@@ -750,3 +750,4 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 - xdebug-fst `9e6dbbe`：锁定 Verilator 多驱动修复并以真实 FST/DesignDB 组合恢复双连续活动候选歧义。
 - xdebug-fst `6d5adcd`：以 RHS-only 四态通配与闭区间求值消费 case inside 谓词，运行时值仍直接来自原始 FST。
 - xdebug-fst `022d316`：锁定 inout lowering 原始 RHS 替换语义，并以真实 FST 完成跨端口四跳链。
+- xdebug-fst `fcd5e06`：以带独立中间 net 的真实两级 inout 固件验证六跳父向链，三方实现和 ABI 均无需修改。
