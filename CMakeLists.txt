@@ -158,6 +158,7 @@ if(BUILD_TESTING)
     add_executable(test-wellen-fst-backend
         tests/cpp/test_wellen_fst_backend.cpp
         src/backend/wellen_fst_backend.cpp
+        src/waveform/time_contract.cpp
     )
     target_include_directories(test-wellen-fst-backend PRIVATE
         ${CMAKE_SOURCE_DIR}/src
@@ -174,6 +175,7 @@ if(BUILD_TESTING)
         NAME wellen-fst-backend
         COMMAND test-wellen-fst-backend
             ${WELLEN_REPOSITORY_DIR}/wellen/inputs/scope_with_comment.vcd.fst
+            ${CMAKE_SOURCE_DIR}/testdata/fixtures/xprop/waves.fst
     )
 
     add_test(

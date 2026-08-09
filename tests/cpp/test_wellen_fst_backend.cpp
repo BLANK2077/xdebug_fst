@@ -16,7 +16,7 @@ void require(bool condition, const std::string& message) {
 }  // namespace
 
 int main(int argc, char** argv) {
-    require(argc == 2, "expected one waveform fixture path");
+    require(argc == 3, "expected 1ns and 1ps waveform fixture paths");
 
     xdebug_fst::WellenFstBackend backend;
     require(backend.open(argv[1]), "fixture opens through WellenFstBackend");
@@ -53,6 +53,36 @@ int main(int argc, char** argv) {
     require(backend.find_signal("missing") == 0,
             "missing signals return the unified sentinel");
 
+    xdebug_fst::WaveformTimeScale scale;
+    require(backend.time_scale(scale) && scale.factor == 1 &&
+                scale.exponent == -9,
+            "FST header publishes a 1ns waveform tick");
+    uint64_t ticks = 0;
+    std::string error;
+    require(backend.parse_time("1ns", ticks, error) && ticks == 1,
+            "1ns maps to one tick in a 1ns waveform");
+    require(backend.parse_time("1us", ticks, error) && ticks == 1000,
+            "1us maps to one thousand ticks and cannot collapse to 1ns");
+    require(backend.parse_time("5", ticks, error) && ticks == 5,
+            "unitless time uses the frozen ns default");
+    require(!backend.parse_time("1ps", ticks, error) &&
+                error.find("not representable") != std::string::npos,
+            "sub-tick physical time fails closed");
+    require(!backend.parse_time("1ns trailing", ticks, error),
+            "unknown time suffix is rejected");
+    require(backend.parse_time("max", ticks, error, true) &&
+                ticks == backend.max_time(),
+            "max resolves to the waveform maximum only when enabled");
+    require(backend.format_time(1000, xdebug_fst::TimeRenderUnit::Auto) ==
+                "1us",
+            "auto rendering selects the largest integral public unit");
+    require(backend.format_time(1000, xdebug_fst::TimeRenderUnit::Ns) ==
+                "1000ns",
+            "explicit ns rendering is preserved");
+    require(backend.format_time(1, xdebug_fst::TimeRenderUnit::Ps) ==
+                "1000ps",
+            "explicit ps rendering uses the real FST timescale");
+
     require(backend.load_signals({1}) == 1,
             "the first native signal loads through its 1-based handle");
     xdebug_fst::IWaveformBackend::SignalInfo info;
@@ -63,6 +93,20 @@ int main(int argc, char** argv) {
     require(!backend.is_loaded(1), "batch unload releases the signal cache");
     backend.close();
     require(!backend.is_open(), "close releases the waveform handle");
+
+    xdebug_fst::WellenFstBackend fine_backend;
+    require(fine_backend.open(argv[2]), "1ps fixture opens");
+    require(fine_backend.time_scale(scale) && scale.factor == 1 &&
+                scale.exponent == -12,
+            "second FST header publishes a 1ps waveform tick");
+    require(fine_backend.parse_time("0.5ns", ticks, error) && ticks == 500,
+            "non-integral ns remains exact on a finer waveform scale");
+    require(fine_backend.format_time(
+                500, xdebug_fst::TimeRenderUnit::Auto) == "500ps",
+            "auto rendering preserves non-integral-ns precision");
+    require(fine_backend.format_time(
+                500, xdebug_fst::TimeRenderUnit::Ns) == "0.5ns",
+            "explicit ns rendering retains an exact decimal");
 
     std::cout << "WellenFstBackend hierarchy/sentinel tests passed\n";
     return 0;
