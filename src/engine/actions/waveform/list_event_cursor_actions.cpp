@@ -1079,47 +1079,83 @@ struct EventExportHandler : public EngineActionHandler {
         Json err = check_waveform(action_name());
         if (!err.is_null()) return err;
 
-        auto args = req.value("args", Json::object());
-        std::string signal = args.value("signal", "");
-        if (signal.empty())
-            return make_error("MISSING_FIELD", "args.signal is required for event.export");
-
-        std::string event_kind = args.value("event", "any_change");
-
-        auto* wf = engine_globals().waveform.get();
-        uint32_t ref = wf->find_signal(signal);
-        if (ref == IWaveformBackend::kInvalidSignalRef)
-            return make_error("SIGNAL_NOT_FOUND", "signal not found in waveform: " + signal);
-
-        uint64_t begin = 0, end = wf->max_time();
-        if (args.contains("begin") && !parse_time_arg(args["begin"], begin))
-            return make_error("INVALID_TIME", "args.begin must be an integer");
-        if (args.contains("end") && !parse_time_arg(args["end"], end))
-            return make_error("INVALID_TIME", "args.end must be an integer");
-
-        uint32_t begin_ti = wf->time_idx_of(begin);
-        uint32_t end_ti = wf->time_idx_of(end);
-
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
-
-        std::string target_value = args.value("value", "");
-
-        Json events_arr = Json::array();
-        int found_count = 0;
-        find_events_on_signal(wf, ref, event_kind, begin_ti, end_ti,
-                              target_value, fmt, events_arr, found_count, -1);
-
-        Json out;
-        out["ok"] = true;
-        out["summary"] = {
-            {"signal", signal},
-            {"event", event_kind},
-            {"event_count", found_count},
-            {"range", {{"begin", begin}, {"end", end}}}
-        };
-        out["data"] = {{"events", events_arr}};
-        return out;
+        const Json args = req.at("args");
+        Json query = args;
+        query["mode"] = "all";
+        query["line_limit"] = args.value("max_events",
+            std::numeric_limits<uint32_t>::max());
+        Json result = run_event_find(query);
+        if (!result.value("ok", false)) return result;
+        Json events = result.at("data").at("events");
+        Json aggregate{{"count", result.at("summary").at("total_count")},
+                       {"groups", Json::object()}, {"group_count", 0}};
+        if (args.contains("aggregate") &&
+            args.at("aggregate").contains("group_by")) {
+            for (const Json& event : events) {
+                std::string key;
+                for (const Json& group_json : args.at("aggregate").at("group_by")) {
+                    const std::string group = group_json;
+                    const Json* value = nullptr;
+                    if (event.at("signals").contains(group))
+                        value = &event.at("signals").at(group);
+                    else if (event.at("fields").contains(group))
+                        value = &event.at("fields").at(group);
+                    if (!key.empty()) key += "|";
+                    key += group + "=" + (value ? value->at("value").get<std::string>()
+                                             : std::string("<missing>"));
+                }
+                aggregate["groups"][key] =
+                    aggregate["groups"].value(key, 0u) + 1;
+            }
+            aggregate["group_count"] = aggregate["groups"].size();
+        }
+        Json data{{"sampling", result.at("data").at("sampling")}};
+        const bool include_events = !args.contains("aggregate") ||
+            args.at("aggregate").value("events", true);
+        if (include_events) data["events"] = events;
+        if (args.contains("aggregate")) data["aggregate"] = aggregate;
+        Json summary = result.at("summary");
+        summary["mode"] = "export";
+        summary["row_count"] = result.at("summary").at("total_count");
+        summary["line_limit"] = args.value("line_limit", 16);
+        const bool written = args.contains("output") &&
+            args.at("output").contains("path");
+        summary["status"] = written ? "written" : "preview";
+        summary["output_written"] = written;
+        if (!written) {
+            if (include_events) {
+                const size_t limit = args.value("line_limit", 16u);
+                while (data["events"].size() > limit)
+                    data["events"].erase(data["events"].end() - 1);
+                summary["returned_count"] = data["events"].size();
+                const bool truncated = data["events"].size() < events.size();
+                summary["response_truncated"] = truncated;
+                summary["truncation_scopes"] = truncated
+                    ? Json::array({"response_events"}) : Json::array();
+            } else {
+                summary["returned_count"] = 0;
+                summary["response_truncated"] = false;
+                summary["truncation_scopes"] = Json::array();
+            }
+        } else {
+            const std::filesystem::path path =
+                args.at("output").at("path").get<std::string>();
+            if (!path.parent_path().empty()) {
+                std::error_code error;
+                std::filesystem::create_directories(path.parent_path(), error);
+                if (error) return make_error("EXPORT_FAILED", error.message());
+            }
+            std::ofstream output(path, std::ios::trunc);
+            output << Json{{"events", events}, {"aggregate", aggregate},
+                           {"sampling", data.at("sampling")}}.dump(2) << '\n';
+            if (!output) return make_error("EXPORT_FAILED", "cannot write event output");
+            summary["output"] = {{"path", path.string()}, {"file_format", "json"}};
+            summary["returned_count"] = result.at("summary").at("total_count");
+            summary["response_truncated"] = false;
+            summary["truncation_scopes"] = Json::array();
+            data = {{"sampling", result.at("data").at("sampling")}};
+        }
+        return {{"ok", true}, {"summary", summary}, {"data", data}};
     }
 };
 
