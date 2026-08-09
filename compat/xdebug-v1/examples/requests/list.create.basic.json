@@ -1,0 +1,14 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "list.create",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "name": "if0",
+    "signals": [
+      "top.u.valid",
+      "top.u.ready"
+    ]
+  }
+}

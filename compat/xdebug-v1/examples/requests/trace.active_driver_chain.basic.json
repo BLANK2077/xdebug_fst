@@ -1,0 +1,13 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "trace.active_driver_chain",
+  "target": {
+    "daidir": "simv.daidir",
+    "fsdb": "waves.fsdb"
+  },
+  "args": {
+    "signal": "top.data_out",
+    "time": "50ns",
+    "value_format": "hex"
+  }
+}

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -54,6 +55,21 @@ bool matches(const ActionSpec& spec, const Json& filter) {
     return true;
 }
 
+std::string data_path(const std::string& relative) {
+    return std::string(XDEBUG_FST_SOURCE_DIR) + "/compat/xdebug-v1/" + relative;
+}
+
+bool read_json(const std::string& relative, Json& value) {
+    std::ifstream input(data_path(relative));
+    if (!input.good()) return false;
+    try {
+        input >> value;
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 }  // namespace
 
 CatalogResult build_actions_catalog(const Json& args) {
@@ -82,6 +98,69 @@ CatalogResult build_actions_catalog(const Json& args) {
         {"actions", actions},
         {"modes", modes},
         {"filters", filter}
+    };
+    return result;
+}
+
+CatalogResult build_schema_catalog(const Json& args) {
+    CatalogResult result;
+    const std::string action = args.value("action", std::string());
+    const std::string kind = args.value("kind", std::string("request"));
+    const ActionSpec* spec = PublicActionRegistry::instance().find(action);
+    if (!spec) {
+        result.ok = false;
+        result.error = {
+            {"code", "UNKNOWN_ACTION"},
+            {"message", "unknown action: " + action},
+            {"recoverable", true},
+            {"error_layer", "handler"},
+            {"invalid_arg", "args.action"},
+            {"received", action}
+        };
+        return result;
+    }
+    if (kind != "request" && kind != "response") {
+        result.ok = false;
+        result.error = {
+            {"code", "INVALID_ENUM"},
+            {"message", "schema args.kind must be request or response"},
+            {"recoverable", true},
+            {"error_layer", "handler"},
+            {"invalid_arg", "args.kind"},
+            {"expected", "one of request, response"},
+            {"received", kind},
+            {"available_values", Json::array({"request", "response"})}
+        };
+        return result;
+    }
+
+    const std::string schema_path =
+        kind == "request" ? spec->request_schema : spec->response_schema;
+    Json schema;
+    if (!read_json(schema_path, schema)) {
+        result.ok = false;
+        result.error = {
+            {"code", "ACTION_SCHEMA_NOT_FOUND"},
+            {"message", "schema not found for " + action + " " + kind},
+            {"recoverable", true},
+            {"error_layer", "handler"}
+        };
+        return result;
+    }
+
+    Json examples = Json::array();
+    const auto& paths = kind == "request" ? spec->request_examples : spec->response_examples;
+    for (const auto& path : paths) {
+        Json value;
+        if (read_json(path, value)) examples.push_back({{"path", path}, {"value", value}});
+    }
+    result.summary = {{"action", action}, {"kind", kind}};
+    result.data = {
+        {"schema", schema},
+        {"schema_path", schema_path},
+        {"examples", examples},
+        {"constraints", schema.value("x-agent", Json::object()).value(
+            "constraints", Json::array())}
     };
     return result;
 }

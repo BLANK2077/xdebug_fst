@@ -1,0 +1,14 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "scope.list",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "path": "top",
+    "level": 1,
+    "kind": "all",
+    "include_patterns": [],
+    "exclude_patterns": []
+  }
+}

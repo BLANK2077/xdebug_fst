@@ -1,0 +1,42 @@
+{
+  "api_version": "xdebug.v1",
+  "ok": true,
+  "action": "trace.load",
+  "tool": {
+    "name": "xdebug",
+    "version": "0.1.0"
+  },
+  "session": null,
+  "summary": {
+    "signal": "top.u.ready",
+    "mode": "load",
+    "scan_complete": true,
+    "analysis_complete": true,
+    "response_truncated": false,
+    "total_count": 1,
+    "returned_count": 1,
+    "truncation_scopes": []
+  },
+  "data": {
+    "paths": [
+      {
+        "file": "rtl/consumer.sv",
+        "line": 57,
+        "source_context": [
+          {"line": 54, "text": "always_ff @(posedge clk) begin", "active": false},
+          {"line": 55, "text": "  if (rst) begin", "active": false},
+          {"line": 56, "text": "    hold <= 1'b0;", "active": false},
+          {"line": 57, "text": "  end else if (ready) begin", "active": true},
+          {"line": 58, "text": "    hold <= data_i;", "active": false},
+          {"line": 59, "text": "  end", "active": false},
+          {"line": 60, "text": "end", "active": false}
+        ],
+        "signal_path": [
+          "top.u.ready",
+          "top.u.hold"
+        ]
+      }
+    ]
+  },
+  "error": null
+}

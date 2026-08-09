@@ -1,0 +1,19 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "apb.query",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "name": "if0",
+    "direction": "read",
+    "address": {
+      "mode": "mask",
+      "value": "32'h00001000",
+      "mask": "32'hffffff00"
+    },
+    "query": {
+      "line_limit": 1
+    }
+  }
+}

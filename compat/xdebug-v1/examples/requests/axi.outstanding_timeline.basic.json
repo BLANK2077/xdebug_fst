@@ -1,0 +1,12 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "axi.outstanding_timeline",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "name": "if0",
+    "direction": "all",
+    "line_limit": 100
+  }
+}

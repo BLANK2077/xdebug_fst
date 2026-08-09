@@ -1,0 +1,17 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "stream.validate",
+  "target": {
+    "session_id": "wave0"
+  },
+  "args": {
+    "stream": "req_stream",
+    "dynamic": true,
+    "cache_scope": "full",
+    "time_range": {
+      "begin": "0ns",
+      "end": "1us"
+    },
+    "line_limit": 256
+  }
+}

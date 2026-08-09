@@ -98,6 +98,37 @@ def verify_frozen_files(repo_root: Path) -> list[str]:
         errors.append("BASELINE.json manifest hash does not match SHA256SUMS")
     if sha256(baseline_dir / "catalog.response.json") != metadata["catalog"]["response_sha256"]:
         errors.append("BASELINE.json catalog hash does not match frozen response")
+
+    examples_manifest = baseline_dir / "EXAMPLES_SHA256SUMS"
+    example_paths: set[Path] = set()
+    for line_number, line in enumerate(
+        examples_manifest.read_text(encoding="utf-8").splitlines(), 1
+    ):
+        match = re.fullmatch(r"([0-9a-f]{64})  (examples/.+\.json)", line)
+        if not match:
+            errors.append(f"EXAMPLES_SHA256SUMS:{line_number}: malformed entry")
+            continue
+        expected_hash, relative_text = match.groups()
+        relative = Path(relative_text)
+        example_paths.add(relative)
+        path = baseline_dir / relative
+        if not path.is_file():
+            errors.append(f"missing frozen example: {relative}")
+        elif sha256(path) != expected_hash:
+            errors.append(f"example hash mismatch: {relative}")
+    actual_examples = {
+        path.relative_to(baseline_dir)
+        for path in (baseline_dir / "examples").rglob("*.json")
+    }
+    if actual_examples != example_paths:
+        for path in sorted(actual_examples - example_paths):
+            errors.append(f"untracked frozen example: {path}")
+        for path in sorted(example_paths - actual_examples):
+            errors.append(f"manifest example missing from tree: {path}")
+    if len(example_paths) != metadata["examples"]["json_file_count"]:
+        errors.append(f"expected {metadata['examples']['json_file_count']} examples, found {len(example_paths)}")
+    if sha256(examples_manifest) != metadata["examples"]["sha256_manifest_sha256"]:
+        errors.append("BASELINE.json examples manifest hash does not match EXAMPLES_SHA256SUMS")
     return errors
 
 

@@ -1,0 +1,11 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "list.delete",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "name": "if0",
+    "index": 1
+  }
+}

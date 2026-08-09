@@ -1,0 +1,10 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "axi.channel_stall",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "name": "if0"
+  }
+}

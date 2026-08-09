@@ -1,0 +1,28 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "axi.query",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "name": "if0",
+    "direction": "write",
+    "address": {
+      "mode": "range",
+      "begin": "32'h00001000",
+      "end": "32'h00001fff"
+    },
+    "id": {
+      "mode": "range",
+      "begin": "4'h1",
+      "end": "4'h7"
+    },
+    "time_range": {
+      "begin": "100ns",
+      "end": "200ns"
+    },
+    "query": {
+      "line_limit": 1
+    }
+  }
+}

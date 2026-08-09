@@ -10,6 +10,7 @@
 #include "waveform/cursor/cursor_manager.h"
 #include "api/json_types.h"
 #include "protocol/public_catalog.h"
+#include "protocol/response.h"
 
 #include <cstdio>
 #include <unistd.h>
@@ -23,11 +24,18 @@ namespace xdebug_fst {
 
 // ── Helpers ──
 
-static Json error_response(const std::string& code, const std::string& msg) {
-    return Json{{"ok", false}, {"error", {{"code", code}, {"message", msg}}}};
+static Json error_response(const std::string& code,
+                           const std::string& msg,
+                           const std::string& layer = "handler",
+                           bool recoverable = true) {
+    return Json{{"ok", false},
+                {"error", {{"code", code},
+                           {"message", msg},
+                           {"recoverable", recoverable},
+                           {"error_layer", layer}}}};
 }
 
-static Json dispatch(const Json& request) {
+static Json dispatch_handler(const Json& request) {
     std::string action = request.value("action", "");
     if (action.empty()) {
         return error_response("MISSING_ACTION", "request must contain 'action'");
@@ -43,14 +51,12 @@ static Json dispatch(const Json& request) {
     }
 
     if (action == "schema") {
-        std::string schema_action = request.value("args", Json::object()).value("action", "");
-        return Json{
-            {"ok", true},
-            {"schema", {
-                {"action", schema_action},
-                {"kind", request.value("args", Json::object()).value("kind", "request")},
-            }}
-        };
+        const CatalogResult catalog =
+            build_schema_catalog(request.value("args", Json::object()));
+        if (!catalog.ok) return Json{{"ok", false}, {"error", catalog.error}};
+        return Json{{"ok", true},
+                    {"summary", catalog.summary},
+                    {"data", catalog.data}};
     }
 
     if (action == "session.open") {
@@ -220,7 +226,8 @@ static Json dispatch(const Json& request) {
                 responses.push_back(error_response("MISSING_ACTION", "batch item must be an object"));
                 continue;
             }
-            responses.push_back(dispatch(sub));
+            responses.push_back(canonical_response(
+                sub, sub.value("action", "error"), dispatch_handler(sub)));
         }
         return Json{{"ok", true},
                     {"summary", {{"request_count", responses.size()}}},
@@ -248,6 +255,11 @@ static Json dispatch(const Json& request) {
     } catch (const std::exception& e) {
         return error_response("INTERNAL_ERROR", std::string("handler threw: ") + e.what());
     }
+}
+
+static Json dispatch(const Json& request) {
+    const std::string action = request.is_object() ? request.value("action", "") : "";
+    return canonical_response(request, action, dispatch_handler(request));
 }
 
 // ── One-shot mode ──

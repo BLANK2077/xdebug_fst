@@ -21,6 +21,10 @@
     "sha256_manifest_entry_count": 285,
     "sha256_manifest_sha256": "5d2882cdc06bbdc8bc03ea1fb6d9bb888bc9de316d8936cbeb67188f26da53f0"
   },
+  "examples": {
+    "json_file_count": 215,
+    "sha256_manifest_sha256": "7f59b0a98ba9e3ed03b8ecb5c6ccebcd4efac7bdae5e15dbd7ec204a3735b672"
+  },
   "license": {
     "project_license": "MIT",
     "license_sha256": "f64c58537ae9534f10aef9527aeaf21d2d5d014ab9e2d9c6fac61b0a673c1c74",

@@ -1,0 +1,11 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "trace.active_driver",
+  "target": {
+    "session_id": "my_debug_session"
+  },
+  "args": {
+    "signal": "top.u.ready",
+    "time": "120ns"
+  }
+}

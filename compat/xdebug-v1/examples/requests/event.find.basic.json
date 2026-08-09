@@ -1,0 +1,18 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "event.find",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "clock": "top.u.clk",
+    "signals": {
+      "valid": "top.u.valid",
+      "ready": "top.u.ready",
+      "wait_count": "top.u.dbg_wait_count"
+    },
+    "expr": "valid && !ready && wait_count >= 512",
+    "mode": "all",
+    "line_limit": 5
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "event.config.load",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "name": "if0",
+    "config_path": "events.json"
+  }
+}

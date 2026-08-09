@@ -1,0 +1,19 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "verify.conditions",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "clock": "top.u.clk",
+    "signals": {
+      "valid": "top.u.valid"
+    },
+    "conditions": [
+      {
+        "expr": "valid == 'h1"
+      }
+    ],
+    "time": "100ns"
+  }
+}

@@ -71,8 +71,12 @@ def test_schema_action(cli_runner: CliRunner) -> None:
         "args": {"action": "value.at", "kind": "request"},
     })
     assert result.ok
-    assert result.response["schema"]["action"] == "value.at"
-    assert result.response["schema"]["kind"] == "request"
+    assert result.response["summary"]["action"] == "value.at"
+    assert result.response["summary"]["kind"] == "request"
+    assert result.response["data"]["schema"]["$id"] == "xdebug.value.at.request.v1"
+    assert result.response["data"]["schema_path"] == \
+        "schemas/v1/actions/value.at.request.schema.json"
+    assert result.response["data"]["examples"]
 
 
 def test_batch_aggregates_responses(loop_runner: StdioLoopRunner,

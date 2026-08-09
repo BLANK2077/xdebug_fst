@@ -1,0 +1,13 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "batch",
+  "args": {
+    "requests": [
+      {
+        "api_version": "xdebug.v1",
+        "action": "session.list",
+        "args": {}
+      }
+    ]
+  }
+}

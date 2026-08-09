@@ -1,0 +1,18 @@
+{
+  "api_version": "xdebug.v1",
+  "action": "list.export",
+  "target": {
+    "session_id": "case_a"
+  },
+  "args": {
+    "name": "if0",
+    "time_range": {
+      "begin": "0ns",
+      "end": "1us"
+    },
+    "output": {
+      "path": "artifacts/if0_list_export",
+      "file_format": "u64bin"
+    }
+  }
+}
