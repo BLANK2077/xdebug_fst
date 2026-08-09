@@ -6,6 +6,18 @@
 
 Goal 系统不允许在 active 状态原地改写 objective。旧 objective 中仍可见的 TCP/file transport 表述已被用户后续指令废止，不得据此恢复 TCP/file；不得为了改写文字而把尚未完成的 Goal 错误标记为 `complete` 或 `blocked`，也不得重建 Goal 以丢失既有执行状态。
 
+### 2026-08-10 用户再次确认的解释锁
+
+用户再次明确：**本项目只需要并且也必须适配 FST 波形，不得退化为“用 FST 做分析”。** 这句话在当前 Goal 中按以下唯一含义执行：
+
+1. “适配 FST”是波形输入适配要求，FST 只提供运行时波形事实；
+2. “分析”仍是冻结的 xdebug action 合同、算法和错误语义的职责，必要时结合 Verilator DesignDB 静态事实；
+3. Wellen 只直接、按需、保真读取当前 session 的原始 `.fst`，不实现或替代 xdebug 调试语义；
+4. 不得把 xdebug-fst 描述、设计或验收成“FST 分析引擎”，不得从“FST-only”推导出简化 action、只看信号和值变化、预扫全文件或建立中间分析库；
+5. 后续交接摘要、上下文压缩、阶段切换、测试补洞和 Verilator 修改都必须显式继承 `GOAL-FST-DIRECT-001`，不得因旧 Goal objective、旧术语或历史实现重新解释本边界。
+
+若任何实现方向同时满足不了“FST 是唯一且必须支持的波形输入”和“FST 不是分析引擎”这两项要求，该方向即违反当前 Goal，必须停止，不能以测试通过为由接受。
+
 ## 二、唯一允许的波形数据流
 
 当前 Goal 只需要并且也必须完整适配 **FST 波形**。唯一允许的数据流是：
@@ -59,6 +71,7 @@ active-driver 的 activation predicate 也属于上述静态 HDL 事实，而不
 6. Verilator 修改若存在，具备修改前失败证据、必要性证明和独立回归。
 7. TCP/file 仍为明确拒绝的裁剪项。
 8. FST 仍只承担输入格式职责；没有 action 将原版调试语义降级或偷换为“FST 自身分析”。
+9. 本批次的计划、提交说明和交接材料均继续引用 `GOAL-FST-DIRECT-001`，没有把“FST-only”缩写成会引起“FST 自身分析”误解的架构描述。
 
 任一项不满足时，该批次不得提交，最终 Goal 也不得标记为 `complete`；即使 73 个 action 或现有测试已经通过也不例外。
 

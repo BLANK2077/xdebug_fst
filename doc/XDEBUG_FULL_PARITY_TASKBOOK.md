@@ -51,6 +51,8 @@ Goal 不可漂移约束：[`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY
 
 当前 Goal 系统不能原地改写 active objective。该限制不改变约束效力：Goal objective 第一行将本任务书定义为完整计划来源，因此 `GOAL-FST-DIRECT-001` 是该 Goal 的组成部分；Goal 状态保持 active，直至本门禁与其余 P0–P7 条件同时满足。
 
+2026-08-10 用户再次以“不得退化到用 FST 做分析，只需要并且也必须适配 FST 波形”确认本门禁。该表述已逐项固化在 Goal 权威附件的“用户再次确认的解释锁”中；后续所有计划、实现、测试、提交和交接必须同时证明“FST 是唯一且必须支持的波形输入”与“FST 不是分析引擎”，缺少任一项均视为 Goal 漂移。
+
 ## 一、强制执行顺序
 
 进入实施阶段后，必须严格按照以下顺序开始，不得提前修改其他源码。
