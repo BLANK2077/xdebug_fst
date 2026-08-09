@@ -647,6 +647,9 @@ statement、连续赋值、唯一 RHS 四项同时成立才继续，到达唯一
 `AstAssignForce` 通过现有字符串标为 `force`。真实 FST 中 force 与底层 NBA 同时可见时，
 当前 consumer 错误按普通双 driver 报 ambiguous；冻结原版要求活动 force 优先并就地终止。
 修复只属于 action 分组优先级，FST 不负责识别 force，Wellen 与 ABI 不再修改。
+实现先在已求值活动 group 中筛选 force：唯一 force 覆盖底层 assignment 并就地终止，其
+RHS 只作证据；多个 force 仍报多候选。release 后 force predicate 失活，chain 恢复底层
+NBA。所有状态判断来自 DesignDB 静态类型/谓词/事件与原始 FST 控制边沿，不从值猜 force。
 第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和

@@ -213,6 +213,19 @@ def test_trace_active_driver_chain_stops_at_force(
         "top.matches_top.forced_q",
     ]
 
+    released = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.matches_top.forced_out", "time": "55ps",
+        "render_time_unit": "ps"})
+    assert released.get("ok"), released
+    assert released["summary"]["analysis_complete"] is True
+    assert released["summary"]["termination"] == "assignment"
+    assert released["summary"]["termination_detail"] == \
+        "constant_or_no_rhs_signal"
+    assert [hop["signal"] for hop in released["data"]["hops"]] == [
+        "top.matches_top.forced_out",
+        "top.matches_top.forced_q",
+    ]
+
 
 def test_trace_active_driver_preserves_lowered_nested_if_identity(
         loop_runner: StdioLoopRunner, case_fst, case_design_db) -> None:

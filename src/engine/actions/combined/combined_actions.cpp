@@ -620,6 +620,16 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 if (!statement.rhs.empty()||statement.kind=="nba"||has_control)
                     groups.push_back(statement);
             }
+            const bool has_active_force=std::any_of(
+                groups.begin(),groups.end(),[](const auto& statement) {
+                    return statement.kind=="force";
+                });
+            if (has_active_force) {
+                groups.erase(std::remove_if(
+                    groups.begin(),groups.end(),[](const auto& statement) {
+                        return statement.kind!="force";
+                    }),groups.end());
+            }
             const IDesignBackend::DriverRecord* selected=nullptr;
             IDesignBackend::DriverRecord mapped_driver;
             std::string upstream;
@@ -629,7 +639,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             else if (groups.size()==1&&groups[0].rhs.size()>1)
                 ambiguity_kind="multiple_rhs_sources";
             if (!groups.empty()) selected=representative_driver(groups[0]);
-            if (ambiguity_kind.empty()&&selected&&
+            if (ambiguity_kind.empty()&&selected&&groups[0].kind!="force"&&
                 selected->dependency_role=="rhs") {
                 const std::string candidate=signal_name(design,selected->src_signal);
                 if (!candidate.empty()&&candidate!=current&&
@@ -773,6 +783,10 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     ambiguity_limited=!ambiguity["analysis_complete"].get<bool>();
                 }
                 termination="ambiguous"; detail=ambiguity_kind; break;
+            }
+
+            if (groups.size()==1&&groups[0].kind=="force") {
+                termination="force"; detail="force"; break;
             }
 
             if (upstream.empty()) {

@@ -749,6 +749,11 @@ force 审计证明静态 driver kind 也不能由 FST 值反推。Verilator `90d
 `force`，不改变 ABI 布局、force lowering 或仿真调度。真实 FST 仍只呈现 force 后的运行时
 值；当前 xdebug 在 force 与底层 NBA 同时活动时误报双 driver 歧义，而原版要求 force 优先
 并终止。后续 consumer 必须依据 DesignDB kind 处理优先级，不能靠波形值猜测强制状态。
+最终 chain 在统一 predicate 求值后只保留活动 force groups：一个 force 覆盖底层普通
+assignment，RHS 不成为下一跳并以 `force` 终止；多个 force 仍按静态多候选报告歧义。
+release 本身不伪装成 driver；release 后 force predicate 在最新事件时为 false，底层 NBA
+重新成为活动 statement。这样 DesignDB 提供类型和条件，FST 只提供条件值与事件时刻，
+action 实现原版优先级，职责仍严格分离。
 
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终
