@@ -9,10 +9,13 @@
 #include "api/json_types.h"
 
 #include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <map>
 #include <sstream>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -630,24 +633,114 @@ struct ListFirstChangeHandler : public EngineActionHandler {
 // 9. event.config.list
 // ============================================================================
 
+static std::map<std::string, Json>& event_configs() {
+    static std::map<std::string, Json> configs;
+    return configs;
+}
+
+static bool normalize_event_config(const std::string& name, const Json& input,
+                                   Json& config, std::string& error) {
+    if (!input.is_object() || !input.contains("clock") ||
+        !input.contains("signals") || !input.at("signals").is_object() ||
+        input.at("signals").empty()) {
+        error = "event config requires clock and non-empty signals";
+        return false;
+    }
+    static const std::set<std::string> allowed{
+        "clock", "edge", "sample_point", "reset", "signals", "fields"};
+    for (auto it = input.begin(); it != input.end(); ++it) {
+        if (!allowed.count(it.key())) {
+            error = "unknown event config field: " + it.key();
+            return false;
+        }
+    }
+    auto* wf = engine_globals().waveform.get();
+    const std::string clock = input.at("clock");
+    if (!wf->find_signal(clock)) {
+        error = "clock signal not found: " + clock;
+        return false;
+    }
+    Json signals = Json::object();
+    for (auto it = input.at("signals").begin();
+         it != input.at("signals").end(); ++it) {
+        if (it.key().empty() || !it.value().is_string() ||
+            it.value().get<std::string>().empty()) {
+            error = "event signal aliases and paths must be non-empty strings";
+            return false;
+        }
+        const std::string path = it.value();
+        if (!wf->find_signal(path)) {
+            error = "signal not found in waveform: " + path;
+            return false;
+        }
+        signals[it.key()] = path;
+    }
+    Json fields = Json::object();
+    const Json field_input = input.value("fields", Json::object());
+    for (auto it = field_input.begin(); it != field_input.end(); ++it) {
+        if (!it.value().is_object() || !it.value().contains("signal") ||
+            !it.value().contains("left") || !it.value().contains("right")) {
+            error = "event field must contain signal, left, and right: " + it.key();
+            return false;
+        }
+        const std::string alias = it.value().at("signal");
+        if (!signals.contains(alias)) {
+            error = "field references unknown signal alias: " + alias;
+            return false;
+        }
+        fields[it.key()] = {{"signal", alias}, {"left", it.value().at("left")},
+                            {"right", it.value().at("right")}};
+    }
+    config = {{"name", name}, {"clock", clock},
+              {"edge", input.value("edge", "negedge")},
+              {"signals", signals}, {"fields", fields}};
+    if (input.contains("sample_point"))
+        config["sample_point"] = input.at("sample_point");
+    if (input.contains("reset")) {
+        const Json reset = input.at("reset");
+        if (!reset.is_object() || !reset.contains("signal") ||
+            !reset.contains("polarity") ||
+            !wf->find_signal(reset.at("signal").get<std::string>())) {
+            error = "invalid event reset definition";
+            return false;
+        }
+        config["reset"] = reset;
+    }
+    return true;
+}
+
 struct EventConfigListHandler : public EngineActionHandler {
     const char* action_name() const override { return "event.config.list"; }
     bool needs_design() const override { return false; }
     bool needs_waveform() const override { return false; }
 
     Json run(const Json& req) override {
-        (void)req;
-        Json configs = Json::array();
-        configs.push_back({{"name", "rising_edge"}, {"description", "Rising edge: 0 → 1 transition"}});
-        configs.push_back({{"name", "falling_edge"}, {"description", "Falling edge: 1 → 0 transition"}});
-        configs.push_back({{"name", "any_change"}, {"description", "Any value change on the signal"}});
-        configs.push_back({{"name", "value_equals"}, {"description", "Signal value equals a specified value"}});
-        configs.push_back({{"name", "x_occurrence"}, {"description", "Signal has X (unknown) bits"}});
-
-        Json out;
-        out["ok"] = true;
-        out["data"] = {{"configs", configs}};
-        return out;
+        const Json args = req.value("args", Json::object());
+        if (args.contains("name")) {
+            const std::string name = args.at("name");
+            auto found = event_configs().find(name);
+            if (found == event_configs().end())
+                return make_error("CONFIG_NOT_FOUND", "event config not found: " + name);
+            return {{"ok", true}, {"summary", {{"status", "found"}}},
+                    {"data", {{"config", found->second}}}};
+        }
+        const size_t total = event_configs().size();
+        const size_t limit = args.value("line_limit", 16u);
+        const size_t returned = std::min(total, limit);
+        Json names = Json::array();
+        size_t index = 0;
+        for (const auto& [name, config] : event_configs()) {
+            (void)config;
+            if (index++ >= returned) break;
+            names.push_back(name);
+        }
+        const bool truncated = returned < total;
+        return {{"ok", true}, {"summary", {
+            {"scan_complete", true}, {"analysis_complete", true},
+            {"response_truncated", truncated}, {"total_count", total},
+            {"returned_count", returned}, {"truncation_scopes", truncated
+                ? Json::array({"response_events"}) : Json::array()}}},
+            {"data", {{"events", names}}}};
     }
 };
 
@@ -666,31 +759,20 @@ struct EventConfigLoadHandler : public EngineActionHandler {
         if (name.empty())
             return make_error("MISSING_FIELD", "args.name is required for event.config.load");
 
-        // Built-in config details
-        Json config;
-        if (name == "rising_edge") {
-            config = {{"name", "rising_edge"}, {"description", "Rising edge: 0 → 1 transition"},
-                      {"kind", "edge"}, {"params", {{"direction", "rising"}}}};
-        } else if (name == "falling_edge") {
-            config = {{"name", "falling_edge"}, {"description", "Falling edge: 1 → 0 transition"},
-                      {"kind", "edge"}, {"params", {{"direction", "falling"}}}};
-        } else if (name == "any_change") {
-            config = {{"name", "any_change"}, {"description", "Any value change on the signal"},
-                      {"kind", "change"}, {"params", Json::object()}};
-        } else if (name == "value_equals") {
-            config = {{"name", "value_equals"}, {"description", "Signal value equals a specified value"},
-                      {"kind", "value"}, {"params", {{"value", "any"}}}};
-        } else if (name == "x_occurrence") {
-            config = {{"name", "x_occurrence"}, {"description", "Signal has X (unknown) bits"},
-                      {"kind", "x"}, {"params", Json::object()}};
-        } else {
-            return make_error("CONFIG_NOT_FOUND", "event config not found: " + name);
+        std::ifstream input(args.at("config_path").get<std::string>());
+        if (!input) return make_error("CONFIG_READ_FAILED", "cannot open event config");
+        Json document;
+        try { input >> document; }
+        catch (const std::exception& ex) {
+            return make_error("CONFIG_PARSE_FAILED", ex.what());
         }
-
-        Json out;
-        out["ok"] = true;
-        out["data"] = {{"config", config}};
-        return out;
+        Json config;
+        std::string error;
+        if (!normalize_event_config(name, document, config, error))
+            return make_error("CONFIG_INVALID", error);
+        event_configs()[name] = config;
+        return {{"ok", true}, {"summary", {{"status", "loaded"}}},
+                {"data", {{"config", config}}}};
     }
 };
 
