@@ -47,6 +47,23 @@ static Json render_value_json(const std::string& bits, uint32_t width,
     return logic_value_json(v, fmt);
 }
 
+static Json render_typed_value_json(const IWaveformBackend::WaveformValue& value,
+                                    uint32_t width, ValueRenderFormat fmt) {
+    if (value.kind == IWaveformBackend::ValueKind::BitVector)
+        return render_value_json(value.text, width, fmt);
+    if (value.kind == IWaveformBackend::ValueKind::Real)
+        return {{"value", std::to_string(value.real)}, {"known", true}};
+    return {{"value", value.kind == IWaveformBackend::ValueKind::Event
+                          ? "event" : value.text}, {"known", true}};
+}
+
+static bool waveform_values_equal(const IWaveformBackend::WaveformValue& lhs,
+                                  const IWaveformBackend::WaveformValue& rhs) {
+    if (lhs.kind != rhs.kind) return false;
+    if (lhs.kind == IWaveformBackend::ValueKind::Real) return lhs.real == rhs.real;
+    return lhs.text == rhs.text;
+}
+
 /// Check waveform backend is loaded; return error response if not.
 /// Returns a null Json (is_null() == true) when OK.
 static Json check_waveform(const char* action) {
@@ -445,64 +462,77 @@ struct ListFirstChangeHandler : public EngineActionHandler {
             return make_error("LIST_NOT_FOUND", "list not found: " + name);
 
         auto* wf = engine_globals().waveform.get();
-        uint64_t begin = 0, end = wf->max_time();
-        if (args.contains("begin") && !parse_time_arg(args["begin"], begin))
-            return make_error("INVALID_TIME", "args.begin must be an integer");
-        if (args.contains("end") && !parse_time_arg(args["end"], end))
-            return make_error("INVALID_TIME", "args.end must be an integer");
-
+        const Json range = args.at("time_range");
+        uint64_t begin = wf->min_time(), end = wf->max_time();
+        std::string time_error;
+        if (range.contains("begin") &&
+            !wf->parse_time(range.at("begin"), begin, time_error))
+            return make_error("INVALID_TIME", time_error);
+        if (range.contains("end") &&
+            !wf->parse_time(range.at("end"), end, time_error, true))
+            return make_error("INVALID_TIME", time_error);
+        if (begin > end) return make_error("INVALID_TIME_RANGE", "begin exceeds end");
+        TimeRenderUnit unit;
+        Json unit_error;
+        if (!cursor_render_unit(args, unit, unit_error)) return unit_error;
         ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
+        parse_value_render_format(args.value("value_format", "hex"), fmt);
 
-        Json first_changes = Json::array();
-        bool all_no_change = true;
-
-        for (const auto& sig_name : lst->signals) {
-            uint32_t ref = wf->find_signal(sig_name);
-            if (ref == IWaveformBackend::kInvalidSignalRef) continue;
-            if (!wf->is_loaded(ref)) wf->load_signals({ref});
-
+        struct Candidate {
+            std::string signal;
+            uint32_t ref = 0;
+            uint64_t time = 0;
+            IWaveformBackend::WaveformValue before;
+            IWaveformBackend::WaveformValue after;
+            uint32_t width = 0;
+        };
+        std::vector<Candidate> candidates;
+        uint64_t first_time = end;
+        bool found_any = false;
+        const uint32_t begin_ti = wf->time_idx_of(begin);
+        for (const auto& signal : lst->signals) {
+            const uint32_t ref = wf->find_signal(signal);
+            if (!ref) return make_error("SIGNAL_NOT_FOUND",
+                                       "signal not found in waveform: " + signal);
+            wf->load_signals({ref});
             IWaveformBackend::SignalInfo info;
             wf->signal_info(ref, info);
-
-            std::vector<uint32_t> indices = wf->time_indices_of(ref);
-            bool found = false;
-            for (uint32_t ti : indices) {
-                uint64_t t = wf->time_at(ti);
-                if (t < begin || t > end) continue;
-                IWaveformBackend::SignalOffset off;
-                if (!wf->signal_offset_at(ref, ti, off)) continue;
-                if (!off.time_match) continue;
-                std::string bits = wf->signal_value_str(ref, off.start, 0);
-                first_changes.push_back({
-                    {"signal", sig_name},
-                    {"time", t},
-                    {"time_idx", ti},
-                    {"value", render_value_json(bits, info.width, fmt)}
-                });
-                all_no_change = false;
-                found = true;
+            IWaveformBackend::SampledValue baseline;
+            if (!wf->sampled_value_at(ref, begin_ti,
+                                      IWaveformBackend::ObservationPoint::Raw,
+                                      baseline)) continue;
+            for (uint32_t ti : wf->time_indices_of(ref)) {
+                const uint64_t time = wf->time_at(ti);
+                if (time <= begin || time > end) continue;
+                IWaveformBackend::SampledValue after;
+                if (!wf->sampled_value_at(ref, ti,
+                        IWaveformBackend::ObservationPoint::Raw, after)) continue;
+                if (waveform_values_equal(baseline.value, after.value)) continue;
+                found_any = true;
+                first_time = std::min(first_time, time);
+                candidates.push_back({signal, ref, time, baseline.value,
+                                      after.value, info.width});
                 break;
             }
-            if (!found) {
-                // No change found in range – still include with null data
-                first_changes.push_back({
-                    {"signal", sig_name},
-                    {"time", Json(nullptr)},
-                    {"time_idx", Json(nullptr)},
-                    {"value", Json(nullptr)}
-                });
-            }
         }
-
-        Json out;
-        out["ok"] = true;
-        out["summary"] = {{"name", name}, {"range", {{"begin", begin}, {"end", end}}}};
-        out["data"] = {
-            {"first_changes", first_changes},
-            {"all_no_change", all_no_change}
-        };
-        return out;
+        Json changed = Json::array();
+        for (const auto& candidate : candidates) {
+            if (candidate.time != first_time) continue;
+            changed.push_back({
+                {"signal", candidate.signal},
+                {"before_time", wf->format_time(begin, unit)},
+                {"change_time", wf->format_time(candidate.time, unit)},
+                {"before", render_typed_value_json(candidate.before,
+                                                    candidate.width, fmt)},
+                {"after", render_typed_value_json(candidate.after,
+                                                   candidate.width, fmt)}});
+        }
+        Json summary{{"name", name}, {"diff_found", found_any},
+                     {"diff_time", found_any ? Json(wf->format_time(first_time, unit))
+                                             : Json(nullptr)},
+                     {"changed_signal_count", changed.size()}};
+        return {{"ok", true}, {"summary", summary},
+                {"data", {{"changed_signals", changed}}}};
     }
 };
 
