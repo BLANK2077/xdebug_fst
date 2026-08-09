@@ -656,6 +656,13 @@ DesignDB 与 action 已直接通过，因此不修改 Verilator/Wellen/consumer�
 “互斥与重叠条件的双过程 NBA driver”，但不关闭跨层、连续+过程混合、不同调度区或
 时钟域竞争。
 
+第十四批建立跨实例 output 多驱动失败证据：两个 `output_leaf` 实例的同源第 118 行分别
+形成一条父 net driver，静态 RHS 与端口连接足以区分 `u_output_a/u_output_b`。当前仅按
+`(file,line,kind,predicate)` 聚合会把它们误当成同一表达式的两个 RHS，返回
+`multiple_rhs_sources` 而非两条活动候选。修复只能从既有 DesignDB output/input 边恢复
+实例 identity 并纳入 statement key；FST 值、alias 可读性和内部临时信号都不得用于决定
+静态语句数量。这个修复不需要也不允许扩大 XDD ABI。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。

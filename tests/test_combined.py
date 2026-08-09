@@ -327,6 +327,24 @@ def test_trace_active_driver_chain_reports_two_active_procedural_drivers(
         83, 87}
 
 
+def test_trace_active_driver_chain_reports_cross_instance_output_drivers(
+        loop_runner: StdioLoopRunner, case_fst,
+        case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.case_top.cross_instance_multi_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "ambiguous"
+    assert rsp["summary"]["termination_detail"] == \
+        "multiple_active_candidates"
+    evidence = rsp["data"]["ambiguity_evidence"]
+    assert evidence["kind"] == "multiple_active_candidates"
+    assert evidence["statement_count"] == 2
+    assert evidence["rhs_signal_count"] == 2
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:

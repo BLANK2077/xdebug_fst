@@ -660,6 +660,13 @@ active time 仍由 Wellen 直接读取原始 FST 控制值。只有一个谓词�
 “哪个 NBA 赢”，因为原版合同要求暴露同时活动的静态语句；FST 仍不是 HDL 调度分析器。
 该基础证明不覆盖不同 clock、连续+过程混合或跨实例多驱动。
 
+跨实例复用同一模块源码行时，`(file,line,kind,predicate)` 不再是完整 statement identity。
+第十四批中 `u_output_a/u_output_b` 的内部赋值同为第 118 行，父 net 却有两个独立静态
+driver；当前合并后错误变成一个 statement 的两个 RHS。现有 XDD 已能通过每个 output
+port 的父 net 连接、同实例 input port 的扁平化源区分两个实例，因此应由 consumer 把该
+静态实例作用域加入聚合 identity。FST 不包含 HDL statement identity，也不能用内部临时
+信号是否被 dump 来增删 driver。
+
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
 xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为

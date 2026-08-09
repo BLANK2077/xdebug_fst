@@ -86,6 +86,16 @@ module case_top (
         if (sel[0])
             procedural_multi_out <= data + 8'h10;
     end
+
+    wire [7:0] cross_instance_multi_out;
+    output_leaf u_output_a (
+        .data_i(data),
+        .data_o(cross_instance_multi_out)
+    );
+    output_leaf u_output_b (
+        .data_i({6'b0, sel}),
+        .data_o(cross_instance_multi_out)
+    );
 endmodule
 
 module inout_leaf (
