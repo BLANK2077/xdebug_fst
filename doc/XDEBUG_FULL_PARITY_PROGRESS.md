@@ -4,7 +4,7 @@
 
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
 - 当前阶段：P2 进行中（registry、真实 engine 与 UDS 已完成首轮集成）
-- 当前任务：完成 MCP direct/fake-LSF 生命周期对齐并关闭 P2
+- 当前任务：完成 session.open run manifest 与 P2 最终验收
 - xdebug-fst 基线：`1009e5c`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `1d66a9ea5111d1e80d16273a604f92e8c6a51cbd`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `e04eb0ea8203028490400172396add8ec458932b`
@@ -19,7 +19,7 @@
 | --- | --- | --- | --- |
 | P0 | 已完成 | `parity-p0` | 基线、依赖锁、Wellen/Verilator 独立回归和漂移检查均通过 |
 | P1 | 已完成 | `parity-p1` | 73 action、146 schema、请求/响应校验、canonical JSON/XOUT 与 stdio-loop 全部对齐 |
-| P2 | 进行中 | `parity-p2` | registry/generation、真实 UDS engine、idle GC 与失败补偿已落地；MCP/fake-LSF 待完成，TCP/file 已裁剪 |
+| P2 | 进行中 | `parity-p2` | registry、真实 UDS engine、失败补偿及 MCP direct/fake-LSF 已落地；run manifest 待完成，TCP/file 已裁剪 |
 | P3 | 未开始 | `parity-p3` | Wellen 波形语义 |
 | P4 | 未开始 | `parity-p4` | 克制扩展 DesignDB |
 | P5 | 未开始 | `parity-p5` | 全部公共 Action |
@@ -63,9 +63,11 @@
 - P2 registry CTest：覆盖 opening→active CAS、重复名称、双 registry 实例、单调 touch、generation mismatch、条件删除和严格 endpoint round-trip。
 - P2 UDS CTest：真实 fork server/client 往返通过，覆盖 `0600` socket、换行 JSON framing、非法 JSON 拒绝、listener 隔离、非正 timeout 拒绝和断连写入不触发 SIGPIPE。
 - P2 lifecycle CTest：真实 `xdebug-fst --server` 子进程覆盖 TCP/file 明确拒绝且无 fallback、非法 timeout 环境、严格私有控制合同、重复名称、双前端并发 open、启动提前退出补偿、公开 action 经 UDS 路由、ownership token mismatch 保活、正确 token kill、engine SIGKILL 后 doctor/gc、FST fingerprint 变化、idle list 回收，以及同一 stdio-loop 内 open/close 的 child reap；最终 socket 与 active registry 均清空。
+- P2 MCP direct CTest：真实加载 xverif MCP adapter，使用当前 `xdebug-fst` 完成 73 action one-shot catalog、managed stdio `open/doctor/list`、公开 action UDS 路由和 `close`，wrapper 与 native registry 均清空。
+- P2 fake-LSF CTest：使用 xverif 自带 fake bsub/bkill 和当前 `xdebug-fst`，真实覆盖 stdout scheduler noise、job id 识别、managed `open/doctor/close`、bkill 日志与 native registry 清空；未调用真实 LSF，也未切换 backend。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
 ## 剩余差异
 
-P0、P1 已关闭。P2 已完成 registry/generation、真实 engine 子进程、UDS、严格 DesignDB bundle、idle timeout、启动退出诊断、资源 fingerprint 复检、进程崩溃回收与 cleanup_failed 补偿。旧单进程 session 和邻近目录 `.so` 猜测已删除。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；schema enum 保留，实际选择必须 fail closed 且不得 fallback。下一项是 MCP direct/fake-LSF 生命周期；严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
+P0、P1 已关闭。P2 已完成 registry/generation、真实 engine 子进程、UDS、严格 DesignDB bundle、idle timeout、启动退出诊断、资源 fingerprint 复检、进程崩溃回收、cleanup_failed 补偿，以及真实 MCP direct/fake-LSF 生命周期。旧单进程 session 和邻近目录 `.so` 猜测已删除。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；schema enum 保留，实际选择必须 fail closed 且不得 fallback。P2 关闭前剩余 session.open run manifest 对齐；严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。

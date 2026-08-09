@@ -472,6 +472,10 @@ C++ adapter 同时持有：
   DesignDB bundle manifest、ownership token 摘要和 generation 条件清理已落地；
 - UDS 回归真实覆盖父子进程 round-trip、`0600` 权限、非法 JSON、重复名称、
   `open/list/doctor/kill`、token mismatch、公开 action 路由及最终资源清理。
+- 可选 MCP 集成门禁直接加载相邻 xverif MCP adapter：direct 与 fake-LSF 都使用
+  当前 `xdebug-fst --stdio-loop --json`，覆盖 trace metadata、managed ownership token、
+  UDS native engine、scheduler noise、job id、bkill 和双层清理；默认开源构建不强依赖
+  xverif 源树，验收时显式启用 `XDEBUG_ENABLE_MCP_INTEGRATION_TESTS`。
 
 ### 9.3 仍不能宣称完全一致的内容
 

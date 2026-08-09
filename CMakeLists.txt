@@ -21,6 +21,10 @@ set(VERILATOR_REPOSITORY_DIR "${CMAKE_SOURCE_DIR}/../verilator" CACHE PATH
     "Verilator source tree that provides the compatible DesignDB ABI")
 option(XDEBUG_VERIFY_DEPENDENCY_REVISIONS
     "Require the exact Wellen and Verilator revisions from the compatibility lock" ON)
+option(XDEBUG_ENABLE_MCP_INTEGRATION_TESTS
+    "Run integration tests against the adjacent xverif MCP loop wrapper" OFF)
+set(XVERIF_MCP_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../xverif/xverif_mcp/src"
+    CACHE PATH "xverif_mcp source directory used only by optional integration tests")
 
 if(XDEBUG_VERIFY_DEPENDENCY_REVISIONS)
     xdebug_require_git_revision("Wellen" "${WELLEN_REPOSITORY_DIR}" "${XDEBUG_WELLEN_REVISION}")
@@ -158,4 +162,25 @@ if(BUILD_TESTING)
             $<TARGET_FILE:xdebug-fst>
             ${CMAKE_SOURCE_DIR}/testdata/fixtures/waves.fst
     )
+
+    if(XDEBUG_ENABLE_MCP_INTEGRATION_TESTS)
+        if(NOT EXISTS "${XVERIF_MCP_SOURCE_DIR}/xverif_mcp/adapters/xdebug.py")
+            message(FATAL_ERROR
+                "XDEBUG_ENABLE_MCP_INTEGRATION_TESTS requires a valid "
+                "XVERIF_MCP_SOURCE_DIR, got: ${XVERIF_MCP_SOURCE_DIR}")
+        endif()
+        foreach(MCP_MODE direct fake-lsf)
+            add_test(
+                NAME mcp-${MCP_MODE}-lifecycle
+                COMMAND ${Python3_EXECUTABLE}
+                    ${CMAKE_SOURCE_DIR}/tests/test_mcp_lifecycle_integration.py
+                    $<TARGET_FILE:xdebug-fst>
+                    ${CMAKE_SOURCE_DIR}/testdata/fixtures/waves.fst
+                    ${XVERIF_MCP_SOURCE_DIR}
+                    ${MCP_MODE}
+            )
+            set_tests_properties(mcp-${MCP_MODE}-lifecycle PROPERTIES
+                TIMEOUT 30)
+        endforeach()
+    endif()
 endif()

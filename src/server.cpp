@@ -331,6 +331,21 @@ int stdio_loop_main(int argc, char** argv) {
         std::string rid = request.value("id",
                           request.value("request_id", "req-" + std::to_string(req_seq)));
         if (request.contains("id")) request.erase("id");
+        if (request.contains("trace_id")) {
+            if (!request["trace_id"].is_string() ||
+                request["trace_id"].get<std::string>().empty()) {
+                Json env{{"id", rid}, {"ok", false},
+                         {"error", {{"code", "INVALID_REQUEST"},
+                                    {"message", "stdio-loop trace_id must be a non-empty string"}}}};
+                fprintf(stdout, "%s\n", env.dump().c_str());
+                fflush(stdout);
+                continue;
+            }
+            // trace_id is transport observability metadata.  It is consumed
+            // by the loop boundary and never projected into the strict public
+            // xdebug.v1 request envelope.
+            request.erase("trace_id");
+        }
         bool wants_json = json_mode;
         if (request.contains("payload_format")) {
             if (!request["payload_format"].is_string() ||
