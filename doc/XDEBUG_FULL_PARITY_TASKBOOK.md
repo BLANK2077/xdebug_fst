@@ -640,6 +640,14 @@ xdebug 返回 `child_output_bus → top.data` 并跳过三个层级节点。FST 
 consumer 组合，或在证明确有静态事实缺口后对 Verilator 作最小、`--design-db` 专用的
 附加保留。禁止为了补 hop 扫描 FST 寻找同值信号。
 
+审计结果证明这一用例不需要修改 Verilator：XDD 已分别保留 output/input 端口的局部连接、
+父 net 上带原始源行的扁平化 RHS，以及所有端口方向。xdebug consumer 仅在静态事实能
+唯一组合时恢复边界：父 net 进入唯一更深 output port；output 的回边通过父 net 唯一活动
+赋值映射到同一实例的唯一 input port；该 input 的扁平化源再经过最近祖先 input port。
+最终链恢复为 `child_output_bus → u_output.data_o → u_output.data_i → case_top.data →
+top.data`。若任一步不唯一，不得靠 FST 同值搜索猜测。该批关闭基本单输入/单输出模块
+边界，复杂 output 表达式、多输入 RHS、多个 output port 与多驱动组合仍须独立差分。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。

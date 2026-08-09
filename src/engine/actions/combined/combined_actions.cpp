@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <set>
@@ -126,6 +127,36 @@ std::string signal_name(IDesignBackend& design, int index) {
 
 size_t hierarchy_depth(const std::string& signal) {
     return static_cast<size_t>(std::count(signal.begin(),signal.end(),'.'));
+}
+
+std::string signal_scope(const std::string& signal) {
+    const size_t dot=signal.rfind('.');
+    return dot==std::string::npos?std::string():signal.substr(0,dot);
+}
+
+bool is_scope_ancestor(const std::string& ancestor,
+                       const std::string& descendant) {
+    return !ancestor.empty()&&descendant.size()>ancestor.size()&&
+        descendant.compare(0,ancestor.size(),ancestor)==0&&
+        descendant[ancestor.size()]=='.';
+}
+
+std::vector<int> ports_connected_to(IDesignBackend& design,int connected,
+                                    int direction) {
+    std::vector<int> ports;
+    for (int index=0;index<design.signal_count();++index) {
+        if (design.signal_direction(index)!=direction) continue;
+        std::vector<IDesignBackend::PortConnection> connections;
+        design.port_connections(index,connections);
+        const bool matches=std::any_of(connections.begin(),connections.end(),
+            [&](const auto& connection) {
+                const int other=connection.port_signal==index
+                    ?connection.connected_signal:connection.port_signal;
+                return other==connected;
+            });
+        if (matches) ports.push_back(index);
+    }
+    return ports;
 }
 
 bool is_assignment_kind(const std::string& kind) {
@@ -418,6 +449,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         Json hops=Json::array();
         std::set<std::string> visited;
         std::string current=root,termination="no_driver",detail="no_driver";
+        std::string previous;
         uint64_t current_time=time;
         bool limited=false,ambiguity_limited=false,ambiguity_incomplete=false;
         std::string frontier_signal; Sample frontier_sample;
@@ -439,6 +471,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 if (!statement.rhs.empty()) groups.push_back(statement);
             }
             const IDesignBackend::DriverRecord* selected=nullptr;
+            IDesignBackend::DriverRecord mapped_driver;
             std::string upstream;
             std::string ambiguity_kind;
             if (!evaluated.unresolved.empty()) ambiguity_kind="predicate_unresolved";
@@ -452,6 +485,83 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 if (!candidate.empty()&&candidate!=current&&
                     sample_at(waveform,candidate,sample.active_time).ok)
                     upstream=candidate;
+            }
+
+            const int direction=design.signal_direction(index);
+            if (ambiguity_kind.empty()&&direction==0) {
+                std::vector<int> output_ports=ports_connected_to(design,index,2);
+                output_ports.erase(std::remove_if(output_ports.begin(),output_ports.end(),
+                    [&](int port) {
+                        const std::string candidate=signal_name(design,port);
+                        return hierarchy_depth(candidate)<=hierarchy_depth(current);
+                    }),output_ports.end());
+                const std::string output_candidate=output_ports.size()==1
+                    ?signal_name(design,output_ports.front()):std::string();
+                if (!output_candidate.empty()&&
+                    sample_at(waveform,output_candidate,sample.active_time).ok) {
+                    upstream=output_candidate;
+                    selected=nullptr;
+                }
+            }
+
+            if (ambiguity_kind.empty()&&direction==2&&!previous.empty()&&
+                upstream==previous) {
+                const int parent_index=design.resolve(previous.c_str());
+                const auto parent_evaluated=active_statement_groups(
+                    drivers_for(design,parent_index),waveform,sample.active_time);
+                if (parent_evaluated.unresolved.empty()&&
+                    parent_evaluated.active.size()==1&&
+                    parent_evaluated.active[0].rhs.size()==1) {
+                    const auto& flattened=parent_evaluated.active[0].rhs[0];
+                    std::vector<int> input_ports=ports_connected_to(
+                        design,flattened.src_signal,1);
+                    const std::string instance_scope=signal_scope(current);
+                    input_ports.erase(std::remove_if(input_ports.begin(),input_ports.end(),
+                        [&](int port) {
+                            return signal_scope(signal_name(design,port))!=instance_scope;
+                        }),input_ports.end());
+                    if (input_ports.size()==1) {
+                        mapped_driver=flattened;
+                        mapped_driver.src_signal=input_ports.front();
+                        selected=&mapped_driver;
+                        upstream=signal_name(design,input_ports.front());
+                    }
+                }
+            }
+
+            if (ambiguity_kind.empty()&&direction==1&&selected) {
+                std::vector<int> ancestor_ports=ports_connected_to(
+                    design,selected->src_signal,1);
+                const std::string current_scope=signal_scope(current);
+                ancestor_ports.erase(std::remove_if(
+                    ancestor_ports.begin(),ancestor_ports.end(),[&](int port) {
+                        if (port==index) return true;
+                        const std::string candidate=signal_name(design,port);
+                        return !is_scope_ancestor(signal_scope(candidate),current_scope);
+                    }),ancestor_ports.end());
+                if (!ancestor_ports.empty()) {
+                    const size_t nearest_depth=hierarchy_depth(signal_name(design,
+                        *std::max_element(ancestor_ports.begin(),ancestor_ports.end(),
+                            [&](int left,int right) {
+                                return hierarchy_depth(signal_name(design,left))<
+                                    hierarchy_depth(signal_name(design,right));
+                            })));
+                    std::vector<int> nearest_ports;
+                    std::copy_if(ancestor_ports.begin(),ancestor_ports.end(),
+                        std::back_inserter(nearest_ports),[&](int port) {
+                            return hierarchy_depth(signal_name(design,port))==nearest_depth;
+                        });
+                    if (nearest_ports.size()==1) {
+                        const std::string candidate=signal_name(
+                            design,nearest_ports.front());
+                        if (sample_at(waveform,candidate,sample.active_time).ok) {
+                            mapped_driver=*selected;
+                            mapped_driver.src_signal=nearest_ports.front();
+                            selected=&mapped_driver;
+                            upstream=candidate;
+                        }
+                    }
+                }
             }
             hops.push_back(trace_hop(depth,current,sample,depth==0?"root":"driver",
                 selected,design,index,waveform,unit,format));
@@ -521,6 +631,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 limited=true; termination="limit"; detail="max_depth";
                 break;
             }
+            previous=current;
             current=upstream;
             current_time=next_time;
         }

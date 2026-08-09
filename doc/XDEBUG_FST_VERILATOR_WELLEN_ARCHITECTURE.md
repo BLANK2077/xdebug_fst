@@ -637,6 +637,22 @@ output 方向不能照搬上述父向 input/inout 规则。冻结原版的 modul
 中所有 alias 值一致，也绝不能据此补造端口 hop；后续只能消费 DesignDB 已有的精确静态
 边，或在证明信息已经丢失后，以不改变普通 Verilator 的最小 DesignDB 专用事实保留修复。
 
+实际 XDD 审计显示无需扩大 Verilator：`data_o` 仍静态连接父级
+`child_output_bus`，`data_i` 仍静态连接扁平化源 `top.data`，父 net 的 driver 仍带内部
+赋值第 98 行和同一个扁平化 RHS。consumer 因此增加三个受唯一性约束的静态图步骤：
+
+1. 非端口 net 只在恰有一个更深 output port 反向连接时进入该 port；
+2. output port 的 driver 若只是刚离开的父 net，则读取父 net 的唯一活动静态赋值，并在
+   output 所在实例内寻找连接该 RHS 的唯一 input port；
+3. input port 的 RHS 若越过祖先实例端口，则在所有连接同一静态源的 input port 中选择
+   作用域为当前实例祖先且层级最近者。
+
+这些选择只使用 DesignDB 的 direction、port connection、driver、predicate 和层级路径。
+Wellen/FST 仅验证选定 hop 在 active time 可读取并呈现其值，绝不参与候选发现、同值搜索
+或层级推断。任何候选不唯一的扩展场景都不会由本算法任选其一，必须先建立新差分并另行
+定义完整性/歧义合同；不能把本批基本单输入/单输出模块边界算法外推到复杂 output 表达式
+或多驱动。
+
 NBA 自引用还要求区分“没有非自身 RHS”与“只有控制语句”。Verilator emitter 会避免把
 目标自身重复发布为 RHS，但仍以 `nba`、`proc_assign` 或 `cont_assign` 标明静态赋值类型；
 xdebug-fst 因此在活动谓词已由 FST 值判真的前提下，将这类无可继续 RHS 的节点终止为
