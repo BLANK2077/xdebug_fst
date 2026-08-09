@@ -9,6 +9,7 @@
 #include "api/json_types.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <memory>
 #include <sstream>
@@ -62,6 +63,35 @@ static bool waveform_values_equal(const IWaveformBackend::WaveformValue& lhs,
     if (lhs.kind != rhs.kind) return false;
     if (lhs.kind == IWaveformBackend::ValueKind::Real) return lhs.real == rhs.real;
     return lhs.text == rhs.text;
+}
+
+static std::string export_stem(const std::string& signal, size_t index) {
+    std::string stem = std::to_string(index) + "_";
+    for (char c : signal)
+        stem.push_back(std::isalnum(static_cast<unsigned char>(c)) ? c : '_');
+    return stem;
+}
+
+static void write_u64_le(std::ofstream& output, uint64_t value) {
+    for (unsigned shift = 0; shift < 64; shift += 8)
+        output.put(static_cast<char>((value >> shift) & 0xffu));
+}
+
+static bool write_logic_row(std::ofstream& output, uint64_t time,
+                            const std::string& bits, size_t word_count) {
+    write_u64_le(output, time);
+    std::vector<uint64_t> values(word_count, 0), known(word_count, 0);
+    for (size_t bit = 0; bit < bits.size(); ++bit) {
+        const char state = bits[bits.size() - bit - 1];
+        const size_t word = bit / 64;
+        const uint64_t mask = uint64_t{1} << (bit % 64);
+        if (state == '1' || state == 'H' || state == 'h') values[word] |= mask;
+        if (state == '0' || state == '1' || state == 'L' || state == 'l' ||
+            state == 'H' || state == 'h') known[word] |= mask;
+    }
+    for (uint64_t word : values) write_u64_le(output, word);
+    for (uint64_t word : known) write_u64_le(output, word);
+    return static_cast<bool>(output);
 }
 
 /// Check waveform backend is loaded; return error response if not.
@@ -393,49 +423,109 @@ struct ListExportHandler : public EngineActionHandler {
             return make_error("LIST_NOT_FOUND", "list not found: " + name);
 
         auto* wf = engine_globals().waveform.get();
-        uint64_t begin = 0, end = wf->max_time();
-        if (args.contains("begin") && !parse_time_arg(args["begin"], begin))
-            return make_error("INVALID_TIME", "args.begin must be an integer");
-        if (args.contains("end") && !parse_time_arg(args["end"], end))
-            return make_error("INVALID_TIME", "args.end must be an integer");
-
-        ValueRenderFormat fmt = ValueRenderFormat::Hex;
-        parse_value_render_format(args.value("render_format", "hex"), fmt);
-
-        Json exports = Json::array();
-        for (const auto& sig_name : lst->signals) {
-            uint32_t ref = wf->find_signal(sig_name);
-            if (ref == IWaveformBackend::kInvalidSignalRef) continue;
-            if (!wf->is_loaded(ref)) wf->load_signals({ref});
-
-            IWaveformBackend::SignalInfo info;
-            wf->signal_info(ref, info);
-
-            Json changes = Json::array();
-            std::vector<uint32_t> indices = wf->time_indices_of(ref);
-            for (uint32_t ti : indices) {
-                uint64_t t = wf->time_at(ti);
-                if (t < begin || t > end) continue;
-                IWaveformBackend::SignalOffset off;
-                if (!wf->signal_offset_at(ref, ti, off)) continue;
-                if (!off.time_match) continue;
-                std::string bits = wf->signal_value_str(ref, off.start, 0);
-                changes.push_back({
-                    {"time", t},
-                    {"value", render_value_json(bits, info.width, fmt)}
-                });
-            }
-            exports.push_back({
-                {"signal", sig_name},
-                {"changes", changes}
-            });
+        uint64_t begin = wf->min_time(), end = wf->max_time();
+        const Json range = args.value("time_range", Json::object());
+        std::string time_error;
+        if (range.contains("begin") &&
+            !wf->parse_time(range.at("begin"), begin, time_error))
+            return make_error("INVALID_TIME", time_error);
+        if (range.contains("end") &&
+            !wf->parse_time(range.at("end"), end, time_error, true))
+            return make_error("INVALID_TIME", time_error);
+        if (begin > end) return make_error("TIME_RANGE_INVALID", "end is before begin");
+        TimeRenderUnit unit;
+        Json unit_error;
+        if (!cursor_render_unit(args, unit, unit_error)) return unit_error;
+        const std::string rendered_begin = wf->format_time(begin, unit);
+        const std::string rendered_end = wf->format_time(end, unit);
+        const size_t total = lst->signals.size();
+        if (!args.contains("output") ||
+            !args.at("output").contains("path")) {
+            const int line_limit = args.value("line_limit", 16);
+            const size_t returned = std::min(total, static_cast<size_t>(line_limit));
+            Json signals = Json::array();
+            for (size_t i = 0; i < returned; ++i)
+                signals.push_back({{"index", i}, {"signal", lst->signals[i]}});
+            const bool truncated = returned < total;
+            return {{"ok", true}, {"summary", {
+                {"name", name}, {"row_count", 0}, {"format", "u64bin.v1"},
+                {"begin", rendered_begin}, {"end", rendered_end},
+                {"status", "preview"}, {"output_written", false},
+                {"line_limit", line_limit}, {"scan_complete", true},
+                {"analysis_complete", true}, {"response_truncated", truncated},
+                {"total_count", total}, {"returned_count", returned},
+                {"truncation_scopes", truncated
+                    ? Json::array({"response_signals"}) : Json::array()}}},
+                {"data", {{"signals", signals}}}};
         }
 
-        Json out;
-        out["ok"] = true;
-        out["summary"] = {{"name", name}, {"exported_signals", static_cast<int>(exports.size())}};
-        out["data"] = {{"exports", exports}};
-        return out;
+        const std::filesystem::path output_dir =
+            args.at("output").at("path").get<std::string>();
+        std::error_code filesystem_error;
+        std::filesystem::create_directories(output_dir, filesystem_error);
+        if (filesystem_error)
+            return make_error("EXPORT_FAILED", filesystem_error.message());
+        Json manifest{{"version", 1}, {"format", "u64bin.v1"},
+                      {"list", name}, {"begin", rendered_begin},
+                      {"end", rendered_end},
+                      {"time_unit", "waveform_tick"},
+                      {"row_layout", "uint64_le: time_tick, value_words, known_mask_words"},
+                      {"signals", Json::array()}};
+        size_t row_count = 0;
+        for (size_t i = 0; i < total; ++i) {
+            const std::string& signal = lst->signals[i];
+            const uint32_t ref = wf->find_signal(signal);
+            if (!ref) return make_error("SIGNAL_NOT_FOUND",
+                                       "signal not found in waveform: " + signal);
+            wf->load_signals({ref});
+            IWaveformBackend::SignalInfo info;
+            wf->signal_info(ref, info);
+            if (info.encoding != IWaveformBackend::ValueKind::BitVector)
+                return make_error("UNSUPPORTED_VALUE_TYPE",
+                                  "u64bin requires a bit-vector signal: " + signal);
+            const size_t words = std::max<size_t>(1, (info.width + 63) / 64);
+            const std::string filename = export_stem(signal, i) + ".u64bin";
+            std::ofstream output(output_dir / filename,
+                                 std::ios::binary | std::ios::trunc);
+            if (!output) return make_error("EXPORT_FAILED",
+                                           "cannot create export file: " + filename);
+            size_t rows = 0;
+            const uint32_t begin_ti = wf->time_idx_of(begin);
+            IWaveformBackend::SampledValue baseline;
+            if (wf->sampled_value_at(ref, begin_ti,
+                    IWaveformBackend::ObservationPoint::Raw, baseline) &&
+                write_logic_row(output, begin, baseline.value.text, words)) ++rows;
+            for (uint32_t ti : wf->time_indices_of(ref)) {
+                const uint64_t time = wf->time_at(ti);
+                if (time <= begin || time > end) continue;
+                IWaveformBackend::SampledValue sampled;
+                if (!wf->sampled_value_at(ref, ti,
+                        IWaveformBackend::ObservationPoint::Raw, sampled)) continue;
+                if (!write_logic_row(output, time, sampled.value.text, words))
+                    return make_error("EXPORT_FAILED", "failed to write: " + filename);
+                ++rows;
+            }
+            manifest["signals"].push_back({{"index", i}, {"signal", signal},
+                {"file", filename}, {"row_count", rows}, {"width", info.width},
+                {"word_count", words}, {"columns", 1 + words * 2}});
+            row_count += rows;
+        }
+        manifest["signal_count"] = total;
+        manifest["row_count"] = row_count;
+        const std::filesystem::path manifest_path = output_dir / "manifest.json";
+        std::ofstream manifest_output(manifest_path, std::ios::trunc);
+        manifest_output << manifest.dump(2) << '\n';
+        if (!manifest_output) return make_error("EXPORT_FAILED", "cannot write manifest");
+        return {{"ok", true}, {"summary", {
+            {"name", name}, {"row_count", row_count}, {"format", "u64bin.v1"},
+            {"begin", rendered_begin}, {"end", rendered_end},
+            {"status", "written"}, {"output_written", true},
+            {"output", {{"path", output_dir.string()},
+                        {"manifest_path", manifest_path.string()}}},
+            {"scan_complete", true}, {"analysis_complete", true},
+            {"response_truncated", false}, {"total_count", total},
+            {"returned_count", total}, {"truncation_scopes", Json::array()}}},
+            {"data", Json::object()}};
     }
 };
 
