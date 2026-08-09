@@ -698,4 +698,6 @@ kind，不是从 FST 值变化猜测 HDL 时序；Wellen 只提供 active time �
 - xdebug-fst `ffbc888`：建立同源行三元信号/常量叶子被错误合并的修改前失败证据；
 - xdebug-fst `1119706`：将 predicate 纳入语句身份并以真实 FST 选择同源行三元叶子；
 - xdebug-fst `09fd61a`：建立内部 input alias 沿对称端口边反向折返的修改前失败证据；
-- xdebug-fst `4a1a4c0`：只允许 input 端口向较浅父级上溯并在 primary input 终止。
+- xdebug-fst `4a1a4c0`：只允许 input 端口向较浅父级上溯并在 primary input 终止；
+- xdebug-fst `72ede46`：建立 NBA 目标自引用被误判为 control-only 的修改前失败证据；
+- xdebug-fst `97ed236`：按静态赋值 kind 对无非自身 RHS 的 NBA 返回 assignment 终止。
