@@ -16,10 +16,14 @@ module matches_top (
         end
     end
 
-    reg [7:0] temporal_q;
-    wire [7:0] temporal_out;
-    assign temporal_out = temporal_q;
-    always @(posedge clk) begin
+  reg [7:0] temporal_q;
+  wire [7:0] temporal_out;
+  wire [7:0] temporal_mid;
+  wire [7:0] temporal_deep;
+  assign temporal_out = temporal_q;
+  assign temporal_mid = temporal_q;
+  assign temporal_deep = temporal_mid;
+  always @(posedge clk) begin
         if (reset)
             temporal_q <= 8'h00;
         else

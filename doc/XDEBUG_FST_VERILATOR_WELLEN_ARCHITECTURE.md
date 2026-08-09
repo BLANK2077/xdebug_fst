@@ -728,6 +728,12 @@ DesignDB 决定“哪条语句、哪些事件源”，FST/Wellen 只提供“这
 决定 active-driver 时间与链语义；因此没有把 FST 升格为分析器，也没有固定周期、任意时钟、
 同值扫描、转换、离线事件索引、全量波形快照或 fallback。
 
+直接一层闭环后，第十九批用 `temporal_deep → temporal_mid → temporal_q(NBA)` 证明静态
+连续链深度不能写死。修改前 DesignDB 已有两条唯一连续 RHS 与下游 `event_posedge(clk)`，
+Wellen 也能读取原始 FST 中所有相关信号，但 consumer 只前看一层，故前三跳仍错误停在
+20ps。后续实现只能在请求期间沿 DesignDB 唯一连续 RHS 做有界、带环检测的静态遍历，再
+对明确事件源查询原始 FST；不能从波形值相等反向发现连接，不能产生持久事件索引。
+
 基础双连续多驱动暴露了一个不同层次的静态事实缺口：`V3Tristate` 为保持既有普通仿真
 语义，会在 DesignDB emitter 运行前删除非首条同强度、非三态连续赋值。FST 只记录最终
 运行时值，既不包含被删除的 HDL 语句，也不能证明该值由几条静态赋值共同驱动；因此绝不
