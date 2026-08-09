@@ -28,6 +28,7 @@ struct StreamConfig {
     std::string clock;   // clock signal name
     std::string valid;   // valid signal name
     std::string ready;   // ready signal name
+    std::string backpressure; // active-high back-pressure signal name
     std::string data;    // data signal name (optional)
     std::string edge = "posedge";
     std::string sample_point = "before";
@@ -136,6 +137,9 @@ static Json validate_config_signals(IWaveformBackend* wf, const StreamConfig& cf
         missing.push_back(cfg.valid);
     if (!cfg.ready.empty() && wf->find_signal(cfg.ready) == IWaveformBackend::kInvalidSignalRef)
         missing.push_back(cfg.ready);
+    if (!cfg.backpressure.empty() &&
+        wf->find_signal(cfg.backpressure) == IWaveformBackend::kInvalidSignalRef)
+        missing.push_back(cfg.backpressure);
     if (!cfg.data.empty() && wf->find_signal(cfg.data) == IWaveformBackend::kInvalidSignalRef)
         missing.push_back(cfg.data);
     if (!missing.empty()) {
@@ -168,8 +172,9 @@ bool stream_value_source_entries(const std::string& name,
     Json error;
     StreamConfig config;
     if (!get_config(name, config, error)) return false;
-    out = {{"clock", config.clock}, {"valid", config.valid},
-           {"ready", config.ready}};
+    out = {{"clock", config.clock}, {"valid", config.valid}};
+    if (!config.ready.empty()) out.push_back({"ready",config.ready});
+    if (!config.backpressure.empty()) out.push_back({"bp",config.backpressure});
     if (!config.data.empty()) out.push_back({"data", config.data});
     return true;
 }
@@ -188,7 +193,8 @@ static bool parse_stream(const Json& input, StreamConfig& cfg, std::string& mess
     };
     cfg.clock = resolve(input.at("clock"));
     cfg.valid = resolve(input.at("vld"));
-    cfg.ready = resolve(input.at("rdy"));
+    if (input.contains("rdy")) cfg.ready = resolve(input.at("rdy"));
+    if (input.contains("bp")) cfg.backpressure = resolve(input.at("bp"));
     if (input.contains("sop")) cfg.sop = resolve(input.at("sop"));
     if (input.contains("eop")) cfg.eop = resolve(input.at("eop"));
     cfg.edge = input.value("edge","posedge");
@@ -200,8 +206,10 @@ static bool parse_stream(const Json& input, StreamConfig& cfg, std::string& mess
     cfg.beat_fields = input.value("beat_fields",Json::object());
     cfg.channel_id_valid = input.value("channel_id_valid","every_beat");
     cfg.allow_interleaving = input.value("allow_interleaving",false);
-    if (cfg.clock.empty() || cfg.valid.empty() || cfg.ready.empty()) {
-        message = "stream clock/vld/rdy alias is missing from signals";
+    if (cfg.clock.empty() || cfg.valid.empty() ||
+        (input.contains("rdy")&&cfg.ready.empty()) ||
+        (input.contains("bp")&&cfg.backpressure.empty())) {
+        message = "stream clock/vld/flow-control alias is missing from signals";
         return false;
     }
     cfg.data.clear();
@@ -215,6 +223,13 @@ static bool parse_stream(const Json& input, StreamConfig& cfg, std::string& mess
     cfg.source["channel_id_valid"] = cfg.channel_id_valid;
     cfg.source["allow_interleaving"] = cfg.allow_interleaving;
     return true;
+}
+
+static std::string stream_handshake(const StreamConfig& cfg) {
+    if (!cfg.ready.empty()&&!cfg.backpressure.empty()) return "vld/rdy/bp";
+    if (!cfg.ready.empty()) return "vld/rdy";
+    if (!cfg.backpressure.empty()) return "vld/bp";
+    return "vld";
 }
 
 static Json validate_stream(IWaveformBackend* wf, const StreamConfig& cfg,
@@ -335,7 +350,7 @@ struct StreamSample {
     size_t cycle = 0;
     uint32_t time_idx = 0;
     uint64_t time = 0;
-    bool vld = false, rdy = false, sop = false, eop = false;
+    bool vld = false, rdy = false, bp = false, sop = false, eop = false;
     bool transfer = false, stall = false;
     Json fields = Json::object();
 };
@@ -346,7 +361,8 @@ static std::vector<StreamSample> scan_stream_samples(
     bool& fields_complete) {
     std::vector<StreamSample> samples;
     const uint32_t clk_ref=load_signal(wf,cfg.clock),vld_ref=load_signal(wf,cfg.valid),
-        rdy_ref=load_signal(wf,cfg.ready);
+        rdy_ref=cfg.ready.empty()?0:load_signal(wf,cfg.ready),
+        bp_ref=cfg.backpressure.empty()?0:load_signal(wf,cfg.backpressure);
     const uint32_t sop_ref=cfg.sop.empty()?0:load_signal(wf,cfg.sop),
         eop_ref=cfg.eop.empty()?0:load_signal(wf,cfg.eop);
     std::string previous_clock;
@@ -363,12 +379,24 @@ static std::vector<StreamSample> scan_stream_samples(
         StreamSample sample;
         sample.cycle=cycle++; sample.time_idx=ti; sample.time=wf->time_at(ti);
         const bool v_now=signal_is_high_at(wf,vld_ref,ti),
-            r_now=signal_is_high_at(wf,rdy_ref,ti),
-            v_prev=ti>0&&signal_is_high_at(wf,vld_ref,ti-1),
-            r_prev=ti>0&&signal_is_high_at(wf,rdy_ref,ti-1);
-        sample.transfer=(v_now&&r_now)||(v_now&&!v_prev&&r_prev)||(r_now&&!r_prev&&v_prev);
-        sample.vld=sample.transfer||v_now; sample.rdy=sample.transfer||r_now;
-        sample.stall=sample.vld&&!sample.rdy;
+            v_prev=ti>0&&signal_is_high_at(wf,vld_ref,ti-1);
+        bool ready_now=true,ready_prev=true;
+        if (rdy_ref) {
+            ready_now=signal_is_high_at(wf,rdy_ref,ti);
+            ready_prev=ti>0&&signal_is_high_at(wf,rdy_ref,ti-1);
+        }
+        if (bp_ref) {
+            sample.bp=signal_is_high_at(wf,bp_ref,ti);
+            ready_now=ready_now&&!sample.bp;
+            ready_prev=ready_prev&&!(ti>0&&signal_is_high_at(wf,bp_ref,ti-1));
+        }
+        sample.transfer=v_now&&ready_now;
+        if (rdy_ref&&!bp_ref)
+            sample.transfer=sample.transfer||(v_now&&!v_prev&&ready_prev)||
+                (ready_now&&!ready_prev&&v_prev);
+        sample.vld=sample.transfer||v_now;
+        sample.rdy=rdy_ref&&(sample.transfer||ready_now);
+        sample.stall=sample.vld&&!ready_now;
         sample.sop=sample.transfer&&sop_ref&&signal_is_high_at(wf,sop_ref,ti);
         sample.eop=sample.transfer&&eop_ref&&signal_is_high_at(wf,eop_ref,ti);
         if (sample.transfer)
@@ -597,7 +625,7 @@ struct StreamConfigListHandler : public EngineActionHandler {
             const auto& cfg = kv.second;
             Json item{{"name",cfg.name},{"sampling_mode","clock_edge"},
                 {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
-                {"handshake","vld/rdy"},{"packet",(!cfg.sop.empty()&&!cfg.eop.empty())?"sop/eop":"disabled"},
+                {"handshake",stream_handshake(cfg)},{"packet",(!cfg.sop.empty()&&!cfg.eop.empty())?"sop/eop":"disabled"},
                 {"field_count",cfg.beat_fields.size()},{"channel_id_valid",cfg.channel_id_valid},
                 {"allow_interleaving",cfg.allow_interleaving}};
             if (cfg.edge != "negedge") item["sample_point"] = cfg.sample_point;
@@ -698,10 +726,10 @@ struct StreamDescribeHandler : public EngineActionHandler {
 
         Json validation = validate_stream(engine_globals().waveform.get(),cfg,false);
         Json issues = Json::array();
-        return {{"ok",true},{"summary",{{"stream",name},{"handshake","vld/rdy"},
+        return {{"ok",true},{"summary",{{"stream",name},{"handshake",stream_handshake(cfg)},
             {"packet_enabled",!cfg.sop.empty()&&!cfg.eop.empty()}}},
             {"data",{{"config",config_to_json(cfg)},{"issues",issues},
-                {"validation",validation},{"semantics",{{"transfer","vld/rdy"},{"stall","enabled"}}}}}};
+                {"validation",validation},{"semantics",{{"transfer",stream_handshake(cfg)},{"stall","enabled"}}}}}};
     }
 };
 
@@ -729,16 +757,21 @@ struct StreamQueryHandler : public EngineActionHandler {
 
         uint32_t clk_ref = load_signal(wf, cfg.clock);
         uint32_t vld_ref = load_signal(wf, cfg.valid);
-        uint32_t rdy_ref = load_signal(wf, cfg.ready);
+        uint32_t rdy_ref = cfg.ready.empty()?0:load_signal(wf, cfg.ready);
+        uint32_t bp_ref = cfg.backpressure.empty()?0:load_signal(wf,cfg.backpressure);
         uint32_t data_ref = cfg.data.empty() ? 0 : load_signal(wf, cfg.data);
 
         if (clk_ref == IWaveformBackend::kInvalidSignalRef ||
             vld_ref == IWaveformBackend::kInvalidSignalRef ||
-            rdy_ref == IWaveformBackend::kInvalidSignalRef) {
+            (!cfg.ready.empty()&&rdy_ref == IWaveformBackend::kInvalidSignalRef) ||
+            (!cfg.backpressure.empty()&&bp_ref == IWaveformBackend::kInvalidSignalRef)) {
             std::vector<std::string> missing;
             if (clk_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.clock);
             if (vld_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.valid);
-            if (rdy_ref == IWaveformBackend::kInvalidSignalRef) missing.push_back(cfg.ready);
+            if (!cfg.ready.empty()&&rdy_ref == IWaveformBackend::kInvalidSignalRef)
+                missing.push_back(cfg.ready);
+            if (!cfg.backpressure.empty()&&bp_ref == IWaveformBackend::kInvalidSignalRef)
+                missing.push_back(cfg.backpressure);
             Json arr = Json::array();
             for (auto& m : missing) arr.push_back(m);
             return Json{{"ok", false},
@@ -783,7 +816,7 @@ struct StreamQueryHandler : public EngineActionHandler {
 
         auto row_json=[&](const StreamSample& sample, size_t beat_index) {
             return Json{{"cycle",sample.cycle},{"time",wf->format_time(sample.time,unit)},
-                {"vld",sample.vld},{"rdy",sample.rdy},{"bp",false},
+                {"vld",sample.vld},{"rdy",sample.rdy},{"bp",sample.bp},
                 {"sop",sample.sop},{"eop",sample.eop},{"transfer",sample.transfer},
                 {"stall",sample.stall},{"beat_index",beat_index},{"fields",sample.fields}};
         };
@@ -910,7 +943,7 @@ struct StreamQueryHandler : public EngineActionHandler {
 
         Json summary{{"stream",name},{"query",query},{"sampling_mode","clock_edge"},
             {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
-            {"sample_time_semantics","time is sample_time"},{"handshake","vld/rdy"},
+            {"sample_time_semantics","time is sample_time"},{"handshake",stream_handshake(cfg)},
             {"packet_enabled",packet_enabled},{"clock_edges",samples.size()},
             {"vld_cycles",vld_cycles},{"transfer_count",transfers.size()},
             {"stall_cycles",stall_cycles},{"stall_windows",stalls.size()},
