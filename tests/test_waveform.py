@@ -353,4 +353,5 @@ def test_waveform_not_loaded_error(cli_runner) -> None:
                              "target": {"session_id": "missing"},
                              "args": {"signal": "top.clk", "time": "10"}})
     assert not result.ok
-    assert result.response["error"]["code"] == "WAVEFORM_NOT_LOADED"
+    assert result.response["error"]["code"] == "SESSION_NOT_FOUND"
+    assert result.response["error"]["error_layer"] == "session_manager"

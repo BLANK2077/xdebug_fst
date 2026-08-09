@@ -84,20 +84,44 @@ def test_batch_aggregates_responses(loop_runner: StdioLoopRunner,
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("batch", args={
         "requests": [
+             {"api_version": "xdebug.v1", "action": "value.at",
+             "target": {"session_id": "test"},
+             "args": {"signal": "top.clk", "time": "100ps",
+                      "render_time_unit": "ps"}},
             {"api_version": "xdebug.v1", "action": "value.at",
              "target": {"session_id": "test"},
-             "args": {"signal": "top.clk", "time": "100"}},
-            {"api_version": "xdebug.v1", "action": "value.at",
-             "target": {"session_id": "test"},
-             "args": {"signal": "top.clk", "time": "200"}},
+             "args": {"signal": "top.clk", "time": "200ps",
+                      "render_time_unit": "ps"}},
         ]
     })
     assert rsp.get("ok"), rsp
-    responses = rsp["data"]["responses"]
-    assert len(responses) == 2
-    assert all(r["ok"] for r in responses)
-    assert responses[0]["summary"]["time"] == 100
-    assert responses[1]["summary"]["time"] == 200
+    results = rsp["data"]["results"]
+    assert rsp["summary"] == {"count": 2, "all_ok": True,
+                              "failed_count": 0, "failed_indexes": [],
+                              "failed_codes": [], "failed_layers": []}
+    assert len(results) == 2
+    assert all(result["ok"] for result in results)
+    assert results[0]["data"]["samples"][0]["time"] == "100ps"
+    assert results[1]["data"]["samples"][0]["time"] == "200ps"
+
+
+def test_batch_aggregates_child_failure(loop_runner: StdioLoopRunner,
+                                        counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("batch", args={"requests": [
+        {"api_version": "xdebug.v1", "action": "value.at",
+         "target": {"session_id": "test"},
+         "args": {"signal": "top.clk", "time": "100ps"}},
+        {"api_version": "xdebug.v1", "action": "value.at",
+         "target": {"session_id": "test"},
+         "args": {"time": "100ps"}},
+    ]})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["all_ok"] is False
+    assert rsp["summary"]["failed_count"] == 1
+    assert rsp["summary"]["failed_indexes"] == [1]
+    assert rsp["summary"]["failed_codes"] == ["INVALID_REQUEST"]
+    assert rsp["summary"]["failed_layers"] == ["schema"]
 
 
 def test_batch_missing_requests(cli_runner: CliRunner) -> None:
@@ -110,17 +134,20 @@ def test_batch_missing_requests(cli_runner: CliRunner) -> None:
 def test_session_open_and_close(loop_runner: StdioLoopRunner,
                                 counter_fst) -> None:
     rsp = open_session(loop_runner, counter_fst)
-    assert rsp["session"]["has_waveform"] is True
-    assert rsp["session"]["state"] == "alive"
+    assert rsp["session"]["mode"] == "waveform"
+    assert rsp["session"]["fsdb"] == str(counter_fst)
     rsp = loop_runner.request("session.close")
     assert rsp.get("ok")
-    assert rsp["session"]["state"] == "closed"
+    assert rsp["summary"]["removed"] is True
+    assert rsp["session"] is None
+    assert rsp["data"]["removed_session"]["session_id"] == "test"
 
 
 def test_session_open_with_design_db(loop_runner: StdioLoopRunner,
                                      counter_fst, counter_design_db) -> None:
     rsp = open_session(loop_runner, counter_fst, counter_design_db)
-    assert rsp["session"]["has_design"] is True
+    assert rsp["session"]["mode"] == "combined"
+    assert rsp["session"]["daidir"] == str(counter_design_db)
 
 
 def test_session_open_missing_file(loop_runner: StdioLoopRunner) -> None:
