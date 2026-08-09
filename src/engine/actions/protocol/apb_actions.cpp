@@ -5,6 +5,7 @@
 #include "engine/engine_globals.h"
 #include "core/value/logic_value.h"
 #include "api/json_types.h"
+#include "engine/actions/value_source_entries.h"
 
 #include <algorithm>
 #include <cmath>
@@ -37,6 +38,18 @@ static ApbSignalMap default_apb_signals() {
         "TOP.pclk", "TOP.psel", "TOP.penable", "TOP.pwrite",
         "TOP.paddr", "TOP.pwdata", "TOP.prdata", "TOP.pready", "TOP.pslverr"
     };
+}
+
+bool apb_value_source_entries(const std::string& name,
+                              std::vector<ValueSourceEntry>& out) {
+    if (name != "default") return false;
+    const ApbSignalMap signals = default_apb_signals();
+    out = {{"pclk", signals.pclk}, {"psel", signals.psel},
+           {"penable", signals.penable}, {"pwrite", signals.pwrite},
+           {"paddr", signals.paddr}, {"pwdata", signals.pwdata},
+           {"prdata", signals.prdata}, {"pready", signals.pready},
+           {"pslverr", signals.pslverr}};
+    return true;
 }
 
 static Json apb_signal_map_json(const ApbSignalMap& m) {

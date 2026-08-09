@@ -7,6 +7,7 @@
 #include "engine/engine_globals.h"
 #include "core/value/logic_value.h"
 #include "api/json_types.h"
+#include "engine/actions/value_source_entries.h"
 
 #include <algorithm>
 #include <cmath>
@@ -46,6 +47,23 @@ static AxiSignalMap default_axi_signals() {
         "TOP.arid", "TOP.araddr", "TOP.arlen", "TOP.arvalid", "TOP.arready",
         "TOP.rid", "TOP.rdata", "TOP.rlast", "TOP.rvalid", "TOP.rready"
     };
+}
+
+bool axi_value_source_entries(const std::string& name,
+                              std::vector<ValueSourceEntry>& out) {
+    if (name != "default") return false;
+    const AxiSignalMap s = default_axi_signals();
+    out = {{"aclk", s.aclk}, {"aresetn", s.aresetn},
+           {"awid", s.awid}, {"awaddr", s.awaddr}, {"awlen", s.awlen},
+           {"awvalid", s.awvalid}, {"awready", s.awready},
+           {"wdata", s.wdata}, {"wlast", s.wlast},
+           {"wvalid", s.wvalid}, {"wready", s.wready},
+           {"bid", s.bid}, {"bvalid", s.bvalid}, {"bready", s.bready},
+           {"arid", s.arid}, {"araddr", s.araddr}, {"arlen", s.arlen},
+           {"arvalid", s.arvalid}, {"arready", s.arready},
+           {"rid", s.rid}, {"rdata", s.rdata}, {"rlast", s.rlast},
+           {"rvalid", s.rvalid}, {"rready", s.rready}};
+    return true;
 }
 
 static Json axi_signal_map_json(const AxiSignalMap& m) {

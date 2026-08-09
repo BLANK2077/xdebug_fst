@@ -75,6 +75,15 @@ struct ListCreateHandler : public EngineActionHandler {
         if (name.empty())
             return make_error("MISSING_FIELD", "args.name is required for list.create");
 
+        std::vector<std::string> signals;
+        for (const auto& item : args.value("signals", Json::array())) {
+            const std::string signal = item.get<std::string>();
+            if (engine_globals().waveform->find_signal(signal) ==
+                IWaveformBackend::kInvalidSignalRef)
+                return make_error("SIGNAL_NOT_FOUND",
+                                  "signal not found in waveform: " + signal);
+            signals.push_back(signal);
+        }
         std::string error;
         if (!ListManager::instance().create(name, error)) {
             // "list already exists" → LIST_EXISTS
@@ -82,11 +91,14 @@ struct ListCreateHandler : public EngineActionHandler {
                 return make_error("LIST_EXISTS", error);
             return make_error("ACTION_FAILED", error);
         }
+        if (!signals.empty() && !ListManager::instance().add(name, signals, error))
+            return make_error("ACTION_FAILED", error);
 
         Json out;
         out["ok"] = true;
-        out["summary"] = {{"name", name}, {"created", true}};
-        out["data"] = {{"list", {{"name", name}, {"signals", Json::array()}, {"signal_count", 0}}}};
+        out["summary"] = {{"name", name}, {"status", "created"},
+                          {"created", true}, {"signal_count", signals.size()}};
+        out["data"] = {{"signals", signals}};
         return out;
     }
 };
@@ -112,35 +124,21 @@ struct ListAddHandler : public EngineActionHandler {
         if (!ListManager::instance().exists(name))
             return make_error("LIST_NOT_FOUND", "list not found: " + name);
 
-        // Parse signals array
-        auto sigs = args.value("signals", Json::array());
-        if (!sigs.is_array() || sigs.empty())
-            return make_error("MISSING_FIELD", "args.signals is required and must be a non-empty array");
-
-        std::vector<std::string> signals;
+        const std::string signal = args.at("signal").get<std::string>();
         auto* wf = engine_globals().waveform.get();
-
-        for (size_t i = 0; i < sigs.size(); ++i) {
-            if (!sigs[i].is_string())
-                return make_error("INVALID_ARGUMENT",
-                    "args.signals[" + std::to_string(i) + "] must be a string");
-            std::string s = sigs[i].get<std::string>();
-            if (s.empty())
-                return make_error("INVALID_ARGUMENT",
-                    "args.signals[" + std::to_string(i) + "] must be non-empty");
-            // Validate signal exists in waveform
-            if (wf->find_signal(s) == IWaveformBackend::kInvalidSignalRef)
-                return make_error("SIGNAL_NOT_FOUND", "signal not found in waveform: " + s);
-            signals.push_back(s);
-        }
+        if (wf->find_signal(signal) == IWaveformBackend::kInvalidSignalRef)
+            return make_error("SIGNAL_NOT_FOUND",
+                              "signal not found in waveform: " + signal);
 
         std::string error;
-        if (!ListManager::instance().add(name, signals, error))
+        if (!ListManager::instance().add(name, {signal}, error))
             return make_error("ACTION_FAILED", error);
 
         Json out;
         out["ok"] = true;
-        out["summary"] = {{"name", name}, {"added_count", static_cast<int>(signals.size())}};
+        out["summary"] = {{"name", name}, {"signal", signal},
+                          {"status", "added"}, {"added", true}};
+        out["data"] = Json::object();
         return out;
     }
 };

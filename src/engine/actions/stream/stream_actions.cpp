@@ -5,6 +5,7 @@
 #include "core/value/logic_value.h"
 #include "waveform/clock_sampling.h"
 #include "api/json_types.h"
+#include "engine/actions/value_source_entries.h"
 
 #include <algorithm>
 #include <map>
@@ -163,6 +164,17 @@ static bool get_config(const std::string& name, StreamConfig& cfg, Json& err) {
         return false;
     }
     cfg = it->second;
+    return true;
+}
+
+bool stream_value_source_entries(const std::string& name,
+                                 std::vector<ValueSourceEntry>& out) {
+    Json error;
+    StreamConfig config;
+    if (!get_config(name, config, error)) return false;
+    out = {{"clock", config.clock}, {"valid", config.valid},
+           {"ready", config.ready}};
+    if (!config.data.empty()) out.push_back({"data", config.data});
     return true;
 }
 
