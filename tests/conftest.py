@@ -132,6 +132,12 @@ def stream_fst() -> Path:
     return _fix("stream")
 
 
+@pytest.fixture(scope="session")
+def wide_xz_fst() -> Path:
+    return REPO_ROOT.parent / "wellen" / "wellen" / "inputs" / \
+        "xilinx_isim" / "test2x2_regex22_string1.vcd.fst"
+
+
 # ── Helpers ──
 
 def open_session(loop: StdioLoopRunner, fsdb: Path, design_db: Path | None = None) -> Json:

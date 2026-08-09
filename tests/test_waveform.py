@@ -9,7 +9,7 @@ from runner import StdioLoopRunner
 
 
 def _value(loop, signal, time):
-    rsp = loop.request("value.at", args={"signal": signal, "time": str(time)})
+    rsp = loop.request("value.at", args={"signal": signal, "time": f"{time}ps"})
     assert rsp.get("ok"), rsp
     return rsp
 
@@ -17,9 +17,15 @@ def _value(loop, signal, time):
 def test_value_at_bit_signal(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = _value(loop_runner, "top.clk", 300)
-    assert rsp["summary"]["time"] == 300
-    assert rsp["summary"]["time_match"] is True
-    v = rsp["data"]
+    assert rsp["summary"] == {
+        "source_kind": "signal", "source_name": "top.clk",
+        "sampling_mode": "raw_time", "time_count": 1, "entry_count": 1,
+        "value_width_complete": True, "width_diagnostics": [],
+    }
+    assert rsp["data"]["entries"] == [
+        {"key": "top.clk", "kind": "signal", "path": "top.clk"}]
+    assert rsp["data"]["samples"][0]["time"] == "0.3ns"
+    v = rsp["data"]["samples"][0]["values"][0]["value"]
     assert v["width"] == 1
     assert v["known"] is True
     assert v["value"] in ("1'h0", "1'h1")
@@ -28,7 +34,7 @@ def test_value_at_bit_signal(loop_runner: StdioLoopRunner, counter_fst) -> None:
 def test_value_at_bus_signal(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = _value(loop_runner, "top.counter_top.count", 300)
-    v = rsp["data"]
+    v = rsp["data"]["samples"][0]["values"][0]["value"]
     assert v["width"] == 8
     assert v["value"] == "8'h0b"
     assert v["bits"] == "00001011"
@@ -38,14 +44,15 @@ def test_value_at_case_insensitive_and_top_prefix(loop_runner: StdioLoopRunner,
                                                   counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = _value(loop_runner, "TOP.counter_top.count", 300)
-    assert rsp["data"]["value"] == "8'h0b"
+    assert rsp["data"]["samples"][0]["values"][0]["value"]["value"] == "8'h0b"
 
 
 def test_value_at_unknown_signal(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("value.at", args={"signal": "nope.sig", "time": "100"})
-    assert not rsp.get("ok")
-    assert rsp["error"]["code"] == "SIGNAL_NOT_FOUND"
+    assert rsp.get("ok"), rsp
+    assert rsp["data"]["samples"][0]["values"] == [
+        {"key": "nope.sig", "status": "signal_not_found"}]
 
 
 def test_value_at_missing_fields(loop_runner: StdioLoopRunner, counter_fst) -> None:
@@ -68,13 +75,153 @@ def test_value_at_render_formats(loop_runner: StdioLoopRunner, counter_fst) -> N
     open_session(loop_runner, counter_fst)
     rsp = _value(loop_runner, "top.counter_top.count", 300)
     rsp_bin = loop_runner.request("value.at", args={
-        "signal": "top.counter_top.count", "time": "300",
+        "signal": "top.counter_top.count", "time": "300ps",
         "value_format": "bin"})
-    assert rsp_bin["data"]["value"] == "8'b00001011"
+    assert rsp_bin["data"]["samples"][0]["values"][0]["value"]["value"] == \
+        "8'b00001011"
     rsp_dec = loop_runner.request("value.at", args={
-        "signal": "top.counter_top.count", "time": "300",
+        "signal": "top.counter_top.count", "time": "300ps",
         "value_format": "dec"})
-    assert rsp_dec["data"]["value"] == "8'd11"
+    assert rsp_dec["data"]["samples"][0]["values"][0]["value"]["value"] == \
+        "8'd11"
+
+
+def test_value_at_times_and_render_unit(loop_runner: StdioLoopRunner,
+                                        counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("value.at", args={
+        "signal": "top.counter_top.count", "times": ["200ps", "300ps"],
+        "render_time_unit": "us",
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["time_count"] == 2
+    assert [sample["time"] for sample in rsp["data"]["samples"]] == [
+        "0.0002us", "0.0003us"]
+    assert [sample["values"][0]["value"]["value"]
+            for sample in rsp["data"]["samples"]] == ["8'h06", "8'h0b"]
+
+
+def test_value_at_clock_context(loop_runner: StdioLoopRunner,
+                                counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("value.at", args={
+        "signal": "top.counter_top.count", "time": "300ps",
+        "clock": "top.clk", "edge": "dual", "sample_point": "after",
+    })
+    assert rsp.get("ok"), rsp
+    sample = rsp["data"]["samples"][0]
+    assert sample["sampling_mode"] == "clock_sampled"
+    context = sample["clock_context"]
+    assert context["requested_sampling"] == {
+        "edge": "dual", "sample_point": "after"}
+    assert context["effective_sampling"] == {
+        "edge": "dual", "sample_point": "after"}
+    assert context["requested_any_edge_hit"] is True
+    assert context["requested_target_edge_hit"] is True
+    assert context["clock_edge_kind"] in ("posedge", "negedge")
+
+
+def test_value_at_xbit_slice_hint(loop_runner: StdioLoopRunner,
+                                  counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("value.at", args={
+        "signal": "top.counter_top.count", "time": "300ps",
+        "slice_hint": {"chunk_width": 4, "count": 2},
+    })
+    assert rsp.get("ok"), rsp
+    hints = rsp["data"]["samples"][0]["values"][0]["xbit_hints"]
+    assert hints["status"] == "ready"
+    assert hints["raw_value"] == "8'h0b"
+    assert hints["slices"] == [
+        {"index": 0, "range": "[3:0]"},
+        {"index": 1, "range": "[7:4]"},
+    ]
+
+
+def test_value_at_clock_miss_reports_missing_value(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("value.at", args={
+        "signal": "top.counter_top.count", "time": "301ps",
+        "clock": "top.clk", "edge": "posedge",
+    })
+    assert rsp.get("ok"), rsp
+    sample = rsp["data"]["samples"][0]
+    assert sample["values"][0]["status"] == "missing_value"
+    assert sample["clock_context"]["requested_any_edge_hit"] is False
+    assert sample["clock_context"]["requested_target_edge_hit"] is False
+
+
+def test_value_at_apb_source(loop_runner: StdioLoopRunner, apb_fst) -> None:
+    open_session(loop_runner, apb_fst)
+    rsp = loop_runner.request("value.at", args={
+        "apb": "default", "time": "0ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["source_kind"] == "apb"
+    assert rsp["summary"]["entry_count"] == 9
+    assert [entry["key"] for entry in rsp["data"]["entries"]] == [
+        "pclk", "psel", "penable", "pwrite", "paddr", "pwdata",
+        "prdata", "pready", "pslverr"]
+
+
+def test_value_at_axi_source(loop_runner: StdioLoopRunner, axi_fst) -> None:
+    open_session(loop_runner, axi_fst)
+    rsp = loop_runner.request("value.at", args={
+        "axi": "default", "times": ["0ps", "10ps"]})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["source_kind"] == "axi"
+    assert rsp["summary"]["time_count"] == 2
+    assert rsp["summary"]["entry_count"] == 24
+
+
+def test_value_at_stream_source(loop_runner: StdioLoopRunner,
+                                stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
+    rsp = loop_runner.request("value.at", args={
+        "stream": "default", "time": "0ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["source_kind"] == "stream"
+    assert [entry["key"] for entry in rsp["data"]["entries"]] == [
+        "clock", "valid", "ready"]
+
+
+def test_value_at_list_source(loop_runner: StdioLoopRunner,
+                              counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    created = loop_runner.request("list.create", args={
+        "name": "counter_context",
+        "signals": ["top.clk", "top.counter_top.count"],
+    })
+    assert created.get("ok"), created
+    rsp = loop_runner.request("value.at", args={
+        "list": "counter_context", "times": ["200ps", "300ps"],
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["source_kind"] == "list"
+    assert rsp["summary"]["entry_count"] == 2
+    assert rsp["summary"]["time_count"] == 2
+    assert [entry["path"] for entry in rsp["data"]["entries"]] == [
+        "top.clk", "top.counter_top.count"]
+
+
+def test_value_at_preserves_x_and_decimal_fallback(
+        loop_runner: StdioLoopRunner, wide_xz_fst) -> None:
+    open_session(loop_runner, wide_xz_fst)
+    rsp = loop_runner.request("value.at", args={
+        "signal": "AXI_top_tb_from_compiled.dut.bram_r", "time": "0ps",
+        "value_format": "dec",
+    })
+    assert rsp.get("ok"), rsp
+    row = rsp["data"]["samples"][0]["values"][0]
+    assert "value" in row, row
+    value = row["value"]
+    assert value["known"] is False
+    assert value["has_x"] is True
+    assert value["has_z"] is False
+    assert value["requested_value_format"] == "dec"
+    assert value["effective_value_format"] == "bin"
+    assert value["width"] == 64
+    assert "x" in value["bits"]
 
 
 def test_signal_changes(loop_runner: StdioLoopRunner, counter_fst) -> None:
