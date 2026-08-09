@@ -15,15 +15,17 @@ def test_list_create_add_show(loop_runner: StdioLoopRunner, counter_fst) -> None
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("list.create", args={"name": "siglist"})
     assert rsp.get("ok"), rsp
-    rsp = loop_runner.request("list.add", args={
-        "name": "siglist",
-        "signals": ["top.counter_top.count", "top.clk"]})
-    assert rsp.get("ok"), rsp
-    assert rsp["summary"]["added_count"] == 2
+    for signal in ["top.counter_top.count", "top.clk"]:
+        rsp = loop_runner.request("list.add", args={
+            "name": "siglist", "signal": signal})
+        assert rsp.get("ok"), rsp
+        assert rsp["summary"]["signal"] == signal
     rsp = loop_runner.request("list.show", args={"name": "siglist"})
     assert rsp.get("ok"), rsp
-    assert rsp["data"]["list"]["signal_count"] == 2
-    assert rsp["data"]["list"]["signals"] == ["top.counter_top.count", "top.clk"]
+    assert rsp["summary"] == {"name": "siglist", "signal_count": 2}
+    assert rsp["data"]["signals"] == [
+        {"index": 1, "signal": "top.counter_top.count"},
+        {"index": 2, "signal": "top.clk"}]
 
 
 def test_list_create_duplicate(loop_runner: StdioLoopRunner, counter_fst) -> None:
@@ -38,7 +40,7 @@ def test_list_add_unknown_signal(loop_runner: StdioLoopRunner, counter_fst) -> N
     open_session(loop_runner, counter_fst)
     loop_runner.request("list.create", args={"name": "l1"})
     rsp = loop_runner.request("list.add", args={
-        "name": "l1", "signals": ["no.such.signal"]})
+        "name": "l1", "signal": "no.such.signal"})
     assert not rsp.get("ok")
     assert rsp["error"]["code"] == "SIGNAL_NOT_FOUND"
 
@@ -46,44 +48,49 @@ def test_list_add_unknown_signal(loop_runner: StdioLoopRunner, counter_fst) -> N
 def test_list_add_missing_list(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("list.add", args={
-        "name": "ghost", "signals": ["top.clk"]})
+        "name": "ghost", "signal": "top.clk"})
     assert not rsp.get("ok")
     assert rsp["error"]["code"] == "LIST_NOT_FOUND"
 
 
 def test_list_delete(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
-    loop_runner.request("list.create", args={"name": "gone"})
-    rsp = loop_runner.request("list.delete", args={"name": "gone"})
+    loop_runner.request("list.create", args={
+        "name": "gone", "signals": ["top.clk", "top.counter_top.count"]})
+    rsp = loop_runner.request("list.delete", args={"name": "gone", "index": 1})
     assert rsp.get("ok"), rsp
-    rsp = loop_runner.request("list.show", args={"name": "gone"})
-    assert not rsp.get("ok")
+    assert rsp["summary"] == {
+        "name": "gone", "deleted": True, "removed": "top.clk"}
+    shown = loop_runner.request("list.show", args={"name": "gone"})
+    assert shown["data"]["signals"] == [
+        {"index": 1, "signal": "top.counter_top.count"}]
 
 
-def test_list_load_show(loop_runner: StdioLoopRunner, counter_fst,
-                        tmp_path) -> None:
+def test_list_load_show(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
-    lst = tmp_path / "sigs.txt"
-    lst.write_text("# comment\ntop.clk\ntop.counter_top.count\n")
-    rsp = loop_runner.request("list.load", args={"name": "filelist",
-                                                 "file": str(lst)})
+    rsp = loop_runner.request("list.load", args={
+        "config": {"lists": [{"name": "filelist", "signals": [
+            "top.clk", "top.counter_top.count"]}]}, "mode": "replace"})
     assert rsp.get("ok"), rsp
+    assert rsp["summary"] == {"loaded": 1, "mode": "replace"}
     rsp = loop_runner.request("list.show", args={"name": "filelist"})
-    assert rsp["data"]["list"]["signal_count"] == 2
+    assert rsp["summary"]["signal_count"] == 2
 
 
-def test_list_validate_ok_and_bad(loop_runner: StdioLoopRunner, counter_fst,
-                                 tmp_path) -> None:
+def test_list_validate_ok_and_bad(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
-    # list.add validates signals eagerly, so build the bad list via file load
-    lst = tmp_path / "badlist.txt"
-    lst.write_text("top.clk\nbad.sig\n")
-    rsp = loop_runner.request("list.load", args={"name": "vl", "file": str(lst)})
+    rsp = loop_runner.request("list.create", args={
+        "name": "vl", "signals": ["top.clk"]})
     assert rsp.get("ok"), rsp
     rsp = loop_runner.request("list.validate", args={"name": "vl"})
     assert rsp.get("ok"), rsp
-    assert rsp["data"]["valid"] is False
-    assert rsp["data"]["missing"] == ["bad.sig"]
+    assert rsp["summary"] == {"name": "vl", "all_found": True}
+    assert rsp["data"]["signals"] == [
+        {"signal": "top.clk", "status": "ok"}]
+    bad = loop_runner.request("list.load", args={
+        "config": {"lists": [{"name": "bad", "signals": ["bad.sig"]}]}})
+    assert not bad.get("ok")
+    assert bad["error"]["code"] == "SIGNAL_NOT_FOUND"
 
 
 def test_list_export(loop_runner: StdioLoopRunner, counter_fst) -> None:
