@@ -55,6 +55,30 @@ def test_expr_eval_at_parse_error(loop_runner: StdioLoopRunner, counter_fst) -> 
     assert rsp["error"]["code"] == "PARSE_ERROR"
 
 
+def test_expr_eval_at_parenthesized_logical_expression(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("expr.eval_at", args={
+        "expr": "(count == 8'h0b && reset == 1'b0)", "time": "300ps",
+        "clock": "top.clk", "signals": {
+            "count": "top.counter_top.count", "reset": "top.reset"}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["status"] == "true"
+    assert rsp["data"]["expr_value"] is True
+
+
+def test_expr_eval_at_logical_not_preserves_unknown(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst) -> None:
+    open_session(loop_runner, gcd_xorigin_fst)
+    rsp = loop_runner.request("expr.eval_at", args={
+        "expr": "!control", "time": "0ps", "clock": "GCD.T_13",
+        "signals": {"control": "GCD.y"}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["status"] == "unknown"
+    assert rsp["summary"]["known"] is False
+    assert rsp["data"]["expr_value"] is None
+
+
 def test_counter_statistics(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("counter.statistics", args={

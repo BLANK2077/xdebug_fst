@@ -175,7 +175,7 @@ struct Parser {
     ExprNode* parse_primary() {
         skip_ws();
         if (eat('(')) {
-            ExprNode* inner = parse_or();
+            ExprNode* inner = parse_logical();
             if (!eat(')')) { error = "missing ')'"; delete inner; return nullptr; }
             return inner;
         }
@@ -463,12 +463,24 @@ LogicValue bitwise(const LogicValue& a, const LogicValue& b, const char* op) {
     return v;
 }
 
-bool truthy(const LogicValue& v) {
-    for (char c : v.bits) {
-        if (c == '1') return true;
-        if (c != '0') return false;  // x/z → unknown → false-ish
+enum class LogicalTruth { False, True, Unknown };
+
+LogicalTruth logical_truth(const LogicValue& value) {
+    bool saw_unknown = false;
+    for (const char bit : value.bits) {
+        if (bit == '1') return LogicalTruth::True;
+        if (bit != '0') saw_unknown = true;
     }
-    return false;
+    return saw_unknown ? LogicalTruth::Unknown : LogicalTruth::False;
+}
+
+LogicValue unknown_bool() {
+    LogicValue value;
+    value.bits = "x";
+    value.width = 1;
+    value.known = false;
+    value.has_x = true;
+    return value;
 }
 
 LogicValue from_bool(bool b, int w = 1) {
@@ -551,7 +563,11 @@ LogicValue eq(const LogicValue& a, const LogicValue& b, const std::string& op) {
 
 LogicValue reduce(const LogicValue& a, const std::string& op) {
     // unary bitwise reduction on the whole vector
-    if (op == "!") return from_bool(!truthy(a));
+    if (op == "!") {
+        const LogicalTruth truth = logical_truth(a);
+        if (truth == LogicalTruth::Unknown) return unknown_bool();
+        return from_bool(truth == LogicalTruth::False);
+    }
     if (!a.known) {
         LogicValue v;
         v.width = 1;
@@ -678,8 +694,24 @@ LogicValue eval_expression(const ExprNode* root, const IWaveformBackend& wf,
             LogicValue r = eval_expression(root->right, wf, time_idx, samples, point);
             const std::string& op = root->op;
             if (op == "&" || op == "|" || op == "^") return bitwise(l, r, op.c_str());
-            if (op == "&&") return from_bool(truthy(l) && truthy(r));
-            if (op == "||") return from_bool(truthy(l) || truthy(r));
+            if (op == "&&") {
+                const LogicalTruth left = logical_truth(l);
+                const LogicalTruth right = logical_truth(r);
+                if (left == LogicalTruth::False || right == LogicalTruth::False)
+                    return from_bool(false);
+                if (left == LogicalTruth::True && right == LogicalTruth::True)
+                    return from_bool(true);
+                return unknown_bool();
+            }
+            if (op == "||") {
+                const LogicalTruth left = logical_truth(l);
+                const LogicalTruth right = logical_truth(r);
+                if (left == LogicalTruth::True || right == LogicalTruth::True)
+                    return from_bool(true);
+                if (left == LogicalTruth::False && right == LogicalTruth::False)
+                    return from_bool(false);
+                return unknown_bool();
+            }
             if (op == "+" || op == "-" || op == "*" || op == "/" || op == "%" ||
                 op == "<<" || op == ">>") return arith(l, r, op);
             if (op == "<" || op == "<=" || op == ">" || op == ">=") return cmp(l, r, op);
