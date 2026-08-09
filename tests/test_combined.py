@@ -76,7 +76,7 @@ def test_trace_active_driver_selects_case_item_and_default(
     assert selected.get("ok"), selected
     assert selected["summary"]["analysis_complete"] is True
     assert selected["summary"]["total_count"] == 1
-    assert selected["data"]["paths"][0]["line"] == 14
+    assert selected["data"]["paths"][0]["line"] == 16
 
     default = loop_runner.request("trace.active_driver", args={
         "signal": "top.out", "time": "65ps",
@@ -84,7 +84,27 @@ def test_trace_active_driver_selects_case_item_and_default(
     assert default.get("ok"), default
     assert default["summary"]["analysis_complete"] is True
     assert default["summary"]["total_count"] == 1
-    assert default["data"]["paths"][0]["line"] == 15
+    assert default["data"]["paths"][0]["line"] == 17
+
+
+def test_trace_active_driver_selects_casez_and_casex_wildcards(
+        loop_runner: StdioLoopRunner, case_fst, case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    casez = loop_runner.request("trace.active_driver", args={
+        "signal": "top.out_casez", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert casez.get("ok"), casez
+    assert casez["summary"]["analysis_complete"] is True
+    assert casez["summary"]["total_count"] == 1
+    assert casez["data"]["paths"][0]["line"] == 28
+
+    casex = loop_runner.request("trace.active_driver", args={
+        "signal": "top.out_casex", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert casex.get("ok"), casex
+    assert casex["summary"]["analysis_complete"] is True
+    assert casex["summary"]["total_count"] == 1
+    assert casex["data"]["paths"][0]["line"] == 32
 
 
 def test_trace_active_driver_counts_before_response_limit(
