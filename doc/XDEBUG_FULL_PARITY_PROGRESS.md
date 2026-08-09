@@ -3,8 +3,8 @@
 ## 当前状态
 
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
-- 当前阶段：P0
-- 当前任务：完成 P0 验收并进入 P1 公共协议核心
+- 当前阶段：P1 已完成，准备进入 P2
+- 当前任务：实现真实 Session registry、engine 生命周期与 UDS/TCP/file transport
 - xdebug-fst 基线：`1009e5c`
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `1d66a9ea5111d1e80d16273a604f92e8c6a51cbd`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `e04eb0ea8203028490400172396add8ec458932b`
@@ -18,7 +18,7 @@
 | 阶段 | 状态 | Tag | 验收摘要 |
 | --- | --- | --- | --- |
 | P0 | 已完成 | `parity-p0` | 基线、依赖锁、Wellen/Verilator 独立回归和漂移检查均通过 |
-| P1 | 未开始 | `parity-p1` | 公共协议核心 |
+| P1 | 已完成 | `parity-p1` | 73 action、146 schema、请求/响应校验、canonical JSON/XOUT 与 stdio-loop 全部对齐 |
 | P2 | 未开始 | `parity-p2` | Session 与 Transport |
 | P3 | 未开始 | `parity-p3` | Wellen 波形语义 |
 | P4 | 未开始 | `parity-p4` | 克制扩展 DesignDB |
@@ -37,6 +37,13 @@
 - `9a529cc`：统一 `wellenx_capi` 与 Wellen C ABI 的 1 基信号句柄编码。
 - `5b2595a`：锁定 Wellen、Verilator revision、ABI header 和 release library。
 - `fad3309`：说明 Verilator DesignDB、Wellen 波形后端和 xdebug-fst 组合架构。
+- `2f04051`：建立冻结文件、依赖、catalog、schema 和现场原版的自动漂移检查。
+- `ce1a300`：迁移 MIT JSON Schema validator、runtime validator 和诊断错误核心。
+- `89f740b`：迁移严格 73 action 公共注册表、完整 metadata、过滤和 modes。
+- `a97a01b`：统一 canonical response/error envelope，并冻结 215 个 schema 引用示例。
+- `eb00b49`：在 handler 前执行 action-specific 严格请求校验，batch 子请求同样 fail closed。
+- `bf5c7fc`：在输出前执行响应合同校验，并遍历验证全部冻结请求/响应示例。
+- `8994fc6`：对齐 one-shot JSON、默认 XOUT、退出码和 stdio-loop wire protocol。
 
 ## 测试记录
 
@@ -48,8 +55,13 @@
 - xdebug-fst：`cmake -S . -B build && cmake --build build -j2` 通过，配置阶段成功校验全部依赖锁。
 - xdebug-fst：`python3 tools/check_compat_baseline.py --original-root ${XDEBUG_ORIGINAL_ROOT}` 通过，确认冻结文件、catalog、schema、依赖和现场原版均未漂移。
 - xdebug-fst：`${XFST_CONDA_ENV} -m pytest tests/ -p no:xverif -q`，122 个测试通过。
+- P1 CTest：真实加载 105 个 request 示例和 110 个 response 示例，215 个示例逐一通过对应 runtime schema；同时验证冻结原版 actions response。
+- P1 protocol：`python3 tools/check_p1_protocol_parity.py --original-root ${XDEBUG_ORIGINAL_ROOT}` 通过，原版与 xdebug-fst 的 73 action catalog、73×2=146 个 schema action 完整 JSON 响应完全一致。
+- P1 CLI：one-shot JSON、actions/schema/error XOUT、INVALID_JSON、退出码、stdio-loop ready、payload override、错误双载荷和 quit envelope 与原版比较一致；PID 是唯一易变字段。
+- P1 pytest：13 项 CLI/request/catalog 专项测试通过；common/waveform 中已改用正式公共合同的 21 项基础测试在启用 response gate 前通过。
+- 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 
 ## 剩余差异
 
-P0 已关闭。剩余工作以任务书 P1 至 P7 为准，下一项是迁移公共协议核心：严格请求/响应校验、统一错误合同、canonical JSON/XOUT、全 schema runtime 校验、73 action catalog 和 fail-closed normalization。
+P0、P1 已关闭。剩余工作以任务书 P2 至 P7 为准。下一项是用真实 registry/engine/transport 替换当前单进程 session 过渡实现，并删除公开合同外的 `target.design_db` 假设；严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。
