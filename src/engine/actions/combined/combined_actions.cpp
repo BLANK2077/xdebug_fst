@@ -1379,7 +1379,7 @@ struct TraceXOriginHandler : public EngineActionHandler {
 
         const bool complete=limited_count==0;
         const std::string termination=unresolved_count
-            ?(completed_count?"partial":"unresolved")
+            ?(completed_count?"partial":"pending")
             :limited_count?(completed_count?"partial":"limit")
             :(origin_count?"origin_found":"x_not_observable_upstream");
         Json data{{"query",query},{"chains",chains},{"limitations",limitations}};
