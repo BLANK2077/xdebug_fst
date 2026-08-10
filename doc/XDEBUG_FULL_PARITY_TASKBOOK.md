@@ -706,7 +706,11 @@ Verilator lowering 谓词引用内部一位信号，而原始 FST 保存等价�
 或歧义继续 `predicate_unresolved`。活动信号分支映射到同实例 input 后继续上溯；活动常量
 分支必须在子 output 保留父 statement 的精确源码行并终止，不能沿父子 alias 折返。该修复
 不构成 FST 分析：FST/Wellen 只提供被静态选定端口的运行时值，候选唯一性、谓词和链合同
-由 DesignDB 与 action 负责。跨层 output/inout 混合反馈和更复杂多驱动组合仍须独立差分。
+由 DesignDB 与 action 负责。第三十五批再证明 output 边界优先只能覆盖父级恰好一个活动
+statement 的扁平化视图；子 output 与父级赋值共同驱动内部 net 时，DesignDB 中两条活动
+statement 必须在父 net 保持 `multiple_active_candidates`，不能因唯一 output 端口而清空，
+更不能按两个 RHS 的相同 FST 值合并。跨层 output/inout 混合反馈和更复杂多驱动组合仍须
+独立差分。
 
 第十三批在同一真实 FST 固件中加入两个独立 `always @(posedge clk)` 对同一 reg 的 NBA：
 第一条受 `!reset` 控制，第二条受 `sel[0]` 控制。25ps 只有第一条活动，必须唯一返回第

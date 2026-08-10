@@ -835,6 +835,14 @@ activation predicate 可能引用不在 FST 中保存的内部 `__vcellinp__` �
 Wellen 只从当前原始 `.fst` 按需读取 `sel_i` 与 hop 值，xdebug action 决定活动分支和终止
 合同；没有 FST 转换、预扫、离线索引、全量快照或 fallback，也没有修改 Verilator/Wellen。
 
+output 边界优先还有一个严格的多驱动否决条件。父 net 上恰好一个活动 statement 时，扁平化
+RHS 与子 output 是同一语句的两层静态视图，可以先进入子实例；父 net 上存在两个及以上
+活动 statement 时，它们可能分别来自子 output 与父模块赋值，必须在当前 net 直接按统一
+合同报告 `multiple_active_candidates`。`output_mixed` 固件让第 13/21 行两个 RHS 在 5ps
+故意相同，现有 DesignDB 已完整发布两条语句和端口边；修改前 consumer 错误清空歧义并在
+alias 间形成环。最终修复只增加 `groups.size()==1` 门禁，不改变单 output 多 RHS或条件
+output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并候选也不决定优先级。
+
 显式文件产物必须与“离线 FST 分析”严格区分：
 
 - `list.export` 按公共合同写出 `u64bin.v1`，用于调用者消费最终列表数据；
@@ -935,6 +943,7 @@ Wellen 只从当前原始 `.fst` 按需读取 `sel_i` 与 hop 值，xdebug actio
 - xdebug-fst `116761c`、`519e7e9`：先记录同一 posedge 过程连续两条 NBA 尚未进入固件的失败，再以同步原始 FST/DesignDB 证明两条 assignment handle 在 60ps 同时活动；action 按冻结原版合同保留第 88/89 行双候选歧义，不按源码顺序或最终值任选，三方实现和 ABI 无需修改；
 - xdebug-fst `3654e70`、`54f332b`：先记录同一子实例两个 output 端口共同驱动父 net 尚未进入固件的失败，再以同步原始 FST/DesignDB 验证同实例端口 identity；action 保留第 160/161 行两条活动 statement，不按端口顺序、FST 值或可读性合并候选，三方实现和 ABI 无需修改；
 - xdebug-fst `b46b5cd`、`b6f2617`：先记录条件 output 未进入固件的失败，再同步原始 FST/DesignDB 并仅在 consumer 内以唯一、同宽、可读的 DesignDB 端口边解析 lowering 谓词信号；信号分支跨 input 上溯，常量分支保留第 180 行终止，Verilator/Wellen/XDD ABI 均未修改；
+- xdebug-fst `1fb4532`、`4cd2214`：以独立原始 FST/DesignDB 固件先证明父子 output 两条活动赋值被唯一边界错误覆盖，再仅将边界优先收紧到单一活动 statement；相同 FST 值不合并静态候选，Verilator/Wellen/XDD ABI 均未修改；
 - xdebug-fst `022d316`：锁定 inout lowering 原始 RHS 替换语义，并以真实 FST 完成跨端口四跳链。
 - xdebug-fst `fcd5e06`：以带独立中间 net 的真实两级 inout 固件验证六跳父向链，三方实现和 ABI 均无需修改。
 - xdebug-fst `7e07599`、`970aae1`：冻结 output 边界折叠失败，并仅组合既有 XDD 端口/驱动事实恢复原版五跳模块链。
