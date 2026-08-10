@@ -46,9 +46,15 @@ WELLEN_XZ_STREAM_CONFIG = {"streams": [{
 
 def test_stream_config_list(loop_runner: StdioLoopRunner, stream_fst) -> None:
     open_session(loop_runner, stream_fst)
+    second = dict(STREAM_CONFIG["streams"][0])
+    second["name"] = "fifo_second"
+    loaded = loop_runner.request("stream.config.load", args={
+        "config": {"streams": [STREAM_CONFIG["streams"][0], second]}})
+    assert loaded.get("ok"), loaded
     rsp = loop_runner.request("stream.config.list")
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["count"] == 0
+    assert rsp["summary"]["count"] == 2
+    assert len(rsp["data"]["streams"]) == 2
 
 
 def test_stream_config_get_default(loop_runner: StdioLoopRunner, stream_fst) -> None:

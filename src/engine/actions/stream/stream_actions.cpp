@@ -654,7 +654,7 @@ struct StreamConfigListHandler : public EngineActionHandler {
             const auto& cfg = kv.second;
             Json item{{"name",cfg.name},{"sampling_mode","clock_edge"},
                 {"clock",cfg.source.at("clock")},{"edge",cfg.edge},
-                {"handshake",stream_handshake(cfg)},{"packet",(!cfg.sop.empty()&&!cfg.eop.empty())?"sop/eop":"disabled"},
+                {"handshake",stream_handshake(cfg)},{"packet",(!cfg.sop.empty()&&!cfg.eop.empty())?"sop/eop":"none"},
                 {"field_count",cfg.beat_fields.size()},{"channel_id_valid",cfg.channel_id_valid},
                 {"allow_interleaving",cfg.allow_interleaving}};
             if (cfg.edge != "negedge") item["sample_point"] = cfg.sample_point;
