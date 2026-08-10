@@ -105,6 +105,28 @@ public:
                   bool* out_time_match, uint32_t* out_time_idx) const;
 
 private:
+    struct DeclaredRange {
+        int64_t msb = 0;
+        int64_t lsb = 0;
+        uint32_t width = 0;
+    };
+
+    struct PackedSelection {
+        uint32_t base_ref = 0;
+        int64_t declared_msb = 0;
+        int64_t declared_lsb = 0;
+        int64_t selected_msb = 0;
+        int64_t selected_lsb = 0;
+        uint32_t width = 0;
+    };
+
+    struct SelectedChange {
+        uint32_t time_idx = 0;
+        WaveformValue value;
+    };
+
+    static constexpr uint32_t kVirtualSignalFlag = UINT32_C(0x80000000);
+
     WellenDb* db_ = nullptr;
     WellenxDb* xdb_ = nullptr;  // extension handle (bit strings, time indices)
 
@@ -117,6 +139,11 @@ private:
 
     // Name → signal_ref lookup index (built lazily on first find)
     mutable std::unordered_map<std::string, uint32_t> signal_index_;
+    mutable std::unordered_map<std::string, DeclaredRange> declared_ranges_;
+    mutable std::unordered_map<std::string, uint32_t> packed_selection_index_;
+    mutable std::vector<PackedSelection> packed_selections_;
+    mutable std::unordered_map<uint32_t, std::vector<SelectedChange>>
+        selected_change_cache_;
 
     // Name lookup
     std::string get_or_cache_name(uint32_t ref, bool is_var, bool full);
@@ -124,7 +151,20 @@ private:
     // Build signal_index_ (idempotent)
     void build_signal_index() const;
 
-    /// Normalize a hierarchical path: lowercase, drop leading "TOP."
+    const PackedSelection* packed_selection(uint32_t signal_ref) const;
+    uint32_t native_signal_ref(uint32_t signal_ref) const;
+    uint32_t create_packed_selection(const std::string& normalized_path) const;
+    bool native_typed_value_at(uint32_t signal_ref, uint32_t start,
+                               uint16_t element, WaveformValue& out) const;
+    std::vector<uint32_t> native_time_indices_of(uint32_t signal_ref) const;
+    const std::vector<SelectedChange>& selected_changes(
+        uint32_t signal_ref) const;
+    static bool select_packed_bits(const PackedSelection& selection,
+                                   const std::string& source,
+                                   std::string& selected);
+
+    /// Normalize a hierarchical path: lowercase, canonicalize array brackets,
+    /// and drop a leading "TOP."
     static std::string normalize_path(const std::string& path);
 };
 

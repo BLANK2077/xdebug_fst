@@ -4,8 +4,10 @@
 #include "wellen_fst_backend.h"
 
 #include <algorithm>
+#include <cerrno>
 #include <cctype>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iomanip>
 #include <sstream>
@@ -101,6 +103,10 @@ void WellenFstBackend::close() {
     time_scale_ = {};
     name_cache_.clear();
     signal_index_.clear();
+    declared_ranges_.clear();
+    packed_selection_index_.clear();
+    packed_selections_.clear();
+    selected_change_cache_.clear();
 }
 
 // ── Time ──
@@ -241,31 +247,59 @@ int WellenFstBackend::var_encoding(uint32_t var_ref, uint32_t* out_width) const 
 
 int WellenFstBackend::load_signals(const std::vector<uint32_t>& refs) {
     if (refs.empty()) return 0;
-    int n = static_cast<int>(wellen_load_signals(db_, refs.data(),
-                                                 static_cast<uint32_t>(refs.size())));
+    std::vector<uint32_t> native_refs;
+    native_refs.reserve(refs.size());
+    for (uint32_t ref : refs) {
+        const uint32_t native_ref = native_signal_ref(ref);
+        if (native_ref == kInvalidSignalRef) return 0;
+        native_refs.push_back(native_ref);
+    }
+    int n = static_cast<int>(wellen_load_signals(
+        db_, native_refs.data(), static_cast<uint32_t>(native_refs.size())));
     if (xdb_) {
-        wellenx_load_signals(xdb_, refs.data(), static_cast<uint32_t>(refs.size()));
+        wellenx_load_signals(xdb_, native_refs.data(),
+                             static_cast<uint32_t>(native_refs.size()));
     }
     return n;
 }
 
 void WellenFstBackend::unload_signals(const std::vector<uint32_t>& refs) {
     if (refs.empty()) return;
-    wellen_unload_signals(db_, refs.data(), static_cast<uint32_t>(refs.size()));
+    std::vector<uint32_t> native_refs;
+    native_refs.reserve(refs.size());
+    for (uint32_t ref : refs) {
+        const uint32_t native_ref = native_signal_ref(ref);
+        if (native_ref != kInvalidSignalRef) native_refs.push_back(native_ref);
+    }
+    if (native_refs.empty()) return;
+    for (auto item = selected_change_cache_.begin();
+         item != selected_change_cache_.end();) {
+        const PackedSelection* const selection = packed_selection(item->first);
+        if (selection && std::find(native_refs.begin(), native_refs.end(),
+                                   selection->base_ref) != native_refs.end()) {
+            item = selected_change_cache_.erase(item);
+        } else {
+            ++item;
+        }
+    }
+    wellen_unload_signals(db_, native_refs.data(),
+                          static_cast<uint32_t>(native_refs.size()));
     if (xdb_) {
-        wellenx_unload_signals(xdb_, refs.data(), static_cast<uint32_t>(refs.size()));
+        wellenx_unload_signals(xdb_, native_refs.data(),
+                               static_cast<uint32_t>(native_refs.size()));
     }
 }
 
 bool WellenFstBackend::is_loaded(uint32_t signal_ref) const {
     WellenSignalInfo info;
-    return wellen_signal_info(db_, signal_ref, &info) == 0;
+    return wellen_signal_info(db_, native_signal_ref(signal_ref), &info) == 0;
 }
 
 bool WellenFstBackend::signal_info(uint32_t signal_ref,
                                    SignalInfo& out) const {
     WellenSignalInfo info;
-    if (wellen_signal_info(db_, signal_ref, &info) != 0) return false;
+    if (wellen_signal_info(db_, native_signal_ref(signal_ref), &info) != 0)
+        return false;
     switch (info.encoding) {
     case WELLEN_ENCODING_REAL: out.encoding = ValueKind::Real; break;
     case WELLEN_ENCODING_STRING: out.encoding = ValueKind::String; break;
@@ -278,6 +312,13 @@ bool WellenFstBackend::signal_info(uint32_t signal_ref,
     out.width = info.width;
     out.bytes_per_entry = info.bytes_per_entry;
     out.has_meta_byte = info.has_meta_byte != 0;
+    if (const PackedSelection* const selection = packed_selection(signal_ref)) {
+        out.width = selection->width;
+        out.num_changes =
+            static_cast<uint32_t>(selected_changes(signal_ref).size());
+        out.bytes_per_entry = (out.width + 7U) / 8U;
+        out.has_meta_byte = out.max_states > 2 && out.width >= 8;
+    }
     return true;
 }
 
@@ -285,6 +326,28 @@ bool WellenFstBackend::signal_info(uint32_t signal_ref,
 
 bool WellenFstBackend::signal_offset_at(uint32_t signal_ref, uint32_t time_idx,
                                         SignalOffset& out) const {
+    if (packed_selection(signal_ref)) {
+        const std::vector<SelectedChange>& changes =
+            selected_changes(signal_ref);
+        const auto end = std::upper_bound(
+            changes.begin(), changes.end(), time_idx,
+            [](uint32_t index, const SelectedChange& change) {
+                return index < change.time_idx;
+            });
+        if (end == changes.begin()) return false;
+        size_t last = static_cast<size_t>(std::distance(changes.begin(), end) - 1);
+        const uint32_t selected_time = changes[last].time_idx;
+        size_t first = last;
+        while (first > 0 && changes[first - 1].time_idx == selected_time) --first;
+        while (last + 1 < changes.size() &&
+               changes[last + 1].time_idx == selected_time) ++last;
+        out.start = static_cast<uint32_t>(first);
+        out.elements = static_cast<uint16_t>(last - first + 1);
+        out.time_match = selected_time == time_idx;
+        out.has_next = last + 1 < changes.size();
+        out.next_idx = out.has_next ? changes[last + 1].time_idx : 0;
+        return true;
+    }
     uint32_t start = 0;
     uint16_t elements = 0;
     int32_t time_match = 0;
@@ -307,6 +370,12 @@ bool WellenFstBackend::signal_offset_at(uint32_t signal_ref, uint32_t time_idx,
 std::string WellenFstBackend::signal_value_at(uint32_t signal_ref,
                                               uint32_t start,
                                               uint16_t element) const {
+    if (packed_selection(signal_ref)) {
+        WaveformValue value;
+        if (!signal_typed_value_at(signal_ref, start, element, value) ||
+            value.kind != ValueKind::BitVector) return {};
+        return value.text;
+    }
     uint8_t buf[8] = {0};
     uint32_t len = 0;
     if (wellen_signal_value_at_offset(db_, signal_ref, start, element,
@@ -331,6 +400,20 @@ std::string WellenFstBackend::signal_value_str(uint32_t signal_ref,
 }
 
 bool WellenFstBackend::signal_typed_value_at(
+    uint32_t signal_ref, uint32_t start, uint16_t element,
+    WaveformValue& out) const {
+    if (packed_selection(signal_ref)) {
+        const std::vector<SelectedChange>& changes =
+            selected_changes(signal_ref);
+        const size_t index = static_cast<size_t>(start) + element;
+        if (index >= changes.size()) return false;
+        out = changes[index].value;
+        return true;
+    }
+    return native_typed_value_at(signal_ref, start, element, out);
+}
+
+bool WellenFstBackend::native_typed_value_at(
     uint32_t signal_ref, uint32_t start, uint16_t element,
     WaveformValue& out) const {
     out = {};
@@ -521,31 +604,22 @@ bool WellenFstBackend::scan_changes(
 const uint32_t* WellenFstBackend::signal_time_indices(uint32_t signal_ref,
                                                       uint32_t* out_count) const {
     if (out_count) *out_count = 0;
-    if (!xdb_) return nullptr;
-    SignalInfo info;
-    if (!signal_info(signal_ref, info)) return nullptr;
     static thread_local std::vector<uint32_t> s_cache;
-    s_cache.resize(info.num_changes);
-    int n = wellenx_signal_time_indices(xdb_, signal_ref, s_cache.data());
-    if (n < 0) return nullptr;
-    s_cache.resize(n);
-    if (out_count) *out_count = static_cast<uint32_t>(n);
+    s_cache = time_indices_of(signal_ref);
+    if (s_cache.empty()) return nullptr;
+    if (out_count) *out_count = static_cast<uint32_t>(s_cache.size());
     return s_cache.data();
 }
 
 std::vector<uint32_t> WellenFstBackend::time_indices_of(uint32_t signal_ref) const {
-    std::vector<uint32_t> out;
-    if (!xdb_) return out;
-    SignalInfo info;
-    if (!signal_info(signal_ref, info)) return out;
-    out.resize(info.num_changes);
-    int n = wellenx_signal_time_indices(xdb_, signal_ref, out.data());
-    if (n < 0) {
-        out.clear();
+    if (packed_selection(signal_ref)) {
+        std::vector<uint32_t> out;
+        for (const SelectedChange& change : selected_changes(signal_ref)) {
+            out.push_back(change.time_idx);
+        }
         return out;
     }
-    out.resize(n);
-    return out;
+    return native_time_indices_of(signal_ref);
 }
 
 const uint8_t* WellenFstBackend::signal_data_ptr(uint32_t) const {
@@ -560,13 +634,20 @@ std::string WellenFstBackend::normalize_path(const std::string& path) {
     for (char c : path) out.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
     // Drop a leading "top." prefix produced by Verilator DesignDB naming.
     if (out.rfind("top.", 0) == 0) out = out.substr(4);
+    size_t array_separator = 0;
+    while ((array_separator = out.find(".[", array_separator)) !=
+           std::string::npos) {
+        out.erase(array_separator, 1);
+    }
     return out;
 }
 
 void WellenFstBackend::build_signal_index() const {
     if (!signal_index_.empty() || !db_) return;
     std::unordered_map<std::string, uint32_t> local_candidates;
+    std::unordered_map<std::string, DeclaredRange> local_range_candidates;
     std::unordered_set<std::string> ambiguous_locals;
+    std::unordered_set<std::string> ambiguous_local_ranges;
     uint32_t n = wellen_scope_count(db_);
     for (uint32_t si = 0; si < n; ++si) {
         uint32_t sr = wellen_scope_at(db_, si);
@@ -579,14 +660,38 @@ void WellenFstBackend::build_signal_index() const {
             if (!full || !*full) continue;
             uint32_t sig = wellen_var_signal_ref(db_, vr);
             if (sig == 0) continue;
+            int64_t msb = 0;
+            int64_t lsb = 0;
+            uint32_t width = 0;
+            const WellenSignalEncoding encoding =
+                wellen_var_encoding(db_, vr, &width);
+            const bool has_range =
+                encoding == WELLEN_ENCODING_BITVECTOR &&
+                wellen_var_index(db_, vr, &msb, &lsb) == 0;
+            const DeclaredRange range{msb, lsb, width};
             std::string key = normalize_path(full);
-            if (!key.empty()) signal_index_[key] = sig;
+            if (!key.empty()) {
+                signal_index_[key] = sig;
+                if (has_range) declared_ranges_[key] = range;
+            }
             const char* local_name = wellen_var_name(db_, vr);
             std::string local = normalize_path(local_name ? local_name : "");
             if (!local.empty()) {
                 auto inserted = local_candidates.emplace(local, sig);
                 if (!inserted.second && inserted.first->second != sig) {
                     ambiguous_locals.insert(local);
+                }
+                if (has_range) {
+                    const auto range_inserted =
+                        local_range_candidates.emplace(local, range);
+                    if (!range_inserted.second &&
+                        (range_inserted.first->second.msb != range.msb ||
+                         range_inserted.first->second.lsb != range.lsb ||
+                         range_inserted.first->second.width != range.width)) {
+                        ambiguous_local_ranges.insert(local);
+                    }
+                } else {
+                    ambiguous_local_ranges.insert(local);
                 }
             }
         }
@@ -595,6 +700,11 @@ void WellenFstBackend::build_signal_index() const {
         if (ambiguous_locals.count(item.first) == 0 &&
             signal_index_.count(item.first) == 0) {
             signal_index_[item.first] = item.second;
+            const auto range = local_range_candidates.find(item.first);
+            if (range != local_range_candidates.end() &&
+                ambiguous_local_ranges.count(item.first) == 0) {
+                declared_ranges_[item.first] = range->second;
+            }
         }
     }
 }
@@ -605,6 +715,8 @@ uint32_t WellenFstBackend::find_signal(const std::string& path) const {
     std::string key = normalize_path(path);
     auto it = signal_index_.find(key);
     if (it != signal_index_.end()) return it->second;
+    const uint32_t selected = create_packed_selection(key);
+    if (selected != kInvalidSignalRef) return selected;
     // Fallback: brute force over all vars
     uint32_t n = wellen_scope_count(db_);
     for (uint32_t si = 0; si < n; ++si) {
@@ -619,6 +731,167 @@ uint32_t WellenFstBackend::find_signal(const std::string& path) const {
         }
     }
     return kInvalidSignalRef;
+}
+
+const WellenFstBackend::PackedSelection* WellenFstBackend::packed_selection(
+    uint32_t signal_ref) const {
+    if ((signal_ref & kVirtualSignalFlag) == 0) return nullptr;
+    const uint32_t encoded_index = signal_ref & ~kVirtualSignalFlag;
+    if (encoded_index == 0 || encoded_index > packed_selections_.size())
+        return nullptr;
+    return &packed_selections_[encoded_index - 1];
+}
+
+uint32_t WellenFstBackend::native_signal_ref(uint32_t signal_ref) const {
+    if (const PackedSelection* const selection = packed_selection(signal_ref))
+        return selection->base_ref;
+    return (signal_ref & kVirtualSignalFlag) == 0
+        ? signal_ref : kInvalidSignalRef;
+}
+
+namespace {
+
+bool parse_signed_index(const std::string& text, int64_t& value) {
+    if (text.empty()) return false;
+    errno = 0;
+    char* end = nullptr;
+    const long long parsed = std::strtoll(text.c_str(), &end, 10);
+    if (errno == ERANGE || end != text.c_str() + text.size()) return false;
+    value = static_cast<int64_t>(parsed);
+    return true;
+}
+
+}  // namespace
+
+uint32_t WellenFstBackend::create_packed_selection(
+    const std::string& normalized_path) const {
+    const auto cached = packed_selection_index_.find(normalized_path);
+    if (cached != packed_selection_index_.end()) return cached->second;
+    if (normalized_path.empty() || normalized_path.back() != ']')
+        return kInvalidSignalRef;
+    const size_t open = normalized_path.rfind('[');
+    if (open == std::string::npos || open == 0) return kInvalidSignalRef;
+    const std::string base_path = normalized_path.substr(0, open);
+    const auto base = signal_index_.find(base_path);
+    if (base == signal_index_.end() ||
+        (base->second & kVirtualSignalFlag) != 0) return kInvalidSignalRef;
+    const auto declared = declared_ranges_.find(base_path);
+    if (declared == declared_ranges_.end()) return kInvalidSignalRef;
+    const uint64_t declared_width = static_cast<uint64_t>(
+        declared->second.msb >= declared->second.lsb
+            ? declared->second.msb - declared->second.lsb + 1
+            : declared->second.lsb - declared->second.msb + 1);
+    if (declared_width == 0 || declared_width != declared->second.width)
+        return kInvalidSignalRef;
+    const std::string selector = normalized_path.substr(
+        open + 1, normalized_path.size() - open - 2);
+    const size_t colon = selector.find(':');
+    if (colon != std::string::npos && selector.find(':', colon + 1) !=
+            std::string::npos) return kInvalidSignalRef;
+    int64_t selected_msb = 0;
+    int64_t selected_lsb = 0;
+    if (!parse_signed_index(selector.substr(0, colon), selected_msb))
+        return kInvalidSignalRef;
+    if (colon == std::string::npos) {
+        selected_lsb = selected_msb;
+    } else if (!parse_signed_index(selector.substr(colon + 1), selected_lsb)) {
+        return kInvalidSignalRef;
+    }
+    const int64_t declared_low = std::min(declared->second.msb,
+                                          declared->second.lsb);
+    const int64_t declared_high = std::max(declared->second.msb,
+                                           declared->second.lsb);
+    if (selected_msb < declared_low || selected_msb > declared_high ||
+        selected_lsb < declared_low || selected_lsb > declared_high)
+        return kInvalidSignalRef;
+    const uint64_t selected_width = static_cast<uint64_t>(
+        selected_msb >= selected_lsb ? selected_msb - selected_lsb + 1
+                                     : selected_lsb - selected_msb + 1);
+    if (selected_width == 0 || selected_width > UINT32_MAX ||
+        packed_selections_.size() + 1 >= kVirtualSignalFlag)
+        return kInvalidSignalRef;
+    packed_selections_.push_back({base->second, declared->second.msb,
+                                  declared->second.lsb, selected_msb,
+                                  selected_lsb,
+                                  static_cast<uint32_t>(selected_width)});
+    const uint32_t handle = kVirtualSignalFlag |
+        static_cast<uint32_t>(packed_selections_.size());
+    packed_selection_index_.emplace(normalized_path, handle);
+    return handle;
+}
+
+bool WellenFstBackend::select_packed_bits(
+    const PackedSelection& selection, const std::string& source,
+    std::string& selected) {
+    const uint64_t declared_width = static_cast<uint64_t>(
+        selection.declared_msb >= selection.declared_lsb
+            ? selection.declared_msb - selection.declared_lsb + 1
+            : selection.declared_lsb - selection.declared_msb + 1);
+    if (declared_width != source.size()) return false;
+    selected.clear();
+    selected.reserve(selection.width);
+    const int64_t step = selection.selected_msb <= selection.selected_lsb
+        ? 1 : -1;
+    for (int64_t bit = selection.selected_msb;; bit += step) {
+        const uint64_t offset = static_cast<uint64_t>(
+            selection.declared_msb >= selection.declared_lsb
+                ? selection.declared_msb - bit
+                : bit - selection.declared_msb);
+        if (offset >= source.size()) return false;
+        selected.push_back(source[static_cast<size_t>(offset)]);
+        if (bit == selection.selected_lsb) break;
+    }
+    return true;
+}
+
+std::vector<uint32_t> WellenFstBackend::native_time_indices_of(
+    uint32_t signal_ref) const {
+    std::vector<uint32_t> out;
+    if (!xdb_) return out;
+    WellenSignalInfo info;
+    if (wellen_signal_info(db_, signal_ref, &info) != 0) return out;
+    out.resize(info.num_changes);
+    const int n = wellenx_signal_time_indices(xdb_, signal_ref, out.data());
+    if (n < 0) {
+        out.clear();
+        return out;
+    }
+    out.resize(static_cast<size_t>(n));
+    return out;
+}
+
+const std::vector<WellenFstBackend::SelectedChange>&
+WellenFstBackend::selected_changes(uint32_t signal_ref) const {
+    static const std::vector<SelectedChange> empty;
+    const auto cached = selected_change_cache_.find(signal_ref);
+    if (cached != selected_change_cache_.end()) return cached->second;
+    const PackedSelection* const selection = packed_selection(signal_ref);
+    if (!selection) return empty;
+    WellenSignalInfo info;
+    if (wellen_signal_info(db_, selection->base_ref, &info) != 0) return empty;
+    const std::vector<uint32_t> indices = native_time_indices_of(
+        selection->base_ref);
+    std::vector<SelectedChange> selected;
+    selected.reserve(indices.size());
+    std::string previous;
+    for (size_t ordinal = 0; ordinal < indices.size(); ++ordinal) {
+        WaveformValue source;
+        if (!native_typed_value_at(selection->base_ref,
+                                   static_cast<uint32_t>(ordinal), 0, source) ||
+            source.kind != ValueKind::BitVector) {
+            return empty;
+        }
+        std::string value;
+        if (!select_packed_bits(*selection, source.text, value)) {
+            return empty;
+        }
+        if (!selected.empty() && value == previous) continue;
+        previous = value;
+        selected.push_back({indices[ordinal],
+                            WaveformValue{ValueKind::BitVector, value, 0.0}});
+    }
+    return selected_change_cache_.emplace(signal_ref, std::move(selected))
+        .first->second;
 }
 
 bool WellenFstBackend::value_at(const std::string& path, uint64_t time,
