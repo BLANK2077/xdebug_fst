@@ -67,4 +67,17 @@ module matches_top (
     mixed_q = 8'h33;
     mixed_q <= data;
   end
+
+  reg [7:0] exact_match_out;
+  reg [7:0] wildcard_match_out;
+  always_comb begin
+    if (sel matches 2'd1)
+      exact_match_out = data;
+    else
+      exact_match_out = 8'h00;
+    if (sel matches .*)
+      wildcard_match_out = data;
+    else
+      wildcard_match_out = 8'h00;
+  end
 endmodule
