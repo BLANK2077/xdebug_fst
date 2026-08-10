@@ -623,6 +623,12 @@ Wellen 即使能从原始 FST 读取该内部信号的完整值，也没有权�
 单步 `trace.active_driver` 的空 paths 可按其独立合同报告 `no_driver`，不得把两个 action 的
 termination 规则混为一套。
 
+`trace.x_origin.limits.max_time_steps` 约束 action DFS 实际访问的不同 X onset 状态。每个
+候选上游仍由 DesignDB 静态依赖选出，再由 Wellen 在当前状态时间按需取值并向前查找该
+信号连续为 X 的 onset；action 只把本次 DFS 已进入的 onset 加入有界 visited set。它不是
+Wellen 对整份 FST 的预扫时间表，也不是持久化事件索引。预算耗尽时保留待继续信号及其
+onset，返回 `limit/max_time_steps` 和不完整性证据。
+
 同一源文件行也不能直接等同于同一条动态语句。lowering 后的三元表达式可能把信号 RHS
 叶子与常量 RHS 叶子保留在同一 `(file,line,kind)` 下，但每片叶子具有不同的静态
 activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为语句身份，
