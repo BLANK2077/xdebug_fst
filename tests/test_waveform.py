@@ -280,6 +280,29 @@ def test_value_at_preserves_event_kind(
                    "value": {"known": True, "value": "event"}}
 
 
+def test_signal_changes_preserves_same_time_string_deltas(
+        loop_runner: StdioLoopRunner, string_delta_fst) -> None:
+    open_session(loop_runner, string_delta_fst)
+    rsp = loop_runner.request("signal.changes", args={
+        "signal": "string_test.test_string.[1:50]",
+        "time_range": {"begin": "0ps", "end": "max"},
+        "render_time_unit": "ps", "line_limit": 10})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["actual_transition_count"] == 3
+    assert rsp["summary"]["total_count"] == 4
+    assert rsp["summary"]["returned_count"] == 4
+    assert rsp["summary"]["scan_complete"] is True
+    assert rsp["summary"]["analysis_complete"] is True
+    changes = rsp["data"]["changes"]
+    assert [change["time"] for change in changes] == [
+        "0ps", "0ps", "10000ps", "20000ps"]
+    assert changes[0]["value"] == {"known": True, "value": " " * 50}
+    assert changes[1]["value"]["value"] == \
+        "En lång röd räv" + " " * 35
+    assert changes[2]["value"]["value"].startswith("Viel \"spaß\"")
+    assert changes[3]["value"]["value"].startswith("3±0.3°C")
+
+
 def test_signal_changes(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("signal.changes", args={
