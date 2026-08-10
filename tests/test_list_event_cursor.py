@@ -28,6 +28,23 @@ def test_list_create_add_show(loop_runner: StdioLoopRunner, counter_fst) -> None
         {"index": 2, "signal": "top.clk"}]
 
 
+def test_list_show_and_validate_empty(loop_runner: StdioLoopRunner,
+                                      counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    created = loop_runner.request("list.create", args={"name": "empty"})
+    assert created.get("ok"), created
+
+    shown = loop_runner.request("list.show", args={"name": "empty"})
+    assert shown.get("ok"), shown
+    assert shown["summary"] == {"name": "empty", "signal_count": 0}
+    assert shown["data"] == {"signals": []}
+
+    validated = loop_runner.request("list.validate", args={"name": "empty"})
+    assert validated.get("ok"), validated
+    assert validated["summary"] == {"name": "empty", "all_found": True}
+    assert validated["data"] == {"signals": []}
+
+
 def test_list_create_duplicate(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     loop_runner.request("list.create", args={"name": "dup"})
@@ -179,6 +196,20 @@ def test_event_config_list(loop_runner: StdioLoopRunner, counter_fst,
     assert named["data"]["config"]["clock"] == "top.clk"
 
 
+def test_event_config_list_empty(loop_runner: StdioLoopRunner,
+                                 counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("event.config.list")
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["scan_complete"] is True
+    assert rsp["summary"]["response_truncated"] is False
+    assert rsp["summary"]["truncation_scopes"] == []
+    assert rsp["data"] == {"events": []}
+
+
 def test_event_config_load(loop_runner: StdioLoopRunner, counter_fst,
                            tmp_path) -> None:
     open_session(loop_runner, counter_fst)
@@ -308,6 +339,14 @@ def test_cursor_list_and_delete(loop_runner: StdioLoopRunner, counter_fst) -> No
     assert rsp.get("ok")
     rsp = loop_runner.request("waveform.cursor.list")
     assert len(rsp["data"]["cursors"]) == 1
+
+
+def test_cursor_list_empty(loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("waveform.cursor.list")
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"] == {"cursor_count": 0, "active_cursor": None}
+    assert rsp["data"] == {"cursors": []}
 
 
 def test_cursor_use(loop_runner: StdioLoopRunner, counter_fst) -> None:

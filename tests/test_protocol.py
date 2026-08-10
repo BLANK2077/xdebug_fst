@@ -39,6 +39,14 @@ def test_apb_config_list(loop_runner: StdioLoopRunner, apb_fst) -> None:
     assert named["data"]["config"]["clock"] == "top.pclk"
 
 
+def test_apb_config_list_empty(loop_runner: StdioLoopRunner, apb_fst) -> None:
+    open_session(loop_runner, apb_fst)
+    rsp = loop_runner.request("apb.config.list", args={})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"] == {"count": 0}
+    assert rsp["data"] == {"configs": []}
+
+
 def test_apb_config_load(loop_runner: StdioLoopRunner, apb_fst) -> None:
     open_session(loop_runner, apb_fst)
     rsp = loop_runner.request("apb.config.load", args={

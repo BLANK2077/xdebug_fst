@@ -2,6 +2,8 @@
 """actions, schema, batch, session.open/close/list/doctor/gc/kill."""
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from conftest import open_session
@@ -166,6 +168,21 @@ def test_session_list_and_doctor(loop_runner: StdioLoopRunner,
     rsp = loop_runner.request("session.doctor")
     assert rsp.get("ok")
     assert rsp["summary"]["healthy"] is True
+
+
+def test_session_list_empty(cli_runner: CliRunner, tmp_path) -> None:
+    environment = dict(cli_runner.env)
+    environment["HOME"] = str(tmp_path)
+    environment["XVERIF_TEST_TMPDIR"] = str(tmp_path)
+    isolated = CliRunner(
+        Path(cli_runner.command[0]), cwd=Path(cli_runner.cwd), env=environment
+    )
+    result = isolated.run({
+        "api_version": "xdebug.v1", "action": "session.list", "args": {}
+    })
+    assert result.ok, result.stderr_raw
+    assert result.response["summary"]["session_count"] == 0
+    assert result.response["data"] == {"sessions": []}
 
 
 def test_session_gc_and_kill(loop_runner: StdioLoopRunner, counter_fst) -> None:
