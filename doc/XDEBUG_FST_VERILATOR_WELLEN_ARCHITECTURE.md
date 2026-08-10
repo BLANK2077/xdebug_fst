@@ -1081,6 +1081,23 @@ UBSan 7/7 均通过。
 registry、UDS、PID、FD 和 RSS 只管理进程与资源，不能发布 driver/load、X-origin、协议或
 表达式分析事实；没有 FST 转换、预扫索引、离线数据库、全量快照、TCP/fileport 或 fallback。
 
+### 9.10 Action 覆盖审计是证据索引，不是分析后端
+
+P7 第三批在 pytest runner 边界增加可选 NDJSON trace。它只复制测试已经发送和收到的
+xdebug.v1 JSON，并关联 pytest node；不接触 FST 文件、不调用 Wellen、不读取 DesignDB，也
+不参与生产 dispatch。审计工具离线读取这份测试日志，按十类验收维度建立“观察到/缺失”
+索引；生成文件只位于 `/tmp`，不作为 action 输入、缓存、export 或后续波形分析数据库。
+
+第一份 925-event 基线证明 73/73 action 都有成功和非法请求运行证据，同时暴露资源缺失
+18/73、空结果 9/73、边界时间 23/73、多结果 35/73、limits 20/73、truncation 3/73、
+completeness 37/73、X/Z 7/73 的观察覆盖。数字只反映现有 pytest，不等于字段语义一致；
+即使一个 action 十列都有记录，也仍须原版归一化差分。资源/时间无关 action 的 N/A 只能由
+冻结 schema 与原版行为裁定，工具不会擅自缩小任务。
+
+因此该 trace 与 FST 分析完全隔离：生产事实路径仍是原始 `.fst → Wellen 按需读取 → action`，
+静态事实仍只来自 DesignDB；审计日志不得回灌 action，不得成为波形索引、离线数据库或
+fallback。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；

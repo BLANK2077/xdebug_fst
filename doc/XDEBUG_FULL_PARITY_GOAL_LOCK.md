@@ -174,3 +174,16 @@ engine 内按需提供波形事实，registry/PID/socket/FD/RSS 不参与 driver
 RSS 上限只覆盖 quarantine，真实泄漏仍由 `detect_leaks=1` 否决，FD 仍精确零增长。既有
 `SIGKILL → doctor unhealthy → gc` 负责 crash 证据，新测试负责并发和重复资源证据，二者
 不能互相替代。P6 复杂语义、73-action 全量差分和最终交付仍未完成，Goal 保持 active。
+
+## 十、P7 第三批 action 覆盖审计防漂移记录
+
+可选 action trace 只记录 pytest 已发生的 xdebug.v1 请求/响应和 test node，不读取 FST、
+Wellen 或 DesignDB，也不参与生产 action。审计生成的 NDJSON/JSON/Markdown 只位于 `/tmp`，
+禁止回灌请求、作为 export 输入、构建波形索引或离线分析数据库，因此不改变
+`GOAL-FST-DIRECT-001`。
+
+首份矩阵的 success/invalid_request 为 73/73，但 resource_missing、empty_result、
+boundary_time、multiple_results、limits、truncation、completeness、X/Z 仍分别只有
+18/9/23/35/20/3/37/7 项观察证据。这些数字是 TODO 索引，不是完整兼容率；单个 action
+十列有勾选也必须继续原版归一化差分。任何 N/A 必须由冻结 schema 与原版真实行为证明，
+不得由审计器或实现便利擅自缩小目标。P6/P7 仍有大量缺口，Goal 保持 active。

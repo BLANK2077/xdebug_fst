@@ -1048,6 +1048,43 @@ onset 时间表、持久化事件索引或离线数据库。冻结 query schema 
    concurrency、process cleanup、FD/RSS 和 sanitizer 都属于运行稳定性门禁，不承担波形分析，
    不改变 `GOAL-FST-DIRECT-001`。
 
+#### P7 第三批：73-action 十维覆盖审计基线
+
+2026-08-10 建立机器可读的 action 交换 trace 与保守覆盖矩阵。该矩阵用于量化 TODO，不能
+代替原版归一化差分或人工合同审查：
+
+1. `XDEBUG_ACTION_COVERAGE_LOG` 只有显式设置时才启用，且必须为绝对路径。pytest runner
+   逐次记录 test node、one-shot/stdio-loop transport、完整请求/响应、退出码和 timeout；默认
+   关闭时不写文件、不改变请求、响应、backend 或测试顺序。pytest session 启动时拒绝相对
+   路径、缺失父目录和已存在的目标文件，防止跨次运行追加旧事件伪造覆盖数量。
+2. `tools/audit_action_coverage.py` 从冻结 catalog 读取严格 73 个 action，并按实际 trace 保守
+   标记：正常成功、schema 非法输入、资源缺失、空结果、边界时间、多结果、limits、
+   truncation、completeness、X/Z。每个标记保留 pytest node 证据；没有观察到就保持 missing，
+   不从 handler 名、schema 字段存在或文档声明推断已覆盖。
+3. 第一份基线由 342 项 pytest 中的 925 次 public action 交换生成：success 73/73、
+   invalid_request 73/73、resource_missing 18/73、empty_result 9/73、boundary_time 23/73、
+   multiple_results 35/73、limits 20/73、truncation 3/73、completeness 37/73、X/Z 7/73。
+   73 个 action 均有至少一次交换和成功响应；负例中的 `clock_point_query`、`no.such.action`
+   作为 unknown action 单独报告，不计入冻结 73 项。
+4. `trace.x_origin` 在这份启发式矩阵中十列均有观察证据，只能说明现有 pytest 触达十类
+   形状，不能声明该 action 已与原版全差分；其余 72 项更不能因某列出现勾选而跳过逐字段
+   归一化比较。
+5. 对 `actions`、`schema`、`session.*`、config/list 等资源无关或时间无关 action，某些维度
+   是否“不适用”必须依据冻结 request/response schema 和原版真实请求结果逐项裁定并保存
+   evidence；禁止审计工具自行标 N/A，也禁止为填表构造违反 schema 的无意义波形请求。
+6. X/Z 分类只接受四态 literal/bit 值和明确 unknown kind；普通 `0xdead_beef` 或
+   `32'hdead_beef` 不得因字符 `x` 被误报。分类器已有独立单测覆盖该边界。
+7. 正式复现命令如下，trace/JSON/Markdown 均生成在 `/tmp`，不得作为仓库产物提交：
+
+   ```bash
+   cmake -E remove /tmp/xdebug-action-coverage.ndjson /tmp/xdebug-action-coverage.json /tmp/xdebug-action-coverage.md
+   XDEBUG_ACTION_COVERAGE_LOG=/tmp/xdebug-action-coverage.ndjson PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ${XFST_CONDA_ENV} -m pytest -q --xfst-bin=${REPO_ROOT}/build/xdebug-fst ${REPO_ROOT}/tests
+   ${XFST_CONDA_ENV} ${REPO_ROOT}/tools/audit_action_coverage.py --repo-root ${REPO_ROOT} --trace /tmp/xdebug-action-coverage.ndjson --output-json /tmp/xdebug-action-coverage.json --output-markdown /tmp/xdebug-action-coverage.md
+   ```
+8. 下一步必须先按 schema/原版裁定 applicability，再从缺口最大的资源缺失、空结果和
+   truncation 开始补真实请求/响应差分；只有全部适用维度都有可定位证据且归一化语义一致，
+   才允许启用 `--require-complete` 作为硬门禁。
+
 提交：
 
 - `测试：建立七十三项 action 全量差分门禁`
