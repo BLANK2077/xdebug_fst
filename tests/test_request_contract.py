@@ -1,4 +1,17 @@
+import json
+from pathlib import Path
+
+import pytest
+
 from runner import CliRunner
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+FROZEN_ACTIONS = json.loads(
+    (REPO_ROOT / "compat/xdebug-v1/catalog.response.json").read_text(
+        encoding="utf-8"
+    )
+)["data"]["actions"]
 
 
 def test_unknown_top_level_field_is_rejected_before_handler(cli_runner: CliRunner) -> None:
@@ -17,6 +30,30 @@ def test_unknown_top_level_field_is_rejected_before_handler(cli_runner: CliRunne
         "expected": "one of api_version, request_id, action, target, args, limits",
         "received": 1,
         "received_type": "number",
+    }
+
+
+@pytest.mark.parametrize("action", FROZEN_ACTIONS)
+def test_every_frozen_action_rejects_unknown_top_level_field(
+    cli_runner: CliRunner, action: str
+) -> None:
+    result = cli_runner.run({
+        "api_version": "xdebug.v1",
+        "action": action,
+        "unexpected": {"must": "be rejected before dispatch"},
+    })
+    assert result.returncode == 1, result.stderr_raw
+    assert result.response["ok"] is False
+    assert result.response["action"] == action
+    assert result.response["error"] == {
+        "code": "INVALID_REQUEST",
+        "message": "public request contains unknown field: unexpected",
+        "recoverable": True,
+        "error_layer": "schema",
+        "invalid_arg": "unexpected",
+        "expected": "one of api_version, request_id, action, target, args, limits",
+        "received": {"must": "be rejected before dispatch"},
+        "received_type": "object",
     }
 
 
