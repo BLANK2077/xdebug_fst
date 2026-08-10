@@ -1117,6 +1117,25 @@ def test_trace_x_origin_coalesces_port_aliases_before_chain_limit(
                for hop in chain["hops"])
 
 
+def test_trace_x_origin_coalesces_converged_alias_exploration_before_node_limit(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        xorigin_alias_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, xorigin_alias_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"}, limits={
+            "max_chains": 2, "max_nodes": 6})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["chain_count"] == 2
+    assert rsp["summary"]["completed_chain_count"] == 2
+    assert rsp["summary"]["limited_chain_count"] == 0
+    assert rsp["summary"]["termination"] == "origin_found"
+    assert rsp["summary"]["analysis_complete"] is True
+    assert {chain["current"]["signal"] for chain in rsp["data"]["chains"]} == {
+        "GCD.io_a", "GCD.y"}
+    assert rsp["data"]["limitations"] == []
+
+
 def test_trace_x_origin_not_x_late(loop_runner: StdioLoopRunner, xprop_fst,
                                    xprop_design_db) -> None:
     open_session(loop_runner, xprop_fst, xprop_design_db)
