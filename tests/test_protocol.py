@@ -506,6 +506,33 @@ def test_axi_analysis_osd_and_pending(loop_runner: StdioLoopRunner, axi_fst) -> 
     assert rsp["data"]["pending_transactions"] == []
 
 
+def test_axi_pending_analysis_truncates_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    pending_config = {
+        **WELLEN_AXI_CONFIG,
+        "bvalid": "top.masslav_if.Pslave_err",
+    }
+    loaded = loop_runner.request("axi.config.load", args={
+        "name": "wellen_axi_pending", "config": pending_config,
+    })
+    assert loaded.get("ok"), loaded
+
+    pending = loop_runner.request("axi.analysis", args={
+        "name": "wellen_axi_pending", "analysis": "pending",
+        "direction": "write", "line_limit": 1,
+    })
+    assert pending.get("ok"), pending
+    assert pending["summary"]["incomplete_write_count"] > 1
+    assert pending["summary"]["total_count"] > 1
+    assert pending["summary"]["returned_count"] == 1
+    assert pending["summary"]["response_truncated"] is True
+    assert pending["summary"]["truncation_scopes"] == [
+        "response_transactions"
+    ]
+    assert len(pending["data"]["pending_transactions"]) == 1
+
+
 def test_axi_statistics(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
     _load_axi(loop_runner)
