@@ -138,6 +138,9 @@ const char* xdd_trace_driver_predicate(XddDb*, int index, int offset) {
     const int end = index + 1 < kSignalCount ? kDriverStart[index + 1]
                                              : kDriverCount;
     if (offset < 0 || offset >= end - start) return nullptr;
+#ifdef XDEBUG_TEST_X_PREDICATE
+    if (index == 6) return "GCD.y";
+#endif
     return "1";
 }
 
