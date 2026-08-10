@@ -123,6 +123,23 @@ COMPLETENESS_KEYS = {
 }
 
 VALUE_KEYS = {"binary", "bits", "raw", "value"}
+XZ_COUNT_KEYS = {
+    "control_xz_count",
+    "data_xz_count",
+    "unknown_count",
+    "unresolved_filter_count",
+    "unresolved_transaction_count",
+}
+XZ_STATE_VALUES = {
+    "control_xz",
+    "data_xz",
+    "unknown",
+    "unknown_xz",
+    "x",
+    "xz",
+    "z",
+    "zx",
+}
 TIME_KEYS = {"begin", "end", "time", "times"}
 ZERO_TIME = re.compile(r"^[+-]?0(?:\.0+)?(?:as|fs|ps|ns|us|ms|s)?$")
 
@@ -226,6 +243,10 @@ def has_xz(value: Any) -> bool:
         if not path:
             continue
         key = path[-1]
+        if (key in XZ_COUNT_KEYS or key.endswith("_xz_count")) and \
+                isinstance(child, int) and not isinstance(child, bool) and \
+                child > 0:
+            return True
         if key in VALUE_KEYS and isinstance(child, str):
             literal = child.strip().lower()
             if literal in {"x", "z", "xz", "zx", "unknown"}:
@@ -234,7 +255,8 @@ def has_xz(value: Any) -> bool:
                 return True
             if re.search(r"'[bohd][0-9a-f_xz?]*[xz]", literal):
                 return True
-        if key in {"kind", "state"} and child in {"unknown", "x", "z", "xz"}:
+        if key in {"kind", "reason", "state", "status", "type"} and \
+                isinstance(child, str) and child.lower() in XZ_STATE_VALUES:
             return True
     return False
 

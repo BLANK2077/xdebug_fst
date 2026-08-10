@@ -22,6 +22,11 @@ def test_xz_classifier_distinguishes_unknown_digits_from_hex_prefix() -> None:
     assert has_xz({"value": "4'b10xz"})
     assert has_xz({"bits": "10x0"})
     assert has_xz({"kind": "unknown"})
+    assert has_xz({"summary": {"control_xz_count": 2}})
+    assert has_xz({"summary": {"unresolved_transaction_count": 1}})
+    assert has_xz({"data": {"issues": [{"type": "data_xz"}]}})
+    assert not has_xz({"summary": {"control_xz_count": 0}})
+    assert not has_xz({"summary": {"analysis_complete": False}})
 
 
 def test_truncation_classifier_uses_frozen_contract_fields() -> None:
