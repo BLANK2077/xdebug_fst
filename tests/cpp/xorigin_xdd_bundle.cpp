@@ -7,7 +7,34 @@
 
 namespace {
 
-#if defined(XDEBUG_TEST_ALIAS_COALESCE)
+#if defined(XDEBUG_TEST_X_LOOP)
+
+const XddSignalInfo kSignals[] = {
+    {"GCD.T_14", "wire", 33, "xorigin_loop.sv", 2},
+    {"GCD.GEN_0", "wire", 32, "xorigin_loop.sv", 3},
+};
+
+const int kDirections[] = {0, 0};
+
+const XddDriverRec kDrivers[] = {
+    {0, 1, "cont_assign", "rhs", "xorigin_loop.sv", 2},
+    {1, 0, "cont_assign", "rhs", "xorigin_loop.sv", 3},
+};
+
+const int kDriverStart[] = {0, 1};
+
+const XddLoadRec kLoads[] = {
+    {0, 1, "rhs_use", "xorigin_loop.sv", 3},
+    {1, 0, "rhs_use", "xorigin_loop.sv", 2},
+};
+
+const int kLoadStart[] = {0, 1};
+
+constexpr int kSignalCount = 2;
+constexpr int kDriverCount = 2;
+constexpr int kLoadCount = 2;
+
+#elif defined(XDEBUG_TEST_ALIAS_COALESCE)
 
 const XddSignalInfo kSignals[] = {
     {"GCD.T_14", "wire", 33, "xorigin_alias.sv", 2},

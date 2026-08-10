@@ -1136,6 +1136,27 @@ def test_trace_x_origin_coalesces_converged_alias_exploration_before_node_limit(
     assert rsp["data"]["limitations"] == []
 
 
+def test_trace_x_origin_reports_driver_cycle_as_loop(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        xorigin_loop_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, xorigin_loop_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "loop_detected"
+    assert rsp["summary"]["chain_count"] == 1
+    assert rsp["summary"]["completed_chain_count"] == 1
+    assert rsp["summary"]["limited_chain_count"] == 0
+    assert rsp["summary"]["origin_count"] == 0
+    chain = rsp["data"]["chains"][0]
+    assert chain["status"] == "loop_detected"
+    assert chain["termination_detail"] == "loop_detected"
+    assert chain["complete"] is True
+    assert [hop["signal"] for hop in chain["hops"]] == [
+        "GCD.T_14", "GCD.GEN_0"]
+
+
 def test_trace_x_origin_not_x_late(loop_runner: StdioLoopRunner, xprop_fst,
                                    xprop_design_db) -> None:
     open_session(loop_runner, xprop_fst, xprop_design_db)
