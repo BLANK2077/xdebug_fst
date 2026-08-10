@@ -165,7 +165,7 @@ def test_pre_dispatch_resource_error_does_not_credit_request_dimensions() -> Non
     assert dimensions == {"resource_missing"}
 
 
-def test_resource_applicability_manifest_is_explicit_and_valid() -> None:
+def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     empty_actions = {
         "apb.config.load", "axi.config.load", "event.config.load",
         "expr.eval_at", "expr.normalize", "list.add", "list.delete",
@@ -178,14 +178,6 @@ def test_resource_applicability_manifest_is_explicit_and_valid() -> None:
         "session.kill", "signal.resolve", "signal.xz_verify",
         "trace.active_driver_chain", "value.at", "verify.conditions",
     }
-    applicability = load_not_applicable(
-        REPO_ROOT / "tests/coverage/action_applicability.json",
-        sorted(empty_actions | {
-            "actions",
-            "session.gc",
-            "session.list",
-        }),
-    )
     resource_entries = {
         ("actions", "resource_missing"),
         ("batch", "resource_missing"),
@@ -197,4 +189,32 @@ def test_resource_applicability_manifest_is_explicit_and_valid() -> None:
     empty_entries = {
         (action, "empty_result") for action in empty_actions
     }
-    assert set(applicability) == resource_entries | empty_entries
+    truncation_actions = {
+        "actions", "apb.config.list", "apb.config.load",
+        "axi.config.list", "axi.config.load", "batch",
+        "event.config.load", "expr.eval_at", "expr.normalize",
+        "list.add", "list.create", "list.delete", "list.first_change",
+        "list.load", "list.show", "list.validate", "nwave.rc.generate",
+        "schema", "session.close", "session.doctor", "session.gc",
+        "session.kill", "session.list", "session.open",
+        "signal.canonicalize", "stream.config.get", "stream.config.list",
+        "stream.config.load", "stream.describe", "value.at",
+        "verify.conditions", "waveform.cursor.delete", "waveform.cursor.get",
+        "waveform.cursor.list", "waveform.cursor.set", "waveform.cursor.use",
+    }
+    truncation_entries = {
+        (action, "truncation") for action in truncation_actions
+    }
+    manifest_actions = {
+        action
+        for action, _dimension in (
+            resource_entries | empty_entries | truncation_entries
+        )
+    }
+    applicability = load_not_applicable(
+        REPO_ROOT / "tests/coverage/action_applicability.json",
+        sorted(manifest_actions),
+    )
+    assert set(applicability) == (
+        resource_entries | empty_entries | truncation_entries
+    )

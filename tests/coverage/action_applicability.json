@@ -204,6 +204,222 @@
       "dimension": "empty_result",
       "reason": "The public request schema requires at least one condition and success returns the corresponding nonempty check list.",
       "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "actions",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "apb.config.list",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "apb.config.load",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "axi.config.list",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "axi.config.load",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "batch",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation; child responses are audited under their own actions.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "event.config.load",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "expr.eval_at",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "expr.normalize",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "list.add",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "list.create",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "list.delete",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "list.first_change",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "list.load",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "list.show",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "list.validate",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "nwave.rc.generate",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "schema",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "session.close",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "session.doctor",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "session.gc",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "session.kill",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "session.list",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "session.open",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "signal.canonicalize",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "stream.config.get",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "stream.config.list",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "stream.config.load",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "stream.describe",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "value.at",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "verify.conditions",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.delete",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.get",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.list",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.set",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.use",
+      "dimension": "truncation",
+      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
+      "evidence": "tools/check_truncation_applicability.py"
     }
   ]
 }
