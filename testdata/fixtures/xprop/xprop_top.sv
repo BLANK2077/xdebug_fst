@@ -21,4 +21,9 @@ module xprop_top (
         if (reset) a <= 8'h00;
         else a <= a + 8'h01;
     end
+
+    reg ctrl_x;
+    reg [7:0] ctrl_rhs_data;
+    wire [7:0] ctrl_rhs_out;
+    assign ctrl_rhs_out = ctrl_x ? ctrl_rhs_data : 8'h55;
 endmodule

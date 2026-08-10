@@ -886,6 +886,29 @@ def test_trace_x_origin_x_propagation(loop_runner: StdioLoopRunner,
     assert "x" in chains[0]["origin"]["reason"]
 
 
+def test_trace_x_origin_branches_on_x_control_and_x_rhs(
+        loop_runner: StdioLoopRunner, xprop_fst,
+        xprop_design_db) -> None:
+    open_session(loop_runner, xprop_fst, xprop_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "top.xprop_top.ctrl_rhs_out", "time": "10ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["chain_count"] == 2
+    relation_paths = [
+        {hop["relation"] for hop in chain["hops"]}
+        for chain in rsp["data"]["chains"]
+    ]
+    assert any("control" in relations for relations in relation_paths)
+    assert any("rhs" in relations for relations in relation_paths)
+    assert {chain["current"]["signal"]
+            for chain in rsp["data"]["chains"]} == {
+        "top.xprop_top.ctrl_x",
+        "top.xprop_top.ctrl_rhs_data",
+    }
+
+
 def test_trace_x_origin_stops_at_force_x(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:
