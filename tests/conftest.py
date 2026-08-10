@@ -182,6 +182,16 @@ def primitive_output_design_db(xfst_bin: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
+def interface_modport_fst() -> Path:
+    return _fix("interface_modport")
+
+
+@pytest.fixture(scope="session")
+def interface_modport_design_db() -> Path:
+    return FIXTURES / "interface_modport" / "obj_dir"
+
+
+@pytest.fixture(scope="session")
 def apb_fst() -> Path:
     return _fix("apb")
 
