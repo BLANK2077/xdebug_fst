@@ -13,6 +13,8 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from .action_trace import record_action_exchange
+
 Json = Dict[str, Any]
 
 
@@ -117,6 +119,7 @@ class StdioLoopRunner:
             self._session_id = args.get("name") if args else None
         if action in {"session.close", "session.kill"} and response.get("ok"):
             self._session_id = None
+        record_action_exchange("stdio-loop", req, response, returncode=0)
         return response
 
     def stop(self) -> None:

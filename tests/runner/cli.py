@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .action_trace import record_action_exchange
+
 
 @dataclass
 class RunResult:
@@ -60,7 +62,13 @@ class CliRunner:
             proc = exc
             stdout_raw = (exc.stdout or "").decode() if isinstance(exc.stdout, bytes) else (exc.stdout or "")
             stderr_raw = (exc.stderr or "").decode() if isinstance(exc.stderr, bytes) else (exc.stderr or "")
-            return RunResult(request, -1, stdout_raw, stderr_raw, timed_out=True)
+            result = RunResult(
+                request, -1, stdout_raw, stderr_raw, timed_out=True
+            )
+            record_action_exchange(
+                "one-shot", request, None, returncode=-1, timed_out=True
+            )
+            return result
 
         result = RunResult(
             request,
@@ -73,4 +81,11 @@ class CliRunner:
             result.response = json.loads(proc.stdout)
         except (json.JSONDecodeError, IndexError):
             result.response = None
+        record_action_exchange(
+            "one-shot",
+            request,
+            result.response,
+            returncode=result.returncode,
+            timed_out=result.timed_out,
+        )
         return result
