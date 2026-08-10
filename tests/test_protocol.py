@@ -18,6 +18,22 @@ APB_CONFIG = {
     "pready": "top.pready", "pslverr": "top.pslverr",
 }
 
+WELLEN_APB_CONFIG = {
+    "clock": "top.masslav_if.clk", "edge": "posedge",
+    "sample_point": "after",
+    "reset": {
+        "signal": "top.masslav_if.Pslave_err", "polarity": "active_high",
+    },
+    "paddr": "top.masslav_if.Paddr",
+    "psel": "top.masslav_if.Psel",
+    "penable": "top.masslav_if.Penable",
+    "pwrite": "top.masslav_if.Pwrite",
+    "pwdata": "top.masslav_if.Pwdata",
+    "prdata": "top.masslav_if.Prdata",
+    "pready": "top.masslav_if.Pready",
+    "pslverr": "top.masslav_if.Pslave_err",
+}
+
 
 def load_apb(loop_runner: StdioLoopRunner, apb_fst, name: str = "apb0") -> None:
     open_session(loop_runner, apb_fst)
@@ -194,6 +210,39 @@ def test_apb_statistics_empty(loop_runner: StdioLoopRunner, apb_fst) -> None:
     assert rsp["summary"]["matched_transaction_count"] == 0
     assert rsp["summary"]["matched_read_count"] == 0
     assert rsp["summary"]["matched_write_count"] == 0
+
+
+def test_apb_statistics_and_cursor_report_incomplete_raw_fst_scan(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    loaded = loop_runner.request("apb.config.load", args={
+        "name": "wellen_apb", "config": WELLEN_APB_CONFIG,
+    })
+    assert loaded.get("ok"), loaded
+
+    statistics = loop_runner.request("apb.statistics", args={
+        "name": "wellen_apb", "filter": {"direction": "all"},
+    })
+    assert statistics.get("ok"), statistics
+    assert statistics["summary"]["matched_transaction_count"] == 10
+    assert statistics["summary"]["unresolved_transaction_count"] == 1
+    assert statistics["summary"]["scan_complete"] is False
+    assert statistics["summary"]["analysis_complete"] is False
+    assert statistics["summary"]["truncation_scopes"] == [
+        "analysis_transactions"
+    ]
+
+    cursor = loop_runner.request("apb.transaction.cursor", args={
+        "name": "wellen_apb", "op": "begin", "direction": "all",
+    })
+    assert cursor.get("ok"), cursor
+    assert cursor["summary"]["found"] is True
+    assert cursor["summary"]["total_count"] == 10
+    assert cursor["summary"]["scan_complete"] is False
+    assert cursor["summary"]["analysis_complete"] is False
+    assert cursor["summary"]["truncation_scopes"] == [
+        "analysis_transactions"
+    ]
 
 
 def test_apb_transaction_cursor(loop_runner: StdioLoopRunner, apb_fst) -> None:

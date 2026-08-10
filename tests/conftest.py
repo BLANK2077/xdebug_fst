@@ -175,6 +175,14 @@ def gcd_xorigin_fst() -> Path:
 
 
 @pytest.fixture(scope="session")
+def wellen_apb_fst() -> Path:
+    return (
+        WELLEN_REPOSITORY / "wellen" / "inputs" / "vcs" /
+        "Apb_slave_uvm_new.vcd.fst"
+    )
+
+
+@pytest.fixture(scope="session")
 def gcd_xorigin_design_db(xfst_bin: Path) -> Path:
     return xfst_bin.parent / "testdata" / "fixtures" / "gcd_xorigin" / "obj_dir"
 

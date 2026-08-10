@@ -192,6 +192,25 @@ def test_signal_sampled_pulse_inspect(loop_runner: StdioLoopRunner,
     assert rsp["summary"]["returned_count"] == len(rsp["data"]["findings"])
 
 
+def test_signal_sampled_pulse_line_limit_marks_truncation(
+        loop_runner: StdioLoopRunner, stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
+    rsp = loop_runner.request("signal.sampled_pulse.inspect", args={
+        "valid": "top.in_valid", "clock": "top.clk",
+        "payloads": ["top.in_data", "top.in_ready"],
+        "edge": "posedge", "sample_point": "after",
+        "rules": {"payload_changed_without_sampled_valid": "all"},
+        "time_range": {"begin": "0ps", "end": "500ps"},
+        "line_limit": 1,
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] > 1
+    assert rsp["summary"]["returned_count"] == 1
+    assert rsp["summary"]["response_truncated"] is True
+    assert rsp["summary"]["truncation_scopes"] == ["response_findings"]
+    assert len(rsp["data"]["findings"]) == 1
+
+
 def test_sampled_pulse_and_handshake_empty_before_first_edge(
         loop_runner: StdioLoopRunner, stream_fst) -> None:
     open_session(loop_runner, stream_fst)
