@@ -667,6 +667,13 @@ NBA 同列并报告 assignment/2 paths；冻结原版要求保留 termination=fo
 force 路径。修复只复用既有静态 group/predicate，不增加任何后端事实。
 实现存在活动 force 时只投影 force groups，summary 保留 `force/force`；多个 force 全部保留并
 走既有结果上限裁剪。底层 assignment 与其未决谓词不再污染已解析 force 结果。
+第二十七批进一步覆盖同一过程先 blocking 后 NBA 的调度边界：只有恰好一条活动 NBA 且
+没有未决 NBA 时，NBA 才覆盖同目标非 NBA；多条或未决 NBA 必须继续歧义。第三十二批用
+同一 posedge 过程连续两条 NBA 验证后一条规则，冻结原版在精确活动时刻发现两条
+assignment-like handle 时同样返回 `multiple_active_candidates`。同步生成的原始 FST 与
+DesignDB 已让 chain 保留第 88/89 行两条候选；禁止按源码最后一条、最终 FST 值或值相等
+关系任选。两批均由 DesignDB 提供静态语句/事件，Wellen 只从当前原始 FST 按需提供边沿
+和值，调度合同由 xdebug action 执行。
 第十批进一步关闭基本 inout alias：DesignDB 只用替换型静态描述恢复被
 tristate lowering 遮蔽的原始 RHS，xdebug 则沿真实 FST alias 从子端口追到父级 primary
 input。第十一批在同一原始 FST 中增加父级 net、`inout_mid.bus`、中间 `leaf_bus` 和
