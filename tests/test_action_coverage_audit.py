@@ -267,10 +267,30 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     limit_entries = {
         (action, "limits") for action in limit_not_applicable_actions
     }
+    boundary_not_applicable_actions = {
+        "actions", "apb.config.list", "apb.config.load", "apb.query",
+        "apb.statistics", "apb.transaction.cursor", "axi.analysis",
+        "axi.config.list", "axi.config.load", "axi.statistics",
+        "axi.transaction.cursor", "batch", "event.config.list",
+        "event.config.load", "expr.normalize", "list.add", "list.create",
+        "list.delete", "list.load", "list.show", "list.validate",
+        "nwave.rc.generate", "schema", "scope.list", "scope.roots",
+        "session.close", "session.doctor", "session.gc", "session.kill",
+        "session.list", "session.open", "signal.canonicalize",
+        "signal.resolve", "stream.config.get", "stream.config.list",
+        "stream.config.load", "stream.describe", "trace.driver",
+        "trace.load", "waveform.cursor.delete", "waveform.cursor.get",
+        "waveform.cursor.list", "waveform.cursor.use",
+    }
+    boundary_entries = {
+        (action, "boundary_time")
+        for action in boundary_not_applicable_actions
+    }
     manifest_actions = {
         action
         for action, _dimension in (
-            resource_entries | empty_entries | truncation_entries | limit_entries
+            resource_entries | empty_entries | truncation_entries |
+            limit_entries | boundary_entries
         )
     }
     applicability = load_not_applicable(
@@ -278,5 +298,6 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
         sorted(manifest_actions),
     )
     assert set(applicability) == (
-        resource_entries | empty_entries | truncation_entries | limit_entries
+        resource_entries | empty_entries | truncation_entries |
+        limit_entries | boundary_entries
     )

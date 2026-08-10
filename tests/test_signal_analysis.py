@@ -142,14 +142,14 @@ def test_signal_stability_single_point_is_stable(
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("signal.stability", args={
         "signal": "top.counter_top.count",
-        "time_range": time_range("100ps", "100ps"),
+        "time_range": time_range("0ps", "0ps"),
         "render_time_unit": "ps",
     })
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["stable"] is True
     assert rsp["summary"]["change_row_count"] == 1
-    assert rsp["data"]["begin"] == "100ps"
-    assert rsp["data"]["end"] == "100ps"
+    assert rsp["data"]["begin"] == "0ps"
+    assert rsp["data"]["end"] == "0ps"
 
 
 def test_signal_xz_verify_fail_evidence(

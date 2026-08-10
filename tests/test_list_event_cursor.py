@@ -349,16 +349,16 @@ def test_event_export_empty(loop_runner: StdioLoopRunner,
 def test_cursor_set_get(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("waveform.cursor.set", args={"name": "c1",
-                                                           "time": "300ps"})
+                                                           "time": "0ps"})
     assert rsp.get("ok"), rsp
     assert rsp["summary"] == {
-        "name": "c1", "time": "0.3ns", "status": "set", "active": False}
+        "name": "c1", "time": "0ns", "status": "set", "active": False}
     assert rsp["data"]["resolved_time"] == {
-        "source": "explicit", "time": "0.3ns"}
+        "source": "explicit", "time": "0ns"}
     rsp = loop_runner.request("waveform.cursor.get", args={"name": "c1"})
     assert rsp.get("ok"), rsp
     assert rsp["summary"] == {
-        "name": "c1", "time": "0.3ns", "status": "found"}
+        "name": "c1", "time": "0ns", "status": "found"}
     assert rsp["data"]["metadata"] == {
         "note": "", "origin": "user", "clock": ""}
 

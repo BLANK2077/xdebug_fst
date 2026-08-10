@@ -696,6 +696,264 @@
       "dimension": "limits",
       "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
       "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "actions",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "apb.config.list",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "apb.config.load",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "apb.query",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "apb.statistics",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "apb.transaction.cursor",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "axi.analysis",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "axi.config.list",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "axi.config.load",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "axi.statistics",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "axi.transaction.cursor",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "batch",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "event.config.list",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "event.config.load",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "expr.normalize",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "list.add",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "list.create",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "list.delete",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "list.load",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "list.show",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "list.validate",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "nwave.rc.generate",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "schema",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "scope.list",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "scope.roots",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "session.close",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "session.doctor",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "session.gc",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "session.kill",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "session.list",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "session.open",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "signal.canonicalize",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "signal.resolve",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "stream.config.get",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "stream.config.list",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "stream.config.load",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "stream.describe",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "trace.driver",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "trace.load",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.delete",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.get",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.list",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.use",
+      "dimension": "boundary_time",
+      "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
+      "evidence": "tools/check_boundary_time_applicability.py"
     }
   ]
 }

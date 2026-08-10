@@ -365,6 +365,7 @@ def test_axi_query(loop_runner: StdioLoopRunner, axi_fst) -> None:
     rsp = loop_runner.request("axi.query",
                               args={"name": "axi0", "direction": "write",
                                     "query": {"line_limit": 10},
+                                    "time_range": {"begin": "0ps"},
                                     "render_time_unit": "ps"})
     assert rsp.get("ok"), rsp
     txns = rsp["data"]["transactions"]
@@ -676,7 +677,8 @@ def test_axi_channel_stall(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
     _load_axi(loop_runner)
     rsp = loop_runner.request("axi.channel_stall",
-                              args={"name": "axi0", "channel": "aw"})
+                              args={"name": "axi0", "channel": "aw",
+                                    "time_range": {"begin": "0ps"}})
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["channel"] == "aw"
     assert rsp["summary"]["max_stall_cycles"] >= 0
@@ -690,7 +692,8 @@ def test_axi_latency_outlier(loop_runner: StdioLoopRunner, axi_fst) -> None:
     _load_axi(loop_runner)
     rsp = loop_runner.request("axi.latency_outlier",
                               args={"name": "axi0", "direction": "all",
-                                    "method": "top_n", "top_n": 1})
+                                    "method": "top_n", "top_n": 1,
+                                    "time_range": {"begin": "0ps"}})
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["candidate_count"] == 2
     assert rsp["summary"]["returned_count"] == 1

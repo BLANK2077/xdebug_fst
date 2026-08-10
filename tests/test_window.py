@@ -63,6 +63,24 @@ def test_verify_conditions_unknown_is_not_execution_error(
     assert check["value"]["known"] is False
 
 
+def test_verify_conditions_accepts_zero_time_boundary(
+    loop_runner: StdioLoopRunner, counter_fst
+) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("verify.conditions", args={
+        "clock": "top.clk",
+        "signals": COUNT,
+        "conditions": [{"name": "initial", "expr": "count == 0"}],
+        "time": "0ps",
+        "render_time_unit": "ps",
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["time"] == "0ps"
+    assert rsp["summary"]["execution_ok"] is True
+    assert rsp["summary"]["condition_count"] == 1
+    assert rsp["data"]["checks"][0]["name"] == "initial"
+
+
 def test_verify_conditions_posedge_after_sampling(
     loop_runner: StdioLoopRunner, counter_fst
 ) -> None:
