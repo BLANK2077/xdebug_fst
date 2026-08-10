@@ -14,15 +14,17 @@ Json failure(const char* code, const std::string& message) {
 }
 
 Json completeness_summary(const std::string& signal, const char* mode,
-                          size_t count) {
+                          size_t total, size_t returned) {
+    const bool truncated = returned < total;
     return Json{{"signal", signal},
                 {"mode", mode},
                 {"scan_complete", true},
                 {"analysis_complete", true},
-                {"response_truncated", false},
-                {"total_count", count},
-                {"returned_count", count},
-                {"truncation_scopes", Json::array()}};
+                {"response_truncated", truncated},
+                {"total_count", total},
+                {"returned_count", returned},
+                {"truncation_scopes", truncated
+                    ? Json::array({"response_paths"}) : Json::array()}};
 }
 
 std::string signal_name(IDesignBackend& design, int index) {
@@ -95,8 +97,15 @@ struct TraceDriverHandler final : EngineActionHandler {
                              {"source_context", Json::array()},
                              {"signal_path", signal_path}});
         }
+        const size_t total = paths.size();
+        const Json& limits = req.value("limits", Json::object());
+        const size_t max_results = limits.contains("max_results")
+            ? limits.at("max_results").get<size_t>() : total;
+        if (paths.size() > max_results)
+            paths.erase(paths.begin() + max_results, paths.end());
         return Json{{"ok", true},
-                    {"summary", completeness_summary(query, "driver", paths.size())},
+                    {"summary", completeness_summary(
+                        query, "driver", total, paths.size())},
                     {"data", {{"paths", paths}}}};
     }
 };
@@ -128,8 +137,15 @@ struct TraceLoadHandler final : EngineActionHandler {
                              {"source_context", Json::array()},
                              {"signal_path", signal_path}});
         }
+        const size_t total = paths.size();
+        const Json& limits = req.value("limits", Json::object());
+        const size_t max_results = limits.contains("max_results")
+            ? limits.at("max_results").get<size_t>() : total;
+        if (paths.size() > max_results)
+            paths.erase(paths.begin() + max_results, paths.end());
         return Json{{"ok", true},
-                    {"summary", completeness_summary(query, "load", paths.size())},
+                    {"summary", completeness_summary(
+                        query, "load", total, paths.size())},
                     {"data", {{"paths", paths}}}};
     }
 };

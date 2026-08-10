@@ -301,7 +301,20 @@ struct ScopeListHandler final : EngineActionHandler {
         Json signals = (kind == "all" || kind == "signal")
             ? filter_rows(all_signals) : Json::array();
         const size_t scanned = all_modules.size() + all_ports.size() + all_signals.size();
+        const size_t eligible = modules.size() + ports.size() + signals.size();
+        const Json& limits = req.value("limits", Json::object());
+        const size_t max_rows = limits.contains("max_rows")
+            ? limits.at("max_rows").get<size_t>() : eligible;
+        size_t remaining = max_rows;
+        const auto apply_limit = [&remaining](Json& rows) {
+            if (rows.size() > remaining) rows.erase(rows.begin() + remaining, rows.end());
+            remaining -= std::min(remaining, rows.size());
+        };
+        apply_limit(modules);
+        apply_limit(ports);
+        apply_limit(signals);
         const size_t returned = modules.size() + ports.size() + signals.size();
+        const bool truncated = returned < eligible;
         Json summary{{"path", path}, {"level", level}, {"kind", kind},
                      {"include_patterns", includes}, {"exclude_patterns", excludes},
                      {"scanned_row_count", scanned},
@@ -312,9 +325,10 @@ struct ScopeListHandler final : EngineActionHandler {
                      {"total_port_count", all_ports.size()},
                      {"total_signal_count", all_signals.size()},
                      {"scan_complete", true}, {"analysis_complete", true},
-                     {"response_truncated", false}, {"total_count", scanned},
+                     {"response_truncated", truncated}, {"total_count", scanned},
                      {"returned_count", returned},
-                     {"truncation_scopes", Json::array()}};
+                     {"truncation_scopes", truncated
+                         ? Json::array({"response_rows"}) : Json::array()}};
         return Json{{"ok", true}, {"summary", summary},
                     {"data", {{"modules", modules}, {"ports", ports},
                               {"signals", signals}}}};

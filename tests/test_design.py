@@ -78,6 +78,16 @@ def test_trace_driver_contract_and_role_filter(loop_runner: StdioLoopRunner,
         assert path["signal_path"][-1] == "top.overflow"
         assert path["signal_path"][0] == "top.reset"
 
+    limited = loop_runner.request("trace.driver", args={
+        "signal": "top.overflow", "role": "control",
+    }, limits={"max_results": 1})
+    assert limited.get("ok"), limited
+    assert limited["summary"]["total_count"] == 2
+    assert limited["summary"]["returned_count"] == 1
+    assert limited["summary"]["response_truncated"] is True
+    assert limited["summary"]["truncation_scopes"] == ["response_paths"]
+    assert len(limited["data"]["paths"]) == 1
+
 
 def test_trace_driver_not_found(loop_runner: StdioLoopRunner, counter_fst,
                                 counter_design_db) -> None:
@@ -98,6 +108,17 @@ def test_trace_load_contract(loop_runner: StdioLoopRunner, counter_fst,
     for path in rsp["data"]["paths"]:
         assert path["signal_path"][0] == "top.reset"
         assert len(path["signal_path"]) == 2
+
+    limited = loop_runner.request(
+        "trace.load", args={"signal": "top.reset"},
+        limits={"max_results": 1},
+    )
+    assert limited.get("ok"), limited
+    assert limited["summary"]["total_count"] == 5
+    assert limited["summary"]["returned_count"] == 1
+    assert limited["summary"]["response_truncated"] is True
+    assert limited["summary"]["truncation_scopes"] == ["response_paths"]
+    assert len(limited["data"]["paths"]) == 1
 
 
 def test_trace_driver_and_load_empty_at_static_boundaries(

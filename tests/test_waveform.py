@@ -437,6 +437,26 @@ def test_scope_list(loop_runner: StdioLoopRunner, counter_fst,
     assert rsp["data"]["signals"] == []
 
 
+def test_scope_list_max_rows_truncates_filtered_response(
+        loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    rsp = loop_runner.request("scope.list", args={
+        "path": "top", "level": 1, "kind": "all",
+        "include_patterns": ["counter_top.c*", "counter_top.overflow"],
+        "exclude_patterns": ["counter_top.clk"],
+    }, limits={"max_rows": 1})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["scanned_row_count"] == 4
+    assert rsp["summary"]["total_count"] == 4
+    assert rsp["summary"]["returned_count"] == 1
+    assert rsp["summary"]["response_truncated"] is True
+    assert rsp["summary"]["truncation_scopes"] == ["response_rows"]
+    assert rsp["summary"]["returned_module_count"] == 0
+    assert rsp["summary"]["returned_port_count"] == 1
+    assert rsp["summary"]["returned_signal_count"] == 0
+    assert len(rsp["data"]["ports"]) == 1
+
+
 def test_waveform_not_loaded_error(cli_runner) -> None:
     result = cli_runner.run({"api_version": "xdebug.v1", "action": "value.at",
                              "target": {"session_id": "missing"},
