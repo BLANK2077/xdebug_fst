@@ -87,3 +87,9 @@ active-driver 的 activation predicate 也属于上述静态 HDL 事实，而不
 ## 五、Goal 完成判定
 
 `GOAL-FST-DIRECT-001` 与任务书 P0–P7 的其余条件必须同时满足。只有全部冻结 action、schema、错误合同、差分、FST-only 门禁、Wellen/Verilator 回归和仓库清洁性均有真实证据，且不存在上述禁止路径时，才允许完成当前 Goal。
+
+## 六、P6 第三十六批防漂移审计记录
+
+仅 `default` 的 `case matches` 闭环再次验证本 Goal 的不可拆分双断言：Verilator DesignDB 提供唯一分支的恒真静态谓词，冻结的 xdebug action 执行 active-driver 合同，Wellen 只在 45ps/65ps 对当前 session 的原始 `.fst` 按需读取运行时事实。该批没有把 `matches` 语法、分支识别或 driver 判定下沉到 FST/Wellen，也没有引入 VCD/JSON 转换、私有索引、离线库、全量快照、TCP/fileport 或 fallback。
+
+对应失败证据和实现为 Verilator `1ae90d55d`、`487482500`、`da63eb075` 及 xdebug-fst `813ee36`、`f8d0aee`。XDD header/ABI 未改变，Wellen 未修改；tagged、binding 与嵌套 wildcard 继续失败关闭。因此该批只能声明“仅 `default` 子集已闭环”，不能声明通用 matches 或 Goal 已完成。
