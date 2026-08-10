@@ -84,6 +84,25 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
+def pytest_sessionstart(session: pytest.Session) -> None:
+    raw_trace_path = os.environ.get("XDEBUG_ACTION_COVERAGE_LOG")
+    if not raw_trace_path:
+        return
+    trace_path = Path(raw_trace_path)
+    if not trace_path.is_absolute():
+        raise pytest.UsageError(
+            "XDEBUG_ACTION_COVERAGE_LOG must be an absolute path"
+        )
+    if trace_path.exists():
+        raise pytest.UsageError(
+            f"XDEBUG_ACTION_COVERAGE_LOG must not already exist: {trace_path}"
+        )
+    if not trace_path.parent.is_dir():
+        raise pytest.UsageError(
+            f"XDEBUG_ACTION_COVERAGE_LOG parent is unavailable: {trace_path.parent}"
+        )
+
+
 @pytest.fixture(scope="session")
 def repo_root() -> Path:
     return REPO_ROOT
