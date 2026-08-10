@@ -348,7 +348,50 @@ bool latest_statement_event_time(const StatementGroup& statement,
     return found;
 }
 
+std::string predicate_waveform_signal(const std::string& signal,
+                                      IDesignBackend& design,
+                                      IWaveformBackend& waveform) {
+    if (waveform.find_signal(signal)!=IWaveformBackend::kInvalidSignalRef)
+        return signal;
+    const int index=design.resolve(signal.c_str());
+    if (index<0) return {};
+    const int width=design.signal_width(index);
+    std::set<std::string> candidates;
+    for (int owner=0;owner<design.signal_count();++owner) {
+        std::vector<IDesignBackend::PortConnection> connections;
+        design.port_connections(owner,connections);
+        for (const auto& connection : connections) {
+            int other=-1;
+            if (connection.port_signal==index)
+                other=connection.connected_signal;
+            else if (connection.connected_signal==index)
+                other=connection.port_signal;
+            if (other<0||other==index||design.signal_width(other)!=width)
+                continue;
+            const std::string candidate=signal_name(design,other);
+            if (candidate.empty()||waveform.find_signal(candidate)==
+                    IWaveformBackend::kInvalidSignalRef) {
+                continue;
+            }
+            candidates.insert(candidate);
+        }
+    }
+    return candidates.size()==1?*candidates.begin():std::string();
+}
+
+void replace_expression_signal(ExprNode* node,const std::string& from,
+                               const std::string& to) {
+    if (!node) return;
+    if ((node->kind==ExprNode::Kind::Signal||
+         node->kind==ExprNode::Kind::Slice)&&node->signal==from) {
+        node->signal=to;
+    }
+    replace_expression_signal(node->left,from,to);
+    replace_expression_signal(node->right,from,to);
+}
+
 PredicateState evaluate_predicate(const StatementGroup& statement,
+                                  IDesignBackend& design,
                                   IWaveformBackend& waveform,
                                   uint64_t active_time) {
     if (statement.predicate.empty()) return PredicateState::Unresolved;
@@ -358,10 +401,15 @@ PredicateState evaluate_predicate(const StatementGroup& statement,
     if (!expression) return PredicateState::Unresolved;
     std::vector<uint32_t> refs;
     for (const std::string& signal : expression_signals(expression.get())) {
-        const uint32_t ref=waveform.find_signal(signal);
+        const std::string resolved=predicate_waveform_signal(
+            signal,design,waveform);
+        if (resolved.empty()) return PredicateState::Unresolved;
+        const uint32_t ref=waveform.find_signal(resolved);
         if (ref==IWaveformBackend::kInvalidSignalRef)
             return PredicateState::Unresolved;
         refs.push_back(ref);
+        if (resolved!=signal)
+            replace_expression_signal(expression.get(),signal,resolved);
     }
     if (!refs.empty()&&static_cast<size_t>(waveform.load_signals(refs))!=refs.size())
         return PredicateState::Unresolved;
@@ -412,7 +460,7 @@ EvaluatedStatements active_statement_groups(
                 statement,design,waveform,event_horizon,statement.event_time);
         }
         const PredicateState state=evaluate_predicate(
-            statement,waveform,statement.has_event_time
+            statement,design,waveform,statement.has_event_time
                 ?statement.event_time:active_time);
         if (state==PredicateState::Active)
             result.active.push_back(std::move(statement));
@@ -707,42 +755,48 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     sample.active_time,current_time);
                 apply_unique_nba_priority(parent_evaluated);
                 if (parent_evaluated.unresolved.empty()&&
-                    parent_evaluated.active.size()==1&&
-                    !parent_evaluated.active[0].rhs.empty()) {
+                    parent_evaluated.active.size()==1) {
                     const std::string instance_scope=signal_scope(current);
                     StatementGroup mapped_group=parent_evaluated.active[0];
-                    std::map<int,int> mapped_sources;
-                    bool mapping_complete=true;
-                    for (const auto& flattened : mapped_group.rhs) {
-                        std::vector<int> input_ports=ports_connected_to(
-                            design,flattened.src_signal,1);
-                        input_ports.erase(std::remove_if(
-                            input_ports.begin(),input_ports.end(),[&](int port) {
-                                return signal_scope(signal_name(design,port))!=
-                                    instance_scope;
-                            }),input_ports.end());
-                        if (input_ports.size()!=1) {
-                            mapping_complete=false;
-                            break;
-                        }
-                        mapped_sources[flattened.src_signal]=input_ports.front();
-                    }
-                    if (mapping_complete) {
-                        for (auto& record : mapped_group.records) {
-                            if (record.dependency_role!="rhs") continue;
-                            const auto found=mapped_sources.find(record.src_signal);
-                            if (found!=mapped_sources.end())
-                                record.src_signal=found->second;
-                        }
-                        for (auto& rhs : mapped_group.rhs)
-                            rhs.src_signal=mapped_sources.at(rhs.src_signal);
+                    if (mapped_group.rhs.empty()) {
                         groups={std::move(mapped_group)};
                         selected=representative_driver(groups[0]);
-                        if (groups[0].rhs.size()>1) {
-                            upstream.clear();
-                            ambiguity_kind="multiple_rhs_sources";
-                        } else {
-                            upstream=signal_name(design,groups[0].rhs[0].src_signal);
+                        upstream.clear();
+                    } else {
+                        std::map<int,int> mapped_sources;
+                        bool mapping_complete=true;
+                        for (const auto& flattened : mapped_group.rhs) {
+                            std::vector<int> input_ports=ports_connected_to(
+                                design,flattened.src_signal,1);
+                            input_ports.erase(std::remove_if(
+                                input_ports.begin(),input_ports.end(),[&](int port) {
+                                    return signal_scope(signal_name(design,port))!=
+                                        instance_scope;
+                                }),input_ports.end());
+                            if (input_ports.size()!=1) {
+                                mapping_complete=false;
+                                break;
+                            }
+                            mapped_sources[flattened.src_signal]=input_ports.front();
+                        }
+                        if (mapping_complete) {
+                            for (auto& record : mapped_group.records) {
+                                if (record.dependency_role!="rhs") continue;
+                                const auto found=mapped_sources.find(record.src_signal);
+                                if (found!=mapped_sources.end())
+                                    record.src_signal=found->second;
+                            }
+                            for (auto& rhs : mapped_group.rhs)
+                                rhs.src_signal=mapped_sources.at(rhs.src_signal);
+                            groups={std::move(mapped_group)};
+                            selected=representative_driver(groups[0]);
+                            if (groups[0].rhs.size()>1) {
+                                upstream.clear();
+                                ambiguity_kind="multiple_rhs_sources";
+                            } else {
+                                upstream=signal_name(
+                                    design,groups[0].rhs[0].src_signal);
+                            }
                         }
                     }
                 }

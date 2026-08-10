@@ -653,7 +653,7 @@ def test_trace_active_driver_chain_reports_same_instance_output_pair(
     assert evidence["statement_count"] == 2
     assert evidence["rhs_signal_count"] == 2
     assert {statement["line"] for statement in evidence["statements"]} == {
-        160, 161}
+        167, 168}
 
 
 def test_trace_active_driver_chain_selects_conditional_child_output(
