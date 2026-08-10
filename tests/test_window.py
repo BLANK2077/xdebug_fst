@@ -28,6 +28,7 @@ def test_verify_conditions_mixed_results(
         "time": "300ps", "execution_ok": True, "verdict": "fail",
         "condition_count": 3, "all_passed": False,
         "passed": 2, "failed": 1, "unknown": 0,
+        "value_width_complete": True, "width_diagnostics": [],
     }
     assert [check["status"] for check in rsp["data"]["checks"]] == [
         "pass", "pass", "fail"

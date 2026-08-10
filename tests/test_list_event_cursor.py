@@ -154,7 +154,8 @@ def test_list_first_change(loop_runner: StdioLoopRunner, counter_fst) -> None:
     assert rsp.get("ok"), rsp
     assert rsp["summary"] == {
         "name": "fc", "diff_found": True, "diff_time": "10ps",
-        "changed_signal_count": 2}
+        "changed_signal_count": 2, "value_width_complete": True,
+        "width_diagnostics": []}
     assert rsp["data"]["changed_signals"][0]["signal"] == "top.clk"
     assert rsp["data"]["changed_signals"][0]["before_time"] == "0ps"
     assert rsp["data"]["changed_signals"][0]["change_time"] == "10ps"
@@ -172,7 +173,8 @@ def test_list_first_change_no_difference(loop_runner: StdioLoopRunner,
     assert rsp.get("ok"), rsp
     assert rsp["summary"] == {
         "name": "stable", "diff_found": False, "diff_time": None,
-        "changed_signal_count": 0}
+        "changed_signal_count": 0, "value_width_complete": True,
+        "width_diagnostics": []}
     assert rsp["data"]["changed_signals"] == []
 
 

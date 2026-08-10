@@ -296,7 +296,9 @@ struct VerifyConditionsHandler : public EngineActionHandler {
         Json summary{{"time", wf->format_time(time, unit)},
             {"execution_ok", true}, {"verdict", all_passed ? "pass" : "fail"},
             {"condition_count", checks.size()}, {"all_passed", all_passed},
-            {"passed", passed}, {"failed", failed}, {"unknown", unknown}};
+            {"passed", passed}, {"failed", failed}, {"unknown", unknown},
+            {"value_width_complete", true},
+            {"width_diagnostics", Json::array()}};
         Json data{{"checks", checks},
             {"clock_context", clock_context(*wf, clock, edges, time, edge,
                                              requested_point, unit)}};

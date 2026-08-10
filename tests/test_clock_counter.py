@@ -24,6 +24,8 @@ def test_expr_eval_at_equal(loop_runner: StdioLoopRunner, counter_fst) -> None:
         "signals": {"count": "top.counter_top.count"}})
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["status"] == "true"
+    assert rsp["summary"]["value_width_complete"] is True
+    assert rsp["summary"]["width_diagnostics"] == []
     assert rsp["data"]["expr_value"] is True
 
 

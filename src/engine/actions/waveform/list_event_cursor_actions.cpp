@@ -626,7 +626,9 @@ struct ListFirstChangeHandler : public EngineActionHandler {
         Json summary{{"name", name}, {"diff_found", found_any},
                      {"diff_time", found_any ? Json(wf->format_time(first_time, unit))
                                              : Json(nullptr)},
-                     {"changed_signal_count", changed.size()}};
+                     {"changed_signal_count", changed.size()},
+                     {"value_width_complete", true},
+                     {"width_diagnostics", Json::array()}};
         return {{"ok", true}, {"summary", summary},
                 {"data", {{"changed_signals", changed}}}};
     }

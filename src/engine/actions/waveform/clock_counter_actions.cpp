@@ -505,7 +505,8 @@ struct ExprEvalAtHandler : public EngineActionHandler {
             IWaveformBackend::ObservationPoint::After);
         return {{"ok", true}, {"summary", {{"expr", expr},
             {"time", wf->format_time(time, unit)}, {"status", logic_status(result)},
-            {"known", result.known}}}, {"data", {
+            {"known", result.known}, {"value_width_complete", true},
+            {"width_diagnostics", Json::array()}}}, {"data", {
             {"expr_value", result.known ? Json(logic_status(result) == "true") : Json(nullptr)},
             {"operands", operands}, {"clock_context", context},
             {"expr_samples", {{"before", logic_status(before_value)},
