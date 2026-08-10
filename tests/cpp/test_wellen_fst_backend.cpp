@@ -17,8 +17,8 @@ void require(bool condition, const std::string& message) {
 }  // namespace
 
 int main(int argc, char** argv) {
-    require(argc == 6,
-            "expected 1ns, 1ps/XZ, string/delta, real, and event FST fixtures");
+    require(argc == 7,
+            "expected 1ns, 1ps/XZ, string/delta, real, event, and array FST fixtures");
     for (int index = 1; index < argc; ++index) {
         const std::string path = argv[index];
         require(path.size() >= 4 && path.substr(path.size() - 4) == ".fst",
@@ -266,6 +266,43 @@ int main(int argc, char** argv) {
                 typed.kind == xdebug_fst::IWaveformBackend::ValueKind::Event &&
                 typed.text.empty(),
             "event remains distinct from a missing or X value");
+
+    xdebug_fst::WellenFstBackend array_backend;
+    require(array_backend.open(argv[6]), "Verilator array fixture opens");
+    const uint32_t dotted_array_element = array_backend.find_signal(
+        "top.phase5_dut.dout.[2]");
+    const uint32_t canonical_array_element = array_backend.find_signal(
+        "top.phase5_dut.dout[2]");
+    require(dotted_array_element != 0 &&
+                canonical_array_element == dotted_array_element,
+            "SV unpacked array element accepts canonical bracket syntax");
+    const uint32_t packed_bit = array_backend.find_signal(
+        "top.phase5_dut.flag[2]");
+    require(packed_bit != 0 && packed_bit != array_backend.find_signal(
+                "top.phase5_dut.flag"),
+            "packed bit-select receives an independent waveform handle");
+    require(array_backend.load_signals(
+                {canonical_array_element, packed_bit}) == 2,
+            "array element and packed bit-select load on demand");
+    require(array_backend.signal_info(canonical_array_element, info) &&
+                info.width == 8,
+            "unpacked array element preserves its eight-bit width");
+    require(array_backend.signal_info(packed_bit, info) && info.width == 1,
+            "packed bit-select publishes a one-bit view");
+    const std::vector<uint32_t> packed_changes =
+        array_backend.time_indices_of(packed_bit);
+    require(packed_changes.size() == 3 &&
+                array_backend.time_at(packed_changes[0]) == 0 &&
+                array_backend.time_at(packed_changes[1]) == 70000 &&
+                array_backend.time_at(packed_changes[2]) == 71000,
+            "packed bit-select change times exclude unrelated vector bits");
+    require(array_backend.scan_changes(
+                packed_bit, 0, array_backend.time_count() - 1, 0,
+                changes, diagnostics) && diagnostics.total_count == 3 &&
+                changes.size() == 3 && changes[0].value.text == "1" &&
+                changes[1].value.text == "0" &&
+                changes[2].value.text == "1",
+            "packed bit-select scan returns selected-bit values only");
 
     std::cout << "WellenFstBackend hierarchy/sentinel tests passed\n";
     return 0;

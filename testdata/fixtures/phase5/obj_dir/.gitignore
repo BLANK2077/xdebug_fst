@@ -1,0 +1,4 @@
+*
+!.gitignore
+!libVphase5_dut__DesignDb.so
+!xdebug-design-db.json

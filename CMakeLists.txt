@@ -445,6 +445,7 @@ if(BUILD_TESTING)
             ${WELLEN_REPOSITORY_DIR}/wellen/inputs/nvc/shortstring.fst
             ${WELLEN_REPOSITORY_DIR}/wellen/inputs/verilator/many_sv_datatypes.fst
             ${WELLEN_REPOSITORY_DIR}/wellen/inputs/icarus/pull_67_event_example.fst
+            ${CMAKE_SOURCE_DIR}/testdata/fixtures/phase5/waves.fst
     )
 
     add_test(
