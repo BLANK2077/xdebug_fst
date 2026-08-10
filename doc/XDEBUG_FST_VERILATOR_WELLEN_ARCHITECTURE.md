@@ -810,7 +810,9 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 dtype 复用既有 packed pattern 展开。`e5b1a28e2` 进一步只放行独立 `matches` 中同样不含
 PatternVar、PatternStar 或 tagged 节点的精确标量和 assignment pattern，将其规范化为
 `AstEqCase` 四态精确比较；它是 Verilator 前端的有限语言能力，不是 FST/Wellen 分析能力，
-本批也不把该语法切片冒充已经完成 xdebug 动态 action 差分。普通仿真继续走既有 case lowering；DesignDB 在既有
+`5d4e40132` 再把独立 `matches` 的直接顶层点星规范化为一次 `==? 'x`，对任意四态值恒真且
+保持左侧表达式恰好求值一次；该放行不递归进入 pattern。上述语法切片均不冒充已经完成
+xdebug 动态 action 差分。普通仿真继续走既有 case lowering；DesignDB 在既有
 predicate 字符串中发布展开后的 `===`，default
 否定此前精确 item。xdebug 在 active time 仍通过 Wellen 直接读取当前原始 `.fst` 的 selector
 并执行四态谓词求值，FST 不是 pattern 或 driver 分析器。default-only、tagged union、tagged
@@ -864,7 +866,7 @@ expression、tagged pattern、pattern variable、嵌套 wildcard，以及带绑�
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `e5b1a28e22a5ec7f37aab8962f2f52469b35ce56`
+- revision `5d4e401329ad0f9b7ec4ed4e69de9e726f28246c`
 
 对应提交：
 
@@ -892,6 +894,7 @@ expression、tagged pattern、pattern variable、嵌套 wildcard，以及带绑�
 - Verilator `8623446e6`、`a5232efb6`：先证明顶层点星 pattern wildcard 被 LinkParse 明确拒绝，再仅将无绑定的直接 item wildcard 规范化为 case 表达式与自身的四态精确比较；源码顺序与 X/Z 恒真语义有独立普通仿真覆盖，嵌套 pattern、变量绑定和 tagged union 继续拒绝；
 - Verilator `9cc890153`、`7c4d19ee2`：先证明 packed struct assignment pattern 仅被总括 LinkParse 门禁阻断，再允许无绑定 pattern 从 case expression 取得 dtype 并复用现有展开；位置式、成员命名式和 default 均有普通仿真覆盖，不扩展 tagged/binding 语义；
 - Verilator `fab41bf9e`、`e5b1a28e2`：先证明独立 `matches` 的精确标量和 packed assignment pattern 被总括门禁拒绝，再只对不含绑定、通配和 tagged 节点的 RHS 复用 `AstEqCase` 四态精确比较；PatternVar、PatternStar、TaggedExpr 与 TaggedPattern 保持失败关闭，DesignDB header/ABI 未变；
+- Verilator `1eb25de82`、`5d4e40132`：先证明独立 `matches` 的直接顶层点星仍被双重门禁拒绝，再用一次全 X RHS 通配比较实现恒真语义，并以带副作用函数验证左侧只求值一次；嵌套 wildcard、binding 和 tagged 继续失败关闭，DesignDB header/ABI 未变；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
