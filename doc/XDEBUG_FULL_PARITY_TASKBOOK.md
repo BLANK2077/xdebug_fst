@@ -1358,3 +1358,30 @@ ABI，不存在 VCD/JSON 转换、预扫持久化、私有索引、离线数据�
 唯一数据流继续是原始 `.fst` 由 Wellen 直接按需读取、xdebug action 执行语义、DesignDB
 提供静态事实。FST 不是分析引擎。本批未修改 Wellen、Verilator、XDD ABI 或 transport，
 不存在转换、预扫、索引、离线数据库、全量快照、export 回灌、TCP/fileport 或 fallback。
+
+## 十、P7 第十三批 X/Z 全量裁定任务记录
+
+本批完成 73 个公开 action 的 X/Z 维度全量裁定。适用性检查器穷举冻结成功响应 Schema，
+只把可达 `LogicValue`、显式 X/Z 状态枚举、非零 `control_xz_count`、`data_xz_count`、
+`unknown_count`、`unresolved_filter_count` 或 `unresolved_transaction_count` 视为公开四态
+能力；`trace.active_driver_chain` 的递归 JSON hop/frontier/ambiguity 由冻结基本响应单独锁定。
+普通 `unknown` 枚举、`analysis_complete=false`、AXI `phase_order=unknown` 和表达式置信度
+`unknown` 均不得冒充 X/Z 证据。最终冻结 23 项运行时适用、50 项公开不可观察，共 73 项。
+
+新增运行时证据全部直接打开 Wellen 仓库原始 `.fst`。APB 波形覆盖 batch 嵌套值、counter、
+event、list、signal、sampled pulse 与 stream 的 X 字面量和四态计数；VCS processor 波形复现
+stalled valid 从已知值变成 Z，验证 handshake 的 `observed_valid`；宽四态波形用真实完成的
+AXI 事务和已知地址过滤器得到非零 `unresolved_transaction_count`。请求中的非法 X 地址
+过滤字面量不会被采用，所有信用来自成功响应中的实际四态事实。
+
+最终全新 trace 位于 `/tmp/xdebug-action-coverage-20260810-p7-xz-final.ndjson`，包含 1169 个
+有效公开交换；审计结果为 X/Z 23 observed + 50 N/A、缺口 0，全部十个维度的 73 action
+均无缺项。393 项 pytest、CTest 9/9、全部适用性检查以及 6 项原版资源差分通过。trace 和
+JSON 报告只作为临时验收证据，不提交、不回灌、不参与 runtime。
+
+本批未修改 Wellen、Verilator、XDD ABI、backend 或 transport。Wellen 对 X/Z 的要求仍是
+保真、按需地从当前 session 原始 FST 返回四态位串、宽度、时间和采样点；它不执行协议、
+表达式、driver 或事务分析。分析与公开合同由 xdebug action 负责，Verilator DesignDB 只
+提供必要静态事实。禁止转换、预扫持久化、私有索引、离线数据库、全量快照、export 回灌、
+TCP/fileport 和 fallback。该维度关闭不代表 Goal 完成；P6 剩余复杂语义和最终原版归一化
+差分仍必须完成。

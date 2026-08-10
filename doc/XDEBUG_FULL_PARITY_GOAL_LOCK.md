@@ -314,3 +314,21 @@ Wellen 已提供确定 width 时报告 `value_width_complete=true` 和空诊断�
 Verilator 或 XDD ABI。原始 FST 仍由 Wellen 直接按需读取，FST 不是分析引擎；禁止转换、
 离线索引/数据库、全量快照、export 回灌、TCP/fileport 和 fallback。Goal 保持 active，X/Z、
 P6 剩余复杂差分和最终原版归一化差分尚未完成。
+
+## 二十、P7 第十三批 X/Z 全量裁定防漂移记录
+
+X/Z 已达到 23 项真实运行 observed + 50 项 N/A，严格覆盖 73 action。只有冻结成功响应中
+可达的 `LogicValue`、显式四态状态或非零 X/Z/unresolved 计数能够获得信用；单纯分析不完整、
+普通 `unknown` 枚举和请求中出现 X/Z 文本均不能替代成功响应证据。50 项 N/A 必须由
+`tools/check_xz_applicability.py` 对全部冻结 Schema 的穷举结果证明，禁止为减少测试量扩大
+N/A 范围。
+
+23 项适用动作均已有真实原始 FST 证据。特别锁定 handshake 的 Z valid finding、AXI 已完成
+事务的 unresolved address 过滤、batch 嵌套 LogicValue，以及 counter/event/list/signal/
+stream 的 X 值或非零四态计数。Wellen 只保真返回当前 session FST 的四态事实，xdebug action
+负责分析和合同投影，Verilator DesignDB 只提供静态事实；不得漂移为“由 FST 做分析”。
+
+全新 1169-event trace 的十个维度均无缺项，393 项 pytest、CTest 9/9、适用性检查和原版
+资源差分通过。本批未修改 Wellen、Verilator 或 XDD ABI，不存在转换、离线索引/数据库、
+全量快照、export 回灌、TCP/fileport 或 fallback。Goal 继续 active；P6 剩余复杂差分和最终
+73-action 原版归一化差分仍未完成。

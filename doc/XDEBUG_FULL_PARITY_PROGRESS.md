@@ -278,3 +278,17 @@ active，下一维度为 completeness，之后还需 X/Z、P6 剩余复杂语义
 Wellen、Verilator、XDD ABI 和 transport 均未修改；原始 FST 仍只由 Wellen 按需读取，FST
 不承担分析，没有转换、索引、离线库、TCP/fileport 或 fallback。Goal 继续 active，下一维
 为 X/Z，之后仍有 P6 复杂差分和最终原版归一化差分。
+
+## P7 第十三批 X/Z 全量裁定
+
+`ba442a7` 将四态信用限定为成功响应里的可达 LogicValue、显式 X/Z 状态和非零
+X/Z/unresolved 计数，并冻结 23 项适用、50 项公开不可观察；普通 unknown 或分析不完整不计。
+`cbc4c56` 使用 Wellen 仓库原始 APB、processor 与宽四态 FST，为剩余 13 项补齐真实 X/Z
+证据，其中 handshake 返回 Z 的 `observed_valid`，AXI statistics 返回非零 unresolved 事务。
+`cb41c80` 登记 50 项严格 N/A 并以精确集合测试锁定完整分区。
+
+最终全新 1169-event trace 为 X/Z 23 observed + 50 N/A，十个维度均无缺项；393 项 pytest、
+CTest 9/9、全部适用性检查与 6 项原版资源差分通过。Wellen、Verilator、XDD ABI 和 transport
+均未修改。原始 FST 仍只是 Wellen 按需读取的唯一波形事实容器，分析由 xdebug action 执行；
+没有转换、索引、离线库、全量快照、TCP/fileport 或 fallback。P7 覆盖矩阵至此闭环，但 Goal
+继续 active，剩余重点转回 P6 复杂语义矩阵与最终 73-action 原版归一化差分。

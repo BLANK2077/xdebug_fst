@@ -1331,3 +1331,24 @@ LogicValue 后处理在候选 action 层的等价结果。它没有让 FST 成�
 覆盖 trace 仅为 `/tmp` 中的测试证据，不参与 runtime。仍禁止 FST 转换、预扫持久化、私有
 索引、离线数据库、全量快照、export 回灌、TCP/fileport 和 fallback。41 observed + 32 N/A
 只关闭完整性字段维度，不代表 X/Z 或最终原版归一化差分完成。
+
+## P7 X/Z 全量裁定对架构的约束
+
+X/Z 维度进一步固定三层职责。Wellen 必须直接、按需读取当前 session 的原始 `.fst`，保留
+每个 LogicValue 的原始四态位串、宽度、`has_x/has_z/known`、物理时间、delta 与 before/after
+采样语义；它不解释 valid-ready、APB、AXI、stream、表达式、active driver 或 X origin。
+xdebug action 消费这些事实，执行冻结语义并投影 X/Z finding、unknown/control/data 计数及
+unresolved 事务。Verilator DesignDB 仍只回答设计层级、driver/load、谓词和端口关系。
+
+运行证据刻意跨三类原始 FST：APB 波形提供初始 X、采样 X 和控制 X；processor 波形提供
+stalled valid 从已知值变为 Z 的 handshake；宽四态波形提供含 X 地址的已完成 AXI 事务。
+AXI 过滤请求本身仍使用冻结 Schema 允许的已知字面量，`unresolved_transaction_count` 来自
+实际事务字段含 X，而不是把非法请求文本计为能力。batch 的信用同样来自嵌套成功响应中的
+真实 LogicValue。
+
+覆盖审计只读取 pytest 已产生的 `/tmp` NDJSON 交换记录，不读取或改写 FST，也不参与 action
+执行。23 observed + 50 N/A 的完整分区由冻结成功响应 Schema 和运行时共同证明；普通
+`analysis_complete=false`、`phase_order=unknown` 或 confidence unknown 不属于四态证据。
+本批无需修改 Wellen、Verilator 或 XDD ABI，说明现有保真访问层和静态事实已经足够，差异
+应在测试/合同层闭环。继续禁止 FST 转换、预扫持久化、私有索引、离线数据库、全量内存
+快照、export 回灌、TCP/fileport 和 fallback；FST 永远不是分析引擎。
