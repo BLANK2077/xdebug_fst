@@ -80,4 +80,12 @@ module matches_top (
     else
       wildcard_match_out = 8'h00;
   end
+
+  reg [7:0] double_nba_q;
+  wire [7:0] double_nba_out;
+  assign double_nba_out = double_nba_q;
+  always @(posedge clk) begin
+    double_nba_q <= 8'h44;
+    double_nba_q <= data;
+  end
 endmodule

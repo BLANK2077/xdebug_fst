@@ -268,6 +268,24 @@ def test_trace_active_driver_chain_prefers_unique_nba_over_blocking_write(
     assert [hop["active_time"] for hop in hops[:2]] == ["60ps", "60ps"]
 
 
+def test_trace_active_driver_chain_keeps_two_active_nbas_ambiguous(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.matches_top.double_nba_out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "ambiguous"
+    assert rsp["summary"]["termination_detail"] == \
+        "multiple_active_candidates"
+    evidence = rsp["data"]["ambiguity_evidence"]
+    assert evidence["statement_count"] == 2
+    assert {statement["line"] for statement in evidence["statements"]} == {
+        88, 89}
+
+
 def test_trace_active_driver_chain_stops_at_force(
         loop_runner: StdioLoopRunner, matches_fst,
         matches_design_db) -> None:
