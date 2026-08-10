@@ -823,6 +823,13 @@ Wellen 仅从当前 session 原始 `.fst` 按需确认候选 X 值。不得扫�
 不得生成波形转换、事件索引或离线分析数据库。当前基础同语句 loop+normal 已关闭；复杂
 端口反馈、interface/modport/ref 和 node/time/depth 组合限制仍须独立差分。
 
+第 49 批关闭基础 branch+depth 组合：同一请求同时限制 `max_chains` 和 `max_depth` 时，保留
+语义链必须以 `max_depth` frontier 终止，被省略语义分支必须继续出现在该链的 pending 与
+branch event 中；summary 计数、完整性、frontier 值/时间和续跑建议必须一致。此合同由
+action 对 DesignDB 静态依赖执行预算，Wellen 只按需读取当前原始 FST 中已选定信号，禁止
+把波形扫描结果用于选择分支或预建 frontier。alias/loop 与 node/time/depth 的复杂组合仍是
+P6 必做项，不能据本批宣称全部限制交互已完成。
+
 提交：
 
 `功能：实现多分支 X 来源追踪`

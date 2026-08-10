@@ -659,6 +659,13 @@ DesignDB 静态依赖和 action 的 `(signal,onset)` 路径状态决定，不由
 依赖，action 决定路径访问状态与汇总合同，Wellen 只按需确认各候选在对应时间含 X。因此
 它继续满足 `GOAL-FST-DIRECT-001`，没有从 FST 值推断环或依赖，也没有建立转换和索引。
 
+分支预算与深度预算可以同时生效。第 49 批证明：`max_chains` 只决定保留哪些语义分支，
+被省略分支仍作为 pending/branch event 证据挂在保留链上；保留链随后独立受 `max_depth`
+约束并生成可续跑 frontier。summary、limited/completed 计数、frontier 和建议动作必须反映
+两种限制的组合，不能让后应用的 chain 裁剪擦除较早形成的 depth 状态，也不能把 frontier
+误报为已找到来源。所有候选仍由 DesignDB 静态依赖选出，Wellen 只在当前原始 FST 中按需
+提供 frontier 值与时间，预算和续跑协议完全由 action 负责。
+
 X mask 是确定性响应事实，不是装饰文本。Wellen 返回当前信号的实际位串和宽度，action
 逐位把 X 类状态映射为 1、其余映射为 0，并使用 `<width>'b<bits>` 输出；query、current、
 hop 和 frontier 必须共用同一规则，不能复用根信号宽度渲染不同宽度上游。冻结目录中的
