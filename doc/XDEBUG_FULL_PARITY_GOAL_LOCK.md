@@ -270,3 +270,13 @@ limits 已达到 29 项冻结合法结果上限请求 observed + 44 项 N/A，�
 
 本批不改变唯一原始 FST→Wellen 按需读取→action 的事实流，不修改 Wellen、Verilator、XDD
 ABI、backend 或 transport，也不增加转换、离线分析、TCP/fileport 或 fallback。Goal 继续 active。
+
+## 十七、P7 第十批 boundary_time 全量裁定防漂移记录
+
+boundary_time 已达到 30 项成功零时间/闭区间 observed + 43 项 N/A，严格覆盖 73 action。
+适用性只能由冻结请求中的 `time`、`times` 或 `time_range` 证明；普通地址/ID range 的
+`begin/end` 即使为零也不是时间边界。非法时间请求、资源错误和 schema 拒绝不能获得信用。
+
+新增六项门禁均在真实 session 中成功执行，波形 action 继续由 Wellen 直接按需读取原始
+`.fst`。本批没有修改生产 action、Wellen、Verilator、XDD ABI 或 transport，没有转换、
+离线分析、TCP/fileport 或 fallback。其余覆盖维度和最终原版归一化差分仍未完成，Goal active。

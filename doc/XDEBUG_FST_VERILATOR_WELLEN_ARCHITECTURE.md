@@ -1180,6 +1180,15 @@ P7 第九批明确区分 action 结果规模控制和 frontend watchdog。`line_
 truncation 证据正交：前者证明公开请求能力存在，后者证明真实输入下的裁剪/不完整语义。
 两者都不允许通过转换 FST、构建离线索引、切换 backend 或 fallback 制造证据。
 
+### 9.17 时间边界属于 action 请求语义
+
+P7 第十批将时间边界限定为冻结请求中的 `time`、`times` 或 `time_range`。地址过滤、ID range
+和其他数值区间即使从零开始，也不能改变 Wellen 的采样窗口或获得 boundary_time 信用。
+
+30 项时间 action 的零时刻/闭区间由 action 解析并交给 Wellen 按需读取当前原始 `.fst`；
+43 项非时间 action 不增加伪时间参数。该证据不需要修改 Wellen、Verilator 或 DesignDB，
+也不需要波形转换、预索引、离线数据库、TCP/fileport 或 fallback。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；

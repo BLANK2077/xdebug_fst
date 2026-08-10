@@ -1251,6 +1251,22 @@ time/limits/XZ 误记为 action 执行覆盖的问题：
 5. 本批仅修改审计、测试和证据清单，没有修改 Wellen、Verilator、生产波形路径、ABI、
    backend 或 transport；没有转换、索引、离线数据库、TCP/fileport 或 fallback。
 
+#### P7 第十批：boundary_time 七十三项全量裁定
+
+2026-08-10 完成 boundary_time 维度 73 项裁定：
+
+1. 冻结请求 Schema 穷举只把 `time`、`times` 和 `time_range` 视为显式时间选择，得到
+   30 项适用、43 项非时间 action。
+2. 审计器不再把任意 `begin/end=0` 当时间边界；地址、ID 和数值 range 的零起点是固定反例，
+   只有 `time_range.begin/end` 或显式 `time/times` 才能计入。
+3. 为 `axi.query`、`axi.channel_stall`、`axi.latency_outlier`、`signal.stability`、
+   `verify.conditions`、`waveform.cursor.set` 补齐成功 `0ps`/零长度闭区间门禁；没有使用非法
+   时间范围或错误响应冒充边界执行。
+4. 最新 1116-event trace 为 boundary_time 30 observed + 43 N/A，未裁定为 0；全量 pytest、
+   CTest 9/9 和冻结适用性检查通过。
+5. 本批只修改测试、审计和证据清单，没有修改 Wellen、Verilator、ABI、backend、transport
+   或生产 FST 路径；不存在转换、索引、离线数据库、TCP/fileport 或 fallback。
+
 ## 六、最终完成门禁
 
 只有同时满足以下条件才允许完成 Goal：
