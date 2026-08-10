@@ -904,7 +904,7 @@ def test_trace_x_origin_branches_on_x_control_and_x_rhs(
     assert any("rhs" in relations for relations in relation_paths)
     assert {chain["current"]["signal"]
             for chain in rsp["data"]["chains"]} == {
-        "GCD.x",
+        "GCD.io_a",
         "GCD.y",
     }
 
