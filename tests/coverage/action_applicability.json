@@ -1266,6 +1266,306 @@
       "dimension": "completeness",
       "reason": "The frozen success response schema exposes no direct boolean completeness field.",
       "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "actions",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "apb.config.list",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "apb.config.load",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "apb.query",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "apb.transaction.cursor",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "apb.transfer_window",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.analysis",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.channel_stall",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.config.list",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.config.load",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.export",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.latency_outlier",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.outstanding_timeline",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.query",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.request_response_pair",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "axi.transaction.cursor",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "event.config.list",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "event.config.load",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "expr.normalize",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "list.add",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "list.create",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "list.delete",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "list.export",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "list.load",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "list.show",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "list.validate",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "nwave.rc.generate",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "schema",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "scope.list",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "scope.roots",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "session.close",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "session.doctor",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "session.gc",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "session.kill",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "session.list",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "session.open",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "signal.canonicalize",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "signal.resolve",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "stream.config.get",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "stream.config.list",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "stream.config.load",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "stream.describe",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "trace.active_driver",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "trace.driver",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "trace.load",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.delete",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.get",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.list",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.set",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.use",
+      "dimension": "xz",
+      "reason": "The frozen success response schema exposes no explicit LogicValue, X/Z enum, or X/Z/unresolved count field.",
+      "evidence": "tools/check_xz_applicability.py"
     }
   ]
 }

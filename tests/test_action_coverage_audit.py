@@ -341,12 +341,32 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
         (action, "completeness")
         for action in completeness_not_applicable_actions
     }
+    xz_not_applicable_actions = {
+        "actions", "apb.config.list", "apb.config.load", "apb.query",
+        "apb.transaction.cursor", "apb.transfer_window", "axi.analysis",
+        "axi.channel_stall", "axi.config.list", "axi.config.load",
+        "axi.export", "axi.latency_outlier", "axi.outstanding_timeline",
+        "axi.query", "axi.request_response_pair", "axi.transaction.cursor",
+        "event.config.list", "event.config.load", "expr.normalize",
+        "list.add", "list.create", "list.delete", "list.export",
+        "list.load", "list.show", "list.validate", "nwave.rc.generate",
+        "schema", "scope.list", "scope.roots", "session.close",
+        "session.doctor", "session.gc", "session.kill", "session.list",
+        "session.open", "signal.canonicalize", "signal.resolve",
+        "stream.config.get", "stream.config.list", "stream.config.load",
+        "stream.describe", "trace.active_driver", "trace.driver",
+        "trace.load", "waveform.cursor.delete", "waveform.cursor.get",
+        "waveform.cursor.list", "waveform.cursor.set", "waveform.cursor.use",
+    }
+    xz_entries = {
+        (action, "xz") for action in xz_not_applicable_actions
+    }
     manifest_actions = {
         action
         for action, _dimension in (
             resource_entries | empty_entries | truncation_entries |
             limit_entries | boundary_entries | multiple_entries |
-            completeness_entries
+            completeness_entries | xz_entries
         )
     }
     applicability = load_not_applicable(
@@ -356,5 +376,5 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     assert set(applicability) == (
         resource_entries | empty_entries | truncation_entries |
         limit_entries | boundary_entries | multiple_entries |
-        completeness_entries
+        completeness_entries | xz_entries
     )
