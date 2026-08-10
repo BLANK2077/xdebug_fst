@@ -51,3 +51,22 @@ def test_classifier_keeps_observed_dimensions_independent() -> None:
         "truncation",
         "xz",
     }
+
+
+def test_pre_dispatch_resource_error_does_not_credit_request_dimensions() -> None:
+    dimensions = classify(event(
+        {
+            "api_version": "xdebug.v1",
+            "action": "value.at",
+            "args": {"signal": "top.x", "time": "0ps"},
+            "limits": {"max_results": 1},
+        },
+        {
+            "ok": False,
+            "error": {
+                "code": "SESSION_NOT_FOUND",
+                "error_layer": "session_manager",
+            },
+        },
+    ))
+    assert dimensions == {"resource_missing"}

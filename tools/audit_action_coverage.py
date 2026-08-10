@@ -205,7 +205,9 @@ def classify(event: dict[str, Any]) -> set[str]:
     request = event.get("request")
     response = event.get("response")
     observed: set[str] = set()
-    if isinstance(response, dict) and response.get("ok") is True:
+    succeeded = isinstance(response, dict) and response.get("ok") is True
+    truncated = has_truncation(response)
+    if succeeded:
         observed.add("success")
         if has_result_cardinality(response, lambda count: count == 0):
             observed.add("empty_result")
@@ -215,15 +217,15 @@ def classify(event: dict[str, Any]) -> set[str]:
         observed.add("invalid_request")
     if has_resource_error(response):
         observed.add("resource_missing")
-    if has_boundary_time(request):
+    if succeeded and has_boundary_time(request):
         observed.add("boundary_time")
-    if has_limit_request(request):
+    if (succeeded or truncated) and has_limit_request(request):
         observed.add("limits")
-    if has_truncation(response):
+    if truncated:
         observed.add("truncation")
     if has_completeness(response):
         observed.add("completeness")
-    if has_xz(request) or has_xz(response):
+    if succeeded and (has_xz(request) or has_xz(response)):
         observed.add("xz")
     return observed
 
