@@ -79,9 +79,16 @@ struct Parser {
             }
             if (all_digits && width_str.size() <= 9) {
                 int width = atoi(width_str.c_str());
-                char base = std::tolower(static_cast<unsigned char>(text[tick + 1]));
+                size_t base_pos=tick+1;
+                if (base_pos<text.size()&&
+                    std::tolower(static_cast<unsigned char>(text[base_pos]))=='s') {
+                    ++base_pos;
+                }
+                if (base_pos>=text.size()) return v;
+                char base=std::tolower(
+                    static_cast<unsigned char>(text[base_pos]));
                 if (base == 'h' || base == 'b' || base == 'd' || base == 'o') {
-                    size_t digits_start = tick + 2;
+                    size_t digits_start=base_pos+1;
                     size_t d = digits_start;
                     while (d < text.size() &&
                            (std::isalnum(static_cast<unsigned char>(text[d])) ||
