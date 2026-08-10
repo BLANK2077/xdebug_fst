@@ -29,6 +29,17 @@ def test_expr_eval_at_equal(loop_runner: StdioLoopRunner, counter_fst) -> None:
     assert rsp["data"]["expr_value"] is True
 
 
+def test_expr_eval_at_signed_sized_literal(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("expr.eval_at", args={
+        "expr": "count == 8'sh0b", "time": "300ps", "clock": "top.clk",
+        "signals": {"count": "top.counter_top.count"}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["status"] == "true"
+    assert rsp["data"]["expr_value"] is True
+
+
 def test_expr_eval_at_arith(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("expr.eval_at", args={
