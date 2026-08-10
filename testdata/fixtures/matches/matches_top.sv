@@ -113,4 +113,10 @@ module matches_top (
     if (sel == 2'd1)
       gated_q <= data;
   end
+
+  reg [7:0] ternary_hold_q;
+  wire [7:0] ternary_hold_out;
+  assign ternary_hold_out = ternary_hold_q;
+  always @(posedge clk)
+    ternary_hold_q <= sel[0] ? ternary_hold_q : data;
 endmodule

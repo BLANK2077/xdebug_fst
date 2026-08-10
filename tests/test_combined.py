@@ -217,6 +217,26 @@ def test_trace_active_driver_chain_skips_inactive_gated_nba_event(
     assert rsp["data"]["hops"][1]["line"] == 114
 
 
+def test_trace_active_driver_chain_skips_same_line_ternary_self_hold(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.matches_top.ternary_hold_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "primary_input"
+    assert [hop["signal"] for hop in rsp["data"]["hops"]] == [
+        "top.matches_top.ternary_hold_out",
+        "top.matches_top.ternary_hold_q",
+        "top.data",
+    ]
+    assert rsp["data"]["hops"][0]["active_time"] == "20ps"
+    assert rsp["data"]["hops"][1]["active_time"] == "20ps"
+    assert rsp["data"]["hops"][1]["line"] == 121
+
+
 def test_trace_active_driver_chain_propagates_through_nba_active_time(
         loop_runner: StdioLoopRunner, matches_fst,
         matches_design_db) -> None:
