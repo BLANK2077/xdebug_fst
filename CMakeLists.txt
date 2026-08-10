@@ -7,18 +7,28 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(${CMAKE_SOURCE_DIR}/cmake/DependenciesLock.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/VerifyDependencies.cmake)
 
+foreach(REPOSITORY_ENV IN ITEMS XDEBUG_WELLEN_REPO XDEBUG_VERILATOR_REPO)
+    if(NOT DEFINED ENV{${REPOSITORY_ENV}} OR "$ENV{${REPOSITORY_ENV}}" STREQUAL "")
+        message(FATAL_ERROR
+            "${REPOSITORY_ENV} is required. Configure it as an absolute repository "
+            "path in .codex/config.toml and restart Codex.")
+    endif()
+    if(NOT IS_ABSOLUTE "$ENV{${REPOSITORY_ENV}}")
+        message(FATAL_ERROR "${REPOSITORY_ENV} must be an absolute path")
+    endif()
+endforeach()
+
 # ── wellen_capi (core FFI, Phase 1 artifact in wellen workspace) ──
-set(WELLEN_CAPI_DIR "${CMAKE_SOURCE_DIR}/../wellen/wellen_capi" CACHE PATH "wellen_capi root")
+set(WELLEN_REPOSITORY_DIR "$ENV{XDEBUG_WELLEN_REPO}")
+set(WELLEN_CAPI_DIR "${WELLEN_REPOSITORY_DIR}/wellen_capi")
 set(WELLEN_CAPI_INCLUDE "${WELLEN_CAPI_DIR}/include")
-set(WELLEN_CAPI_LIB_DIR "${CMAKE_SOURCE_DIR}/../wellen/target/release" CACHE PATH "wellen_capi build dir")
-get_filename_component(WELLEN_REPOSITORY_DIR "${WELLEN_CAPI_DIR}/.." ABSOLUTE)
+set(WELLEN_CAPI_LIB_DIR "${WELLEN_REPOSITORY_DIR}/target/release")
 
 # ── wellenx_capi (minimal extension FFI, built inside this repo) ──
 set(WELLENX_CAPI_INCLUDE "${CMAKE_SOURCE_DIR}/wellenx_capi/include")
 set(WELLENX_CAPI_LIB_DIR "${CMAKE_SOURCE_DIR}/wellenx_capi/target/release" CACHE PATH "wellenx_capi build dir")
 
-set(VERILATOR_REPOSITORY_DIR "${CMAKE_SOURCE_DIR}/../verilator" CACHE PATH
-    "Verilator source tree that provides the compatible DesignDB ABI")
+set(VERILATOR_REPOSITORY_DIR "$ENV{XDEBUG_VERILATOR_REPO}")
 option(XDEBUG_VERIFY_DEPENDENCY_REVISIONS
     "Require the exact Wellen and Verilator revisions from the compatibility lock" ON)
 option(XDEBUG_ENABLE_MCP_INTEGRATION_TESTS

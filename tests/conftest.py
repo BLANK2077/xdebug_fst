@@ -43,13 +43,29 @@ TESTS_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_ROOT.parent
 FIXTURES = REPO_ROOT / "testdata" / "fixtures"
 
+
+def _required_repository_env(name: str) -> Path:
+    raw = os.environ.get(name)
+    if not raw:
+        raise RuntimeError(
+            f"{name} is required; configure it in .codex/config.toml and restart Codex")
+    path = Path(raw)
+    if not path.is_absolute():
+        raise RuntimeError(f"{name} must be an absolute path: {raw}")
+    if not path.is_dir():
+        raise RuntimeError(f"{name} repository is unavailable: {path}")
+    return path
+
+
+WELLEN_REPOSITORY = _required_repository_env("XDEBUG_WELLEN_REPO")
+
 if str(TESTS_ROOT) not in sys.path:
     sys.path.insert(0, str(TESTS_ROOT))
 
 # Wellen FFI library dirs needed at runtime
 _LD_EXTRA = [
     str(REPO_ROOT / "build"),
-    str(REPO_ROOT.parent / "wellen" / "target" / "release"),
+    str(WELLEN_REPOSITORY / "target" / "release"),
     str(REPO_ROOT / "wellenx_capi" / "target" / "release"),
 ]
 
@@ -135,8 +151,8 @@ def xprop_design_db() -> Path:
 
 
 @pytest.fixture(scope="session")
-def gcd_xorigin_fst(repo_root: Path) -> Path:
-    return repo_root.parent / "wellen" / "wellen" / "inputs" / "treadle" / "GCD.vcd.fst"
+def gcd_xorigin_fst() -> Path:
+    return WELLEN_REPOSITORY / "wellen" / "inputs" / "treadle" / "GCD.vcd.fst"
 
 
 @pytest.fixture(scope="session")
@@ -248,7 +264,7 @@ def stream_fst() -> Path:
 
 @pytest.fixture(scope="session")
 def wide_xz_fst() -> Path:
-    return REPO_ROOT.parent / "wellen" / "wellen" / "inputs" / \
+    return WELLEN_REPOSITORY / "wellen" / "inputs" / \
         "xilinx_isim" / "test2x2_regex22_string1.vcd.fst"
 
 

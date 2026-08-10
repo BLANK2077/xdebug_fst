@@ -179,8 +179,12 @@ mod tests {
     use std::path::PathBuf;
 
     fn fixture(name: &str) -> CString {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../wellen/wellen/inputs")
+        let repository = std::env::var("XDEBUG_WELLEN_REPO")
+            .expect("XDEBUG_WELLEN_REPO must point to the absolute Wellen repository");
+        let repository = PathBuf::from(repository);
+        assert!(repository.is_absolute(), "XDEBUG_WELLEN_REPO must be absolute");
+        let path = repository
+            .join("wellen/inputs")
             .join(name);
         CString::new(path.to_string_lossy().as_bytes()).expect("fixture path contains no NUL")
     }
