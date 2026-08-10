@@ -31,6 +31,18 @@ BP_STREAM_CONFIG = {"streams": [{"name": "bp_fifo",
     "clock": "clk", "edge": "posedge", "sample_point": "after",
     "vld": "vld", "bp": "bp", "beat_fields": {"data": "data"}}]}
 
+WELLEN_XZ_STREAM_CONFIG = {"streams": [{
+    "name": "wellen_xz_stream",
+    "signals": {
+        "clk": "top.masslav_if.clk",
+        "vld": "top.masslav_if.Psel",
+        "rdy": "top.masslav_if.Pready",
+        "data": "top.masslav_if.Pwdata",
+    },
+    "clock": "clk", "edge": "posedge", "sample_point": "after",
+    "vld": "vld", "rdy": "rdy", "beat_fields": {"data": "data"},
+}]}
+
 
 def test_stream_config_list(loop_runner: StdioLoopRunner, stream_fst) -> None:
     open_session(loop_runner, stream_fst)
@@ -362,3 +374,27 @@ def test_stream_validate_bad_config(loop_runner: StdioLoopRunner, stream_fst) ->
     rsp = loop_runner.request("stream.config.load", args={"config": bad})
     assert not rsp.get("ok")
     assert rsp["error"]["code"] == "CONFIG_SIGNAL_NOT_FOUND"
+
+
+def test_stream_validate_truncates_dynamic_issues_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    loaded = loop_runner.request("stream.config.load", args={
+        "config": WELLEN_XZ_STREAM_CONFIG,
+    })
+    assert loaded.get("ok"), loaded
+
+    validated = loop_runner.request("stream.validate", args={
+        "stream": "wellen_xz_stream", "dynamic": True,
+        "cache_scope": "full", "line_limit": 1,
+    })
+    assert validated.get("ok"), validated
+    assert validated["summary"]["total_count"] >= 2
+    assert validated["summary"]["returned_count"] == 1
+    assert validated["summary"]["response_truncated"] is True
+    assert validated["summary"]["scan_complete"] is False
+    assert validated["summary"]["analysis_complete"] is False
+    assert validated["summary"]["truncation_scopes"] == [
+        "analysis_samples", "response_issues"
+    ]
+    assert len(validated["data"]["issues"]) == 1

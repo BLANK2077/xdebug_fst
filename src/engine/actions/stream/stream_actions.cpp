@@ -76,6 +76,20 @@ static bool is_high(const std::string& bits) {
     return false;
 }
 
+static bool is_known_binary(const std::string& bits) {
+    if (bits.empty()) return false;
+    for (char bit : bits)
+        if (bit != '0' && bit != '1') return false;
+    return true;
+}
+
+static std::string signal_bits_at(IWaveformBackend* wf, uint32_t ref,
+                                  uint32_t ti) {
+    IWaveformBackend::SignalOffset off;
+    if (!wf->signal_offset_at(ref, ti, off)) return {};
+    return wf->signal_value_str(ref, off.start, 0);
+}
+
 /// Check if a signal value at a time index is considered "high".
 /// Returns false if signal not found / not loaded.
 static bool signal_is_high_at(IWaveformBackend* wf, uint32_t ref, uint32_t ti) {
@@ -352,6 +366,8 @@ struct StreamSample {
     uint64_t time = 0;
     bool vld = false, rdy = false, bp = false, sop = false, eop = false;
     bool transfer = false, stall = false;
+    bool control_known = true, data_known = true;
+    bool ready_bp_conflict = false;
     Json fields = Json::object();
 };
 
@@ -378,6 +394,16 @@ static std::vector<StreamSample> scan_stream_samples(
         if (ti > end_ti) break;
         StreamSample sample;
         sample.cycle=cycle++; sample.time_idx=ti; sample.time=wf->time_at(ti);
+        const std::string vld_bits=signal_bits_at(wf,vld_ref,ti);
+        const std::string rdy_bits=rdy_ref?signal_bits_at(wf,rdy_ref,ti):"1";
+        const std::string bp_bits=bp_ref?signal_bits_at(wf,bp_ref,ti):"0";
+        const std::string sop_bits=sop_ref?signal_bits_at(wf,sop_ref,ti):"0";
+        const std::string eop_bits=eop_ref?signal_bits_at(wf,eop_ref,ti):"0";
+        sample.control_known=is_known_binary(vld_bits)&&
+            is_known_binary(rdy_bits)&&is_known_binary(bp_bits)&&
+            is_known_binary(sop_bits)&&is_known_binary(eop_bits);
+        sample.ready_bp_conflict=rdy_ref&&bp_ref&&
+            is_high(rdy_bits)&&is_high(bp_bits);
         const bool v_now=signal_is_high_at(wf,vld_ref,ti),
             v_prev=ti>0&&signal_is_high_at(wf,vld_ref,ti-1);
         bool ready_now=true,ready_prev=true;
@@ -399,8 +425,11 @@ static std::vector<StreamSample> scan_stream_samples(
         sample.stall=sample.vld&&!ready_now;
         sample.sop=sample.transfer&&sop_ref&&signal_is_high_at(wf,sop_ref,ti);
         sample.eop=sample.transfer&&eop_ref&&signal_is_high_at(wf,eop_ref,ti);
-        if (sample.transfer)
+        if (sample.transfer) {
             sample.fields=stream_fields_at(cfg,*wf,ti,format,fields_complete);
+            for (const auto& field : sample.fields.items())
+                if (!field.value().value("known",false)) sample.data_known=false;
+        }
         samples.push_back(std::move(sample));
     }
     return samples;
@@ -807,11 +836,15 @@ struct StreamQueryHandler : public EngineActionHandler {
         bool fields_complete=true;
         auto samples=scan_stream_samples(wf,cfg,begin_ti,end_ti,fmt,fields_complete);
         std::vector<const StreamSample*> transfers;
-        size_t vld_cycles=0,stall_cycles=0;
+        size_t vld_cycles=0,stall_cycles=0,control_xz_count=0,
+            data_xz_count=0,ready_bp_conflict_count=0;
         for (const auto& sample : samples) {
             if (sample.vld) ++vld_cycles;
             if (sample.stall) ++stall_cycles;
             if (sample.transfer) transfers.push_back(&sample);
+            if (!sample.control_known) ++control_xz_count;
+            if (sample.transfer && !sample.data_known) ++data_xz_count;
+            if (sample.ready_bp_conflict) ++ready_bp_conflict_count;
         }
 
         auto row_json=[&](const StreamSample& sample, size_t beat_index) {
@@ -949,16 +982,25 @@ struct StreamQueryHandler : public EngineActionHandler {
             {"stall_cycles",stall_cycles},{"stall_windows",stalls.size()},
             {"complete_packet_count",complete_packets},{"partial_packet_count",partial_packets},
             {"packet_count_status",packet_enabled?"exact":"not_configured"},
-            {"control_xz_count",0},{"data_xz_count",0},
-            {"ready_bp_conflict_count",0},{"packet_stable_mismatch_count",0},
+            {"control_xz_count",control_xz_count},{"data_xz_count",data_xz_count},
+            {"ready_bp_conflict_count",ready_bp_conflict_count},
+            {"packet_stable_mismatch_count",0},
             {"requested_range",{{"begin",wf->format_time(begin_time,unit)},
                 {"end",wf->format_time(end_time,unit)}}},
             {"scanned_range",{{"begin",wf->format_time(begin_time,unit)},
                 {"end",wf->format_time(end_time,unit)}}},{"filter_applied",filter_applied},
-            {"scan_complete",true},{"analysis_complete",true},
+            {"scan_complete",control_xz_count==0},
+            {"analysis_complete",control_xz_count==0&&data_xz_count==0&&
+                fields_complete},
             {"response_truncated",truncated},{"total_count",total_count},
             {"returned_count",returned_count},
-            {"truncation_scopes",truncated?Json::array({"response_rows"}):Json::array()}};
+            {"truncation_scopes",[&]() {
+                Json scopes=Json::array();
+                if (control_xz_count||data_xz_count||!fields_complete)
+                    scopes.push_back("analysis_samples");
+                if (truncated) scopes.push_back("response_rows");
+                return scopes;
+            }()}};
         if (filter_applied) {
             summary["unresolved_filter_count"]=0;
             summary["matched_packet_count"]=filtered_packets.size();
@@ -1099,7 +1141,7 @@ struct StreamValidateHandler : public EngineActionHandler {
         const bool static_ok = validation.at("status") == "ok";
         Json issues = Json::array();
         if (!static_ok) issues.push_back({{"code","signal_not_found"},
-            {"severity","error"},{"message","stream contains unresolved signals"}});
+            {"severity","ERROR"},{"message","stream contains unresolved signals"}});
         const bool dynamic_requested = args.value("dynamic",false);
         Json dynamic = Json::object();
         bool scan_complete = false, analysis_complete = static_ok;
@@ -1121,14 +1163,38 @@ struct StreamValidateHandler : public EngineActionHandler {
                 if (base.contains(key)) dynamic[key]=base.at(key);
             scan_complete=base.at("scan_complete");
             analysis_complete=base.at("analysis_complete");
+            auto add_dynamic_issue=[&](const char* counter, const char* code,
+                                       const char* message) {
+                if (base.value(counter,0u)>0) issues.push_back({{"code",code},
+                    {"severity","WARNING"},{"message",message}});
+            };
+            add_dynamic_issue("control_xz_count","control_xz",
+                "stream control signals contain X/Z at sampled clock edges");
+            add_dynamic_issue("data_xz_count","data_xz",
+                "stream transfer data contains X/Z");
+            add_dynamic_issue("ready_bp_conflict_count","ready_bp_conflict",
+                "stream ready and backpressure are asserted together");
+            add_dynamic_issue("packet_stable_mismatch_count",
+                "packet_stable_mismatch",
+                "packet-stable fields changed within a packet");
         }
-        const bool ok=static_ok && (!dynamic_requested || scan_complete);
+        const size_t total=issues.size();
+        const size_t limit=args.value("line_limit",1000u);
+        Json returned_issues=Json::array();
+        for (size_t index=0;index<std::min(total,limit);++index)
+            returned_issues.push_back(issues[index]);
+        const bool response_truncated=returned_issues.size()<total;
+        Json scopes=Json::array();
+        if (dynamic_requested&&(!scan_complete||!analysis_complete))
+            scopes.push_back("analysis_samples");
+        if (response_truncated) scopes.push_back("response_issues");
+        const bool ok=static_ok;
         return {{"ok",true},{"summary",{{"stream",name},{"ok",ok},
             {"static_validation_complete",true},{"dynamic_requested",dynamic_requested},
             {"scan_complete",scan_complete},{"analysis_complete",analysis_complete},
-            {"response_truncated",false},{"total_count",issues.size()},
-            {"returned_count",issues.size()},{"truncation_scopes",Json::array()}}},
-            {"data",{{"issues",issues},{"dynamic",dynamic}}}};
+            {"response_truncated",response_truncated},{"total_count",total},
+            {"returned_count",returned_issues.size()},{"truncation_scopes",scopes}}},
+            {"data",{{"issues",returned_issues},{"dynamic",dynamic}}}};
     }
 };
 
