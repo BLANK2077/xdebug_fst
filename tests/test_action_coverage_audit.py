@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from tools.audit_action_coverage import classify, has_xz, load_not_applicable
+from tools.audit_action_coverage import (
+    classify,
+    has_truncation,
+    has_xz,
+    load_not_applicable,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +21,26 @@ def test_xz_classifier_distinguishes_unknown_digits_from_hex_prefix() -> None:
     assert has_xz({"value": "4'b10xz"})
     assert has_xz({"bits": "10x0"})
     assert has_xz({"kind": "unknown"})
+
+
+def test_truncation_classifier_uses_frozen_contract_fields() -> None:
+    assert has_truncation({"summary": {"response_truncated": True}})
+    assert has_truncation({
+        "summary": {
+            "response_truncated": False,
+            "truncation_scopes": ["analysis_samples"],
+        }
+    })
+    assert has_truncation({"data": {"termination": "limit"}})
+    assert not has_truncation({
+        "summary": {
+            "response_truncated": False,
+            "truncation_scopes": [],
+        },
+        "data": {
+            "limitations": [{"kind": "design_unavailable"}],
+        },
+    })
 
 
 def test_classifier_records_canonical_invalid_request() -> None:

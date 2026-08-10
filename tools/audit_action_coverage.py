@@ -167,11 +167,11 @@ def has_truncation(response: Any) -> bool:
         if not path:
             continue
         key = path[-1]
-        if key == "truncated" and value is True:
+        if key in {"truncated", "response_truncated"} and value is True:
+            return True
+        if key == "truncation_scopes" and isinstance(value, list) and value:
             return True
         if key in {"termination", "reason", "kind"} and value == "limit":
-            return True
-        if key == "limitations" and isinstance(value, list) and value:
             return True
     return False
 
