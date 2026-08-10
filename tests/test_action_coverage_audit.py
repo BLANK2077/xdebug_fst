@@ -1,4 +1,9 @@
-from tools.audit_action_coverage import classify, has_xz
+from pathlib import Path
+
+from tools.audit_action_coverage import classify, has_xz, load_not_applicable
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def event(request: dict, response: dict) -> dict:
@@ -70,3 +75,25 @@ def test_pre_dispatch_resource_error_does_not_credit_request_dimensions() -> Non
         },
     ))
     assert dimensions == {"resource_missing"}
+
+
+def test_resource_applicability_manifest_is_explicit_and_valid() -> None:
+    applicability = load_not_applicable(
+        REPO_ROOT / "tests/coverage/action_applicability.json",
+        [
+            "actions",
+            "batch",
+            "expr.normalize",
+            "schema",
+            "session.gc",
+            "session.list",
+        ],
+    )
+    assert set(applicability) == {
+        ("actions", "resource_missing"),
+        ("batch", "resource_missing"),
+        ("expr.normalize", "resource_missing"),
+        ("schema", "resource_missing"),
+        ("session.gc", "resource_missing"),
+        ("session.list", "resource_missing"),
+    }

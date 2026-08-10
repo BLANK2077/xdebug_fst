@@ -234,6 +234,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, required=True)
     parser.add_argument("--trace", type=Path, required=True)
+    parser.add_argument("--applicability", type=Path)
     parser.add_argument("--output-json", type=Path)
     parser.add_argument("--output-markdown", type=Path)
     parser.add_argument(
@@ -244,12 +245,45 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def load_not_applicable(
+    path: Path | None, actions: list[str]
+) -> dict[tuple[str, str], dict[str, str]]:
+    if path is None:
+        return {}
+    document = json.loads(path.read_text(encoding="utf-8"))
+    if document.get("schema_version") != \
+            "xdebug.action-coverage-applicability.v1":
+        raise ValueError("unsupported action applicability schema")
+    result: dict[tuple[str, str], dict[str, str]] = {}
+    for entry in document.get("not_applicable", []):
+        if set(entry) != {"action", "dimension", "reason", "evidence"}:
+            raise ValueError("invalid action applicability entry fields")
+        action = entry["action"]
+        dimension = entry["dimension"]
+        if action not in actions:
+            raise ValueError(f"unknown applicability action: {action}")
+        if dimension not in DIMENSIONS:
+            raise ValueError(f"unknown applicability dimension: {dimension}")
+        if not entry["reason"] or not entry["evidence"]:
+            raise ValueError("applicability reason and evidence must be non-empty")
+        key = (action, dimension)
+        if key in result:
+            raise ValueError(f"duplicate applicability entry: {action}/{dimension}")
+        result[key] = {
+            "reason": str(entry["reason"]),
+            "evidence": str(entry["evidence"]),
+        }
+    return result
+
+
 def main() -> int:
     args = parse_args()
     repo_root = args.repo_root.resolve()
     trace_path = args.trace.resolve()
     if not args.repo_root.is_absolute() or not args.trace.is_absolute():
         raise SystemExit("--repo-root and --trace must be absolute paths")
+    if args.applicability is not None and not args.applicability.is_absolute():
+        raise SystemExit("--applicability must be an absolute path")
     for option_name, output_path in (
         ("--output-json", args.output_json),
         ("--output-markdown", args.output_markdown),
@@ -260,6 +294,10 @@ def main() -> int:
     actions = json.loads(catalog_path.read_text(encoding="utf-8"))["data"]["actions"]
     if len(actions) != 73 or len(set(actions)) != 73:
         raise SystemExit("frozen catalog must contain 73 unique actions")
+    try:
+        not_applicable = load_not_applicable(args.applicability, actions)
+    except (OSError, ValueError, json.JSONDecodeError) as exception:
+        raise SystemExit(f"invalid action applicability: {exception}") from exception
 
     evidence: dict[str, dict[str, set[str]]] = {
         action: {dimension: set() for dimension in DIMENSIONS}
@@ -293,13 +331,26 @@ def main() -> int:
             "action": action,
             "event_count": event_counts[action],
             "dimensions": dimensions,
+            "not_applicable": {
+                dimension: not_applicable[(action, dimension)]
+                for dimension in DIMENSIONS
+                if (action, dimension) in not_applicable
+            },
             "missing": [
-                dimension for dimension in DIMENSIONS if not dimensions[dimension]
+                dimension for dimension in DIMENSIONS
+                if not dimensions[dimension]
+                and (action, dimension) not in not_applicable
             ],
         })
 
     dimension_counts = {
         dimension: sum(bool(row["dimensions"][dimension]) for row in rows)
+        for dimension in DIMENSIONS
+    }
+    not_applicable_counts = {
+        dimension: sum(
+            dimension in row["not_applicable"] for row in rows
+        )
         for dimension in DIMENSIONS
     }
     report = {
@@ -308,6 +359,7 @@ def main() -> int:
         "trace_event_count": sum(event_counts.values()),
         "unknown_actions": sorted(unknown_actions),
         "dimension_counts": dimension_counts,
+        "not_applicable_counts": not_applicable_counts,
         "complete_action_count": sum(not row["missing"] for row in rows),
         "actions": rows,
         "classification_notice": (
@@ -331,8 +383,12 @@ def main() -> int:
         separator,
     ]
     for row in rows:
-        marks = ["✓" if row["dimensions"][dimension] else "—"
-                 for dimension in DIMENSIONS]
+        marks = [
+            "✓" if row["dimensions"][dimension]
+            else "N/A" if dimension in row["not_applicable"]
+            else "—"
+            for dimension in DIMENSIONS
+        ]
         markdown.append(
             "| " + row["action"] + " | " + " | ".join(marks) + " | "
             + ", ".join(row["missing"]) + " |"

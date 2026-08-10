@@ -1,0 +1,41 @@
+{
+  "schema_version": "xdebug.action-coverage-applicability.v1",
+  "not_applicable": [
+    {
+      "action": "actions",
+      "dimension": "resource_missing",
+      "reason": "The frozen request schema forbids target.session_id; original and candidate reject it before resource lookup.",
+      "evidence": "tools/check_resource_applicability.py"
+    },
+    {
+      "action": "batch",
+      "dimension": "resource_missing",
+      "reason": "The frozen request schema forbids target.session_id; original and candidate reject it before resource lookup.",
+      "evidence": "tools/check_resource_applicability.py"
+    },
+    {
+      "action": "expr.normalize",
+      "dimension": "resource_missing",
+      "reason": "The frozen request schema forbids target.session_id; original and candidate reject it before resource lookup.",
+      "evidence": "tools/check_resource_applicability.py"
+    },
+    {
+      "action": "schema",
+      "dimension": "resource_missing",
+      "reason": "The frozen request schema forbids target.session_id; original and candidate reject it before resource lookup.",
+      "evidence": "tools/check_resource_applicability.py"
+    },
+    {
+      "action": "session.gc",
+      "dimension": "resource_missing",
+      "reason": "The frozen request schema forbids target.session_id; original and candidate reject it before resource lookup.",
+      "evidence": "tools/check_resource_applicability.py"
+    },
+    {
+      "action": "session.list",
+      "dimension": "resource_missing",
+      "reason": "The frozen request schema forbids target.session_id; original and candidate reject it before resource lookup.",
+      "evidence": "tools/check_resource_applicability.py"
+    }
+  ]
+}
