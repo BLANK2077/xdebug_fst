@@ -634,7 +634,8 @@ onset，返回 `limit/max_time_steps` 和不完整性证据。
 `port` token，保留 `rhs`、`control` 等因果角色。物理 alias 变体先按该 identity 合并，
 `max_chains` 再作用于语义链；响应仍保留被选中物理路径的全部 port hop。不同 RHS、control
 或 onset 不得合并，FST 值相等也不参与身份判断。当前证据关闭基础汇聚路径与 chain limit
-交互，复杂 modport/ref、反馈环及 node/time 预算下的探索态合并仍须独立差分。
+交互；基础 node 预算汇聚已关闭，复杂 modport/ref、端口反馈以及 node/time/depth 组合预算
+仍须独立差分。
 
 物理 alias 路径还可能在 DFS 中重新汇聚。请求内 explored-state identity 使用已有非透明
 语义前缀、当前 incoming 的非 port relation、current signal 和数值 X onset；因此不同
@@ -649,6 +650,14 @@ alias 中间节点仍会保留，汇聚后的相同状态只探索一次，并�
 追加目标 hop，`current` 指向闭环目标，origin 为空；summary 只存在 loop chain 时返回
 `loop_detected`，但没有找到 X origin，因此 evidence status 仍保持 unresolved。是否成环由
 DesignDB 静态依赖和 action 的 `(signal,onset)` 路径状态决定，不由 FST 值相等推断。
+
+反馈环并不排斥同一静态 statement 的其他 X 依赖。第 48 批用独立测试 DesignDB 将一个
+已访问依赖和一个未访问依赖同时发布给 action：前者形成完成的 `loop_detected` chain，
+后者继续 DFS 并形成 `origin_found/candidate_x_source`。两链必须同时保留，summary 因实际
+找到一个来源而采用 `origin_found`，不能因为存在 loop 把整体降成 unresolved，也不能因
+找到正常来源而删除环证据。该测试复用 Wellen 仓库现有原始 GCD FST；DesignDB 决定静态
+依赖，action 决定路径访问状态与汇总合同，Wellen 只按需确认各候选在对应时间含 X。因此
+它继续满足 `GOAL-FST-DIRECT-001`，没有从 FST 值推断环或依赖，也没有建立转换和索引。
 
 X mask 是确定性响应事实，不是装饰文本。Wellen 返回当前信号的实际位串和宽度，action
 逐位把 X 类状态映射为 1、其余映射为 0，并使用 `<width>'b<bits>` 输出；query、current、

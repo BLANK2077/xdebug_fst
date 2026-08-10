@@ -814,6 +814,15 @@ signal index。任何一个 RHS 映射失败都不会部分改写。完成映射
 6. 支持 max_chains、frontier、partial 和 analysis completeness。
 7. 不复用查询信号宽度渲染不同宽度的上游信号。
 
+第 48 批进一步锁定多分支环合同：当同一活动 statement 同时包含一个回到当前路径的 X
+依赖和一个尚未访问的 X 依赖时，action 必须分别形成完成的 `loop_detected` chain 与继续
+追踪的正常 chain。若正常分支找到来源，summary 必须为 `origin_found`，同时保留环证据、
+精确 chain/origin 计数和完整性；不得静默过滤环、把环误报为候选来源，或因一条环覆盖
+正常来源。测试只允许由 DesignDB 发布静态依赖、由 action 判断 `(signal,onset)` 路径状态，
+Wellen 仅从当前 session 原始 `.fst` 按需确认候选 X 值。不得扫描同值信号推断依赖或环，
+不得生成波形转换、事件索引或离线分析数据库。当前基础同语句 loop+normal 已关闭；复杂
+端口反馈、interface/modport/ref 和 node/time/depth 组合限制仍须独立差分。
+
 提交：
 
 `功能：实现多分支 X 来源追踪`
