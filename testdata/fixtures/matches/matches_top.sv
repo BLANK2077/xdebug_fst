@@ -95,4 +95,14 @@ module matches_top (
       default: default_only_out = data;
     endcase
   end
+
+  reg [7:0] hold_q;
+  wire [7:0] hold_out;
+  assign hold_out = hold_q;
+  always @(posedge clk) begin
+    if (sel == 2'd1)
+      hold_q <= data;
+    else
+      hold_q <= hold_q;
+  end
 endmodule
