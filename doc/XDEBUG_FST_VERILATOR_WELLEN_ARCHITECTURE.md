@@ -1025,6 +1025,12 @@ Wellen 只对这些已选名称从当前 GCD 原始 `.fst` 读取 X/onset；acti
 为了让新测试通过而破坏普通 alias。该修复只在 consumer 中增加局部分类，不修改 Verilator、
 Wellen、XDD ABI 或 FST 数据路径；带 driver/分支和联合预算的复杂反馈仍待验证。
 
+反馈环的 node 预算仍由 action 请求内计数器承担。第五十六批在同一三节点 ref port 环上把
+`max_nodes` 设为 2：root 与第二节点计数后，第三节点在追加 hop 和执行闭环判定前形成明确
+frontier，响应为 `limit/max_nodes`、零 origin；默认预算则完整返回 loop。Wellen 没有为了
+预算预扫 FST，也没有建立图或事件索引。该证据关闭基础 ref 反馈/node 组合，time/depth/
+chain 与 driver/分支反馈的联合语义仍待差分。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；

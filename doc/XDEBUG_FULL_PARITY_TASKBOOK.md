@@ -822,6 +822,12 @@ direction=3 静态端口环；consumer 只把返回非直接父节点的已访�
 X，不从值相等推断连接。带 driver/分支的端口反馈以及反馈与 node/time/depth/chain 限制的
 联合交互仍未关闭。
 
+第五十六批关闭基础 ref 纯端口反馈与 `max_nodes` 的组合边界。同一三节点静态环在
+`max_nodes=2` 时只能展开 `T_14` 和 `GEN_0`；进入 `GEN_1` 前必须以 `limit/max_nodes`
+停止，保留 `GEN_1` current/frontier、零 completed chain、零 origin 和唯一 limitation。
+默认预算下仍按第五十五批返回完整 loop。现有 action 直接通过，本批只增加合同证据；
+`max_time_steps`、`max_depth`、`max_chains` 与带 driver/分支反馈的联合交互仍未关闭。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。
@@ -868,8 +874,8 @@ X，不从值相等推断连接。带 driver/分支的端口反馈以及反馈�
 Wellen 仅从当前 session 原始 `.fst` 按需确认候选 X 值。不得扫描同值信号推断依赖或环，
 不得生成波形转换、事件索引或离线分析数据库。当前基础同语句 loop+normal 已关闭；基础
 modport alias 与 node 预算组合在第五十四批关闭，基础 ref 纯端口反馈在第五十五批关闭；
-带 driver/分支的复杂端口反馈、嵌套/数组 interface 及 node/time/depth/loop 联合限制仍须
-独立差分。
+带 driver/分支的复杂端口反馈、嵌套/数组 interface 及 time/depth/chain/loop 联合限制仍须
+独立差分；基础 ref 反馈的 node 限制已由第五十六批关闭。
 
 第 49 批关闭基础 branch+depth 组合：同一请求同时限制 `max_chains` 和 `max_depth` 时，保留
 语义链必须以 `max_depth` frontier 终止，被省略语义分支必须继续出现在该链的 pending 与

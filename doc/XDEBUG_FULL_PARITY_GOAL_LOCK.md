@@ -134,3 +134,8 @@ P6 第五十五批继续遵守同一门禁：DesignDB 只发布 direction=3 三�
 不是扫描 FST 相同值或 alias 得出。Verilator、Wellen 和 XDD ABI 未修改，没有转换、预扫、
 私有索引、离线库、全量快照、TCP、fileport 或 fallback。本批只关闭基础 ref 纯端口环；
 复杂 driver/分支/预算反馈、嵌套 interface 和其余 P6 差分仍未完成，Goal 继续 active。
+
+P6 第五十六批在同一原始 FST、同一静态三节点 ref 环上只增加 `max_nodes=2` 证据。预算由
+xdebug action 在请求内执行，Wellen 不预扫或索引波形；结果在闭环前以明确 frontier/limit
+停止且不伪造 origin。现有实现直接通过，三方实现和 ABI 均未修改。该批只关闭基础
+ref-feedback/node 组合，其他预算和复杂反馈仍属于 active Goal。
