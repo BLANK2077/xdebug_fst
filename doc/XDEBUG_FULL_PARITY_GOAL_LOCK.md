@@ -144,3 +144,8 @@ P6 第五十七批用三份现有原始 `.fst` 证明 `value.at` 公开路径保
 和 event 类型。Wellen 仍是唯一按需波形访问层，action 只执行冻结 schema 投影；没有 VCD、
 FSDB、转换、预扫、索引、离线库、TCP/fileport 或 fallback。该批没有修改生产代码和三方
 ABI，只补强 Wellen 完成条件的端到端证据，不影响 P6 其余未完成项，Goal 保持 active。
+
+P6 第五十八批修复 `signal.changes` action 层丢失同时间 FST delta：Wellen 仍直接从原始
+`.fst` 发布有序类型化 change，action 使用请求内 `scan_changes` 做窗口与投影，没有预扫后
+落盘、私有索引或第二套分析后端。Wellen/Verilator/ABI 未修改，TCP/fileport 与 fallback
+仍禁止。该批只关闭 typed change timeline 的 delta 贯通，Goal 保持 active。

@@ -418,6 +418,13 @@ settled 的最后值并保留 UTF-8 与定宽尾部空格；real 用例在 1ps �
 `value.at` response schema，路径仅由 `XDEBUG_WELLEN_REPO` 绝对环境变量定位。现有生产
 action、Wellen、Verilator 和 ABI 无需修改。
 
+第五十八批进一步修复公开 `signal.changes` 对同时间 delta 的丢失。修改前 action 遍历去重
+后的 time index 并对每个时间只取 raw settled 值，导致 Wellen 已保真的 0ps 两个 string
+delta 被压成一行。修复改为消费现有类型化 `scan_changes`：窗口起点有原始 change 时按 delta
+顺序全部保留并以第一条作为 initial；起点无 change 时仍合成该时刻 initial；物理 begin/end
+继续精确过滤，`line_limit` 只裁剪响应。backend 的 scan/analysis completeness 直接进入
+summary，不再由 action 硬编码。最终 0ps/0ps/10ns/20ns 四行、三次 transition 全部保留。
+
 ### P4：最克制地扩展 Verilator DesignDB
 
 #### 强制原则

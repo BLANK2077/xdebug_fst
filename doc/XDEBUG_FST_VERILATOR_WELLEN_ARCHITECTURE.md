@@ -589,6 +589,12 @@ P5 当前已把发现、静态设计、`value.at`、list、event、cursor、RC�
 选择和类型来自 Wellen 当前请求内访问，action 只投影冻结 LogicValue envelope；没有预扫、
 中间转换、类型旁路或离线缓存。
 
+第五十八批把 `signal.changes` 也切到 Wellen 已有的类型化 `scan_changes` 事实。time table 是
+物理时间轴，但同一个 time index 可以对应多个有序 delta；action 不能再次按 time index
+采 settled 值并假装那就是完整变化序列。现在 action 保留每条 change 记录的顺序和 typed
+value，只负责物理窗口过滤、起点 initial 合成、transition 计数和 response projection。
+`line_limit` 不传给后端作为分析预算，因此 total/complete 仍基于完整扫描，裁剪只发生在响应。
+
 `counter.statistics` 在每个选定时钟边沿直接计算 `vld` 信号或 alias 表达式，并拼接 `cnt` 叶子值；`signal.sampled_pulse.inspect` 将 raw valid/payload 变化与同一窗口内的 sampled edge 对齐；`protocol.handshake.inspect` 在采样流上维护 valid 等待、stall、ready-only 区间与 data 稳定状态。这些都是请求期间的有界 action 状态，不是 FST 预处理结果，session 结束后不会形成可重载波形数据库。
 
 APB 命名配置只保存时钟、复位和总线叶子信号路径以及采样规则，不保存事务或波形值。`apb.query`、`apb.statistics`、`apb.transaction.cursor` 和 `apb.transfer_window` 每次请求都直接扫描当前 FST 中选定的时钟边沿，并在请求期间推导已经完成的 APB 事务；推导结果不会持久化成可重载的事务数据库。`value.at` 的 APB 值源同样只按配置展开最终叶子信号，再从当前 Wellen backend 读取指定 observation point 的值。
