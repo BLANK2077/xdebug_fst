@@ -66,6 +66,17 @@ def test_actions_entries_have_category_and_requires(cli_runner: CliRunner) -> No
         assert entry["response_schema"].endswith(".response.schema.json")
 
 
+def test_actions_catalog_empty_filter(cli_runner: CliRunner) -> None:
+    result = cli_runner.run({
+        "api_version": "xdebug.v1",
+        "action": "actions",
+        "args": {"filter": {"keyword": "no_such_catalog_keyword_7f4d"}},
+    })
+    assert result.ok, result.stderr_raw
+    assert result.response["summary"]["action_count"] == 0
+    assert result.response["data"]["actions"] == []
+
+
 def test_schema_action(cli_runner: CliRunner) -> None:
     result = cli_runner.run({
         "api_version": "xdebug.v1",

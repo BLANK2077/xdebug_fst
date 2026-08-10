@@ -37,6 +37,7 @@ RESOURCE_ERROR_CODES = {
 
 RESULT_COUNT_KEYS = {
     "active_count",
+    "actual_transition_count",
     "change_count",
     "config_count",
     "count",
@@ -45,6 +46,7 @@ RESULT_COUNT_KEYS = {
     "finding_count",
     "interval_count",
     "match_count",
+    "matched_transaction_count",
     "origin_count",
     "packet_count",
     "path_count",

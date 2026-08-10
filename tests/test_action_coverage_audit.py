@@ -81,6 +81,12 @@ def test_empty_classifier_accepts_zero_total_and_explicit_not_found() -> None:
     ))
     assert count_only == {"multiple_results", "success"}
 
+    zero_statistics = classify(event(
+        {"api_version": "xdebug.v1", "action": "apb.statistics"},
+        {"ok": True, "summary": {"matched_transaction_count": 0}},
+    ))
+    assert zero_statistics == {"empty_result", "success"}
+
 
 def test_empty_classifier_accepts_primary_results_not_auxiliary_lists() -> None:
     empty_primary = classify(event(

@@ -181,6 +181,21 @@ def test_apb_statistics_address_filter(loop_runner: StdioLoopRunner,
     assert rsp["summary"]["filter_applied"] is True
 
 
+def test_apb_statistics_empty(loop_runner: StdioLoopRunner, apb_fst) -> None:
+    load_apb(loop_runner, apb_fst)
+    rsp = loop_runner.request("apb.statistics", args={
+        "name": "apb0",
+        "filter": {
+            "direction": "all",
+            "address": {"mode": "exact", "values": ["8'hff"]},
+        },
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["matched_transaction_count"] == 0
+    assert rsp["summary"]["matched_read_count"] == 0
+    assert rsp["summary"]["matched_write_count"] == 0
+
+
 def test_apb_transaction_cursor(loop_runner: StdioLoopRunner, apb_fst) -> None:
     load_apb(loop_runner, apb_fst)
     rsp = loop_runner.request("apb.transaction.cursor", args={
@@ -390,6 +405,22 @@ def test_axi_statistics(loop_runner: StdioLoopRunner, axi_fst) -> None:
     assert rsp["summary"]["matched_write_count"] == 1
 
 
+def test_axi_statistics_empty(loop_runner: StdioLoopRunner, axi_fst) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.statistics", args={
+        "name": "axi0",
+        "filter": {
+            "direction": "all",
+            "address": {"mode": "exact", "values": ["8'hff"]},
+        },
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["matched_transaction_count"] == 0
+    assert rsp["summary"]["matched_read_count"] == 0
+    assert rsp["summary"]["matched_write_count"] == 0
+
+
 def test_axi_export(loop_runner: StdioLoopRunner, axi_fst, tmp_path) -> None:
     open_session(loop_runner, axi_fst)
     _load_axi(loop_runner)
@@ -402,6 +433,24 @@ def test_axi_export(loop_runner: StdioLoopRunner, axi_fst, tmp_path) -> None:
     assert (tmp_path / "axi_transactions.write.tsv").exists()
     assert (tmp_path / "axi_transactions.read.tsv").exists()
     assert (tmp_path / "axi_transactions.meta.json").exists()
+
+
+def test_axi_export_empty(loop_runner: StdioLoopRunner,
+                          axi_fst, tmp_path) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    output = tmp_path / "empty_axi"
+    rsp = loop_runner.request("axi.export", args={
+        "name": "axi0",
+        "time_range": {"begin": "0ps", "end": "10ps"},
+        "output": {"path": str(output), "file_format": "tsv"},
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["status"] == "written"
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["summary"]["row_count"] == 0
+    assert (tmp_path / "empty_axi.meta.json").is_file()
 
 
 def test_axi_transaction_cursor(loop_runner: StdioLoopRunner, axi_fst) -> None:

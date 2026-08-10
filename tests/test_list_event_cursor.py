@@ -318,6 +318,22 @@ def test_event_export(loop_runner: StdioLoopRunner, counter_fst, tmp_path) -> No
     assert artifact["sampling"]["effective"]["sample_point"] == "before"
 
 
+def test_event_export_empty(loop_runner: StdioLoopRunner,
+                            counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("event.export", args={
+        "clock": "top.clk", "edge": "negedge",
+        "signals": {"count": "top.counter_top.count"},
+        "expr": "count == 8'hff",
+        "line_limit": 10,
+        "time_range": {"begin": "0ps", "end": "300ps"},
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["data"]["events"] == []
+
+
 # ── waveform.cursor.* ──
 
 def test_cursor_set_get(loop_runner: StdioLoopRunner, counter_fst) -> None:

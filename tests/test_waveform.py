@@ -333,6 +333,20 @@ def test_signal_changes_window(loop_runner: StdioLoopRunner, counter_fst) -> Non
     assert len(changes) == 6
 
 
+def test_signal_changes_empty_summary(loop_runner: StdioLoopRunner,
+                                      counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("signal.changes", args={
+        "signal": "top.counter_top.count",
+        "mode": "summary",
+        "time_range": {"begin": "490ps", "end": "490ps"},
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["actual_transition_count"] == 0
+    assert rsp["data"]["mode"] == "summary"
+    assert "changes" not in rsp["data"]
+
+
 def test_signal_changes_missing_signal(loop_runner: StdioLoopRunner,
                                        counter_fst) -> None:
     open_session(loop_runner, counter_fst)
