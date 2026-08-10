@@ -1121,6 +1121,31 @@ time/limits/XZ 误记为 action 执行覆盖的问题：
 8. 下一优先级为 empty_result 9/73 与 truncation 3/73；仍须先裁定每个 action 的适用性，
    不得把 resource_missing 的 73 项完成外推到其他维度。
 
+#### P7 第五批：empty_result 扩面与 truncation 分类校正
+
+2026-08-10 完成两批真实空结果扩面，并先修正截断审计定义：
+
+1. 第一批新增 `apb.config.list`、`event.config.list`、`list.show`、`list.validate`、
+   `waveform.cursor.list` 和 `session.list` 六项成功空集合。session registry 使用隔离 HOME，
+   避免共享状态或测试顺序制造零会话假阳性。
+2. 第二批新增 `apb.query`、`apb.transfer_window`、`axi.query`、`event.find` 四项合法零匹配。
+   地址过滤、有效时间窗和合法表达式都真正执行，返回 `ok=true`、零 cardinality 与空集合；
+   不允许用资源错误、schema 错误或缺失数据字段代替。
+3. `has_truncation` 现在识别冻结合同的 `response_truncated=true`、非空
+   `truncation_scopes` 和显式 limit 终止，移除“任意非空 limitations 即截断”的宽松规则；
+   `design_unavailable` limitation 是固定反例。
+4. 353 项 pytest 的全新 trace 含 1019 次 public exchange，最终 observed 为：success 73、
+   invalid_request 73、resource_missing 67、empty_result 19、boundary_time 22、
+   multiple_results 35、limits 20、truncation 16、completeness 37、X/Z 7；resource_missing
+   另有已证明的 6 N/A。
+5. 普通 CTest 9/9、pytest 353/353、冻结基线和审计单测通过。trace 与矩阵只在 `/tmp`，
+   没有回灌 action 或成为 FST 索引/离线数据库。
+6. empty_result 19/73、truncation 16/73 都不是完成率；剩余项必须逐一给出真实运行证据，
+   或由冻结 schema、语义不可达性和原版响应差分共同证明 N/A。仅看 response schema 中存在
+   array、count、limit 或 truncation 字段不足以标 N/A/适用。
+7. 本批未修改生产 action、Wellen、Verilator、ABI、backend 或 transport。运行时事实仍为
+   `原始 .fst → Wellen 按需读取 → action`，DesignDB 静态事实边界不变。
+
 提交：
 
 - `测试：建立七十三项 action 全量差分门禁`

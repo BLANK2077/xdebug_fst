@@ -1089,7 +1089,7 @@ xdebug.v1 JSON，并关联 pytest node；不接触 FST 文件、不调用 Wellen
 索引；生成文件只位于 `/tmp`，不作为 action 输入、缓存、export 或后续波形分析数据库。
 
 第一份 925-event 基线证明 73/73 action 都有成功和非法请求运行证据，同时暴露资源缺失
-18/73、空结果 9/73、边界时间 22/73、多结果 35/73、limits 20/73、truncation 3/73、
+18/73、空结果 9/73、边界时间 22/73、多结果 35/73、limits 20/73、truncation 16/73、
 completeness 37/73、X/Z 7/73 的观察覆盖。数字只反映现有 pytest，不等于字段语义一致；
 即使一个 action 十列都有记录，也仍须原版归一化差分。资源/时间无关 action 的 N/A 只能由
 冻结 schema 与原版行为裁定，工具不会擅自缩小任务。
@@ -1112,6 +1112,20 @@ P7 第四批不再把十个维度机械套到所有 action。66 个 managed-reso
 这一裁定仍不改变波形架构。缺失 session 发生在 frontend/registry，缺失 FST 发生在 session
 资源打开边界；没有生成替代波形、切换 backend 或让 action trace 参与分析。运行时事实路径
 仍只有原始 `.fst → Wellen 按需读取 → action`。
+
+### 9.12 空结果与截断证据不得由字段名伪造
+
+P7 第五批把 empty_result 的真实运行覆盖从 9 项提高到 19 项。新增 registry 空集合、空 signal
+list、空 cursor、合法地址过滤零 transaction、合法 event 表达式零匹配和有效时间窗零 transfer；
+每项都在成功响应中出现冻结 cardinality 字段与空数组，资源/schema 错误不能计入。
+
+截断分类同时对齐冻结合同：`response_truncated=true`、非空 `truncation_scopes` 或显式 limit
+终止才计为 truncation；普通 `limitations`（例如 design 不可用说明）不能单独计入。用 1019 次
+public exchange 重算后 truncation 为 16/73。19/73 和 16/73 都只是 observed，剩余 action
+仍须分别证明适用性或 N/A，不能由 schema 出现数组或 limit 字段自动裁定。
+
+这些证据仍来自 action 对原始 FST 的真实执行；trace 只在 `/tmp` 做测试审计，不回灌 Wellen，
+也不成为波形索引或离线分析数据库。
 
 ## 十、后续演进原则
 

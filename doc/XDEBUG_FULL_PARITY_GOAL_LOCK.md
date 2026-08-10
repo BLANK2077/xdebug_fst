@@ -199,3 +199,16 @@ action 使用自身冻结合法 example 到达缺失 session 路由；`session.o
 applicability 文件只是合同证据元数据，不含波形、不参与 action，也不得回灌分析。生产仍由
 Wellen 直接按需读取当前 session 原始 `.fst`，本批没有修改 Wellen、Verilator、ABI、backend
 或 transport。empty/truncation 等其余维度仍未裁定，Goal 保持 active。
+
+## 十二、P7 第五批 empty/truncation 防漂移记录
+
+empty_result 已由 9 项提高到 19 项 observed：新增六项 registry/list/cursor 空集合，以及 APB、
+AXI、event 的四项合法零匹配查询。所有证据必须是 `ok=true` 且包含冻结的零 cardinality/空
+结果集合；资源失败、schema 失败和缺字段响应一律不能冒充空结果。
+
+truncation 审计定义已修正：只接受 `response_truncated=true`、非空 `truncation_scopes` 或显式
+limit 终止；普通 `limitations` 不等于截断。1019-event trace 重算为 16 项 observed。两维均
+尚未完成全 action applicability 与原版归一化差分，不允许把 19/73 或 16/73 宣称为兼容率。
+
+本批没有修改生产 action、Wellen、Verilator、ABI、backend 或 transport。测试仍只让 Wellen
+直接按需读取原始 `.fst`；trace 只用于测试覆盖审计，不得参与分析。Goal 保持 active。
