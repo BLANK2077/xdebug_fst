@@ -697,7 +697,11 @@ consumer 组合，或在证明确有静态事实缺口后对 Verilator 作最小
 赋值映射到同一实例的唯一 input port；该 input 的扁平化源再经过最近祖先 input port。
 最终链恢复为 `child_output_bus → u_output.data_o → u_output.data_i → case_top.data →
 top.data`。若任一步不唯一，不得靠 FST 同值搜索猜测。该批关闭基本单输入/单输出模块
-边界，复杂 output 表达式、多输入 RHS、多个 output port 与多驱动组合仍须独立差分。
+边界。第十六批又验证复杂 output 表达式必须先进入子 output，再以同实例多个 input port
+报告一个 statement 的多 RHS；第三十三批验证同一实例两个独立 output port 共同驱动父 net
+时必须保留两条活动 statement，不能按端口顺序、FST 值或可读性合并。至此单 output 多 RHS
+和同实例多 output 两种基础组合已关闭；带条件 output、跨层 output/inout 混合反馈和更复杂
+多驱动组合仍须独立差分。
 
 第十三批在同一真实 FST 固件中加入两个独立 `always @(posedge clk)` 对同一 reg 的 NBA：
 第一条受 `!reset` 控制，第二条受 `sel[0]` 控制。25ps 只有第一条活动，必须唯一返回第
