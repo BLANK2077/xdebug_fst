@@ -257,3 +257,16 @@ Wellen、Verilator 或 XDD ABI。
 DesignDB 只提供静态设计事实。禁止把 FST 变成分析引擎，禁止 VCD/JSON 转换、预扫持久化、
 私有索引、离线数据库、全量快照、export 回灌、TCP/fileport 和 fallback。该维度关闭不代表
 Goal 完成，其余覆盖维度、复杂 P6 差分和最终 73-action 原版归一化差分仍保持 active。
+
+## 十六、P7 第九批 limits 全量裁定防漂移记录
+
+limits 已达到 29 项冻结合法结果上限请求 observed + 44 项 N/A，严格覆盖 73 action。N/A 只能
+由冻结请求 Schema 不存在结果规模字段证明；存在的 `timeout_ms` 是 frontend watchdog，不能
+算作 action 返回集合上限。审计器和独立适用性检查都锁定这一边界。
+
+29 项的请求证据与 truncation 行为证据保持分离：接受 `line_limit/max_*` 证明 limits 维度，
+实际 `response_truncated` 或非空 scope 由上一批 truncation 门禁证明。不得用 watchdog、非法
+请求、资源路由失败或字段名猜测填充 limits。
+
+本批不改变唯一原始 FST→Wellen 按需读取→action 的事实流，不修改 Wellen、Verilator、XDD
+ABI、backend 或 transport，也不增加转换、离线分析、TCP/fileport 或 fallback。Goal 继续 active。

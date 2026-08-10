@@ -1170,6 +1170,16 @@ action 标记 `analysis_transactions`；stream 动态验证曾固定报告零 X/
 其余 35 项必须有真实运行证据。禁止用字段名猜测适用性，也禁止为了制造截断把 FST 转成 VCD、
 JSON、私有索引、离线数据库或全量快照；显式 export 仍是最终用户产物，不能回灌分析。
 
+### 9.16 Result limit 与 frontend timeout 必须分层
+
+P7 第九批明确区分 action 结果规模控制和 frontend watchdog。`line_limit`、`top_n` 及
+`limits.max_*` 由 action 决定返回集合或分析预算；`limits.timeout_ms` 只约束请求等待时间，
+不改变 Wellen 读取内容、DesignDB 事实、action 结果基数，也不能获得 limits 能力信用。
+
+冻结请求 Schema 穷举得到 29 项结果上限适用、44 项 timeout-only/no-limit。该检查和
+truncation 证据正交：前者证明公开请求能力存在，后者证明真实输入下的裁剪/不完整语义。
+两者都不允许通过转换 FST、构建离线索引、切换 backend 或 fallback 制造证据。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；

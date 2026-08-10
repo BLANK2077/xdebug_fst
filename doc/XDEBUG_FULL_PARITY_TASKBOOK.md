@@ -1234,6 +1234,23 @@ time/limits/XZ 误记为 action 执行覆盖的问题：
 9. truncation 维度完成不代表 Goal 完成；boundary_time、multiple_results、limits、
    completeness、X/Z 和最终原版归一化差分仍须继续逐项闭环。
 
+#### P7 第九批：limits 七十三项全量裁定
+
+2026-08-10 完成 limits 请求适用性 73 项裁定：
+
+1. 穷举冻结请求 Schema，递归识别 args 内的 `line_limit`、`top_n` 等结果规模字段，并识别
+   `limits.max_rows`、`max_results`、`max_nodes`、`max_depth`、`max_chains`、`max_events`、
+   `max_time_steps` 和 `max_trace_signals`，得到 29 项适用、44 项 timeout-only 或无结果上限。
+2. 修正覆盖审计器：`limits.timeout_ms` 只是 frontend watchdog，不再冒充 action 结果上限；
+   新增成功反例锁定该边界。
+3. 44 项逐项登记 N/A；29 项均有冻结合法的带结果上限成功请求。唯一缺口
+   `expr.normalize` signal 分支增加 `line_limit=1` 请求门禁；可产生真实响应裁剪的 action
+   仍由上一批 truncation 证据独立证明，不能把“请求接受 limit”等同于“发生截断”。
+4. 最新 1113-event trace 为 limits 29 observed + 44 N/A，未裁定为 0；全量 pytest、
+   CTest 9/9 与结果上限适用性检查通过。
+5. 本批仅修改审计、测试和证据清单，没有修改 Wellen、Verilator、生产波形路径、ABI、
+   backend 或 transport；没有转换、索引、离线数据库、TCP/fileport 或 fallback。
+
 ## 六、最终完成门禁
 
 只有同时满足以下条件才允许完成 Goal：
