@@ -260,6 +260,23 @@ def test_event_find_value_equals(loop_runner: StdioLoopRunner, counter_fst) -> N
     assert rsp["data"]["events"][0]["time"] == "190ps"
 
 
+def test_event_find_empty(loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("event.find", args={
+        "clock": "top.clk",
+        "edge": "negedge",
+        "signals": {"count": "top.counter_top.count"},
+        "expr": "count == 8'hff",
+        "mode": "all",
+        "line_limit": 10,
+        "time_range": {"begin": "0ps", "end": "300ps"},
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["data"]["events"] == []
+
+
 def test_event_find_limit_and_max_samples(loop_runner: StdioLoopRunner,
                                           counter_fst) -> None:
     open_session(loop_runner, counter_fst)

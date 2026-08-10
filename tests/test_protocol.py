@@ -98,6 +98,34 @@ def test_apb_query_address_modes(loop_runner: StdioLoopRunner, apb_fst,
     assert rsp["data"]["transactions"][0]["addr"] == "8'h01"
 
 
+def test_apb_query_and_transfer_window_empty(
+        loop_runner: StdioLoopRunner, apb_fst) -> None:
+    load_apb(loop_runner, apb_fst)
+    queried = loop_runner.request("apb.query", args={
+        "name": "apb0",
+        "address": {"mode": "exact", "values": ["8'hff"]},
+        "query": {"line_limit": 10},
+    })
+    assert queried.get("ok"), queried
+    assert queried["summary"]["total_count"] == 0
+    assert queried["summary"]["returned_count"] == 0
+    assert queried["data"]["transactions"] == []
+    assert queried["data"]["filter"] == {
+        "direction": "all",
+        "address": {"mode": "exact", "values": ["8'hff"]},
+    }
+
+    window = loop_runner.request("apb.transfer_window", args={
+        "name": "apb0",
+        "time_range": {"begin": "0ps", "end": "10ps"},
+        "line_limit": 10,
+    })
+    assert window.get("ok"), window
+    assert window["summary"]["total_count"] == 0
+    assert window["summary"]["returned_count"] == 0
+    assert window["data"] == {"transactions": []}
+
+
 def test_apb_query_count_index_last_and_truncation(
         loop_runner: StdioLoopRunner, apb_fst) -> None:
     load_apb(loop_runner, apb_fst)
@@ -294,6 +322,22 @@ def test_axi_query_filters_selectors_and_errors(loop_runner: StdioLoopRunner,
         "direction": "write", "time_range": {"begin": "300ps", "end": "100ps"}})
     assert not rsp.get("ok")
     assert rsp["error"]["code"] == "TIME_RANGE_INVALID"
+
+
+def test_axi_query_empty(loop_runner: StdioLoopRunner, axi_fst) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.query", args={
+        "name": "axi0",
+        "direction": "write",
+        "address": {"mode": "exact", "values": ["8'hff"]},
+        "query": {"line_limit": 10},
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["data"]["transactions"] == []
+    assert rsp["data"]["filter"]["direction"] == "write"
 
 
 def test_axi_analysis(loop_runner: StdioLoopRunner, axi_fst) -> None:
