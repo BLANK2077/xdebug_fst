@@ -152,6 +152,40 @@ def test_signal_stability_single_point_is_stable(
     assert rsp["data"]["end"] == "0ps"
 
 
+def test_changes_stability_and_statistics_preserve_x_from_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    signal = "top.masslav_if.Pslave_err"
+    clock = "top.masslav_if.clk"
+    window = time_range("0ps", "20ns")
+
+    changes = loop_runner.request("signal.changes", args={
+        "signal": signal, "mode": "timeline", "time_range": window,
+    })
+    assert changes.get("ok"), changes
+    assert changes["data"]["initial_value"]["has_x"] is True
+    assert changes["data"]["changes"][0]["value"]["bits"] == "x"
+
+    stability = loop_runner.request("signal.stability", args={
+        "signal": signal, "time_range": window,
+    })
+    assert stability.get("ok"), stability
+    assert stability["summary"]["stable"] is False
+    assert stability["data"]["changes"][0]["value"]["has_x"] is True
+
+    statistics = loop_runner.request("signal.statistics", args={
+        "signal": signal, "clock": clock,
+        "edge": "posedge", "sample_point": "after",
+        "time_range": window,
+    })
+    assert statistics.get("ok"), statistics
+    assert statistics["summary"]["unknown_count"] == 2
+    assert all(
+        evidence["value"]["has_x"] is True
+        for evidence in statistics["data"]["evidence"]
+    )
+
+
 def test_signal_xz_verify_fail_evidence(
     loop_runner: StdioLoopRunner, counter_fst
 ) -> None:

@@ -318,6 +318,12 @@ def wide_xz_fst() -> Path:
 
 
 @pytest.fixture(scope="session")
+def wellen_processor_fst() -> Path:
+    return WELLEN_REPOSITORY / "wellen" / "inputs" / "vcs" / \
+        "processor.vcd.fst"
+
+
+@pytest.fixture(scope="session")
 def string_delta_fst() -> Path:
     return WELLEN_REPOSITORY / "wellen" / "inputs" / "nvc" / \
         "shortstring.fst"

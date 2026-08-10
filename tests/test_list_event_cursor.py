@@ -178,6 +178,27 @@ def test_list_first_change_no_difference(loop_runner: StdioLoopRunner,
     assert rsp["data"]["changed_signals"] == []
 
 
+def test_list_first_change_preserves_x_from_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    signal = "top.masslav_if.Pslave_err"
+    created = loop_runner.request("list.create", args={
+        "name": "xz_first_change", "signals": [signal],
+    })
+    assert created.get("ok"), created
+    rsp = loop_runner.request("list.first_change", args={
+        "name": "xz_first_change",
+        "time_range": {"begin": "0ps", "end": "20ns"},
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["diff_found"] is True
+    assert rsp["summary"]["diff_time"] == "16ns"
+    before = rsp["data"]["changed_signals"][0]["before"]
+    assert before["known"] is False
+    assert before["has_x"] is True
+    assert before["bits"] == "x"
+
+
 # ── event.* ──
 
 def _load_event_config(loop_runner: StdioLoopRunner, tmp_path,
@@ -274,6 +295,33 @@ def test_event_find_value_equals(loop_runner: StdioLoopRunner, counter_fst) -> N
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["total_count"] == 1
     assert rsp["data"]["events"][0]["time"] == "190ps"
+
+
+def test_event_find_and_export_preserve_x_from_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    args = {
+        "clock": "top.masslav_if.clk", "edge": "posedge",
+        "signals": {"err": "top.masslav_if.Pslave_err"},
+        "expr": "err === err", "line_limit": 20,
+        "time_range": {"begin": "0ps", "end": "20ns"},
+    }
+    found = loop_runner.request("event.find", args={**args, "mode": "all"})
+    assert found.get("ok"), found
+    assert found["summary"]["total_count"] == 2
+    assert all(
+        event["signals"]["err"]["has_x"] is True
+        for event in found["data"]["events"]
+    )
+
+    exported = loop_runner.request("event.export", args=args)
+    assert exported.get("ok"), exported
+    assert exported["summary"]["status"] == "preview"
+    assert exported["summary"]["row_count"] == 2
+    assert all(
+        event["signals"]["err"]["bits"] == "x"
+        for event in exported["data"]["events"]
+    )
 
 
 def test_event_find_empty(loop_runner: StdioLoopRunner, counter_fst) -> None:

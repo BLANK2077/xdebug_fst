@@ -118,6 +118,26 @@ def test_batch_aggregates_responses(loop_runner: StdioLoopRunner,
     assert results[1]["data"]["samples"][0]["time"] == "200ps"
 
 
+def test_batch_preserves_nested_x_value_from_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    rsp = loop_runner.request("batch", args={"requests": [{
+        "api_version": "xdebug.v1", "action": "value.at",
+        "target": {"session_id": "test"},
+        "args": {
+            "signal": "top.masslav_if.Pslave_err", "time": "0ps",
+            "render_time_unit": "ps",
+        },
+    }]})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["all_ok"] is True
+    value = rsp["data"]["results"][0]["data"]["samples"][0]["values"][0][
+        "value"]
+    assert value["known"] is False
+    assert value["has_x"] is True
+    assert value["bits"] == "x"
+
+
 def test_batch_aggregates_child_failure(loop_runner: StdioLoopRunner,
                                         counter_fst) -> None:
     open_session(loop_runner, counter_fst)

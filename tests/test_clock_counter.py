@@ -149,6 +149,37 @@ def test_counter_statistics_sample_and_evidence_limits(
     assert "response_evidence" in rsp["summary"]["truncation_scopes"]
 
 
+def test_counter_and_sampled_pulse_preserve_x_from_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    time_range = {"begin": "0ps", "end": "20ns"}
+    clock = "top.masslav_if.clk"
+    unknown = "top.masslav_if.Pslave_err"
+
+    counter = loop_runner.request("counter.statistics", args={
+        "cnt": unknown, "clock": clock, "vld": clock,
+        "edge": "posedge", "sample_point": "after",
+        "time_range": time_range,
+    })
+    assert counter.get("ok"), counter
+    assert counter["summary"]["sample_count"] == 2
+    assert counter["summary"]["unknown_count"] == 2
+
+    pulse = loop_runner.request("signal.sampled_pulse.inspect", args={
+        "valid": unknown, "clock": clock,
+        "payloads": ["top.masslav_if.Pwdata"],
+        "edge": "posedge", "sample_point": "after",
+        "rules": {"payload_changed_without_sampled_valid": "all"},
+        "time_range": time_range,
+    })
+    assert pulse.get("ok"), pulse
+    assert pulse["summary"]["payload_risk_count"] == 1
+    value = pulse["data"]["findings"][0]["sampled_payloads"][0]["value"]
+    assert value["known"] is False
+    assert value["has_x"] is True
+    assert "x" in value["bits"]
+
+
 def test_counter_statistics_without_valid_counter_value(
         loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
@@ -273,6 +304,27 @@ def test_protocol_handshake_inspect(loop_runner: StdioLoopRunner,
     assert rsp["summary"]["ready_without_valid_reporting"] == "intervals"
     assert "ready_without_valid_intervals" in rsp["data"]
     assert rsp["data"]["sampling"]["effective"]["sample_point"] == "after"
+
+
+def test_protocol_handshake_reports_z_valid_from_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_processor_fst) -> None:
+    open_session(loop_runner, wellen_processor_fst)
+    rsp = loop_runner.request("protocol.handshake.inspect", args={
+        "clock": "tb_processor.clk",
+        "valid": ("tb_processor.uut.data_block_instantiation."
+                  "Instruction_register.data_2_ir"),
+        "ready": "tb_processor.rst",
+        "edge": "posedge", "sample_point": "after",
+        "time_range": {"begin": "40ns", "end": "60ns"},
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["valid_hold_violations"] == 1
+    finding = rsp["data"]["findings"][0]
+    assert finding["type"] == "valid_dropped_before_handshake"
+    assert finding["reason"] == "valid became unknown before a handshake"
+    assert finding["observed_valid"]["known"] is False
+    assert finding["observed_valid"]["has_z"] is True
+    assert finding["observed_valid"]["bits"] == "zzzzzzzz"
 
 
 def test_protocol_handshake_data_rule_is_symmetric(

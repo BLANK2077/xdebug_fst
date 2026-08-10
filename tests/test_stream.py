@@ -408,3 +408,32 @@ def test_stream_validate_truncates_dynamic_issues_direct_raw_fst(
         "analysis_samples", "response_issues"
     ]
     assert len(validated["data"]["issues"]) == 1
+
+
+def test_stream_query_and_export_report_xz_from_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    loaded = loop_runner.request("stream.config.load", args={
+        "config": WELLEN_XZ_STREAM_CONFIG,
+    })
+    assert loaded.get("ok"), loaded
+    common = {
+        "stream": "wellen_xz_stream", "cache_scope": "range",
+        "time_range": {"begin": "0ps", "end": "20ns"},
+        "line_limit": 20,
+    }
+
+    queried = loop_runner.request("stream.query", args={
+        **common, "query": "transfer_window",
+    })
+    assert queried.get("ok"), queried
+    assert queried["summary"]["control_xz_count"] == 2
+    assert queried["summary"]["scan_complete"] is False
+
+    exported = loop_runner.request("stream.export", args={
+        **common, "kind": "transfer",
+    })
+    assert exported.get("ok"), exported
+    assert exported["summary"]["status"] == "preview"
+    assert exported["summary"]["control_xz_count"] == 2
+    assert exported["summary"]["scan_complete"] is False

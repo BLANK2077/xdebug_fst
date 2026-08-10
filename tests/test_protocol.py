@@ -71,6 +71,29 @@ WELLEN_AXI_CONFIG = {
     "rready": "top.masslav_if.Pready",
 }
 
+_WELLEN_XZ_AXI_CLOCK = "AXI_top_tb_from_compiled.clk"
+_WELLEN_XZ_AXI_VALUE = "AXI_top_tb_from_compiled.dut.bram_r"
+WELLEN_XZ_AXI_CONFIG = {
+    "clock": _WELLEN_XZ_AXI_CLOCK,
+    "edge": "posedge",
+    "sample_point": "after",
+    "reset": {
+        "signal": _WELLEN_XZ_AXI_CLOCK,
+        "polarity": "active_low",
+    },
+    **{name: _WELLEN_XZ_AXI_VALUE for name in (
+        "awaddr", "awid", "awlen", "awsize", "awburst",
+        "wdata", "wstrb", "bid", "bresp",
+        "araddr", "arid", "arlen", "arsize", "arburst",
+        "rid", "rdata", "rresp",
+    )},
+    **{name: _WELLEN_XZ_AXI_CLOCK for name in (
+        "awvalid", "awready", "wlast", "wvalid", "wready",
+        "bvalid", "bready", "arvalid", "arready",
+        "rlast", "rvalid", "rready",
+    )},
+}
+
 
 def load_apb(loop_runner: StdioLoopRunner, apb_fst, name: str = "apb0") -> None:
     open_session(loop_runner, apb_fst)
@@ -580,6 +603,28 @@ def test_axi_statistics_empty(loop_runner: StdioLoopRunner, axi_fst) -> None:
     assert rsp["summary"]["matched_transaction_count"] == 0
     assert rsp["summary"]["matched_read_count"] == 0
     assert rsp["summary"]["matched_write_count"] == 0
+
+
+def test_axi_statistics_counts_unresolved_xz_transactions_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wide_xz_fst) -> None:
+    open_session(loop_runner, wide_xz_fst)
+    loaded = loop_runner.request("axi.config.load", args={
+        "name": "wellen_xz_axi", "config": WELLEN_XZ_AXI_CONFIG,
+    })
+    assert loaded.get("ok"), loaded
+
+    rsp = loop_runner.request("axi.statistics", args={
+        "name": "wellen_xz_axi",
+        "filter": {
+            "direction": "all",
+            "address": {"mode": "exact", "values": ["1'h0"]},
+        },
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["scanned_transaction_count"] > 0
+    assert rsp["summary"]["unresolved_transaction_count"] > 0
+    assert rsp["summary"]["analysis_quality"] == "ambiguous"
+    assert rsp["summary"]["analysis_complete"] is False
 
 
 def test_axi_export(loop_runner: StdioLoopRunner, axi_fst, tmp_path) -> None:
