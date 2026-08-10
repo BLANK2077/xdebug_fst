@@ -512,6 +512,18 @@ def test_axi_latency_outlier(loop_runner: StdioLoopRunner, axi_fst) -> None:
     assert rsp["data"]["classification"] == "threshold_exceeded"
     assert rsp["summary"]["total_count"] == 1
 
+    limited = loop_runner.request("axi.latency_outlier", args={
+        "name": "axi0", "direction": "all", "method": "top_n",
+        "top_n": 2, "line_limit": 1,
+    })
+    assert limited.get("ok"), limited
+    assert limited["summary"]["total_count"] == 2
+    assert limited["summary"]["returned_count"] == 1
+    assert limited["summary"]["response_truncated"] is True
+    assert limited["summary"]["truncation_scopes"] == [
+        "response_transactions"
+    ]
+
 
 def test_axi_latency_outlier_empty(loop_runner: StdioLoopRunner,
                                    axi_fst) -> None:
@@ -536,6 +548,17 @@ def test_axi_outstanding_timeline(loop_runner: StdioLoopRunner, axi_fst) -> None
     assert max(rsp["summary"]["peak_read"], rsp["summary"]["peak_write"]) >= 1
     for point in rsp["data"]["change_points"]:
         assert point["read"] >= 0 and point["write"] >= 0
+
+    limited = loop_runner.request("axi.outstanding_timeline", args={
+        "name": "axi0", "direction": "all", "line_limit": 1,
+    })
+    assert limited.get("ok"), limited
+    assert limited["summary"]["total_count"] == 4
+    assert limited["summary"]["returned_count"] == 1
+    assert limited["summary"]["response_truncated"] is True
+    assert limited["summary"]["truncation_scopes"] == [
+        "response_transactions"
+    ]
 
 
 def test_axi_outstanding_timeline_empty(loop_runner: StdioLoopRunner,
@@ -562,6 +585,17 @@ def test_axi_request_response_pair(loop_runner: StdioLoopRunner, axi_fst) -> Non
     for pair in pairs:
         assert pair["latency"] != "0ns"
         assert "address" in pair and "response" in pair
+
+    limited = loop_runner.request("axi.request_response_pair", args={
+        "name": "axi0", "direction": "all", "line_limit": 1,
+    })
+    assert limited.get("ok"), limited
+    assert limited["summary"]["total_count"] == 2
+    assert limited["summary"]["returned_count"] == 1
+    assert limited["summary"]["response_truncated"] is True
+    assert limited["summary"]["truncation_scopes"] == [
+        "response_transactions"
+    ]
 
 
 def test_axi_request_response_pair_empty(loop_runner: StdioLoopRunner,

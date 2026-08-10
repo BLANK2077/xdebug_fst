@@ -113,7 +113,7 @@ def test_list_validate_ok_and_bad(loop_runner: StdioLoopRunner, counter_fst) -> 
 def test_list_export(loop_runner: StdioLoopRunner, counter_fst, tmp_path) -> None:
     open_session(loop_runner, counter_fst)
     loop_runner.request("list.create", args={
-        "name": "ex", "signals": ["top.clk"]})
+        "name": "ex", "signals": ["top.clk", "top.counter_top.count"]})
     rsp = loop_runner.request("list.export", args={
         "name": "ex", "time_range": {"begin": "0ps", "end": "100ps"},
         "line_limit": 1, "render_time_unit": "ps"})
@@ -121,6 +121,10 @@ def test_list_export(loop_runner: StdioLoopRunner, counter_fst, tmp_path) -> Non
     assert rsp["summary"]["status"] == "preview"
     assert rsp["summary"]["row_count"] == 0
     assert rsp["summary"]["begin"] == "0ps"
+    assert rsp["summary"]["total_count"] == 2
+    assert rsp["summary"]["returned_count"] == 1
+    assert rsp["summary"]["response_truncated"] is True
+    assert rsp["summary"]["truncation_scopes"] == ["response_signals"]
     assert rsp["data"]["signals"] == [{"index": 0, "signal": "top.clk"}]
 
     output = tmp_path / "list-export"
@@ -187,9 +191,15 @@ def test_event_config_list(loop_runner: StdioLoopRunner, counter_fst,
     open_session(loop_runner, counter_fst)
     loaded = _load_event_config(loop_runner, tmp_path)
     assert loaded.get("ok"), loaded
-    rsp = loop_runner.request("event.config.list")
+    loaded_second = _load_event_config(loop_runner, tmp_path, "counter_event_2")
+    assert loaded_second.get("ok"), loaded_second
+    rsp = loop_runner.request("event.config.list", args={"line_limit": 1})
     assert rsp.get("ok"), rsp
-    assert "counter_event" in rsp["data"]["events"]
+    assert rsp["summary"]["total_count"] == 2
+    assert rsp["summary"]["returned_count"] == 1
+    assert rsp["summary"]["response_truncated"] is True
+    assert rsp["summary"]["truncation_scopes"] == ["response_events"]
+    assert len(rsp["data"]["events"]) == 1
     named = loop_runner.request("event.config.list", args={"name": "counter_event"})
     assert named.get("ok"), named
     assert named["summary"] == {"status": "found"}

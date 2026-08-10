@@ -292,6 +292,25 @@ def test_stream_export_preview_kinds(loop_runner: StdioLoopRunner, stream_fst,
     assert len(rsp["data"]["preview"]) == expected
 
 
+def test_stream_export_preview_line_limit_marks_truncation(
+        loop_runner: StdioLoopRunner, stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
+    loaded = loop_runner.request("stream.config.load", args={
+        "config": STREAM_CONFIG,
+    })
+    assert loaded.get("ok"), loaded
+    rsp = loop_runner.request("stream.export", args={
+        "stream": "fifo", "kind": "transfer", "cache_scope": "full",
+        "line_limit": 1, "render_time_unit": "ps",
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] == 4
+    assert rsp["summary"]["returned_count"] == 1
+    assert rsp["summary"]["response_truncated"] is True
+    assert rsp["summary"]["truncation_scopes"] == ["response_rows"]
+    assert len(rsp["data"]["preview"]) == 1
+
+
 def test_stream_export_packet_final_artifact(
         loop_runner: StdioLoopRunner, stream_fst, tmp_path) -> None:
     open_session(loop_runner, stream_fst)
