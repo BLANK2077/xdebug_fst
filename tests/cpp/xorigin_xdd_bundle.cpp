@@ -72,23 +72,25 @@ const XddSignalInfo kSignals[] = {
      "wire", 16, "xorigin_time_limit.sv", 2},
     {"AXI_top_tb_from_compiled.dut.a_regex_coprocessor.genblk1.a_topology.genblk1[0].genblk1[0].engine_and_station_i.anEngine.anEngine.g.aregex_cpu.current_character",
      "port", 8, "xorigin_time_limit.sv", 1},
+    {"AXI_top_tb_from_compiled.dut.a_regex_coprocessor.genblk1.a_topology.genblk1[0].genblk1[0].engine_and_station_i.anEngine.memory.in.data",
+     "wire", 64, "xorigin_time_limit.sv", 3},
 };
 
-const int kDirections[] = {0, 1};
+const int kDirections[] = {0, 1, 0};
 
 const XddDriverRec kDrivers[] = {
     {0, 1, "cont_assign", "rhs", "xorigin_time_limit.sv", 2},
 };
 
-const int kDriverStart[] = {0, 1};
+const int kDriverStart[] = {0, 1, 1};
 
 const XddLoadRec kLoads[] = {
     {1, 0, "rhs_use", "xorigin_time_limit.sv", 2},
 };
 
-const int kLoadStart[] = {0, 0};
+const int kLoadStart[] = {0, 0, 1};
 
-constexpr int kSignalCount = 2;
+constexpr int kSignalCount = 3;
 constexpr int kDriverCount = 1;
 constexpr int kLoadCount = 1;
 

@@ -1044,6 +1044,25 @@ def test_trace_x_origin_time_step_limit_counts_distinct_x_onsets(
     assert rsp["data"]["chains"][0]["current"]["x_onset_time"] == "55015000ps"
 
 
+def test_trace_x_origin_x_mask_preserves_signal_width(
+        loop_runner: StdioLoopRunner, wide_xz_fst,
+        xorigin_time_design_db) -> None:
+    open_session(loop_runner, wide_xz_fst, xorigin_time_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": (
+            "AXI_top_tb_from_compiled.dut.a_regex_coprocessor.genblk1."
+            "a_topology.genblk1[0].genblk1[0].engine_and_station_i.anEngine."
+            "memory.in.data"),
+        "time": "0ps", "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    expected = "64'b" + "1" * 32 + "0" * 32
+    assert rsp["data"]["query"]["value"]["width"] == 64
+    assert rsp["data"]["query"]["x_mask"] == expected
+    chain = rsp["data"]["chains"][0]
+    assert chain["current"]["x_mask"] == expected
+    assert chain["hops"][0]["x_mask"] == expected
+
+
 def test_trace_x_origin_node_limit_stops_at_pending_dependency(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:
