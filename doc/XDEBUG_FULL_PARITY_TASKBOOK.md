@@ -656,6 +656,10 @@ statement、连续赋值、唯一 RHS 四项同时成立才继续，到达唯一
 有界回溯；同源行混合叶子、常量、缺失或不唯一证据均不猜测。`max_nodes` 同时约束回溯，
 耗尽明确返回 limit。65ps 已跳过 60ps self-hold，恢复 40ps 数据赋值和 primary input 链；
 这不是按目标值是否变化推断，也没有建立事件索引或修改 Verilator/Wellen。
+第三十八批又用无 else 的门控 NBA 验证相邻边界：60ps predicate 为假时 statement 根本没有
+执行，目标原始 FST 的最近实际变化观察点仍为 40ps，现有 action 直接在该点选择数据赋值，
+不需要套用 self-hold 回溯。门控空事件和活动 self-assignment 必须保持两类，不能仅凭“值
+未变化”合并；同步固件后 action、Verilator、Wellen 和 ABI 均无需修改。
 第二十批进一步用不与 posedge 重合的 30ps `negedge async_reset_n` 写入同值，证明 consumer
 会从 DesignDB 的多敏感项中选择真实最近事件，并在该时刻判定复位常量分支；现有实现
 直接返回 30ps 并按常量 assignment 终止，因此不修改任何仓库算法或 ABI。

@@ -751,6 +751,13 @@ backend。两级 alias 因而从同一原始 FST 得到 60ps，而 Verilator/Wel
 的 `hold_q <= hold_q`，恢复 40ps 的 `hold_q <= data`；预算耗尽返回 `limit/max_nodes`。
 Verilator/Wellen/XDD ABI 均未修改，也没有按值相等猜测、预扫事件或建立离线索引。
 
+门控条件为假且没有 else assignment 时，时钟边沿不是目标赋值事件。第三十八批的
+`gated_q` 在 40ps 执行数据 NBA，60ps 只有 posedge 而 predicate 为假；原始 FST 对目标的
+最近实际观察点仍是 40ps，action 在该时刻组合 DesignDB predicate 后自然恢复数据来源。
+这里不调用纯 self-hold 回溯，因为不存在活动的 `q <= q` statement。两类语义的区别来自
+DesignDB 静态 statement/predicate 是否活动，FST/Wellen 仍只提供目标观察点和已指定时钟
+边沿，不能用“值没变”把二者合并成同一波形启发式。
+
 异步复位审计又把 `negedge async_reset_n` 安排在 30ps 的时钟下降沿，确保它不是 posedge 的
 替身；复位 NBA 写入同值，使目标 FST 不产生 30ps 变化。DesignDB 同一 statement 的
 `event_posedge(clk)` 与 `event_negedge(async_reset_n)` 都参与候选，action 选择原始 FST 中
@@ -960,6 +967,7 @@ output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并
 - xdebug-fst `1fb4532`、`4cd2214`：以独立原始 FST/DesignDB 固件先证明父子 output 两条活动赋值被唯一边界错误覆盖，再仅将边界优先收紧到单一活动 statement；相同 FST 值不合并静态候选，Verilator/Wellen/XDD ABI 均未修改；
 - xdebug-fst `813ee36`、`f8d0aee`：先以旧固件的 `SIGNAL_NOT_FOUND` 保存仅 `default` 的 `case matches` 动态缺口，再用干净 Verilator `da63eb075` 同步刷新原始 FST 与 DesignDB；action 无修改即在 45ps/65ps 唯一返回第 95 行，证明分析仍由 DesignDB 静态谓词和冻结 action 承担，Wellen/FST 只提供按需运行时事实；
 - xdebug-fst `282ed4d`、`e700d34`：先保存 NBA 纯自保持固件缺口，再同步原始 FST/DesignDB 暴露 60ps self-hold 错误覆盖 40ps 数据赋值；consumer 只凭精确且唯一的 DesignDB self load 证明做有界事件回溯，Wellen 仍只按需读取当前 FST 时钟事实，Verilator/Wellen/XDD ABI 未修改；
+- xdebug-fst `df90d59`、`d2f3f74`：以无 else 的门控 NBA 区分“时钟发生但 statement 未赋值”和活动 self-hold；同步原始 FST/DesignDB 后现有 action 直接保留 40ps 数据来源，三方实现与 ABI 无需修改；
 - xdebug-fst `022d316`：锁定 inout lowering 原始 RHS 替换语义，并以真实 FST 完成跨端口四跳链。
 - xdebug-fst `fcd5e06`：以带独立中间 net 的真实两级 inout 固件验证六跳父向链，三方实现和 ABI 均无需修改。
 - xdebug-fst `7e07599`、`970aae1`：冻结 output 边界折叠失败，并仅组合既有 XDD 端口/驱动事实恢复原版五跳模块链。
