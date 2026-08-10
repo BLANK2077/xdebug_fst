@@ -724,7 +724,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         const size_t max_trace_signals=limits.value("max_trace_signals",64u);
         Json hops=Json::array();
         std::set<std::string> visited;
-        std::string current=root,termination="no_driver",detail="no_driver";
+        std::string current=root,termination="unresolved",detail="unresolved";
         std::string previous;
         uint64_t current_time=time;
         bool limited=false,ambiguity_limited=false,ambiguity_incomplete=false;
@@ -970,7 +970,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                         });
                     const bool has_control=std::any_of(drivers.begin(),drivers.end(),
                         [](const auto& driver){return driver.dependency_role=="control";});
-                    termination=drivers.empty()?"no_driver":
+                    termination=drivers.empty()?"unresolved":
                         (has_assignment?"assignment":
                             (has_control?"control_only":"assignment"));
                 }
