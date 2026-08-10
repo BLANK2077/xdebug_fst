@@ -141,6 +141,14 @@ def test_trace_active_driver_selects_standalone_matches_predicates(
     assert exact["data"]["paths"][0]["signal_path"] == [
         "top.data", "top.matches_top.exact_match_out"]
 
+    exact_default = loop_runner.request("trace.active_driver", args={
+        "signal": "top.matches_top.exact_match_out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert exact_default.get("ok"), exact_default
+    assert exact_default["summary"]["analysis_complete"] is True
+    assert exact_default["summary"]["total_count"] == 1
+    assert exact_default["data"]["paths"][0]["line"] == 77
+
     wildcard = loop_runner.request("trace.active_driver", args={
         "signal": "top.matches_top.wildcard_match_out", "time": "65ps",
         "render_time_unit": "ps"})
