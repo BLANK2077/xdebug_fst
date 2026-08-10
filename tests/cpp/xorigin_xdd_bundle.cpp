@@ -7,7 +7,37 @@
 
 namespace {
 
-#if defined(XDEBUG_TEST_X_LOOP)
+#if defined(XDEBUG_TEST_X_LOOP_BRANCH)
+
+const XddSignalInfo kSignals[] = {
+    {"GCD.T_14", "wire", 33, "xorigin_loop_branch.sv", 2},
+    {"GCD.GEN_0", "wire", 32, "xorigin_loop_branch.sv", 3},
+    {"GCD.y", "port", 32, "xorigin_loop_branch.sv", 1},
+};
+
+const int kDirections[] = {0, 0, 1};
+
+const XddDriverRec kDrivers[] = {
+    {0, 1, "cont_assign", "rhs", "xorigin_loop_branch.sv", 2},
+    {1, 0, "cont_assign", "rhs", "xorigin_loop_branch.sv", 3},
+    {1, 2, "cont_assign", "rhs", "xorigin_loop_branch.sv", 3},
+};
+
+const int kDriverStart[] = {0, 1, 3};
+
+const XddLoadRec kLoads[] = {
+    {0, 1, "rhs_use", "xorigin_loop_branch.sv", 3},
+    {1, 0, "rhs_use", "xorigin_loop_branch.sv", 2},
+    {2, 1, "rhs_use", "xorigin_loop_branch.sv", 3},
+};
+
+const int kLoadStart[] = {0, 1, 2};
+
+constexpr int kSignalCount = 3;
+constexpr int kDriverCount = 3;
+constexpr int kLoadCount = 3;
+
+#elif defined(XDEBUG_TEST_X_LOOP)
 
 const XddSignalInfo kSignals[] = {
     {"GCD.T_14", "wire", 33, "xorigin_loop.sv", 2},

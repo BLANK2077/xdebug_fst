@@ -1176,6 +1176,35 @@ def test_trace_x_origin_reports_driver_cycle_as_loop(
         "GCD.T_14", "GCD.GEN_0"]
 
 
+def test_trace_x_origin_keeps_loop_and_normal_source_branches(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        xorigin_loop_branch_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, xorigin_loop_branch_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "origin_found"
+    assert rsp["summary"]["chain_count"] == 2
+    assert rsp["summary"]["completed_chain_count"] == 2
+    assert rsp["summary"]["limited_chain_count"] == 0
+    assert rsp["summary"]["origin_count"] == 1
+    assert rsp["summary"]["analysis_complete"] is True
+
+    chains = rsp["data"]["chains"]
+    assert {chain["status"] for chain in chains} == {
+        "loop_detected", "origin_found"}
+    loop_chain = next(chain for chain in chains
+                      if chain["status"] == "loop_detected")
+    origin_chain = next(chain for chain in chains
+                        if chain["status"] == "origin_found")
+    assert loop_chain["termination_detail"] == "loop_detected"
+    assert "origin" not in loop_chain
+    assert origin_chain["termination_detail"] == "candidate_x_source"
+    assert origin_chain["origin"]["signal"] == "GCD.y"
+    assert origin_chain["current"]["signal"] == "GCD.y"
+
+
 def test_trace_x_origin_not_x_late(loop_runner: StdioLoopRunner, xprop_fst,
                                    xprop_design_db) -> None:
     open_session(loop_runner, xprop_fst, xprop_design_db)
