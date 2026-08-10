@@ -636,6 +636,13 @@ onset，返回 `limit/max_time_steps` 和不完整性证据。
 或 onset 不得合并，FST 值相等也不参与身份判断。当前证据关闭基础汇聚路径与 chain limit
 交互，复杂 modport/ref、反馈环及 node/time 预算下的探索态合并仍须独立差分。
 
+物理 alias 路径还可能在 DFS 中重新汇聚。请求内 explored-state identity 使用已有非透明
+语义前缀、当前 incoming 的非 port relation、current signal 和数值 X onset；因此不同
+alias 中间节点仍会保留，汇聚后的相同状态只探索一次，并在 `max_nodes`、
+`max_time_steps` 计数前去重。集合只包含身份字符串，只在单次 action 调用期间存在，不保存
+波形值、不跨 session/request、不落盘或序列化，也不能由后续 action 重载，因而不是 FST
+索引、缓存或离线分析数据库。超过 max-depth 的 frontier 先形成明确限制证据，不进入集合。
+
 同一源文件行也不能直接等同于同一条动态语句。lowering 后的三元表达式可能把信号 RHS
 叶子与常量 RHS 叶子保留在同一 `(file,line,kind)` 下，但每片叶子具有不同的静态
 activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为语句身份，
