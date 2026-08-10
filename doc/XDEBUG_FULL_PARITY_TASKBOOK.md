@@ -628,9 +628,14 @@ RHS 的规则，将 `count <= count + 1` 的活动 NBA 正确终止为
 predicate 字符串表达 case inside 的仅 item 侧通配和闭区间，并由 xdebug 使用 Wellen
 直接读取的真实 FST 值判定；第十七批在普通仿真和 DesignDB 双重失败证据后，仅关闭
 `case matches` 的精确表达式 item/default 子集：Verilator 发布 `===` 静态谓词，xdebug
-使用 Wellen 从当前原始 FST 直接读取的 selector 在 active time 判定。tagged union、tagged
-pattern、pattern variable/star、default-only 与独立 `matches` 运算符仍明确不支持，不得
-冒充通用 matches 完成。第十八批又以等价 NBA 时序固件证明“最近赋值事件”不能退化为
+使用 Wellen 从当前原始 FST 直接读取的 selector 在 active time 判定。第二十五至第三十一批
+继续按修改前失败证据分片关闭无绑定 pattern：`case matches` 的直接顶层点星与 packed
+assignment pattern，以及独立 `matches` 的精确标量、无绑定 packed assignment pattern 和
+直接顶层点星均已通过普通仿真；独立精确真/假与顶层点星又以同步生成的 DesignDB 和原始
+FST 完成 `trace.active_driver` 动态闭环。这里 FST/Wellen 仍只提供运行时 selector/value，
+pattern 语法和静态谓词属于 Verilator，合同判定属于 xdebug action。tagged union、tagged
+expression/pattern、pattern variable/binding、嵌套 wildcard 与 default-only 仍明确不支持，
+不得冒充通用 matches 完成。第十八批又以等价 NBA 时序固件证明“最近赋值事件”不能退化为
 FST 的“最近值变化”：同值 NBA 在 20ps/40ps/60ps 均执行，修改前 65ps 查询只得到 20ps。
 Verilator `01f9f2a4b` 先以独立失败回归锁定简单 posedge 与异步 reset 的完整敏感事件需求，
 `6239de45e` 再只通过既有 driver role 发布 direct `event_*` 静态事实，不改 ABI 布局、仿真
