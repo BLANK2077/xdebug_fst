@@ -350,33 +350,35 @@ struct SignalChangesHandler : public EngineActionHandler {
             ref, end_ti, IWaveformBackend::ObservationPoint::Raw, final);
         struct Row { uint64_t time; IWaveformBackend::WaveformValue value; };
         std::vector<Row> rows;
-        if (has_initial) rows.push_back({begin, initial.value});
-        size_t transition_count = 0;
-        IWaveformBackend::WaveformValue previous = initial.value;
-        bool have_previous = has_initial;
-        for (uint32_t ti : wf->time_indices_of(ref)) {
-            const uint64_t time = wf->time_at(ti);
-            if (time <= begin || time > end) continue;
-            IWaveformBackend::SampledValue sampled;
-            if (!wf->sampled_value_at(ref, ti,
-                    IWaveformBackend::ObservationPoint::Raw, sampled)) continue;
-            bool changed = !have_previous || sampled.value.kind != previous.kind ||
-                (sampled.value.kind == IWaveformBackend::ValueKind::Real
-                    ? sampled.value.real != previous.real
-                    : sampled.value.text != previous.text);
-            if (!changed) continue;
-            ++transition_count;
-            rows.push_back({time, sampled.value});
-            previous = sampled.value;
-            have_previous = true;
+        std::vector<IWaveformBackend::SignalChange> scanned;
+        IWaveformBackend::ScanDiagnostics scan_diagnostics;
+        if (!wf->scan_changes(ref, begin_ti, end_ti, 0,
+                              scanned, scan_diagnostics)) {
+            return value_error("WAVEFORM_READ_FAILED",
+                               "failed to scan signal changes: " + sig);
         }
+        bool has_change_at_begin = false;
+        for (const auto& change : scanned) {
+            if (change.time < begin || change.time > end) continue;
+            has_change_at_begin = has_change_at_begin || change.time == begin;
+        }
+        const bool synthetic_initial = has_initial && !has_change_at_begin;
+        if (synthetic_initial) rows.push_back({begin, initial.value});
+        for (const auto& change : scanned) {
+            if (change.time < begin || change.time > end) continue;
+            rows.push_back({change.time, change.value});
+        }
+        const bool includes_initial = synthetic_initial || has_change_at_begin;
+        const size_t transition_count = rows.size() -
+            (includes_initial && !rows.empty() ? 1u : 0u);
         const std::string mode = args.value("mode", "timeline");
         const size_t line_limit = args.value("line_limit", 1000u);
         const size_t returned_count = mode == "timeline"
             ? std::min(rows.size(), line_limit) : 0;
         const bool truncated = mode == "timeline" && returned_count < rows.size();
         Json summary{{"signal", sig}, {"actual_transition_count", transition_count},
-            {"scan_complete", true}, {"analysis_complete", true},
+            {"scan_complete", scan_diagnostics.scan_complete},
+            {"analysis_complete", scan_diagnostics.analysis_complete},
             {"response_truncated", truncated}, {"total_count", rows.size()},
             {"returned_count", returned_count}, {"truncation_scopes", truncated
                 ? Json::array({"response_changes"}) : Json::array()}};
@@ -386,10 +388,11 @@ struct SignalChangesHandler : public EngineActionHandler {
             "signal.statistics.high_cycles for clock-sampled activity.";
         Json data{{"begin", wf->format_time(begin, render_unit)},
                   {"end", wf->format_time(end, render_unit)},
-                  {"includes_initial_value", has_initial},
+                  {"includes_initial_value", includes_initial},
                   {"semantic_note", note}, {"mode", mode}};
-        if (has_initial && has_final) {
-            data["initial_value"] = typed_logic_value(initial.value, info.width, fmt);
+        if (includes_initial && has_final && !rows.empty()) {
+            data["initial_value"] = typed_logic_value(
+                rows.front().value, info.width, fmt);
             data["final_value"] = typed_logic_value(final.value, info.width, fmt);
             data["first_change"] = wf->format_time(rows.front().time, render_unit);
             data["last_change"] = wf->format_time(rows.back().time, render_unit);
