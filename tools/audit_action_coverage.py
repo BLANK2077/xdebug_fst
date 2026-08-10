@@ -154,7 +154,7 @@ def has_resource_error(response: Any) -> bool:
 
 def has_result_cardinality(response: Any, predicate: Any) -> bool:
     for path, value in walk(response):
-        if not path:
+        if len(path) != 2 or path[0] not in {"summary", "data"}:
             continue
         key = path[-1]
         if key in RESULT_COUNT_KEYS and isinstance(value, int) and predicate(value):

@@ -116,6 +116,20 @@ def test_empty_classifier_accepts_primary_results_not_auxiliary_lists() -> None:
     ))
     assert empty_session_cleanup == {"empty_result", "success"}
 
+    nested_validation = classify(event(
+        {"api_version": "xdebug.v1", "action": "axi.config.load"},
+        {
+            "ok": True,
+            "summary": {"status": "loaded"},
+            "data": {
+                "validation": {
+                    "signals": [{"path": "a"}, {"path": "b"}],
+                },
+            },
+        },
+    ))
+    assert nested_validation == {"success"}
+
 
 def test_classifier_keeps_observed_dimensions_independent() -> None:
     dimensions = classify(event(
