@@ -195,6 +195,7 @@ struct AxiScanResult {
     uint32_t ref_bvalid = 0, ref_bready = 0;
     uint32_t ref_arvalid = 0, ref_arready = 0;
     uint32_t ref_rvalid = 0, ref_rready = 0;
+    bool complete = true;
 };
 
 // Helper: read a signal's bit string at a time index
@@ -227,6 +228,13 @@ static bool known_high(const std::string& bits) {
         if (bit == '1') one = true;
     }
     return one;
+}
+
+static bool known_binary(const std::string& bits) {
+    if (bits.empty()) return false;
+    for (char bit : bits)
+        if (bit != '0' && bit != '1') return false;
+    return true;
 }
 
 static std::vector<uint32_t> selected_clock_edges(IWaveformBackend& wf,
@@ -268,7 +276,8 @@ static void scan_channel_handshakes(
     uint64_t t_begin, uint64_t t_end,
     std::vector<AxiHandshakeEvent>& events,
     uint32_t ref_clk, uint32_t ref_reset,
-    const AxiSignalMap& config)
+    const AxiSignalMap& config,
+    bool& scan_complete)
 {
     if (ref_valid == IWaveformBackend::kInvalidSignalRef ||
         ref_ready == IWaveformBackend::kInvalidSignalRef) return;
@@ -294,11 +303,19 @@ static void scan_channel_handshakes(
               (config.edge == "posedge" && rising) ||
               (config.edge == "negedge" && falling))) continue;
         const std::string reset = read_signal_at(wf,ref_reset,ti,point);
+        if (!known_binary(reset)) {
+            scan_complete = false;
+            continue;
+        }
         const bool reset_asserted = config.reset_polarity == "active_low"
             ? !known_high(reset) : known_high(reset);
         if (reset_asserted) continue;
         const std::string valid = read_signal_at(wf,ref_valid,ti,point);
         const std::string ready = read_signal_at(wf,ref_ready,ti,point);
+        if (!known_binary(valid) || !known_binary(ready)) {
+            scan_complete = false;
+            continue;
+        }
         if (known_high(valid) && known_high(ready)) {
             AxiHandshakeEvent ev;
             ev.channel = channel;
@@ -673,15 +690,20 @@ static AxiScanResult scan_axi(IWaveformBackend& wf, const AxiSignalMap& sm,
     if (!out_err.is_null()) return result;
     wf.load_signals({ref_clk,ref_reset});
     scan_channel_handshakes(wf, ref_awvalid, ref_awready, "aw", t_begin, t_end,
-                            result.aw_events, ref_clk, ref_reset, sm);
+                            result.aw_events, ref_clk, ref_reset, sm,
+                            result.complete);
     scan_channel_handshakes(wf, ref_wvalid, ref_wready, "w", t_begin, t_end,
-                            result.w_events, ref_clk, ref_reset, sm);
+                            result.w_events, ref_clk, ref_reset, sm,
+                            result.complete);
     scan_channel_handshakes(wf, ref_bvalid, ref_bready, "b", t_begin, t_end,
-                            result.b_events, ref_clk, ref_reset, sm);
+                            result.b_events, ref_clk, ref_reset, sm,
+                            result.complete);
     scan_channel_handshakes(wf, ref_arvalid, ref_arready, "ar", t_begin, t_end,
-                            result.ar_events, ref_clk, ref_reset, sm);
+                            result.ar_events, ref_clk, ref_reset, sm,
+                            result.complete);
     scan_channel_handshakes(wf, ref_rvalid, ref_rready, "r", t_begin, t_end,
-                            result.r_events, ref_clk, ref_reset, sm);
+                            result.r_events, ref_clk, ref_reset, sm,
+                            result.complete);
 
     // Augment with data payloads
     augment_aw_events(wf, sm, result.aw_events);
@@ -1040,7 +1062,8 @@ struct AxiQueryHandler : public EngineActionHandler {
             summary["found"] = found;
             if (found) data["transaction"] =
                 axi_txn_json(*matches[offset], *wf, unit, format);
-            merge_json(summary, completeness(true, false, matches.size(), found ? 1 : 0));
+            merge_json(summary, completeness(result.complete, false,
+                                              matches.size(), found ? 1 : 0));
         } else if (requested_limit > 0) {
             Json transactions = Json::array();
             const size_t begin = index > 0 ? static_cast<size_t>(index - 1) : 0;
@@ -1049,13 +1072,14 @@ struct AxiQueryHandler : public EngineActionHandler {
                 transactions.push_back(axi_txn_json(*matches[i], *wf, unit, format));
             const bool truncated = begin + transactions.size() < matches.size();
             summary["query_mode"] = "list";
-            merge_json(summary, completeness(true, truncated,
+            merge_json(summary, completeness(result.complete, truncated,
                                               matches.size(), transactions.size()));
             data["transactions"] = std::move(transactions);
         } else {
             summary["query_mode"] = "count";
             summary["data_scope"] = "none";
-            merge_json(summary, completeness(true, false, matches.size(), 0));
+            merge_json(summary, completeness(result.complete, false,
+                                              matches.size(), 0));
         }
         return {{"ok",true},{"summary",summary},{"data",data}};
     }
@@ -1143,7 +1167,8 @@ struct AxiAnalysisHandler : public EngineActionHandler {
                 pending.push_back(std::move(item));
             }
             Json summary = common_summary();
-            merge_json(summary,completeness(true,pending.size()<total,total,pending.size()));
+            merge_json(summary,completeness(result.complete,pending.size()<total,
+                                            total,pending.size()));
             return {{"ok",true},{"summary",summary},
                 {"data",{{"pending_transactions",pending}}}};
         }
@@ -1175,7 +1200,8 @@ struct AxiAnalysisHandler : public EngineActionHandler {
             Json summary = common_summary();
             summary["samples"] = total.at("samples"); summary["min"] = total.at("min");
             summary["max"] = total.at("max"); summary["avg"] = total.at("avg");
-            merge_json(summary,completeness(true,false,clock_edges.size(),clock_edges.size()));
+            merge_json(summary,completeness(result.complete,false,
+                                            clock_edges.size(),clock_edges.size()));
             return {{"ok",true},{"summary",summary},{"data",{{"osd",{
                 {"read",read_stats},{"write",write_stats},
                 {"final_read",read_depth.empty()?0:read_depth.back()},
@@ -1218,7 +1244,7 @@ struct AxiAnalysisHandler : public EngineActionHandler {
             {"max",total_stats.at("max")},{"p50",total_stats.at("p50")},
             {"p95",total_stats.at("p95")},{"p99",total_stats.at("p99")},
             {"samples",all.size()}};
-        merge_json(summary,completeness(true,false,all.size(),all.size()));
+        merge_json(summary,completeness(result.complete,false,all.size(),all.size()));
         Json latency{{"read",stats(read_lat,true)},{"write",stats(write_lat,true)},
             {"definitions",{{"read","AR handshake to RLAST handshake"},
                 {"write","AW handshake to B handshake"}}},
@@ -1299,7 +1325,7 @@ struct AxiExportHandler : public EngineActionHandler {
                 {"end",wf->format_time(t_end,unit)}}},
             {"scanned_range",{{"begin",wf->format_time(t_begin,unit)},
                 {"end",wf->format_time(t_end,unit)}}},{"output",output_summary}};
-        merge_json(summary,completeness(true,false,total,total));
+        merge_json(summary,completeness(result.complete,false,total,total));
         return {{"ok",true},{"summary",summary},{"data",Json::object()}};
     }
 };
@@ -1403,9 +1429,11 @@ struct AxiStatisticsHandler : public EngineActionHandler {
             {"matched_transaction_count",matched},{"matched_read_count",matched_read},
             {"matched_write_count",matched_write},{"unresolved_transaction_count",unresolved},
             {"filter_applied",!input_filter.empty()},
-            {"analysis_quality",unresolved ? "ambiguous" : "complete"},
+            {"analysis_quality",(unresolved || !result.complete)
+                ? "ambiguous" : "complete"},
             {"full_scan_count",1}};
-        merge_json(summary, completeness(unresolved == 0,false,matched,matched));
+        merge_json(summary, completeness(result.complete && unresolved == 0,
+                                         false,matched,matched));
         return {{"ok",true},{"summary",summary},{"data",{{"filter",filter},
             {"notes",{{"unresolved_transaction_count",
             "因被引用的 address/ID 含 X/Z 或不可解析，导致无法判断是否匹配过滤条件的已完成事务数。"}}}}}};
@@ -1461,7 +1489,8 @@ struct AxiTransactionCursorHandler : public EngineActionHandler {
             {"found",found},{"index",found ? Json(position + 1) : Json(nullptr)},
             {"index_base",1},{"at_begin",found && position == 0},
             {"at_end",found && position + 1 == matches.size()}};
-        merge_json(summary, completeness(true,false,matches.size(),found ? 1 : 0));
+        merge_json(summary, completeness(result.complete,false,
+                                         matches.size(),found ? 1 : 0));
         Json data = Json::object();
         if (found) data["transaction"] = axi_txn_json(*matches[position],*wf,unit,format);
         return {{"ok",true},{"summary",summary},{"data",data}};
@@ -1508,6 +1537,7 @@ struct AxiChannelStallHandler : public EngineActionHandler {
         if (selected_channel == "r") add_chan("r", sm.rvalid, sm.rready);
 
         Json stalls = Json::array();
+        bool scan_complete = true;
         for (auto& ch : channels) {
             // Merge change points
             std::set<uint32_t> ti_set;
@@ -1531,8 +1561,12 @@ struct AxiChannelStallHandler : public EngineActionHandler {
             for (uint32_t ti : tis) {
                 std::string vv = read_signal_at(*wf, ch.ref_v, ti);
                 std::string rv = read_signal_at(*wf, ch.ref_r, ti);
-                bool valid_high = (!vv.empty() && vv.back() == '1');
-                bool ready_high = (!rv.empty() && rv.back() == '1');
+                if (!known_binary(vv) || !known_binary(rv)) {
+                    scan_complete = false;
+                    continue;
+                }
+                bool valid_high = known_high(vv);
+                bool ready_high = known_high(rv);
 
                 if (valid_high && !ready_high) {
                     if (!in_stall) {
@@ -1590,7 +1624,8 @@ struct AxiChannelStallHandler : public EngineActionHandler {
             {"scanned_range",{{"begin",wf->format_time(t_begin,unit)},
                 {"end",wf->format_time(t_end,unit)}}}};
         if (!sm.sample_point.empty()) summary["sample_point"] = sm.sample_point;
-        merge_json(summary,completeness(true,truncated,stalls.size(),findings.size()));
+        merge_json(summary,completeness(scan_complete,truncated,
+                                        stalls.size(),findings.size()));
         return {{"ok",true},{"summary",summary},{"data",{{"findings",findings}}}};
     }
 };
@@ -1654,7 +1689,8 @@ struct AxiLatencyOutlierHandler : public EngineActionHandler {
         const bool truncated = outliers.size() < selected;
         Json summary{{"name",args.at("name")},{"begin",wf->format_time(t_begin,unit)},
             {"end",wf->format_time(t_end,unit)},{"candidate_count",latencies.size()}};
-        merge_json(summary,completeness(true,truncated,selected,outliers.size()));
+        merge_json(summary,completeness(result.complete,truncated,
+                                        selected,outliers.size()));
         Json data{{"method",method},{"classification",method == "top_n"
             ? "slowest_ranking" : "threshold_exceeded"},{"outliers",outliers}};
         if (method == "top_n") data["top_n"] = top_n;
@@ -1728,7 +1764,8 @@ struct AxiOutstandingTimelineHandler : public EngineActionHandler {
             {"requested_range",{{"begin",wf->format_time(t_begin,unit)},
                 {"end",wf->format_time(t_end,unit)}}}};
         if (!sm.sample_point.empty()) summary["sample_point"] = sm.sample_point;
-        merge_json(summary,completeness(true,truncated,deltas.size(),points.size()));
+        merge_json(summary,completeness(result.complete,truncated,
+                                        deltas.size(),points.size()));
         return {{"ok",true},{"summary",summary},{"data",{{"change_points",points}}}};
     }
 };
@@ -1773,7 +1810,8 @@ struct AxiRequestResponsePairHandler : public EngineActionHandler {
         const bool truncated = transactions.size() < total;
         Json summary{{"name",args.at("name")},{"begin",wf->format_time(t_begin,unit)},
             {"end",wf->format_time(t_end,unit)}};
-        merge_json(summary,completeness(true,truncated,total,transactions.size()));
+        merge_json(summary,completeness(result.complete,truncated,
+                                        total,transactions.size()));
         Json diagnostics{{"full_scan_count",1},{"incomplete_write_count",incomplete_write},
             {"incomplete_read_count",incomplete_read},{"buffered_w_beat_count",0},
             {"buffered_w_burst_count",0},{"orphan_w_beat_count",0},{"orphan_b_count",0},

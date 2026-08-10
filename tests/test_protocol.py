@@ -458,7 +458,7 @@ def test_axi_query_and_channel_stall_truncate_direct_raw_fst(
     assert query["summary"]["returned_count"] == 1
     assert query["summary"]["response_truncated"] is True
     assert query["summary"]["truncation_scopes"] == [
-        "response_transactions"
+        "analysis_transactions", "response_transactions"
     ]
     assert len(query["data"]["transactions"]) == 1
 
@@ -466,11 +466,11 @@ def test_axi_query_and_channel_stall_truncate_direct_raw_fst(
         "name": "wellen_axi", "channel": "aw", "line_limit": 1,
     })
     assert channel.get("ok"), channel
-    assert channel["summary"]["total_count"] == 10
+    assert channel["summary"]["total_count"] == 9
     assert channel["summary"]["returned_count"] == 1
     assert channel["summary"]["response_truncated"] is True
     assert channel["summary"]["truncation_scopes"] == [
-        "response_transactions"
+        "analysis_transactions", "response_transactions"
     ]
     assert len(channel["data"]["findings"]) == 1
 
@@ -528,7 +528,7 @@ def test_axi_pending_analysis_truncates_direct_raw_fst(
     assert pending["summary"]["returned_count"] == 1
     assert pending["summary"]["response_truncated"] is True
     assert pending["summary"]["truncation_scopes"] == [
-        "response_transactions"
+        "analysis_transactions", "response_transactions"
     ]
     assert len(pending["data"]["pending_transactions"]) == 1
 
@@ -598,6 +598,49 @@ def test_axi_export_empty(loop_runner: StdioLoopRunner,
     assert rsp["summary"]["returned_count"] == 0
     assert rsp["summary"]["row_count"] == 0
     assert (tmp_path / "empty_axi.meta.json").is_file()
+
+
+def test_axi_unknown_controls_mark_scan_incomplete_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst, tmp_path) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    loaded = loop_runner.request("axi.config.load", args={
+        "name": "wellen_unknown_axi", "config": WELLEN_AXI_CONFIG,
+    })
+    assert loaded.get("ok"), loaded
+
+    statistics = loop_runner.request("axi.statistics", args={
+        "name": "wellen_unknown_axi", "filter": {"direction": "all"},
+    })
+    assert statistics.get("ok"), statistics
+    assert statistics["summary"]["scan_complete"] is False
+    assert statistics["summary"]["analysis_complete"] is False
+    assert statistics["summary"]["truncation_scopes"] == [
+        "analysis_transactions"
+    ]
+
+    cursor = loop_runner.request("axi.transaction.cursor", args={
+        "name": "wellen_unknown_axi", "op": "begin",
+    })
+    assert cursor.get("ok"), cursor
+    assert cursor["summary"]["scan_complete"] is False
+    assert cursor["summary"]["analysis_complete"] is False
+    assert cursor["summary"]["truncation_scopes"] == [
+        "analysis_transactions"
+    ]
+
+    export = loop_runner.request("axi.export", args={
+        "name": "wellen_unknown_axi",
+        "time_range": {"begin": "0ns", "end": "405ns"},
+        "output": {
+            "path": str(tmp_path / "unknown_axi"), "file_format": "tsv",
+        },
+    })
+    assert export.get("ok"), export
+    assert export["summary"]["scan_complete"] is False
+    assert export["summary"]["analysis_complete"] is False
+    assert export["summary"]["truncation_scopes"] == [
+        "analysis_transactions"
+    ]
 
 
 def test_axi_transaction_cursor(loop_runner: StdioLoopRunner, axi_fst) -> None:
