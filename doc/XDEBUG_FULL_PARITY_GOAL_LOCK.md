@@ -139,3 +139,8 @@ P6 第五十六批在同一原始 FST、同一静态三节点 ref 环上只增�
 xdebug action 在请求内执行，Wellen 不预扫或索引波形；结果在闭环前以明确 frontier/limit
 停止且不伪造 origin。现有实现直接通过，三方实现和 ABI 均未修改。该批只关闭基础
 ref-feedback/node 组合，其他预算和复杂反馈仍属于 active Goal。
+
+P6 第五十七批用三份现有原始 `.fst` 证明 `value.at` 公开路径保留 UTF-8 string/delta、real
+和 event 类型。Wellen 仍是唯一按需波形访问层，action 只执行冻结 schema 投影；没有 VCD、
+FSDB、转换、预扫、索引、离线库、TCP/fileport 或 fallback。该批没有修改生产代码和三方
+ABI，只补强 Wellen 完成条件的端到端证据，不影响 P6 其余未完成项，Goal 保持 active。

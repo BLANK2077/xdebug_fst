@@ -583,6 +583,12 @@ C++ adapter 同时持有：
 
 P5 当前已把发现、静态设计、`value.at`、list、event、cursor、RC、expression、signal、verify/window、counter、sampled pulse、valid-ready handshake、APB 和 AXI 迁移到冻结合同。`value.at`、`list.first_change`、`event.find` 及所有分析/导出数据收集都直接调用当前 `WellenFstBackend`：先按请求涉及的最终叶子信号加载，再在指定物理时间、时钟边沿和 observation point 读取类型化值。命名 list、event config 和 cursor 只保存路径、表达式、采样策略或时间书签，不保存波形值或变化索引。
 
+第五十七批又把 Wellen 类型能力贯通到公开 `value.at` 回归：原始 string FST 的同时间 delta
+由 raw observation 选择 settled 最后值，UTF-8 和尾部空格保持不变；real FST 作为 typed
+数值发布，不伪造逻辑位宽；event FST 保持独立 event kind，不退化为 missing 或 X。这里的
+选择和类型来自 Wellen 当前请求内访问，action 只投影冻结 LogicValue envelope；没有预扫、
+中间转换、类型旁路或离线缓存。
+
 `counter.statistics` 在每个选定时钟边沿直接计算 `vld` 信号或 alias 表达式，并拼接 `cnt` 叶子值；`signal.sampled_pulse.inspect` 将 raw valid/payload 变化与同一窗口内的 sampled edge 对齐；`protocol.handshake.inspect` 在采样流上维护 valid 等待、stall、ready-only 区间与 data 稳定状态。这些都是请求期间的有界 action 状态，不是 FST 预处理结果，session 结束后不会形成可重载波形数据库。
 
 APB 命名配置只保存时钟、复位和总线叶子信号路径以及采样规则，不保存事务或波形值。`apb.query`、`apb.statistics`、`apb.transaction.cursor` 和 `apb.transfer_window` 每次请求都直接扫描当前 FST 中选定的时钟边沿，并在请求期间推导已经完成的 APB 事务；推导结果不会持久化成可重载的事务数据库。`value.at` 的 APB 值源同样只按配置展开最终叶子信号，再从当前 Wellen backend 读取指定 observation point 的值。

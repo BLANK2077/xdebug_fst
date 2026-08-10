@@ -411,6 +411,13 @@ P1 验收：
 
 完成后创建 `parity-p3` tag。
 
+P6 第五十七批对上述 P3 能力增加公开 action 贯通证据，而不是重复底层单元测试。
+`value.at` 直接打开三份 Wellen 原始 `.fst`：string 用例在 0ps 选择同时间两个 delta 中
+settled 的最后值并保留 UTF-8 与定宽尾部空格；real 用例在 1ps 返回 typed 0.1 数值语义且
+不伪造 bit width；event 用例返回独立 `event` 标记而不是 missing/X。三者都通过冻结
+`value.at` response schema，路径仅由 `XDEBUG_WELLEN_REPO` 绝对环境变量定位。现有生产
+action、Wellen、Verilator 和 ABI 无需修改。
+
 ### P4：最克制地扩展 Verilator DesignDB
 
 #### 强制原则
