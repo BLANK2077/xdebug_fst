@@ -650,6 +650,12 @@ alias 中间节点仍会保留，汇聚后的相同状态只探索一次，并�
 `loop_detected`，但没有找到 X origin，因此 evidence status 仍保持 unresolved。是否成环由
 DesignDB 静态依赖和 action 的 `(signal,onset)` 路径状态决定，不由 FST 值相等推断。
 
+X mask 是确定性响应事实，不是装饰文本。Wellen 返回当前信号的实际位串和宽度，action
+逐位把 X 类状态映射为 1、其余映射为 0，并使用 `<width>'b<bits>` 输出；query、current、
+hop 和 frontier 必须共用同一规则，不能复用根信号宽度渲染不同宽度上游。冻结目录中的
+早期 example 若仍含无宽度文本，不得覆盖当前冻结 runtime 及其回归明确要求的带宽格式，
+也不得为了匹配示例而放宽或归一化掉这一确定性字段。
+
 同一源文件行也不能直接等同于同一条动态语句。lowering 后的三元表达式可能把信号 RHS
 叶子与常量 RHS 叶子保留在同一 `(file,line,kind)` 下，但每片叶子具有不同的静态
 activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为语句身份，
