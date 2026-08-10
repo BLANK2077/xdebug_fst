@@ -102,11 +102,15 @@ LIMIT_REQUEST_KEYS = {
     "line_limit",
     "max_chains",
     "max_depth",
+    "max_events",
     "max_nodes",
+    "max_rows",
     "max_results",
     "max_time_steps",
+    "max_trace_signals",
     "preview_limit",
     "result_limit",
+    "top_n",
 }
 
 COMPLETENESS_KEYS = {
@@ -182,7 +186,10 @@ def has_limit_request(request: Any) -> bool:
     for path, value in walk(request):
         if not path:
             continue
-        if path[-1] == "limits" and isinstance(value, dict) and value:
+        if path[-1] == "limits" and isinstance(value, dict) and any(
+            key in LIMIT_REQUEST_KEYS and child is not None
+            for key, child in value.items()
+        ):
             return True
         if path[-1] in LIMIT_REQUEST_KEYS and value is not None:
             return True

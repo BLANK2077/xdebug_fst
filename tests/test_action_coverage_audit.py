@@ -165,6 +165,23 @@ def test_pre_dispatch_resource_error_does_not_credit_request_dimensions() -> Non
     assert dimensions == {"resource_missing"}
 
 
+def test_timeout_watchdog_does_not_credit_result_limit_dimension() -> None:
+    dimensions = classify(event(
+        {
+            "api_version": "xdebug.v1",
+            "action": "signal.resolve",
+            "args": {"signal": "top.x"},
+            "limits": {"timeout_ms": 1000},
+        },
+        {
+            "ok": True,
+            "summary": {"status": "found"},
+            "data": {"matches": [{"signal": "top.x"}]},
+        },
+    ))
+    assert dimensions == {"success"}
+
+
 def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     empty_actions = {
         "apb.config.load", "axi.config.load", "event.config.load",
