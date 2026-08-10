@@ -208,6 +208,16 @@ def interface_modport_design_db() -> Path:
 
 
 @pytest.fixture(scope="session")
+def ref_port_fst() -> Path:
+    return _fix("ref_port")
+
+
+@pytest.fixture(scope="session")
+def ref_port_design_db() -> Path:
+    return FIXTURES / "ref_port" / "obj_dir"
+
+
+@pytest.fixture(scope="session")
 def apb_fst() -> Path:
     return _fix("apb")
 

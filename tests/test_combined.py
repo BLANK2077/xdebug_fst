@@ -552,6 +552,26 @@ def test_trace_active_driver_chain_crosses_interface_modports(
     assert {hop["value"] for hop in rsp["data"]["hops"]} == {"8'h77"}
 
 
+def test_trace_active_driver_chain_crosses_ref_port(
+        loop_runner: StdioLoopRunner, ref_port_fst,
+        ref_port_design_db) -> None:
+    open_session(loop_runner, ref_port_fst, ref_port_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.observed", "time": "30ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "primary_input"
+    assert rsp["summary"]["analysis_complete"] is True
+    assert [hop["signal"] for hop in rsp["data"]["hops"]] == [
+        "top.observed",
+        "top.ref_port_top.u_ref.observed",
+        "top.ref_port_top.u_ref.link",
+        "top.ref_port_top.link",
+        "top.source",
+    ]
+    assert {hop["value"] for hop in rsp["data"]["hops"]} == {"8'h75"}
+
+
 def test_trace_active_driver_chain_stops_at_parent_primary_input_alias(
         loop_runner: StdioLoopRunner, counter_fst,
         counter_design_db) -> None:
