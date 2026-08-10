@@ -57,6 +57,57 @@ def test_every_frozen_action_rejects_unknown_top_level_field(
     }
 
 
+def test_every_managed_resource_action_rejects_missing_session(
+    cli_runner: CliRunner,
+) -> None:
+    catalog = cli_runner.run({
+        "api_version": "xdebug.v1",
+        "action": "actions",
+        "args": {"output": {"verbose": True}},
+    })
+    assert catalog.ok, catalog.stderr_raw
+    specs = catalog.response["data"]["actions"]
+    assert {spec["name"] for spec in specs} == set(FROZEN_ACTIONS)
+    assert {spec["name"] for spec in specs if spec["requires"] == "none"} == {
+        "actions",
+        "batch",
+        "expr.normalize",
+        "schema",
+        "session.gc",
+        "session.list",
+    }
+    assert {spec["name"] for spec in specs if spec["requires"] == "any"} == {
+        "scope.roots",
+        "session.open",
+    }
+
+    managed_specs = [
+        spec for spec in specs
+        if spec["requires"] in {
+            "waveform", "design", "combined", "session"
+        } or spec["name"] == "scope.roots"
+    ]
+    assert len(managed_specs) == 66
+    for spec in managed_specs:
+        assert spec["request_examples"], spec["name"]
+        example_path = (
+            REPO_ROOT / "compat/xdebug-v1" / spec["request_examples"][0]
+        )
+        example = json.loads(example_path.read_text(encoding="utf-8"))
+        assert example["action"] == spec["name"]
+        example["target"] = {"session_id": "missing_resource_session"}
+
+        result = cli_runner.run(example)
+        assert result.returncode == 1, (spec["name"], result.stderr_raw)
+        assert result.response["action"] == spec["name"]
+        assert result.response["error"] == {
+            "code": "SESSION_NOT_FOUND",
+            "error_layer": "session_manager",
+            "message": "session generation is not in registry",
+            "recoverable": True,
+        }
+
+
 def test_nested_unknown_field_is_rejected_by_action_schema(cli_runner: CliRunner) -> None:
     result = cli_runner.run({
         "api_version": "xdebug.v1",
