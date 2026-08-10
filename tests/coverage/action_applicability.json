@@ -432,6 +432,270 @@
       "dimension": "truncation",
       "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
       "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "actions",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "apb.config.list",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "apb.config.load",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "apb.statistics",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "apb.transaction.cursor",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "axi.config.list",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "axi.config.load",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "axi.export",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "axi.statistics",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "axi.transaction.cursor",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "batch",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "event.config.load",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "expr.eval_at",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "list.add",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "list.create",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "list.delete",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "list.first_change",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "list.load",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "list.show",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "list.validate",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "nwave.rc.generate",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "schema",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "scope.roots",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "session.close",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "session.doctor",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "session.gc",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "session.kill",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "session.list",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "session.open",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "signal.canonicalize",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "signal.resolve",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "signal.stability",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "signal.xz_verify",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "stream.config.get",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "stream.config.list",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "stream.config.load",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "stream.describe",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "value.at",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "verify.conditions",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.delete",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.get",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.list",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.set",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.use",
+      "dimension": "limits",
+      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
+      "evidence": "tools/check_limit_applicability.py"
     }
   ]
 }

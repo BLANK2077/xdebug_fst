@@ -159,7 +159,9 @@ def test_expr_normalize_contract(loop_runner: StdioLoopRunner) -> None:
 def test_expr_normalize_signal_without_structured_assignment(
         loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
     open_session(loop_runner, counter_fst, counter_design_db)
-    rsp = loop_runner.request("expr.normalize", args={"signal": "top.count"})
+    rsp = loop_runner.request("expr.normalize", args={
+        "signal": "top.count", "line_limit": 1,
+    })
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["source"] == "npi_trace_assignment"
     assert rsp["summary"]["confidence"] == "unknown"

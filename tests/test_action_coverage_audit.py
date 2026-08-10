@@ -223,10 +223,28 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     truncation_entries = {
         (action, "truncation") for action in truncation_actions
     }
+    limit_not_applicable_actions = {
+        "actions", "apb.config.list", "apb.config.load", "apb.statistics",
+        "apb.transaction.cursor", "axi.config.list", "axi.config.load",
+        "axi.export", "axi.statistics", "axi.transaction.cursor", "batch",
+        "event.config.load", "expr.eval_at", "list.add", "list.create",
+        "list.delete", "list.first_change", "list.load", "list.show",
+        "list.validate", "nwave.rc.generate", "schema", "scope.roots",
+        "session.close", "session.doctor", "session.gc", "session.kill",
+        "session.list", "session.open", "signal.canonicalize",
+        "signal.resolve", "signal.stability", "signal.xz_verify",
+        "stream.config.get", "stream.config.list", "stream.config.load",
+        "stream.describe", "value.at", "verify.conditions",
+        "waveform.cursor.delete", "waveform.cursor.get",
+        "waveform.cursor.list", "waveform.cursor.set", "waveform.cursor.use",
+    }
+    limit_entries = {
+        (action, "limits") for action in limit_not_applicable_actions
+    }
     manifest_actions = {
         action
         for action, _dimension in (
-            resource_entries | empty_entries | truncation_entries
+            resource_entries | empty_entries | truncation_entries | limit_entries
         )
     }
     applicability = load_not_applicable(
@@ -234,5 +252,5 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
         sorted(manifest_actions),
     )
     assert set(applicability) == (
-        resource_entries | empty_entries | truncation_entries
+        resource_entries | empty_entries | truncation_entries | limit_entries
     )
