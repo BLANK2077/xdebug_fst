@@ -470,25 +470,12 @@ EvaluatedStatements active_statement_groups(
     return result;
 }
 
-bool is_pure_self_hold(
-    const StatementGroup& statement,
-    const std::vector<IDesignBackend::DriverRecord>& all_drivers,
-    IDesignBackend& design,int target_signal) {
-    if (statement.kind!="nba"||!statement.rhs.empty()||
-        statement.file.empty()||statement.line<=0) return false;
-    std::set<std::tuple<std::string,std::string,std::string>> identities;
-    for (const auto& driver : all_drivers) {
-        if (driver.file==statement.file&&driver.line==statement.line) {
-            identities.emplace(driver.kind,driver.activation_predicate,
-                               driver.statement_identity);
-        }
-    }
-    if (identities.size()!=1) return false;
-    std::vector<IDesignBackend::LoadRecord> loads;
-    design.trace_load(target_signal,loads);
-    return std::any_of(loads.begin(),loads.end(),[&](const auto& load) {
-        return load.consumer==target_signal&&load.file==statement.file&&
-            load.line==statement.line;
+bool is_pure_self_hold(const StatementGroup& statement,int target_signal) {
+    if (statement.kind!="nba"||!statement.rhs.empty()) return false;
+    return std::any_of(statement.records.begin(),statement.records.end(),
+        [&](const auto& record) {
+        return record.dependency_role=="self_rhs"&&
+            record.src_signal==target_signal;
     });
 }
 
@@ -507,8 +494,7 @@ EvaluatedStatements active_statement_groups_skipping_self_hold(
         if (!current.unresolved.empty()||current.active.empty()||
             !std::all_of(current.active.begin(),current.active.end(),
                 [&](const auto& statement) {
-                    return is_pure_self_hold(
-                        statement,drivers,design,target_signal);
+                    return is_pure_self_hold(statement,target_signal);
                 })) return current;
         if (attempt>=max_backtracks) {
             if (backtrack_limited) *backtrack_limited=true;
