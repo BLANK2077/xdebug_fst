@@ -1324,6 +1324,33 @@ def test_trace_x_origin_reports_ref_port_feedback_as_loop(
     assert rsp["data"]["limitations"] == []
 
 
+def test_trace_x_origin_limits_ref_port_feedback_before_loop(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        xorigin_ref_port_loop_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst,
+                 xorigin_ref_port_loop_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"}, limits={"max_nodes": 2})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "limit"
+    assert rsp["summary"]["analysis_complete"] is False
+    assert rsp["summary"]["chain_count"] == 1
+    assert rsp["summary"]["completed_chain_count"] == 0
+    assert rsp["summary"]["limited_chain_count"] == 1
+    assert rsp["summary"]["origin_count"] == 0
+    chain = rsp["data"]["chains"][0]
+    assert chain["status"] == "limit"
+    assert chain["termination_detail"] == "max_nodes"
+    assert chain["complete"] is False
+    assert chain["current"]["signal"] == "GCD.GEN_1"
+    assert "origin" not in chain
+    assert [hop["signal"] for hop in chain["hops"]] == [
+        "GCD.T_14", "GCD.GEN_0"]
+    assert rsp["data"]["limitations"] == [
+        "trace truncated by limits.max_nodes"]
+
+
 def test_trace_x_origin_reports_driver_cycle_as_loop(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         xorigin_loop_design_db) -> None:
