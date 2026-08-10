@@ -610,6 +610,12 @@ predicate 和 dependency role 来自独立 DesignDB 测试变体，运行时四�
 读取，control/RHS 分支、DFS、完整性和响应合同全部由 xdebug action 决定。FST 没有分析
 predicate，也没有生成任何中间波形、索引、数据库或快照。
 
+当证据缺失导致 opaque unresolved 时，公开响应也必须服从冻结合同：每条链保留
+`status=unresolved` 与 `termination_detail=predicate_unresolved`，summary 在没有任何
+完成链时使用 schema 允许的 `termination=pending`，同时报告
+`evidence_status=unresolved`、`analysis_complete=false`；若另有完成链则为 `partial`。
+不得通过放宽 schema、把 summary 写成未登记枚举，或把缺失信号伪装成 X 来消除错误。
+
 同一源文件行也不能直接等同于同一条动态语句。lowering 后的三元表达式可能把信号 RHS
 叶子与常量 RHS 叶子保留在同一 `(file,line,kind)` 下，但每片叶子具有不同的静态
 activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为语句身份，
