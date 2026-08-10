@@ -112,3 +112,9 @@ interface 结构，禁止据此枚举或推断成员、方向、driver 或边界
 私有索引、离线数据库、全量内存快照、TCP、fileport 或 fallback。基础 source/sink modport
 成员链已闭环，但 ref、嵌套/数组 interface、多 interface driver 和 modport 与 X-origin
 预算/反馈组合仍未完成；当前 Goal 继续保持 active，不能以本批通过宣称完全一致。
+
+P6 第五十三批的 `ref` 边界继续使用同一职责划分：DesignDB 提供 direction=3 和静态端口/
+driver 事实，action 执行唯一映射与防反射合同，Wellen 只按需读取原始 `.fst` 的五个 hop。
+没有从双向 alias 的 FST 值反推 ref 结构，也没有修改 Verilator/Wellen、转换波形或增加
+fallback。该批只关闭单实例连续赋值基础链，多 ref driver、时序/force 和 X-origin 组合仍
+属于 active Goal 的未完成项。

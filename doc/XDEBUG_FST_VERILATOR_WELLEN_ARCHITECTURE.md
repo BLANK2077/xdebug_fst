@@ -999,6 +999,13 @@ SystemVerilog interface、不推断 modport、不枚举同值信号寻找结构�
 保留 599-byte `waves.fst`、最小 DesignDB `.so` 和 manifest。没有 VCD/JSON 转换、私有索引、
 TCP、fileport 或 fallback。
 
+`ref` 端口不需要新的 Verilator 静态事实。既有 XDD v2 已把声明发布为 direction=3，并给出
+父 net、子 ref port、output 和 source 的连接/driver。xdebug 仅在 output 同实例 RHS 映射中
+把 direction=3 与 input 一起作为候选，仍要求唯一；从 ref/inout 返回父 alias 后沿父 net
+driver 继续，避免双向边反射回刚离开的 child output。Wellen 仍只对 DesignDB 选定的五个
+FST 名称按需取值，不以值相等识别 ref。对应失败证据/固件/实现为 xdebug-fst `31b5ad2`、
+`8b3e0f8`、`50ed974`，Verilator 和 Wellen 均未修改。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；
@@ -1106,3 +1113,4 @@ TCP、fileport 或 fallback。
 - xdebug-fst `7c5b0a2`、`f3b5143`：冻结常量 NBA hop 源行丢失，并在不沿 control 追踪的前提下恢复活动 assignment 源码证据。
 - xdebug-fst `ae76785`、`07bb94c`：冻结复杂 output 在父 net 过早报告多 RHS，并恢复 child output 边界与同实例 input evidence。
 - xdebug-fst `7b99803`、`29f70d2`、`43f8a0b`：先冻结 interface/modport 跨边界失败，再锁定最小 Verilator 静态事实与原始 FST 固件，最后用唯一连续 output/成员连接恢复六跳 sink/shared/source 链；Wellen 只按需读取已选 FST alias。
+- xdebug-fst `31b5ad2`、`8b3e0f8`、`50ed974`：先冻结 ref 固件缺口，再用锁定 Verilator 原始 FST/DesignDB 暴露 direction=3 被忽略和 alias 反射假环，最后以 consumer-only 唯一映射恢复五跳链。

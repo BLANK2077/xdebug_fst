@@ -796,6 +796,12 @@ action 语义。禁止扫描 FST alias 或相同值反推 interface 结构，禁
 关闭；ref、嵌套/数组 interface、多 interface driver，以及 modport 与 X-origin 的
 node/time/depth/loop 组合仍须单独差分，不得据此宣称任意 interface 能力完成。
 
+第五十三批关闭单实例、单 direction=3 `ref` 端口的基础连续赋值链。锁定 Verilator 已经通过
+既有 XDD v2 发布 ref 方向、父子连接和 driver，因此不修改 Verilator。consumer 只把 ref/
+inout 加入 output 同实例 RHS 的唯一端口映射，并在从双向端口返回父 alias 后禁止反射进入
+刚离开的 child output；候选不唯一时仍不选择。真实五跳链全部由当前原始 `.fst` 经 Wellen
+按需取值。多 ref driver、ref 与过程/NBA/force、ref 反馈及 X-origin 预算组合仍未关闭。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。
