@@ -303,6 +303,27 @@ if(BUILD_TESTING)
         CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVxorigin_loop_branch__DesignDb.so\"\n}\n"
     )
 
+    set(PRIMITIVE_OUTPUT_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/primitive_output/obj_dir")
+    file(MAKE_DIRECTORY "${PRIMITIVE_OUTPUT_XDD_BUNDLE_DIR}")
+    add_library(test-primitive-output-xdd-bundle SHARED
+        tests/cpp/xorigin_xdd_bundle.cpp
+    )
+    target_include_directories(test-primitive-output-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    target_compile_definitions(test-primitive-output-xdd-bundle PRIVATE
+        XDEBUG_TEST_PRIMITIVE_OUTPUT=1
+    )
+    set_target_properties(test-primitive-output-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vprimitive_output__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${PRIMITIVE_OUTPUT_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${PRIMITIVE_OUTPUT_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVprimitive_output__DesignDb.so\"\n}\n"
+    )
+
     add_executable(test-xdd-design-backend
         tests/cpp/test_xdd_design_backend.cpp
         src/backend/xdd_design_backend.cpp

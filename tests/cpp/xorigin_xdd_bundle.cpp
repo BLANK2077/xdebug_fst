@@ -7,7 +7,32 @@
 
 namespace {
 
-#if defined(XDEBUG_TEST_X_LOOP_BRANCH)
+#if defined(XDEBUG_TEST_PRIMITIVE_OUTPUT)
+
+const XddSignalInfo kSignals[] = {
+    {"GCD.T_14", "wire", 33, "primitive_output.sv", 4},
+    {"GCD.y", "port", 32, "primitive_output.sv", 2},
+};
+
+const int kDirections[] = {0, 1};
+
+const XddDriverRec kDrivers[] = {
+    {0, 1, "primitive", "rhs", "primitive_output.sv", 4},
+};
+
+const int kDriverStart[] = {0, 1};
+
+const XddLoadRec kLoads[] = {
+    {1, 0, "rhs_use", "primitive_output.sv", 4},
+};
+
+const int kLoadStart[] = {0, 0};
+
+constexpr int kSignalCount = 2;
+constexpr int kDriverCount = 1;
+constexpr int kLoadCount = 1;
+
+#elif defined(XDEBUG_TEST_X_LOOP_BRANCH)
 
 const XddSignalInfo kSignals[] = {
     {"GCD.T_14", "wire", 33, "xorigin_loop_branch.sv", 2},

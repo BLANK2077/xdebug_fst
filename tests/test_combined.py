@@ -512,6 +512,23 @@ def test_trace_active_driver_chain_distinguishes_internal_zero_evidence_from_pri
     assert primary["data"]["hops"][0]["signal"] == "GCD.io_a"
 
 
+def test_trace_active_driver_chain_primitive_output_uses_static_evidence(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        primitive_output_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, primitive_output_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "primary_input"
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["returned_count"] == 2
+    assert [hop["signal"] for hop in rsp["data"]["hops"]] == [
+        "GCD.T_14", "GCD.y"]
+    assert rsp["data"]["hops"][0]["file"] == "primitive_output.sv"
+    assert rsp["data"]["hops"][0]["line"] == 4
+
+
 def test_trace_active_driver_chain_stops_at_parent_primary_input_alias(
         loop_runner: StdioLoopRunner, counter_fst,
         counter_design_db) -> None:
