@@ -599,6 +599,17 @@ P6 的 active-driver 数据流同样没有增加第二套波形系统：DesignDB
 unresolved/ambiguity evidence；`casez/casex` 的 X/Z 则严格按对应通配语义求值。不读取
 VCD/JSON/export，不建立 predicate-value cache 或离线 FST 索引，也不回退到静态首项。
 
+`trace.x_origin` 还必须区分“谓词的运行时值确实未知”和“缺少足够证据求值”。前者要求
+predicate 已由 DesignDB 完整发布、表达式解析成功、每个叶子已唯一映射到当前 FST，且
+Wellen 在指定 active time 成功返回四态值；只有最终表达式因 X/Z 无法归约时，action 才把
+该语句标为 waveform-unknown，并枚举 DesignDB 已发布的 control/RHS 依赖，再用 Wellen
+逐个确认哪些上游在当前时间实际含 X。后者包括空 predicate、解析失败、信号缺失、端口
+映射歧义或加载失败，仍必须 unresolved/fail closed，绝不能伪造 X 分支。P6 第四十批用
+同一既有 `GCD.vcd.fst` 原始 FST 的 `T_14/y/x` 在 0ps 均为 X 的事实验证这一边界：静态
+predicate 和 dependency role 来自独立 DesignDB 测试变体，运行时四态值由 Wellen 按需
+读取，control/RHS 分支、DFS、完整性和响应合同全部由 xdebug action 决定。FST 没有分析
+predicate，也没有生成任何中间波形、索引、数据库或快照。
+
 同一源文件行也不能直接等同于同一条动态语句。lowering 后的三元表达式可能把信号 RHS
 叶子与常量 RHS 叶子保留在同一 `(file,line,kind)` 下，但每片叶子具有不同的静态
 activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为语句身份，
