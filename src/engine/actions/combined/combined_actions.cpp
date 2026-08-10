@@ -730,7 +730,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             }
 
             const int direction=design.signal_direction(index);
-            if (direction==0&&evaluated.unresolved.empty()) {
+            if (direction==0&&evaluated.unresolved.empty()&&groups.size()==1) {
                 std::vector<int> output_ports=ports_connected_to(design,index,2);
                 output_ports.erase(std::remove_if(output_ports.begin(),output_ports.end(),
                     [&](int port) {
