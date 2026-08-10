@@ -1297,3 +1297,21 @@ P7 第十批将时间边界限定为冻结请求中的 `time`、`times` 或 `tim
 - xdebug-fst `ae76785`、`07bb94c`：冻结复杂 output 在父 net 过早报告多 RHS，并恢复 child output 边界与同实例 input evidence。
 - xdebug-fst `7b99803`、`29f70d2`、`43f8a0b`：先冻结 interface/modport 跨边界失败，再锁定最小 Verilator 静态事实与原始 FST 固件，最后用唯一连续 output/成员连接恢复六跳 sink/shared/source 链；Wellen 只按需读取已选 FST alias。
 - xdebug-fst `31b5ad2`、`8b3e0f8`、`50ed974`：先冻结 ref 固件缺口，再用锁定 Verilator 原始 FST/DesignDB 暴露 direction=3 被忽略和 alias 反射假环，最后以 consumer-only 唯一映射恢复五跳链。
+
+## P7 multiple_results 全量裁定对架构的约束
+
+多结果测试不改变数据面架构。APB、AXI、Stream、list、scope 和 X/Z 用例都在当前 session
+直接打开 `.fst`，由 Wellen 按需读取所请求的信号和值；session list/gc/close/kill 则验证真实
+UDS registry 生命周期。FST 只提供波形事实，不负责配置聚合、首变比较、根集合合并、X/Z
+判定或 session 清理；这些仍由 xdebug action/前端语义层执行。scope 的第二个根来自既有
+Verilator DesignDB 静态事实，不能从 FST 值相等推导设计层级。
+
+冻结合同要求 `stream.config.list` 对未启用 SOP/EOP 的配置返回 `packet="none"`。双配置门禁
+发现实现返回私有词 `disabled` 后，只在 xdebug-fst 的公开响应映射中做单枚举修复；Wellen、
+Verilator、XDD ABI 和普通仿真均无需修改。这体现了 Verilator 克制原则：已有 FST 与 DesignDB
+事实足够时，协议响应差异必须在 action 层修正，不能扩展静态 ABI。
+
+覆盖审计只读取 `/tmp` 的测试交换 trace；它不读取波形内容、不写私有索引、不参与 action
+执行，也不能回灌分析。仍然禁止 FST→VCD/JSON 转换、预扫持久化、离线数据库、全量内存
+快照、export 重新导入、TCP/fileport 和 fallback。最终证据为 53 项运行时多结果与 20 项
+合同 N/A；该数字只关闭本维度，不能代替 completeness、X/Z 或原版归一化差分。

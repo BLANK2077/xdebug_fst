@@ -280,3 +280,20 @@ boundary_time 已达到 30 项成功零时间/闭区间 observed + 43 项 N/A，
 新增六项门禁均在真实 session 中成功执行，波形 action 继续由 Wellen 直接按需读取原始
 `.fst`。本批没有修改生产 action、Wellen、Verilator、XDD ABI 或 transport，没有转换、
 离线分析、TCP/fileport 或 fallback。其余覆盖维度和最终原版归一化差分仍未完成，Goal active。
+
+## 十八、P7 第十一批 multiple_results 全量裁定防漂移记录
+
+multiple_results 已达到 53 项真实运行 observed + 20 项 N/A，严格覆盖 73 action。主结果
+只能是 `summary/data` 的直接计数或集合；嵌套 validation、diagnostic、suggestion 数组不得
+获得信用。19 项 N/A 由冻结成功响应 Schema 不可表达大于一证明；`signal.resolve` 由单个
+最终叶节点精确解析合同证明。`session.close/session.kill` 的 `session_id=all` 能批量清理，
+必须保留为适用项，禁止以后退化成 N/A。
+
+运行时门禁使用直接原始 FST 和两个真实 UDS session。双 Stream 配置还暴露并修复了公开
+枚举 `disabled` 与冻结 `none` 的合同差异。最终新 trace 为 53 observed + 20 N/A，且没有以
+多结果测试替换 AXI/Stream 空结果证据。pytest 全量和生产修复后的 CTest 9/9 通过。
+
+本批没有修改 Wellen、Verilator 或 XDD ABI。唯一事实流仍为原始 `.fst` 由 Wellen 直接
+按需读取，xdebug action 执行语义，DesignDB 提供静态事实；FST 不是分析引擎。禁止转换、
+离线索引/数据库、全量快照、export 回灌、TCP/fileport 和 fallback。Goal 保持 active，
+completeness、X/Z、P6 剩余复杂差分和最终原版归一化差分尚未完成。

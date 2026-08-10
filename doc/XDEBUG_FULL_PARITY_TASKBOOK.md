@@ -1312,3 +1312,28 @@ time/limits/XZ 误记为 action 执行覆盖的问题：
 - 原版基线变化必须显式更新 baseline 并单独提交
 - Goal 不设置 token budget
 - Goal 只在全部最终门禁满足后标记 complete
+
+## 八、P7 第十一批 multiple_results 全量裁定任务记录
+
+本批已完成 73 个公开 action 的多结果维度全量裁定。审计器只允许 `summary` 或 `data`
+直接子字段中的冻结主结果计数/集合提供信用，禁止把 `data.validation.signals`、diagnostics、
+recommendations 等嵌套辅助数组误当成 action 主结果。冻结成功响应 Schema 的逐项检查得到
+54 项可表达大于一；其中 `signal.resolve` 的公开请求只接受一个最终叶节点精确路径，并明确
+不展开 aggregate、array、struct 或 pattern，因此为语义 N/A。最终分区为 53 项运行时适用、
+19 项 Schema 不可表达、1 项语义单值，共 73 项。
+
+运行时补证据覆盖 APB/AXI/Stream 双配置列表、双信号 list.validate、同一首变时刻的两个
+alias、wave/design 两个不同根、连续两个 X/Z 检查值，以及两个真实 UDS session 的 list、gc、
+close-all、kill-all。`session_id="all"` 是冻结公开生命周期语义，故 session.close/kill 必须
+适用，不能因请求字段是字符串而错误标 N/A。新增证据首次暴露 `stream.config.list` 返回
+`packet="disabled"`，而冻结 Schema 只接受 `none|sop/eop`；生产映射已最小修复为 `none`。
+
+最终全新 trace 记录 1137 次已知公开交换：multiple_results 为 53 observed + 20 N/A，
+empty_result 同时保持无缺项；pytest 全量通过，生产修复后的 CTest 9/9 通过。trace 与报告只
+位于 `/tmp`，不得提交、回灌或作为波形索引。该维度关闭不代表完全一致；completeness、X/Z、
+P6 剩余复杂语义和最终 73-action 原版归一化差分仍必须继续完成。
+
+唯一波形事实路径保持“当前 session 原始 `.fst` → Wellen 直接按需读取 → xdebug action
+语义”；DesignDB 只提供静态事实。FST 不是分析引擎。本批未修改 Wellen、Verilator 或 XDD
+ABI，不存在 VCD/JSON 转换、预扫持久化、私有索引、离线数据库、全量内存快照、export
+回灌、TCP/fileport 或 fallback。

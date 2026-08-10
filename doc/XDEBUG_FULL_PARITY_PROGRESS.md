@@ -250,3 +250,17 @@ P0、P1、P2、P3、P4 已关闭，P5 的功能迁移批次已覆盖，P6 正在
 - 一次无效命令 `python3 driver.py --make gmake t_xdd_p3` 把测试名误作额外参数并启动全套调度，已立即中断；它只触及 ignored `obj_*`，未修改源码，结果不计入验收。正确单用例命令 `python3 t/t_xdd_p3.py --vlt` 随后 1/1 通过。
 - 结论：方向和 port connection 是当前 XDD 无法由单个记录确定、且 xdebug-fst 只能用全表启发式扫描得到的不可靠事实，符合任务书“允许的最小扩展顺序”第 1 项。P4 先只扩展 ABI version/capability、声明方向和预计算端口边；active-driver 其它语义字段必须另有失败差分才允许加入。
 - 第二个定向差分使用同一 `t_xdd_p3.v` 中 `out` 的组合赋值：当前 XDD 把 RHS 数据依赖和外围 `if/case` 控制依赖压成结构完全相同的 driver 记录，消费者无法可靠判断 active-driver 的 `rhs_samples` 与 `control_only` 路径。先扩展 `t_xdd_p4.py` 要求逐 driver 的原生 dependency role，修改前执行真实失败在缺少 `xdd_trace_driver_role`。因此只允许增加该单一字段与 capability；没有证据支持的 process order、sequential boundary 等字段继续禁止加入。
+
+## P7 第十一批 multiple_results 全量裁定
+
+`045b995` 将审计器限制为 `summary/data` 直接主结果并冻结 53 项运行时适用、19 项 Schema
+不可表达、`signal.resolve` 1 项语义单值；同时确认 `session_id=all` 使 close/kill 必须支持
+批量结果。`c5fbd6c` 由双 Stream 配置失败证据修复 `stream.config.list` 的
+`packet=disabled` 为冻结合同要求的 `none`。`75e30d0` 在直接原始 FST 和真实 UDS session
+上补 APB/AXI 双配置、双信号 validate/first-change、双 root、双 X/Z 检查以及 session
+list/gc/close-all/kill-all；`6a6def3` 登记 20 项严格 N/A，并同时保留 AXI/Stream 空列表证据。
+
+最终 1137-event 新 trace 为 multiple_results 53 observed + 20 N/A、无缺项；pytest 全量与
+生产修复后的 CTest 9/9 通过。Wellen、Verilator 和 XDD ABI 未修改，原始 FST 仍只由 Wellen
+按需读取，FST 不承担分析；没有转换、索引、离线库、TCP/fileport 或 fallback。Goal 仍
+active，下一维度为 completeness，之后还需 X/Z、P6 剩余复杂语义和最终原版归一化差分。
