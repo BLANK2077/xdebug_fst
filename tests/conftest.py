@@ -290,6 +290,24 @@ def wide_xz_fst() -> Path:
         "xilinx_isim" / "test2x2_regex22_string1.vcd.fst"
 
 
+@pytest.fixture(scope="session")
+def string_delta_fst() -> Path:
+    return WELLEN_REPOSITORY / "wellen" / "inputs" / "nvc" / \
+        "shortstring.fst"
+
+
+@pytest.fixture(scope="session")
+def real_fst() -> Path:
+    return WELLEN_REPOSITORY / "wellen" / "inputs" / "verilator" / \
+        "many_sv_datatypes.fst"
+
+
+@pytest.fixture(scope="session")
+def event_fst() -> Path:
+    return WELLEN_REPOSITORY / "wellen" / "inputs" / "icarus" / \
+        "pull_67_event_example.fst"
+
+
 # ── Helpers ──
 
 def open_session(loop: StdioLoopRunner, fsdb: Path, design_db: Path | None = None) -> Json:

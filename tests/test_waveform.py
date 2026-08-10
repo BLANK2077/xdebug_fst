@@ -240,6 +240,46 @@ def test_value_at_preserves_x_and_decimal_fallback(
     assert "x" in value["bits"]
 
 
+def test_value_at_preserves_settled_utf8_string_delta(
+        loop_runner: StdioLoopRunner, string_delta_fst) -> None:
+    open_session(loop_runner, string_delta_fst)
+    signal = "string_test.test_string.[1:50]"
+    rsp = loop_runner.request("value.at", args={
+        "signal": signal, "time": "0ps", "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["value_width_complete"] is True
+    row = rsp["data"]["samples"][0]["values"][0]
+    assert row["status"] == "ok"
+    assert row["value"]["known"] is True
+    assert row["value"]["value"] == \
+        "En lång röd räv" + " " * 35
+
+
+def test_value_at_preserves_typed_real_value(
+        loop_runner: StdioLoopRunner, real_fst) -> None:
+    open_session(loop_runner, real_fst)
+    rsp = loop_runner.request("value.at", args={
+        "signal": "real_r", "time": "1ps", "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    row = rsp["data"]["samples"][0]["values"][0]
+    assert row["status"] == "ok"
+    assert row["value"]["known"] is True
+    assert float(row["value"]["value"]) == pytest.approx(0.1)
+    assert "width" not in row["value"]
+
+
+def test_value_at_preserves_event_kind(
+        loop_runner: StdioLoopRunner, event_fst) -> None:
+    open_session(loop_runner, event_fst)
+    rsp = loop_runner.request("value.at", args={
+        "signal": "event_example.event1", "time": "0ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    row = rsp["data"]["samples"][0]["values"][0]
+    assert row == {"key": "event_example.event1", "status": "ok",
+                   "value": {"known": True, "value": "event"}}
+
+
 def test_signal_changes(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("signal.changes", args={
