@@ -1432,3 +1432,46 @@ def test_trace_x_origin_missing_signal(loop_runner: StdioLoopRunner, xprop_fst,
         "signal": "nope", "time": "20ps"})
     assert not rsp.get("ok")
     assert rsp["error"]["code"] == "SIGNAL_NOT_FOUND"
+
+
+def test_trace_active_driver_chain_matches_original_phase5_public_semantics(
+        loop_runner: StdioLoopRunner, phase5_fst, phase5_design_db) -> None:
+    open_session(loop_runner, phase5_fst, phase5_design_db)
+    cases = [
+        ("top.phase5_dut.dout[2]", "10ns", "10ns"),
+        ("top.phase5_dut.dout[2]", "20ns", "20ns"),
+        ("top.phase5_dut.dout[2]", "30ns", "30ns"),
+        ("top.phase5_dut.dout[2]", "41ns", "41ns"),
+        ("top.phase5_dut.dout[1]", "50ns", "50ns"),
+        ("top.phase5_dut.dout[1]", "60ns", "50ns"),
+        ("top.phase5_dut.dout[2]", "90ns", "90ns"),
+    ]
+    for signal, query_time, active_time in cases:
+        rsp = loop_runner.request("trace.active_driver_chain", args={
+            "signal": signal, "time": query_time,
+            "render_time_unit": "ns",
+        })
+        assert rsp.get("ok"), rsp
+        assert rsp["summary"]["termination"] == "ambiguous"
+        assert rsp["summary"]["termination_detail"] == \
+            "multiple_rhs_sources"
+        evidence = rsp["data"]["ambiguity_evidence"]
+        assert evidence["kind"] == "multiple_rhs_sources"
+        assert evidence["active_time"] == active_time
+        assert evidence["statement_count"] == 1
+        assert evidence["rhs_signal_count"] == 6
+
+    for query_time in ("71ns", "81ns", "100ns"):
+        rsp = loop_runner.request("trace.active_driver_chain", args={
+            "signal": "top.phase5_dut.flag[2]", "time": query_time,
+            "render_time_unit": "ns",
+        })
+        assert rsp.get("ok"), rsp
+        assert rsp["summary"]["termination"] == "ambiguous"
+        assert rsp["summary"]["termination_detail"] == \
+            "multiple_active_candidates"
+        evidence = rsp["data"]["ambiguity_evidence"]
+        assert evidence["kind"] == "multiple_active_candidates"
+        assert evidence["active_time"] == "71ns"
+        assert evidence["statement_count"] == 2
+        assert evidence["rhs_signal_count"] == 9

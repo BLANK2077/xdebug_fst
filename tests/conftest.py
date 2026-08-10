@@ -312,6 +312,16 @@ def stream_fst() -> Path:
 
 
 @pytest.fixture(scope="session")
+def phase5_fst() -> Path:
+    return _fix("phase5")
+
+
+@pytest.fixture(scope="session")
+def phase5_design_db() -> Path:
+    return FIXTURES / "phase5" / "obj_dir"
+
+
+@pytest.fixture(scope="session")
 def wide_xz_fst() -> Path:
     return WELLEN_REPOSITORY / "wellen" / "inputs" / \
         "xilinx_isim" / "test2x2_regex22_string1.vcd.fst"
