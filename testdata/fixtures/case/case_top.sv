@@ -121,6 +121,13 @@ module case_top (
         .data_o_a(paired_output_bus),
         .data_o_b(paired_output_bus)
     );
+
+    wire [7:0] conditional_output_bus;
+    conditional_output_leaf u_output_cond (
+        .data_i(data),
+        .sel_i(sel[0]),
+        .data_o(conditional_output_bus)
+    );
 endmodule
 
 module inout_leaf (
@@ -159,4 +166,17 @@ module output_pair_leaf (
 );
     assign data_o_a = data_i;
     assign data_o_b = {6'b0, sel_i};
+endmodule
+
+module conditional_output_leaf (
+    input  wire [7:0] data_i,
+    input  wire       sel_i,
+    output reg  [7:0] data_o
+);
+    always_comb begin
+        if (sel_i)
+            data_o = data_i;
+        else
+            data_o = 8'hc3;
+    end
 endmodule

@@ -656,6 +656,39 @@ def test_trace_active_driver_chain_reports_same_instance_output_pair(
         160, 161}
 
 
+def test_trace_active_driver_chain_selects_conditional_child_output(
+        loop_runner: StdioLoopRunner, case_fst,
+        case_design_db) -> None:
+    open_session(loop_runner, case_fst, case_design_db)
+    signal_branch = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.case_top.conditional_output_bus", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert signal_branch.get("ok"), signal_branch
+    assert signal_branch["summary"]["analysis_complete"] is True
+    assert signal_branch["summary"]["termination"] == "primary_input"
+    assert [hop["signal"] for hop in signal_branch["data"]["hops"]] == [
+        "top.case_top.conditional_output_bus",
+        "top.case_top.u_output_cond.data_o",
+        "top.case_top.u_output_cond.data_i",
+        "top.case_top.data",
+        "top.data",
+    ]
+
+    constant_branch = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.case_top.conditional_output_bus", "time": "25ps",
+        "render_time_unit": "ps"})
+    assert constant_branch.get("ok"), constant_branch
+    assert constant_branch["summary"]["analysis_complete"] is True
+    assert constant_branch["summary"]["termination"] == "assignment"
+    assert constant_branch["summary"]["termination_detail"] == \
+        "constant_or_no_rhs_signal"
+    assert [hop["signal"] for hop in constant_branch["data"]["hops"]] == [
+        "top.case_top.conditional_output_bus",
+        "top.case_top.u_output_cond.data_o",
+    ]
+    assert constant_branch["data"]["hops"][-1]["line"] == 180
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:
