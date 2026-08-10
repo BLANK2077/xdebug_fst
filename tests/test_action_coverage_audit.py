@@ -182,6 +182,32 @@ def test_timeout_watchdog_does_not_credit_result_limit_dimension() -> None:
     assert dimensions == {"success"}
 
 
+def test_address_zero_range_does_not_credit_time_boundary_dimension() -> None:
+    address_only = classify(event(
+        {
+            "api_version": "xdebug.v1", "action": "axi.query",
+            "args": {
+                "name": "axi0", "direction": "read",
+                "address": {"mode": "range", "begin": "0", "end": "10"},
+            },
+        },
+        {"ok": True, "summary": {"total_count": 1}, "data": {}},
+    ))
+    assert address_only == {"success"}
+
+    temporal = classify(event(
+        {
+            "api_version": "xdebug.v1", "action": "axi.query",
+            "args": {
+                "name": "axi0", "direction": "read",
+                "time_range": {"begin": "0ns", "end": "10ns"},
+            },
+        },
+        {"ok": True, "summary": {"total_count": 1}, "data": {}},
+    ))
+    assert temporal == {"boundary_time", "success"}
+
+
 def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     empty_actions = {
         "apb.config.load", "axi.config.load", "event.config.load",

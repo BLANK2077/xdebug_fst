@@ -175,6 +175,8 @@ def has_boundary_time(request: Any) -> bool:
     for path, value in walk(request):
         if not path or path[-1] not in TIME_KEYS:
             continue
+        if path[-1] in {"begin", "end"} and "time_range" not in path[:-1]:
+            continue
         values = value if isinstance(value, list) else [value]
         if any(isinstance(item, str) and ZERO_TIME.fullmatch(item.strip())
                for item in values):
