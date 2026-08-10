@@ -634,8 +634,8 @@ onset，返回 `limit/max_time_steps` 和不完整性证据。
 `port` token，保留 `rhs`、`control` 等因果角色。物理 alias 变体先按该 identity 合并，
 `max_chains` 再作用于语义链；响应仍保留被选中物理路径的全部 port hop。不同 RHS、control
 或 onset 不得合并，FST 值相等也不参与身份判断。当前证据关闭基础汇聚路径与 chain limit
-交互；基础 node 预算汇聚已关闭，复杂 modport/ref、端口反馈以及 node/time/depth 组合预算
-仍须独立差分。
+交互；基础 node 预算汇聚与 `interface_modport_member` 的 node 预算组合已关闭，复杂
+嵌套/数组 interface、ref、端口反馈以及 node/time/depth/loop 联合预算仍须独立差分。
 
 物理 alias 路径还可能在 DFS 中重新汇聚。请求内 explored-state identity 使用已有非透明
 语义前缀、当前 incoming 的非 port relation、current signal 和数值 X onset；因此不同
@@ -1005,6 +1005,16 @@ TCP、fileport 或 fallback。
 driver 继续，避免双向边反射回刚离开的 child output。Wellen 仍只对 DesignDB 选定的五个
 FST 名称按需取值，不以值相等识别 ref。对应失败证据/固件/实现为 xdebug-fst `31b5ad2`、
 `8b3e0f8`、`50ed974`，Verilator 和 Wellen 均未修改。
+
+X-origin 对 modport 的基础预算验证不需要再修改三方架构。第五十四批复用现有 GCD 原始
+`.fst`，以独立测试 DesignDB 将静态端口边的 kind 精确设为
+`interface_modport_member`；Wellen 仍只按 action 选定的名称读取 0ps 四态值。consumer
+继续把该 kind 投影为公开 `relation=port`，port hop 保留为物理路径证据，但不进入 RHS/
+control 语义身份，并在 `max_nodes=6` 计数前合并汇聚探索态。结果是 `io_a` 与 `y` 两条
+完整来源链且无 limitation。这里没有扫描 FST alias、按相同值推断 modport、预建 onset 表、
+私有索引或离线数据库；也没有修改生产 consumer、Verilator、Wellen 或 XDD ABI。该测试
+证明的是已发布 modport 静态边在 action 中的 alias/budget 语义，不等于已经覆盖任意真实
+嵌套/数组 interface、ref X-origin、端口反馈或联合预算场景。
 
 ## 十、后续演进原则
 

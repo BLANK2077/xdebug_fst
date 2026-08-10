@@ -110,11 +110,20 @@ interface 结构，禁止据此枚举或推断成员、方向、driver 或边界
 
 本批实际输入只有 `testdata/fixtures/interface_modport/waves.fst`，没有 VCD/JSON 转换、预扫、
 私有索引、离线数据库、全量内存快照、TCP、fileport 或 fallback。基础 source/sink modport
-成员链已闭环，但 ref、嵌套/数组 interface、多 interface driver 和 modport 与 X-origin
-预算/反馈组合仍未完成；当前 Goal 继续保持 active，不能以本批通过宣称完全一致。
+成员链已闭环；第五十四批又关闭基础 modport X-origin/node-budget，但 ref、嵌套/数组
+interface、多 interface driver、端口反馈和联合限制仍未完成。当前 Goal 继续保持 active，
+不能以这些基础批次通过宣称完全一致。
 
 P6 第五十三批的 `ref` 边界继续使用同一职责划分：DesignDB 提供 direction=3 和静态端口/
 driver 事实，action 执行唯一映射与防反射合同，Wellen 只按需读取原始 `.fst` 的五个 hop。
 没有从双向 alias 的 FST 值反推 ref 结构，也没有修改 Verilator/Wellen、转换波形或增加
 fallback。该批只关闭单实例连续赋值基础链，多 ref driver、时序/force 和 X-origin 组合仍
 属于 active Goal 的未完成项。
+
+P6 第五十四批只增加 `interface_modport_member` 的 X-origin/node-budget 合同证据。实际
+波形输入仍是 Wellen 已有 GCD 原始 `.fst`；独立测试 DesignDB 只声明静态 modport 端口边，
+action 负责透明 alias 合并、RHS/control 身份保持和 `max_nodes=6` 预算。两条来源链完整
+返回且没有假 limitation，现有实现无需修改。禁止把这项结果解释为 FST 自身发现 modport
+或执行分析：没有 alias 扫描、值相等推断、波形转换、预扫、私有索引、离线数据库、全量
+快照、TCP、fileport 或 fallback。Verilator/Wellen/生产 consumer 均未修改；复杂
+interface/ref/反馈和联合限制仍未完成，Goal 保持 active。

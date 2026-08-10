@@ -793,14 +793,24 @@ ABI 或 capability。xdebug action 只在唯一活动连续 statement、唯一�
 方向、driver 和边界唯一性全部来自 Verilator DesignDB，chain 顺序和终止来自冻结 xdebug
 action 语义。禁止扫描 FST alias 或相同值反推 interface 结构，禁止转换、预扫、私有索引、
 离线数据库、全量内存快照、TCP、fileport 或 backend fallback。基础六跳 source/sink 链已
-关闭；ref、嵌套/数组 interface、多 interface driver，以及 modport 与 X-origin 的
-node/time/depth/loop 组合仍须单独差分，不得据此宣称任意 interface 能力完成。
+关闭；第五十四批又关闭基础 modport X-origin/node-budget，但 ref、嵌套/数组 interface、
+多 interface driver、端口反馈及 node/time/depth/loop 联合限制仍须单独差分，不得据此
+宣称任意 interface 能力完成。
 
 第五十三批关闭单实例、单 direction=3 `ref` 端口的基础连续赋值链。锁定 Verilator 已经通过
 既有 XDD v2 发布 ref 方向、父子连接和 driver，因此不修改 Verilator。consumer 只把 ref/
 inout 加入 output 同实例 RHS 的唯一端口映射，并在从双向端口返回父 alias 后禁止反射进入
 刚离开的 child output；候选不唯一时仍不选择。真实五跳链全部由当前原始 `.fst` 经 Wellen
 按需取值。多 ref driver、ref 与过程/NBA/force、ref 反馈及 X-origin 预算组合仍未关闭。
+
+第五十四批关闭 `interface_modport_member` 与基础 X-origin node 预算的组合证据。测试继续
+直接打开 Wellen 已有的 GCD 原始 `.fst`，只用独立测试 DesignDB 把同一组可采样 X 信号间
+的静态端口边标记为 `interface_modport_member`。`trace.x_origin` 必须把这些物理 hop
+作为可见但语义透明的 `port` alias，在 `max_nodes=6` 计数前合并汇聚探索态，最终保留
+`io_a` 和 `y` 两条独立 RHS 来源链，且不得产生假 `max_nodes` limitation。现有 action
+直接满足合同，因此本批只增加测试证据，不修改生产 consumer、Verilator、Wellen 或 XDD
+ABI。该证据只关闭基础 modport alias/node-budget 交互；嵌套/数组 interface、ref
+X-origin、端口反馈以及 node/time/depth/loop 联合限制仍须独立差分。
 
 #### trace.active_driver
 
@@ -846,8 +856,9 @@ inout 加入 output 同实例 RHS 的唯一端口映射，并在从双向端口�
 精确 chain/origin 计数和完整性；不得静默过滤环、把环误报为候选来源，或因一条环覆盖
 正常来源。测试只允许由 DesignDB 发布静态依赖、由 action 判断 `(signal,onset)` 路径状态，
 Wellen 仅从当前 session 原始 `.fst` 按需确认候选 X 值。不得扫描同值信号推断依赖或环，
-不得生成波形转换、事件索引或离线分析数据库。当前基础同语句 loop+normal 已关闭；复杂
-端口反馈、interface/modport/ref 和 node/time/depth 组合限制仍须独立差分。
+不得生成波形转换、事件索引或离线分析数据库。当前基础同语句 loop+normal 已关闭；基础
+modport alias 与 node 预算组合在第五十四批关闭，复杂端口反馈、嵌套/数组 interface、ref
+和 node/time/depth/loop 联合限制仍须独立差分。
 
 第 49 批关闭基础 branch+depth 组合：同一请求同时限制 `max_chains` 和 `max_depth` 时，保留
 语义链必须以 `max_depth` frontier 终止，被省略语义分支必须继续出现在该链的 pending 与
