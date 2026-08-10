@@ -119,6 +119,7 @@ COMPLETENESS_KEYS = {
     "complete",
     "data_complete",
     "scan_complete",
+    "value_width_complete",
 }
 
 VALUE_KEYS = {"binary", "bits", "raw", "value"}
@@ -214,7 +215,8 @@ def has_truncation(response: Any) -> bool:
 
 def has_completeness(response: Any) -> bool:
     return any(
-        bool(path) and path[-1] in COMPLETENESS_KEYS and isinstance(value, bool)
+        len(path) == 2 and path[0] in {"summary", "data"} and
+        path[-1] in COMPLETENESS_KEYS and isinstance(value, bool)
         for path, value in walk(response)
     )
 

@@ -2,6 +2,7 @@ from pathlib import Path
 
 from tools.audit_action_coverage import (
     classify,
+    has_completeness,
     has_truncation,
     has_xz,
     load_not_applicable,
@@ -30,6 +31,14 @@ def test_truncation_classifier_uses_frozen_contract_fields() -> None:
             "response_truncated": False,
             "truncation_scopes": ["analysis_samples"],
         }
+    })
+
+
+def test_completeness_classifier_uses_direct_frozen_contract_fields() -> None:
+    assert has_completeness({"summary": {"scan_complete": True}})
+    assert has_completeness({"summary": {"value_width_complete": False}})
+    assert not has_completeness({
+        "data": {"validation": {"analysis_complete": True}},
     })
     assert has_truncation({"data": {"termination": "limit"}})
     assert not has_truncation({
