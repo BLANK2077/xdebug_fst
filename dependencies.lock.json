@@ -1,7 +1,7 @@
 {
   "lock_version": 1,
   "wellen": {
-    "repository": "../wellen",
+    "repository": "env:XDEBUG_WELLEN_REPO",
     "revision": "066d86ad26e82ae02407ad2a64c5a226b8ebe212",
     "branch": "feature/xdebug-fst-capi",
     "crate_version": "0.25.6",
@@ -13,12 +13,12 @@
     "crate_version": "0.1.0",
     "cargo_lock_sha256": "20bd1693f8cf3ab3544cfde109d5d9c9b3508cbf94a86feda79b2a5f714f32b3",
     "header_sha256": "31ad5bf0311a438587daacc97d261f7f0e0306522ee6dece76c1003d7a986528",
-    "source_sha256": "946d22760a47b3ebcadffb1870f160436a06b4bf88505a798b544b18e20f1174",
+    "source_sha256": "50b3f7d65baa7116c37d23bf054bd857f679f11d256d7230275de5cfd53ca910",
     "signal_reference_base": 1
   },
   "verilator": {
-    "repository": "../verilator",
-    "revision": "9863225406f8c0190e7358226f5eab22888e7bf6",
+    "repository": "env:XDEBUG_VERILATOR_REPO",
+    "revision": "d5f5b21fdfbc02d20fba05b6571cabafc227f6ab",
     "branch": "feature/design-db-for-xdebug",
     "xdd_header_sha256": "33afa1e6e173a1ecfe6ebe1fe5f44303f60368f328b0b52677b4544c0be6bba1"
   },
