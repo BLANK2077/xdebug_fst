@@ -80,9 +80,13 @@ def load_apb(loop_runner: StdioLoopRunner, apb_fst, name: str = "apb0") -> None:
 
 def test_apb_config_list(loop_runner: StdioLoopRunner, apb_fst) -> None:
     load_apb(loop_runner, apb_fst)
+    second = loop_runner.request("apb.config.load", args={
+        "name": "apb1", "config": APB_CONFIG})
+    assert second.get("ok"), second
     rsp = loop_runner.request("apb.config.list", args={})
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["count"] == 1
+    assert rsp["summary"]["count"] == 2
+    assert len(rsp["data"]["configs"]) == 2
     assert rsp["data"]["configs"][0]["name"] == "apb0"
     assert rsp["data"]["configs"][0]["sampling_mode"] == "clock_edge"
 
@@ -343,9 +347,14 @@ def _load_axi(loop_runner: StdioLoopRunner) -> dict:
 
 def test_axi_config_list(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
+    for name in ("axi0", "axi1"):
+        loaded = loop_runner.request(
+            "axi.config.load", args={"name": name, "config": AXI_CONFIG})
+        assert loaded.get("ok"), loaded
     rsp = loop_runner.request("axi.config.list")
     assert rsp.get("ok"), rsp
-    assert rsp["summary"]["count"] == 0
+    assert rsp["summary"]["count"] == 2
+    assert len(rsp["data"]["configs"]) == 2
 
 
 def test_axi_config_load(loop_runner: StdioLoopRunner, axi_fst) -> None:

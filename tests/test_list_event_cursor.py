@@ -97,13 +97,15 @@ def test_list_load_show(loop_runner: StdioLoopRunner, counter_fst) -> None:
 def test_list_validate_ok_and_bad(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("list.create", args={
-        "name": "vl", "signals": ["top.clk"]})
+        "name": "vl", "signals": ["top.clk", "top.counter_top.count"]})
     assert rsp.get("ok"), rsp
     rsp = loop_runner.request("list.validate", args={"name": "vl"})
     assert rsp.get("ok"), rsp
     assert rsp["summary"] == {"name": "vl", "all_found": True}
     assert rsp["data"]["signals"] == [
-        {"signal": "top.clk", "status": "ok"}]
+        {"signal": "top.clk", "status": "ok"},
+        {"signal": "top.counter_top.count", "status": "ok"},
+    ]
     bad = loop_runner.request("list.load", args={
         "config": {"lists": [{"name": "bad", "signals": ["bad.sig"]}]}})
     assert not bad.get("ok")
@@ -145,17 +147,19 @@ def test_list_export(loop_runner: StdioLoopRunner, counter_fst, tmp_path) -> Non
 def test_list_first_change(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     loop_runner.request("list.create", args={
-        "name": "fc", "signals": ["top.counter_top.count", "top.clk"]})
+        "name": "fc", "signals": ["top.clk", "top.counter_top.clk"]})
     rsp = loop_runner.request("list.first_change", args={
         "name": "fc", "time_range": {"begin": "0ps", "end": "200ps"},
         "render_time_unit": "ps"})
     assert rsp.get("ok"), rsp
     assert rsp["summary"] == {
         "name": "fc", "diff_found": True, "diff_time": "10ps",
-        "changed_signal_count": 1}
+        "changed_signal_count": 2}
     assert rsp["data"]["changed_signals"][0]["signal"] == "top.clk"
     assert rsp["data"]["changed_signals"][0]["before_time"] == "0ps"
     assert rsp["data"]["changed_signals"][0]["change_time"] == "10ps"
+    assert rsp["data"]["changed_signals"][1]["signal"] == \
+        "top.counter_top.clk"
 
 
 def test_list_first_change_no_difference(loop_runner: StdioLoopRunner,

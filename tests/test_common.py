@@ -204,6 +204,46 @@ def test_session_gc_and_kill(loop_runner: StdioLoopRunner, counter_fst) -> None:
     assert rsp.get("ok")
 
 
+def test_session_multi_result_lifecycle_on_direct_raw_fst(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    cleared = loop_runner.request(
+        "session.close", target={"session_id": "all"}, args={})
+    assert cleared.get("ok"), cleared
+    for name in ("multiple_close_a", "multiple_close_b"):
+        opened = loop_runner.request(
+            "session.open", target={"fsdb": str(counter_fst)},
+            args={"name": name})
+        assert opened.get("ok"), opened
+
+    listed = loop_runner.request("session.list")
+    assert listed.get("ok"), listed
+    assert listed["summary"]["session_count"] == 2
+    assert len(listed["data"]["sessions"]) == 2
+
+    collected = loop_runner.request("session.gc")
+    assert collected.get("ok"), collected
+    assert collected["summary"]["before_count"] == 2
+    assert collected["summary"]["kept_count"] == 2
+    assert len(collected["data"]["kept_sessions"]) == 2
+
+    closed = loop_runner.request(
+        "session.close", target={"session_id": "all"}, args={})
+    assert closed.get("ok"), closed
+    assert closed["summary"] == {"requested_count": 2, "removed_count": 2}
+    assert len(closed["data"]["removed_sessions"]) == 2
+
+    for name in ("multiple_kill_a", "multiple_kill_b"):
+        opened = loop_runner.request(
+            "session.open", target={"fsdb": str(counter_fst)},
+            args={"name": name})
+        assert opened.get("ok"), opened
+    killed = loop_runner.request(
+        "session.kill", target={"session_id": "all"}, args={})
+    assert killed.get("ok"), killed
+    assert killed["summary"] == {"requested_count": 2, "removed_count": 2}
+    assert len(killed["data"]["removed_sessions"]) == 2
+
+
 def test_unknown_action(cli_runner: CliRunner) -> None:
     result = cli_runner.run({"api_version": "xdebug.v1", "action": "no.such.action"})
     assert not result.ok

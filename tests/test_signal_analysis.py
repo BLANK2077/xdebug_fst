@@ -188,6 +188,23 @@ def test_signal_xz_verify_x_present(
     assert rsp["data"]["first_mismatch"] is None
 
 
+def test_signal_xz_verify_checks_multiple_direct_raw_fst_values(
+    loop_runner: StdioLoopRunner, wellen_apb_fst
+) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    rsp = loop_runner.request("signal.xz_verify", args={
+        "signal": "top.masslav_if.Pslave_err",
+        "expected_state": "x",
+        "match_mode": "contains",
+        "time_range": time_range("0ps", "20ns"),
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["checked_value_count"] == 2
+    assert rsp["summary"]["total_count"] == 2
+    assert rsp["data"]["initial_value"]["has_x"] is True
+    assert rsp["data"]["first_mismatch"]["sample_time"] == "16ns"
+
+
 def test_signal_anomaly_unknown_and_scan_status(
     loop_runner: StdioLoopRunner, wide_xz_fst
 ) -> None:

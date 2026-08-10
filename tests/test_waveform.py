@@ -415,6 +415,19 @@ def test_scope_roots_reports_design_wave_mismatch(
     ]
 
 
+def test_scope_roots_reports_multiple_direct_raw_fst_and_design_roots(
+        loop_runner: StdioLoopRunner, counter_fst,
+        gcd_xorigin_design_db) -> None:
+    open_session(loop_runner, counter_fst, gcd_xorigin_design_db)
+    rsp = loop_runner.request("scope.roots", args={"source": "auto"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] == 2
+    assert rsp["summary"]["returned_count"] == 2
+    assert [(root["path"], root["status"])
+            for root in rsp["data"]["roots"]] == [
+        ("GCD", "design_only"), ("top", "wave_only")]
+
+
 def test_scope_list(loop_runner: StdioLoopRunner, counter_fst,
                     counter_design_db) -> None:
     open_session(loop_runner, counter_fst, counter_design_db)
