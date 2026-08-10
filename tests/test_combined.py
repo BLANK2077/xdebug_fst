@@ -1277,6 +1277,27 @@ def test_trace_x_origin_coalesces_converged_alias_exploration_before_node_limit(
     assert rsp["data"]["limitations"] == []
 
 
+def test_trace_x_origin_coalesces_modport_aliases_before_node_limit(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        xorigin_modport_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, xorigin_modport_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"}, limits={
+            "max_chains": 2, "max_nodes": 6})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "origin_found"
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["chain_count"] == 2
+    assert rsp["summary"]["completed_chain_count"] == 2
+    assert rsp["summary"]["limited_chain_count"] == 0
+    assert {chain["current"]["signal"] for chain in rsp["data"]["chains"]} == {
+        "GCD.io_a", "GCD.y"}
+    assert all(any(hop["relation"] == "port" for hop in chain["hops"])
+               for chain in rsp["data"]["chains"])
+    assert rsp["data"]["limitations"] == []
+
+
 def test_trace_x_origin_reports_driver_cycle_as_loop(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         xorigin_loop_design_db) -> None:

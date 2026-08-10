@@ -271,6 +271,27 @@ if(BUILD_TESTING)
         CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVxorigin_alias__DesignDb.so\"\n}\n"
     )
 
+    set(XORIGIN_MODPORT_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/xorigin_modport/obj_dir")
+    file(MAKE_DIRECTORY "${XORIGIN_MODPORT_XDD_BUNDLE_DIR}")
+    add_library(test-xorigin-modport-xdd-bundle SHARED
+        tests/cpp/xorigin_xdd_bundle.cpp
+    )
+    target_include_directories(test-xorigin-modport-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    target_compile_definitions(test-xorigin-modport-xdd-bundle PRIVATE
+        XDEBUG_TEST_MODPORT_ALIAS=1
+    )
+    set_target_properties(test-xorigin-modport-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vxorigin_modport__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${XORIGIN_MODPORT_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${XORIGIN_MODPORT_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVxorigin_modport__DesignDb.so\"\n}\n"
+    )
+
     set(XORIGIN_LOOP_XDD_BUNDLE_DIR
         "${CMAKE_BINARY_DIR}/testdata/fixtures/xorigin_loop/obj_dir")
     file(MAKE_DIRECTORY "${XORIGIN_LOOP_XDD_BUNDLE_DIR}")

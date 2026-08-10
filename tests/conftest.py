@@ -181,6 +181,12 @@ def xorigin_alias_design_db(xfst_bin: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
+def xorigin_modport_design_db(xfst_bin: Path) -> Path:
+    return (xfst_bin.parent / "testdata" / "fixtures" /
+            "xorigin_modport" / "obj_dir")
+
+
+@pytest.fixture(scope="session")
 def xorigin_loop_design_db(xfst_bin: Path) -> Path:
     return xfst_bin.parent / "testdata" / "fixtures" / "xorigin_loop" / "obj_dir"
 

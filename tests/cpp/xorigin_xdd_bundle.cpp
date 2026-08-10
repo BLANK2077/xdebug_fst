@@ -89,7 +89,7 @@ constexpr int kSignalCount = 2;
 constexpr int kDriverCount = 2;
 constexpr int kLoadCount = 2;
 
-#elif defined(XDEBUG_TEST_ALIAS_COALESCE)
+#elif defined(XDEBUG_TEST_ALIAS_COALESCE) || defined(XDEBUG_TEST_MODPORT_ALIAS)
 
 const XddSignalInfo kSignals[] = {
     {"GCD.T_14", "wire", 33, "xorigin_alias.sv", 2},
@@ -318,7 +318,7 @@ void xdd_trace_load(XddDb*, int index, int offset, int* consumer,
 }
 
 int xdd_port_connection_count(XddDb*, int index) {
-#if defined(XDEBUG_TEST_ALIAS_COALESCE)
+#if defined(XDEBUG_TEST_ALIAS_COALESCE) || defined(XDEBUG_TEST_MODPORT_ALIAS)
     return index >= 0 && index <= 3 ? 2 : 0;
 #else
     (void)index;
@@ -330,13 +330,17 @@ void xdd_port_connection(XddDb*, int index, int offset, int* connected,
                          const char** kind) {
     *connected = -1;
     *kind = nullptr;
-#if defined(XDEBUG_TEST_ALIAS_COALESCE)
+#if defined(XDEBUG_TEST_ALIAS_COALESCE) || defined(XDEBUG_TEST_MODPORT_ALIAS)
     static const int kConnections[4][2] = {
         {1, 2}, {0, 3}, {0, 3}, {1, 2},
     };
     if (index >= 0 && index <= 3 && offset >= 0 && offset < 2) {
         *connected = kConnections[index][offset];
+#if defined(XDEBUG_TEST_MODPORT_ALIAS)
+        *kind = "interface_modport_member";
+#else
         *kind = "module_port";
+#endif
     }
 #else
     (void)index;
