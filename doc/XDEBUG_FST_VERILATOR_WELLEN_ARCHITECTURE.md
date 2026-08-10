@@ -616,6 +616,13 @@ predicate，也没有生成任何中间波形、索引、数据库或快照。
 `evidence_status=unresolved`、`analysis_complete=false`；若另有完成链则为 `partial`。
 不得通过放宽 schema、把 summary 写成未登记枚举，或把缺失信号伪装成 X 来消除错误。
 
+零 driver 证据同样不能从 FST 值推导终止类型。`trace.active_driver_chain` 对 DesignDB 中
+没有 driver 的内部 wire/output 必须返回 `unresolved`；只有 DesignDB 声明方向证明当前
+信号为 input-like，并且静态端口边不存在可继续的父级连接时，才返回 `primary_input`。
+Wellen 即使能从原始 FST 读取该内部信号的完整值，也没有权限把它分类成外部来源。
+单步 `trace.active_driver` 的空 paths 可按其独立合同报告 `no_driver`，不得把两个 action 的
+termination 规则混为一套。
+
 同一源文件行也不能直接等同于同一条动态语句。lowering 后的三元表达式可能把信号 RHS
 叶子与常量 RHS 叶子保留在同一 `(file,line,kind)` 下，但每片叶子具有不同的静态
 activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为语句身份，
