@@ -1024,6 +1024,26 @@ def test_trace_x_origin_depth_frontier(
         "continue_from_depth_frontier", "rerun_from_root_with_higher_depth"]
 
 
+def test_trace_x_origin_time_step_limit_counts_distinct_x_onsets(
+        loop_runner: StdioLoopRunner, wide_xz_fst,
+        xorigin_time_design_db) -> None:
+    open_session(loop_runner, wide_xz_fst, xorigin_time_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": (
+            "AXI_top_tb_from_compiled.dut.a_regex_coprocessor.genblk1."
+            "a_topology.genblk1[0].genblk1[0].engine_and_station_i.anEngine."
+            "anEngine.g.aregex_cpu.EXE2_Instr"),
+        "time": "55215000ps", "render_time_unit": "ps"},
+        limits={"max_time_steps": 1})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "limit"
+    assert rsp["summary"]["analysis_complete"] is False
+    assert rsp["summary"]["chain_count"] == 1
+    assert rsp["data"]["chains"][0]["termination_detail"] == "max_time_steps"
+    assert "trace truncated by limits.max_time_steps" in rsp["data"]["limitations"]
+    assert rsp["data"]["chains"][0]["current"]["x_onset_time"] == "55015000ps"
+
+
 def test_trace_x_origin_node_limit_stops_at_pending_dependency(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:

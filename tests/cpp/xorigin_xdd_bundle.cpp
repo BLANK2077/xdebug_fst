@@ -7,6 +7,35 @@
 
 namespace {
 
+#if defined(XDEBUG_TEST_X_TIME_LIMIT)
+
+const XddSignalInfo kSignals[] = {
+    {"AXI_top_tb_from_compiled.dut.a_regex_coprocessor.genblk1.a_topology.genblk1[0].genblk1[0].engine_and_station_i.anEngine.anEngine.g.aregex_cpu.EXE2_Instr",
+     "wire", 16, "xorigin_time_limit.sv", 2},
+    {"AXI_top_tb_from_compiled.dut.a_regex_coprocessor.genblk1.a_topology.genblk1[0].genblk1[0].engine_and_station_i.anEngine.anEngine.g.aregex_cpu.current_character",
+     "port", 8, "xorigin_time_limit.sv", 1},
+};
+
+const int kDirections[] = {0, 1};
+
+const XddDriverRec kDrivers[] = {
+    {0, 1, "cont_assign", "rhs", "xorigin_time_limit.sv", 2},
+};
+
+const int kDriverStart[] = {0, 1};
+
+const XddLoadRec kLoads[] = {
+    {1, 0, "rhs_use", "xorigin_time_limit.sv", 2},
+};
+
+const int kLoadStart[] = {0, 0};
+
+constexpr int kSignalCount = 2;
+constexpr int kDriverCount = 1;
+constexpr int kLoadCount = 1;
+
+#else
+
 const XddSignalInfo kSignals[] = {
     {"GCD.io_z", "port", 32, "gcd_xorigin.sv", 7},
     {"GCD.x", "wire", 32, "gcd_xorigin.sv", 5},
@@ -51,6 +80,8 @@ const int kLoadStart[] = {0, 0, 4, 6, 6, 9, 9, 9};
 constexpr int kSignalCount = 8;
 constexpr int kDriverCount = 9;
 constexpr int kLoadCount = 9;
+
+#endif
 
 }  // namespace
 
