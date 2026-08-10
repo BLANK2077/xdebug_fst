@@ -88,4 +88,11 @@ module matches_top (
     double_nba_q <= 8'h44;
     double_nba_q <= data;
   end
+
+  reg [7:0] default_only_out;
+  always_comb begin
+    case (sel) matches
+      default: default_only_out = data;
+    endcase
+  end
 endmodule

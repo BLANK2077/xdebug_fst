@@ -159,6 +159,24 @@ def test_trace_active_driver_selects_standalone_matches_predicates(
         "top.data", "top.matches_top.wildcard_match_out"]
 
 
+def test_trace_active_driver_selects_default_only_case_matches(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    for query_time in ("45ps", "65ps"):
+        rsp = loop_runner.request("trace.active_driver", args={
+            "signal": "top.matches_top.default_only_out",
+            "time": query_time, "render_time_unit": "ps"})
+        assert rsp.get("ok"), rsp
+        assert rsp["summary"]["analysis_complete"] is True
+        assert rsp["summary"]["termination"] == "assignment"
+        assert rsp["summary"]["returned_count"] == 1
+        path = rsp["data"]["paths"][0]
+        assert path["line"] == 95
+        assert path["signal_path"] == [
+            "top.data", "top.matches_top.default_only_out"]
+
+
 def test_trace_active_driver_chain_propagates_through_nba_active_time(
         loop_runner: StdioLoopRunner, matches_fst,
         matches_design_db) -> None:
