@@ -489,6 +489,29 @@ def test_trace_active_driver_chain(loop_runner: StdioLoopRunner, counter_fst,
     assert hops[0]["value"] == "8'h0b"
 
 
+def test_trace_active_driver_chain_distinguishes_internal_zero_evidence_from_primary_input(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        gcd_xorigin_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, gcd_xorigin_design_db)
+    internal = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "GCD.T_13", "time": "0ps",
+        "render_time_unit": "ps"})
+    assert internal.get("ok"), internal
+    assert internal["summary"]["termination"] == "unresolved"
+    assert internal["summary"]["termination_detail"] == "unresolved"
+    assert internal["summary"]["returned_count"] == 1
+    assert internal["data"]["hops"][0]["signal"] == "GCD.T_13"
+
+    primary = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "GCD.io_a", "time": "0ps",
+        "render_time_unit": "ps"})
+    assert primary.get("ok"), primary
+    assert primary["summary"]["termination"] == "primary_input"
+    assert primary["summary"]["termination_detail"] == "primary_input"
+    assert primary["summary"]["returned_count"] == 1
+    assert primary["data"]["hops"][0]["signal"] == "GCD.io_a"
+
+
 def test_trace_active_driver_chain_stops_at_parent_primary_input_alias(
         loop_runner: StdioLoopRunner, counter_fst,
         counter_design_db) -> None:
