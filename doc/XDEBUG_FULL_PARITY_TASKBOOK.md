@@ -1170,6 +1170,29 @@ time/limits/XZ 误记为 action 执行覆盖的问题：
 7. 本批未修改生产实现、Wellen、Verilator、ABI、backend 或 transport；测试事实路径仍为
    `原始 .fst → Wellen 按需读取 → action`。
 
+#### P7 第七批：empty_result 七十三项全量裁定
+
+2026-08-10 完成 empty_result 维度全部 73 项裁定：
+
+1. 新增 catalog 合法空过滤、APB/AXI 零匹配 statistics、AXI 零行显式 export、event 零事件
+   export、signal.changes 零 transition summary；observed 由 34 提高到 41。
+2. 新增 waveform-only session 请求 design roots 的零 root 与不完整分析、primary input 无
+   active/static driver、内部 output 无 static load，observed 最终为 45。
+3. 第一类 18 N/A 必须同时满足：冻结文件哈希有效，全部冻结原版成功 schema 均没有主结果
+   integer/array/found 表达。检查器要求集合精确相等，schema 演进时 fail closed。
+4. 第二类 10 N/A 的成功 schema 虽含主结果字段，但公共请求要求非空输入或既有 target，且冻结
+   原版成功 example 锁定对应的非空输出映射：batch、list.load、nwave.rc.generate、
+   session.close/kill、signal.resolve、signal.xz_verify、trace.active_driver_chain、value.at、
+   verify.conditions。
+5. 最新完整 trace 含 1073 次已识别 public exchange：empty_result=45 observed+28 N/A，
+   未裁定为 0；success/invalid 73/73、resource_missing=67 observed+6 N/A、boundary_time 24、
+   multiple_results 44、limits 20、truncation 16、completeness 37、X/Z 7。
+6. 全量 pytest、CTest 9/9、冻结基线、resource applicability 原版差分 6/6 与 empty applicability
+   检查器通过。失败 trace 不复用，所有审计文件只在 `/tmp`。
+7. AXI/event/list/stream 等显式 export 产物仅验证请求输出合同，不作为 action 输入、不回灌分析；
+   本批未修改生产实现、Wellen、Verilator、ABI、backend 或 transport。
+8. 下一步进入 truncation 维度；不得把 empty_result 的 N/A 集合直接复制到 truncation。
+
 提交：
 
 - `测试：建立七十三项 action 全量差分门禁`

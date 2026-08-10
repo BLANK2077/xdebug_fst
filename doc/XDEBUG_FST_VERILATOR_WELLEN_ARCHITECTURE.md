@@ -1141,6 +1141,19 @@ trace 的 empty_result 为 33/73、boundary_time 24/73、multiple_results 42/73�
 本批没有建立波形副本或私有索引。所有空结果来自 Wellen 对当前 session 原始 `.fst` 的按需
 扫描；DesignDB 和生产 action 未修改。
 
+### 9.14 Empty-result applicability 已全量裁定
+
+P7 第七批把 empty_result 收口为 45 项 observed + 28 项 N/A。observed 新增 catalog 空过滤、
+APB/AXI 零匹配统计、零行显式 export、零事件 export、零 transition summary，以及 waveform-only
+请求 design roots、primary input 无 active/static driver、内部 output 无 static load 等边界。
+
+N/A 分成两类保存证据：18 项的冻结原版全部成功 schema 没有任何主结果基数表达；另 10 项由
+公共非空输入/target 约束和冻结原版非空成功映射共同锁定。空 diagnostics、建议、constraints、
+错误响应和 `returned_count=0,total_count>0` 继续禁止计为空结果。
+
+最新 1073 次 public exchange 中 empty_result 未裁定为 0。显式 export 只验证用户请求的输出
+合同，不回灌 action；其余事实仍来自 Wellen 对原始 `.fst` 的按需扫描和 DesignDB 静态查询。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；

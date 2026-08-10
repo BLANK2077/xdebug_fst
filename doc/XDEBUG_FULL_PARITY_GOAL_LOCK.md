@@ -226,3 +226,16 @@ truncation 保持 16。剩余 action 仍须实测或原版/schema 证明 N/A，G
 
 所有请求继续直接使用原始 `.fst`；没有 FST 转换、持久索引、离线分析库、TCP/fileport 或
 fallback，也没有修改生产 action、Wellen、Verilator 或 ABI。
+
+## 十四、P7 第七批 empty_result 全量裁定记录
+
+empty_result 已达到 45 observed + 28 N/A，73 项全部裁定。18 项 N/A 由冻结原版成功 schema
+无法表达主结果基数证明；10 项 N/A 由公共非空输入/target 约束和冻结原版非空成功映射证明。
+不得把两类证明混写，也不得根据 action 名称或实现方便增加 N/A。
+
+最新 1073-event trace 中 empty_result 未裁定为 0；resource_missing 仍为 67 observed + 6 N/A。
+原版资源适用性差分 6/6、empty applicability 检查器、pytest 全量和 CTest 9/9 通过。
+
+本批没有修改生产 action、Wellen、Verilator、ABI、backend 或 transport。显式 export 不参与
+后续分析，唯一波形事实路径仍是当前 session 原始 `.fst` 由 Wellen 按需读取。Goal 保持 active，
+下一维度为 truncation。
