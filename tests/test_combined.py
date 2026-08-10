@@ -1115,6 +1115,41 @@ def test_trace_x_origin_chain_limit_preserves_omitted_branch(
     assert event["pending_x_dependencies"][0]["signal"] == "GCD.y"
 
 
+def test_trace_x_origin_combines_branch_and_depth_limits(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        gcd_xorigin_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, gcd_xorigin_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"}, limits={
+            "max_depth": 1, "max_chains": 1})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["chain_count"] == 1
+    assert rsp["summary"]["termination"] == "limit"
+    assert rsp["summary"]["completed_chain_count"] == 0
+    assert rsp["summary"]["limited_chain_count"] == 1
+    assert rsp["summary"]["analysis_complete"] is False
+
+    chain = rsp["data"]["chains"][0]
+    assert chain["termination_detail"] == "max_depth"
+    assert chain["current"]["signal"] == "GCD.io_a"
+    assert {item["signal"] for item in chain["pending_x_dependencies"]} == {
+        "GCD.y"}
+    event = chain["branch_events"][0]
+    assert event["reason"] == "max_chains"
+    assert event["x_dependency_count"] == 2
+    assert event["returned_x_dependency_count"] == 1
+    assert event["omitted_x_dependency_count"] == 1
+
+    frontier = rsp["data"]["depth_frontiers"][0]
+    assert frontier["signal"] == chain["current"]["signal"]
+    assert frontier["continue_time"] == chain["current"]["x_onset_time"]
+    assert "'h" in frontier["value"]["value"]
+    suggested = rsp["data"]["suggested_next_actions"]
+    assert suggested[0]["args"]["signal"] == frontier["signal"]
+    assert suggested[0]["args"]["time"] == frontier["continue_time"]
+
+
 def test_trace_x_origin_coalesces_port_aliases_before_chain_limit(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         xorigin_alias_design_db) -> None:
