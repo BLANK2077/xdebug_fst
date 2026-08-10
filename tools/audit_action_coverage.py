@@ -56,6 +56,7 @@ RESULT_COUNT_KEYS = {
     "signal_count",
     "transaction_count",
     "transfer_count",
+    "total_count",
 }
 
 RESULT_LIST_KEYS = {
@@ -140,6 +141,13 @@ def has_result_cardinality(response: Any, predicate: Any) -> bool:
     return False
 
 
+def has_empty_lookup(response: Any) -> bool:
+    return any(
+        bool(path) and path[-1] in {"found", "diff_found"} and value is False
+        for path, value in walk(response)
+    )
+
+
 def has_boundary_time(request: Any) -> bool:
     for path, value in walk(request):
         if not path or path[-1] not in TIME_KEYS:
@@ -209,7 +217,8 @@ def classify(event: dict[str, Any]) -> set[str]:
     truncated = has_truncation(response)
     if succeeded:
         observed.add("success")
-        if has_result_cardinality(response, lambda count: count == 0):
+        if has_result_cardinality(response, lambda count: count == 0) or \
+                has_empty_lookup(response):
             observed.add("empty_result")
         if has_result_cardinality(response, lambda count: count > 1):
             observed.add("multiple_results")

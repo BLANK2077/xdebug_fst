@@ -54,6 +54,34 @@ def test_classifier_records_canonical_invalid_request() -> None:
     assert dimensions == {"invalid_request"}
 
 
+def test_empty_classifier_accepts_zero_total_and_explicit_not_found() -> None:
+    zero_total = classify(event(
+        {"api_version": "xdebug.v1", "action": "event.find"},
+        {
+            "ok": True,
+            "summary": {"total_count": 0, "returned_count": 0},
+            "data": {},
+        },
+    ))
+    assert zero_total == {"empty_result", "success"}
+
+    not_found = classify(event(
+        {"api_version": "xdebug.v1", "action": "apb.transaction.cursor"},
+        {"ok": True, "summary": {"found": False}, "data": {}},
+    ))
+    assert not_found == {"empty_result", "success"}
+
+    count_only = classify(event(
+        {"api_version": "xdebug.v1", "action": "apb.query"},
+        {
+            "ok": True,
+            "summary": {"total_count": 4, "returned_count": 0},
+            "data": {},
+        },
+    ))
+    assert count_only == {"multiple_results", "success"}
+
+
 def test_classifier_keeps_observed_dimensions_independent() -> None:
     dimensions = classify(event(
         {
