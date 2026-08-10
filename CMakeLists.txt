@@ -198,6 +198,27 @@ if(BUILD_TESTING)
         CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVgcd_xpredicate__DesignDb.so\"\n}\n"
     )
 
+    set(XORIGIN_UNRESOLVED_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/gcd_unresolved/obj_dir")
+    file(MAKE_DIRECTORY "${XORIGIN_UNRESOLVED_XDD_BUNDLE_DIR}")
+    add_library(test-xorigin-unresolved-xdd-bundle SHARED
+        tests/cpp/xorigin_xdd_bundle.cpp
+    )
+    target_include_directories(test-xorigin-unresolved-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    target_compile_definitions(test-xorigin-unresolved-xdd-bundle PRIVATE
+        XDEBUG_TEST_MISSING_PREDICATE=1
+    )
+    set_target_properties(test-xorigin-unresolved-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vgcd_unresolved__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${XORIGIN_UNRESOLVED_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${XORIGIN_UNRESOLVED_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVgcd_unresolved__DesignDb.so\"\n}\n"
+    )
+
     add_executable(test-xdd-design-backend
         tests/cpp/test_xdd_design_backend.cpp
         src/backend/xdd_design_backend.cpp

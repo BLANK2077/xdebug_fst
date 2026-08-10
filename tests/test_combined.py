@@ -909,6 +909,24 @@ def test_trace_x_origin_branches_on_x_control_and_x_rhs(
     }
 
 
+def test_trace_x_origin_opaque_predicate_is_pending(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        gcd_unresolved_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, gcd_unresolved_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "pending"
+    assert rsp["summary"]["evidence_status"] == "unresolved"
+    assert rsp["summary"]["analysis_complete"] is False
+    assert rsp["summary"]["chain_count"] == 1
+    chain = rsp["data"]["chains"][0]
+    assert chain["status"] == "unresolved"
+    assert chain["termination_detail"] == "predicate_unresolved"
+    assert chain["complete"] is False
+
+
 def test_trace_x_origin_stops_at_force_x(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:
