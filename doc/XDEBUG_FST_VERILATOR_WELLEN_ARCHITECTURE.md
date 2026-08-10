@@ -666,6 +666,13 @@ DesignDB 静态依赖和 action 的 `(signal,onset)` 路径状态决定，不由
 误报为已找到来源。所有候选仍由 DesignDB 静态依赖选出，Wellen 只在当前原始 FST 中按需
 提供 frontier 值与时间，预算和续跑协议完全由 action 负责。
 
+X-origin 的用户查询时间和逐信号 X 首发时间属于不同事实。第 50 批锁定：summary/query
+保留用户给定 `query_time`，每个 hop/current 则由 Wellen 对 DesignDB 已选定信号按需向前
+查找其自身连续 X 区间的 onset；根和上游可以具有不同 onset。action 以这些时刻组织 DFS
+状态和限制计数，不能把 query time 写成所有 hop 的 onset，也不能把根 onset 复制给不同
+宽度或不同历史的上游。query 对象不因此扩 schema 字段，首发时间仍只属于 chain 证据。
+这是一组按需读取，不是对整份 FST 建立事件时间表或持久化索引。
+
 X mask 是确定性响应事实，不是装饰文本。Wellen 返回当前信号的实际位串和宽度，action
 逐位把 X 类状态映射为 1、其余映射为 0，并使用 `<width>'b<bits>` 输出；query、current、
 hop 和 frontier 必须共用同一规则，不能复用根信号宽度渲染不同宽度上游。冻结目录中的

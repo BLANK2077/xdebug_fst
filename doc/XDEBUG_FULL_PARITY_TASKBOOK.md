@@ -830,6 +830,11 @@ action 对 DesignDB 静态依赖执行预算，Wellen 只按需读取当前原�
 把波形扫描结果用于选择分支或预建 frontier。alias/loop 与 node/time/depth 的复杂组合仍是
 P6 必做项，不能据本批宣称全部限制交互已完成。
 
+第 50 批关闭查询晚于 X 首发的基础时间合同：summary/query 必须保留用户 query time，根
+hop 和各上游 hop/current 必须分别记录自身 X onset，不能跨信号复用。Wellen 只对 action
+根据 DesignDB 静态依赖选出的信号执行当前请求内的按需向前查找；禁止预扫整份 FST 生成
+onset 时间表、持久化事件索引或离线数据库。冻结 query schema 不增加 onset 字段。
+
 提交：
 
 `功能：实现多分支 X 来源追踪`
