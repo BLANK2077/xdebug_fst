@@ -1127,6 +1127,20 @@ public exchange 重算后 truncation 为 16/73。19/73 和 16/73 都只是 obser
 这些证据仍来自 action 对原始 FST 的真实执行；trace 只在 `/tmp` 做测试审计，不回灌 Wellen，
 也不成为波形索引或离线分析数据库。
 
+### 9.13 主结果集合与空查询语义继续收紧
+
+P7 第六批进一步识别冻结合同中的 `total_count=0`、`found=false` 与 action 主结果集合；但明确
+排除空 `issues`、`recommended_actions`、`constraints` 等辅助诊断/建议，避免把“配置成功且无
+告警”伪装成“查询无结果”。count-only 响应若 `total_count>0, returned_count=0` 也不算空。
+
+随后在原始 FST 上增加 AXI cursor 末尾、超高 latency 阈值、事务前 timeline/pair，stream
+首个 transfer 前 query/export，以及首个采样边沿前 sampled-pulse/handshake。1046-event
+trace 的 empty_result 为 33/73、boundary_time 24/73、multiple_results 42/73；truncation
+仍为 16/73。数字仍是 observed，不是兼容率或 applicability 完成率。
+
+本批没有建立波形副本或私有索引。所有空结果来自 Wellen 对当前 session 原始 `.fst` 的按需
+扫描；DesignDB 和生产 action 未修改。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；

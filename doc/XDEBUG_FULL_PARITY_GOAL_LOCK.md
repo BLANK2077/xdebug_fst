@@ -212,3 +212,17 @@ limit 终止；普通 `limitations` 不等于截断。1019-event trace 重算为
 
 本批没有修改生产 action、Wellen、Verilator、ABI、backend 或 transport。测试仍只让 Wellen
 直接按需读取原始 `.fst`；trace 只用于测试覆盖审计，不得参与分析。Goal 保持 active。
+
+## 十三、P7 第六批主结果空语义防漂移记录
+
+空结果分类增加 `total_count=0`、`found/diff_found=false` 和明确的主结果集合；禁止将空
+diagnostics、suggestions、constraints、任意空 `data` 或 `returned_count=0,total_count>0`
+计为空结果。该边界使旧 trace 的 empty_result 从 19 校正为 25、multiple_results 从 35
+校正为 42。
+
+八项新增真实协议扫描把 empty_result 提高到 33：AXI cursor/latency/timeline/pair、stream
+query/export、sampled-pulse 和 handshake。最新 1046-event trace 同时得到 boundary_time 24，
+truncation 保持 16。剩余 action 仍须实测或原版/schema 证明 N/A，Goal 保持 active。
+
+所有请求继续直接使用原始 `.fst`；没有 FST 转换、持久索引、离线分析库、TCP/fileport 或
+fallback，也没有修改生产 action、Wellen、Verilator 或 ABI。

@@ -1146,6 +1146,30 @@ time/limits/XZ 误记为 action 执行覆盖的问题：
 7. 本批未修改生产 action、Wellen、Verilator、ABI、backend 或 transport。运行时事实仍为
    `原始 .fst → Wellen 按需读取 → action`，DesignDB 静态事实边界不变。
 
+#### P7 第六批：主结果空语义与八项协议扫描扩面
+
+2026-08-10 继续校正 empty_result 定义并增加八项真实协议空结果：
+
+1. `total_count=0` 与 `found/diff_found=false` 是冻结合同的明确空结果；
+   `total_count>0,returned_count=0` 的 count-only 响应只证明存在多结果，不能算空。
+2. 主结果集合扩展到 outliers、change_points、changed_signals、evidence、matches、payloads、
+   rows、chains、hops、preview 等；空 issues、recommended_actions、constraints 属于辅助诊断、
+   建议或 schema 元数据，明确不计为空查询结果。
+3. `axi.transaction.cursor` 走到末尾返回 `found=false`；`axi.latency_outlier` 使用合法 1us
+   阈值返回零 outlier；`axi.outstanding_timeline` 与 `axi.request_response_pair` 在首个事务前
+   合法时间窗返回空主集合。
+4. `stream.query/export` 在首个 transfer 前返回空 rows/preview；`signal.sampled_pulse.inspect`
+   与 `protocol.handshake.inspect` 在首个采样边沿前返回零 sample/零 finding。sampled-pulse
+   初始 payload 变化会产生真实 finding，因此空门禁使用其默认 unsampled-pulse 语义，未删除
+   或忽略真实 finding。
+5. 最新完整 trace 含 1046 次已识别 public exchange：success 73、invalid_request 73、
+   resource_missing 67 observed+6 N/A、empty_result 33、boundary_time 24、multiple_results 42、
+   limits 20、truncation 16、completeness 37、X/Z 7。普通 CTest 9/9 通过。
+6. empty_result 剩余 40 项尚未裁定；必须继续区分真实适用、语义不可达和 N/A，不能用辅助
+   数组、错误响应或字段存在性填满矩阵。
+7. 本批未修改生产实现、Wellen、Verilator、ABI、backend 或 transport；测试事实路径仍为
+   `原始 .fst → Wellen 按需读取 → action`。
+
 提交：
 
 - `测试：建立七十三项 action 全量差分门禁`
