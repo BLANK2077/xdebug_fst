@@ -74,6 +74,18 @@ std::string x_origin_semantic_chain_key(const Json& chain) {
     return key;
 }
 
+std::string x_origin_semantic_state_key(
+    const Json& hops,const std::string& incoming_relation,
+    const std::string& current_signal,uint64_t current_onset) {
+    const Json prefix{{"hops",hops}};
+    std::string key=x_origin_semantic_chain_key(prefix);
+    const std::string relation=x_origin_semantic_relation(incoming_relation);
+    if (!relation.empty()) append_identity_field(key,relation);
+    append_identity_field(key,current_signal);
+    append_identity_field(key,std::to_string(current_onset));
+    return key;
+}
+
 struct Sample {
     bool ok=false;
     uint32_t ref=0,time_idx=0,width=0;
@@ -1154,6 +1166,7 @@ struct TraceXOriginHandler : public EngineActionHandler {
         std::vector<State> pending{initial};
         Json chains=Json::array(),limitations=Json::array();
         std::set<uint64_t> visited_times;
+        std::set<std::string> explored_states;
         size_t nodes=0,chain_serial=1;
         bool global_node_limit=false,global_time_limit=false;
         while (!pending.empty()) {
@@ -1164,9 +1177,18 @@ struct TraceXOriginHandler : public EngineActionHandler {
             if (index<0||!sample.ok) continue;
             const uint64_t onset=x_onset_time(waveform,sample);
 
-            if (state.depth>max_depth||global_node_limit||global_time_limit) {
-                const std::string detail=state.depth>max_depth?"max_depth":
-                    (global_node_limit?"max_nodes":"max_time_steps");
+            if (state.depth>max_depth) {
+                chains.push_back(finish_chain(
+                    state,sample,onset,"limit","max_depth",false,false));
+                continue;
+            }
+            if (!explored_states.insert(x_origin_semantic_state_key(
+                    state.hops,state.relation,state.signal,onset)).second) {
+                continue;
+            }
+            if (global_node_limit||global_time_limit) {
+                const std::string detail=global_node_limit
+                    ?"max_nodes":"max_time_steps";
                 chains.push_back(finish_chain(
                     state,sample,onset,"limit",detail,false,false));
                 continue;
