@@ -71,6 +71,16 @@ std::string x_origin_semantic_chain_key(const Json& chain) {
         append_identity_field(key,hop.value("signal",""));
         append_identity_field(key,hop.value("x_onset_time",""));
     }
+    if (chain.contains("_semantic_tail_relation")) {
+        const std::string relation=x_origin_semantic_relation(
+            chain.value("_semantic_tail_relation",""));
+        if (!relation.empty()) {
+            append_identity_field(key,relation);
+            const Json& current=chain.at("current");
+            append_identity_field(key,current.value("signal",""));
+            append_identity_field(key,current.value("x_onset_time",""));
+        }
+    }
     return key;
 }
 
@@ -1302,16 +1312,19 @@ struct TraceXOriginHandler : public EngineActionHandler {
                 uint64_t onset=0;
                 IDesignBackend::DriverRecord driver;
             };
-            std::vector<Source> sources;
+            std::vector<Source> sources,loop_sources;
             for (const auto& driver : dependencies) {
                 const std::string candidate=signal_name(design,driver.src_signal);
                 if (candidate.empty()) continue;
                 const Sample upstream=sample_at(waveform,candidate,state.time);
                 if (!upstream.ok||!has_x(upstream.bits)) continue;
                 const uint64_t upstream_onset=x_onset_time(waveform,upstream);
-                if (state.visited.count(visit_key(candidate,upstream_onset))) continue;
-                sources.push_back({candidate,driver.dependency_role,
-                                   upstream_onset,driver});
+                Source source{candidate,driver.dependency_role,
+                              upstream_onset,driver};
+                if (state.visited.count(visit_key(candidate,upstream_onset)))
+                    loop_sources.push_back(std::move(source));
+                else
+                    sources.push_back(std::move(source));
             }
             if (dependencies.empty()) {
                 std::vector<IDesignBackend::PortConnection> ports;
@@ -1333,7 +1346,24 @@ struct TraceXOriginHandler : public EngineActionHandler {
                 }
             }
 
+            for (const auto& source : loop_sources) {
+                State loop=state;
+                loop.signal=source.signal;
+                loop.relation=source.relation;
+                loop.incoming=source.driver;
+                loop.has_incoming=true;
+                loop.depth=state.depth+1;
+                loop.time=source.onset;
+                const Sample upstream=sample_at(
+                    waveform,source.signal,state.time);
+                Json chain=finish_chain(loop,upstream,source.onset,
+                    "loop_detected","loop_detected",state.complete,false);
+                chain["_semantic_tail_relation"]=source.relation;
+                chains.push_back(std::move(chain));
+            }
+
             if (sources.empty()) {
+                if (!loop_sources.empty()) continue;
                 chains.push_back(finish_chain(state,sample,onset,"origin_found",
                     "candidate_x_source",state.complete,true));
                 continue;
@@ -1409,9 +1439,12 @@ struct TraceXOriginHandler : public EngineActionHandler {
             while (chains.size()>max_chains) chains.erase(chains.end()-1);
         }
 
+        for (auto& chain : chains) chain.erase("_semantic_tail_relation");
+
         Json depth_frontiers=Json::array();
         Json suggested=Json::array();
         size_t completed_count=0,limited_count=0,unresolved_count=0;
+        size_t loop_count=0;
         size_t hop_count=0,origin_count=0;
         for (size_t index=0;index<chains.size();++index) {
             Json& chain=chains[index];
@@ -1423,6 +1456,7 @@ struct TraceXOriginHandler : public EngineActionHandler {
             const bool chain_limited=chain.value("status","")=="limit"||
                 !chain.value("complete",true);
             if (chain.value("status","")=="unresolved") ++unresolved_count;
+            if (chain.value("status","")=="loop_detected") ++loop_count;
             if (chain_limited) ++limited_count; else ++completed_count;
             if (chain.value("status","")=="limit"&&
                 chain.value("termination_detail","")=="max_depth") {
@@ -1457,7 +1491,8 @@ struct TraceXOriginHandler : public EngineActionHandler {
         const std::string termination=unresolved_count
             ?(completed_count?"partial":"pending")
             :limited_count?(completed_count?"partial":"limit")
-            :(origin_count?"origin_found":"x_not_observable_upstream");
+            :origin_count?"origin_found"
+            :loop_count?"loop_detected":"x_not_observable_upstream";
         Json data{{"query",query},{"chains",chains},{"limitations",limitations}};
         if (!depth_frontiers.empty()) data["depth_frontiers"]=depth_frontiers;
         if (!suggested.empty()) data["suggested_next_actions"]=suggested;
