@@ -174,12 +174,14 @@ def test_resource_applicability_manifest_is_explicit_and_valid() -> None:
         "stream.config.load", "stream.describe",
         "waveform.cursor.delete", "waveform.cursor.get",
         "waveform.cursor.set", "waveform.cursor.use",
+        "batch", "list.load", "nwave.rc.generate", "session.close",
+        "session.kill", "signal.resolve", "signal.xz_verify",
+        "trace.active_driver_chain", "value.at", "verify.conditions",
     }
     applicability = load_not_applicable(
         REPO_ROOT / "tests/coverage/action_applicability.json",
         sorted(empty_actions | {
             "actions",
-            "batch",
             "session.gc",
             "session.list",
         }),

@@ -33,6 +33,19 @@ EXPECTED_NOT_APPLICABLE = {
     "waveform.cursor.use",
 }
 
+EXPECTED_NONEMPTY_SUCCESS = {
+    "batch": ("args.requests", "data.results"),
+    "list.load": ("args.config.lists", "data.lists"),
+    "nwave.rc.generate": ("args.config_path", "data.rc_preview"),
+    "session.close": ("target.session_id", "data.removed_session"),
+    "session.kill": ("target.session_id", "data.removed_session"),
+    "signal.resolve": ("args.signal", "data.matches"),
+    "signal.xz_verify": ("args.signal", "summary.total_count"),
+    "trace.active_driver_chain": ("args.signal", "data.hops"),
+    "value.at": ("args.signal", "data.samples"),
+    "verify.conditions": ("args.conditions", "data.checks"),
+}
+
 
 def schema_types(value: Any) -> set[str]:
     if not isinstance(value, dict):
@@ -74,6 +87,23 @@ def primary_cardinality_fields(schema: dict[str, Any]) -> set[str]:
     return result
 
 
+def dotted_value(document: dict[str, Any], dotted_path: str) -> Any:
+    value: Any = document
+    for component in dotted_path.split("."):
+        if not isinstance(value, dict) or component not in value:
+            raise RuntimeError(f"missing frozen example field: {dotted_path}")
+        value = value[component]
+    return value
+
+
+def nonempty(value: Any) -> bool:
+    if isinstance(value, (list, dict, str)):
+        return bool(value)
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value > 0
+    return value is not None
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, required=True)
@@ -105,9 +135,36 @@ def main() -> int:
             f"expected={sorted(EXPECTED_NOT_APPLICABLE)!r}; "
             f"actual={sorted(unrepresentable)!r}"
         )
+
+    examples = repo_root / "compat/xdebug-v1/examples"
+    for action, (request_path, response_path) in \
+            EXPECTED_NONEMPTY_SUCCESS.items():
+        request = json.loads(
+            (examples / "requests" / f"{action}.basic.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        response = json.loads(
+            (examples / "responses" / f"{action}.basic.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        if request.get("action") != action or response.get("action") != action:
+            raise RuntimeError(f"frozen example action mismatch: {action}")
+        if response.get("ok") is not True:
+            raise RuntimeError(f"frozen success example is not successful: {action}")
+        if not nonempty(dotted_value(request, request_path)):
+            raise RuntimeError(
+                f"frozen request nonempty anchor failed: {action}:{request_path}"
+            )
+        if not nonempty(dotted_value(response, response_path)):
+            raise RuntimeError(
+                f"frozen response nonempty anchor failed: {action}:{response_path}"
+            )
     print(
         "empty-result applicability: OK "
-        f"({len(unrepresentable)} schema-unrepresentable actions)"
+        f"({len(unrepresentable)} schema-unrepresentable actions; "
+        f"{len(EXPECTED_NONEMPTY_SUCCESS)} nonempty-success actions)"
     )
     return 0
 

@@ -144,6 +144,66 @@
       "dimension": "empty_result",
       "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; success activates one cursor.",
       "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "batch",
+      "dimension": "empty_result",
+      "reason": "The public request schema requires at least one child request and each successful batch returns one result per child; the frozen original success example locks the nonempty mapping.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "list.load",
+      "dimension": "empty_result",
+      "reason": "A successful public request loads at least one nonempty named list; the frozen original success example locks a nonempty loaded-list result.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "nwave.rc.generate",
+      "dimension": "empty_result",
+      "reason": "Success always generates the nWave rc header and body for one requested config; the frozen original success example locks a nonempty rc_preview.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "session.close",
+      "dimension": "empty_result",
+      "reason": "The public request schema requires an existing target.session_id; success returns that removed session and absence is a resource error.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "session.kill",
+      "dimension": "empty_result",
+      "reason": "The public request schema requires an existing target.session_id; success returns that removed session and absence is a resource error.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "signal.resolve",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen success schema requires at least one match; no match is SIGNAL_NOT_FOUND rather than a successful empty result.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "signal.xz_verify",
+      "dimension": "empty_result",
+      "reason": "A successful verification always evaluates the requested signal window and returns one verdict with a positive total_count in the frozen original contract.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "trace.active_driver_chain",
+      "dimension": "empty_result",
+      "reason": "A successful chain always contains its requested root hop, including primary-input and unresolved termination; the frozen original success example locks a nonempty hop list.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "value.at",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen success schema requires nonempty entries and samples for the requested source and time selector.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "verify.conditions",
+      "dimension": "empty_result",
+      "reason": "The public request schema requires at least one condition and success returns the corresponding nonempty check list.",
+      "evidence": "tools/check_empty_applicability.py"
     }
   ]
 }
