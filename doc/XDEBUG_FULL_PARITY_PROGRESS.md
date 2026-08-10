@@ -30,7 +30,7 @@
 | P4 | 已完成 | `parity-p4` | 两组修改前失败证据后，仅增加 ABI/capability、声明方向、预计算端口边和 driver dependency role；8 个 XDD 与普通回归通过 |
 | P5 | 功能批次已覆盖 | `parity-p5` | 发现/静态设计、value/list/event/cursor/RC/expr、signal、verify/window、counter/pulse/handshake、APB、AXI、stream 与 combined 基础合同已迁移；阶段总差分仍随 P6/P7 复核 |
 | P6 | 进行中 | `parity-p6` | 已完成多分支 X DFS、时间/限制证据、driver role，以及 counter if/else、APB 嵌套条件、普通 case/default、casez/casex 与 lowering 后同目标嵌套条件的 FST 运行时谓词选择；复杂控制与原版差分继续 |
-| P7 | 未开始 | `parity-p7` | 全量差分与最终交付 |
+| P7 | 已启动 | `parity-p7` | 独立 ASan/UBSan 基础门禁已通过；全量差分、并发/崩溃/资源泄漏与最终交付继续 |
 
 ## Commit 记录
 
@@ -225,6 +225,7 @@
 - P6 第五十六批 ref 反馈环 node 预算：xdebug-fst `8e18d8a` 在同一三节点 direction=3 静态端口环上增加 `max_nodes=2` 合同。action 展开 `T_14/GEN_0` 后，在进入 `GEN_1` 前返回唯一 `limit/max_nodes`，current 保留 `GEN_1`，completed/origin 均为 0；默认预算仍完整返回 loop。现有实现直接通过，因此只提交测试证据。定向组合 3/3、全量 pytest 262/262、CTest 8/8 和冻结兼容基线通过；Wellen 继续按需读取现有 GCD 原始 `.fst`，没有修改 consumer、Verilator、Wellen 或 ABI，也没有转换、预扫、索引、离线库、TCP/fileport 或 fallback。time/depth/chain 与复杂反馈的联合限制仍待差分。
 - P6 第五十七批 typed `value.at` 贯通：xdebug-fst `f8bac21` 从 `XDEBUG_WELLEN_REPO` 绝对路径直接打开 Wellen 现有 string/real/event 三份原始 `.fst`。0ps string 返回同时间最后 delta 的 `En lång röd räv` UTF-8 定宽字符串，1ps real 保留 0.1 typed 数值语义且不伪造 width，event 返回独立 `event` 而非 missing/X；三者均通过冻结 response schema。现有生产实现直接通过，未修改 xdebug consumer、Wellen、Verilator 或 ABI。定向 3/3、全量 pytest 265/265、CTest 8/8 与冻结兼容基线通过，没有转换、预扫、索引、离线库、TCP/fileport 或 fallback。
 - P6 第五十八批 `signal.changes` delta 贯通：xdebug-fst `37d3ce7` 先证明公开 action 把 Wellen 已保真的 0ps 两个 string delta 压成一行，仅返回 3 行/2 transitions；`64adb8c` 改为消费现有类型化 `scan_changes`，起点有 change 时保留全部 delta、无 change 时仍合成 initial，物理窗口和 response-only `line_limit` 合同不变，scan/analysis completeness 改为后端真实诊断。最终 timeline 为 0ps 空白、0ps UTF-8、10ns、20ns 四行和三次 transition。定向 4/4、全量 pytest 266/266、CTest 8/8 与冻结兼容基线通过；Wellen/Verilator/ABI 未修改，没有转换、离线索引、TCP/fileport 或 fallback。
+- P7 第一批独立 sanitizer 门禁：xdebug-fst `d23a9e3` 增加默认关闭、强制互斥的 `XDEBUG_ENABLE_ASAN`/`XDEBUG_ENABLE_UBSAN`，统一覆盖主程序、CTest 可执行文件和测试 DesignDB 共享库。首次 ASan 链接真实失败于 `/usr/lib64/libasan.so.5.0.0` 缺失；审计同时确认 UBSan runtime 缺失。经用户明确授权，从 AlmaLinux 8 BaseOS 镜像下载与 GCC 8 ABI 对应的 `libasan/libubsan 8.5.0-28.el8_10.alma.1`，SHA256 分别为 `b018ea830d514f5388f24758402ce19017f18cd03e2d0ddae08ee2011bc6aa89`、`53d605384da087c006172c8458f26afbac3827acdcde48154ffeb42328256191`，RPM key `CED7258B` 签名验证通过后本地安装；未切换编译器、backend、fixture、transport 或数据源。`/tmp/xdebug-fst-build-asan` 在 `detect_leaks=1:abort_on_error=1:halt_on_error=1` 下通过 CTest 6/6、pytest 266/266；`/tmp/xdebug-fst-build-ubsan` 在 `halt_on_error=1:print_stacktrace=1` 下通过 CTest 6/6、pytest 266/266；均无 sanitizer 报告。普通构建继续通过 CTest 8/8、pytest 266/266 与冻结基线。测试仍由 Wellen 直接按需读取原始 `.fst`，sanitizer 只检查 C/C++ 运行时，不增加转换、索引、离线库、TCP/fileport 或 fallback。并发、崩溃、重复生命周期、FD/长期内存泄漏及全量差分仍未关闭，P7 仅为已启动。
 - 旧 action 测试现状：P1 的严格 request/response gate 已按计划启用，仍使用 `render_format`、平铺 `begin/end`、旧 config shape 或旧成功响应 shape 的测试会 fail closed；这些不是 P1 协议回退点，将在 P3/P5 对应 action 实现迁移时逐组改正并恢复全量绿色。
 - 环境记录：系统 `pytest`/`python3 -m pytest` 缺少 pytest；按仓库 `HANDOFF.md` 使用已记录的 xverif Python 环境运行同一测试层，没有更换 backend、数据或测试内容，也未进行沙箱外重试。
 

@@ -980,6 +980,47 @@ onset 时间表、持久化事件索引或离线数据库。冻结 query schema 
    - 过时的“全部完成”文档声明
 10. 更新任务进度和最终验收报告。
 
+#### P7 第一批：独立 sanitizer 构建门禁
+
+2026-08-10 已完成 P7 的 ASan/UBSan 基础门禁，但这不代表 P7 或 Goal 完成：
+
+1. CMake 增加默认关闭且互斥的 `XDEBUG_ENABLE_ASAN`、`XDEBUG_ENABLE_UBSAN`。开关位于
+   所有本仓库 C/C++ target 定义之前，因此覆盖 `xdebug-fst`、CTest 可执行文件和测试用
+   DesignDB 共享库；不得只 sanitizer 主程序而遗漏测试装载代码。
+2. ASan 与 UBSan 必须使用两个独立绝对构建目录，不允许双开或共用 cache。ASan 使用
+   `-fsanitize=address -fno-omit-frame-pointer`，验收运行时设置
+   `ASAN_OPTIONS=detect_leaks=1:abort_on_error=1:halt_on_error=1`；UBSan 使用
+   `-fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer`，验收运行时
+   设置 `UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1`。
+3. 当前 GCC 8.5 初始链接失败，原始错误为缺少 `/usr/lib64/libasan.so.5.0.0`；进一步审计
+   同时确认 `/usr/lib64/libubsan.so.1.0.0` 缺失。经用户明确授权，安装与 GCC 8 ABI 对应、
+   GPG 签名校验通过的 `libasan-8.5.0-28.el8_10.alma.1.x86_64` 和
+   `libubsan-8.5.0-28.el8_10.alma.1.x86_64`。这只修复宿主工具链运行库，不改变编译器、
+   backend、fixture、transport 或测试目标。
+4. `/tmp/xdebug-fst-build-asan` 在 leak 检测和遇错即停配置下通过 CTest 6/6 与完整 pytest
+   266/266；`/tmp/xdebug-fst-build-ubsan` 在遇错即停配置下通过 CTest 6/6 与完整 pytest
+   266/266，均无 sanitizer 诊断。普通构建继续通过 CTest 8/8、pytest 266/266 和冻结兼容
+   基线，证明默认关闭时没有行为退化。
+   正式复现命令如下；CMake 从 shell 环境读取 `.codex/config.toml` 配置的
+   `XDEBUG_VERILATOR_REPO`、`XDEBUG_WELLEN_REPO` 绝对仓库路径：
+
+   ```bash
+   cmake -S ${REPO_ROOT} -B /tmp/xdebug-fst-build-asan -DXDEBUG_ENABLE_ASAN=ON -DXDEBUG_ENABLE_UBSAN=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo
+   cmake --build /tmp/xdebug-fst-build-asan --parallel 8
+   ASAN_OPTIONS=detect_leaks=1:abort_on_error=1:halt_on_error=1 ctest --test-dir /tmp/xdebug-fst-build-asan --output-on-failure
+   ASAN_OPTIONS=detect_leaks=1:abort_on_error=1:halt_on_error=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ${XFST_CONDA_ENV} -m pytest -q --xfst-bin=/tmp/xdebug-fst-build-asan/xdebug-fst
+
+   cmake -S ${REPO_ROOT} -B /tmp/xdebug-fst-build-ubsan -DXDEBUG_ENABLE_ASAN=OFF -DXDEBUG_ENABLE_UBSAN=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
+   cmake --build /tmp/xdebug-fst-build-ubsan --parallel 8
+   UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 ctest --test-dir /tmp/xdebug-fst-build-ubsan --output-on-failure
+   UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ${XFST_CONDA_ENV} -m pytest -q --xfst-bin=/tmp/xdebug-fst-build-ubsan/xdebug-fst
+   ```
+5. sanitizer 测试继续只打开既有原始 `.fst`，由 Wellen 按需提供波形事实；sanitizer 只是
+   C/C++ 内存与未定义行为检测门禁，不增加波形预处理、转换、索引、离线数据库、全量快照
+   或替代分析后端，持续满足 `GOAL-FST-DIRECT-001`。
+6. 本批尚未替代 P7 的并发 session、engine crash、重复 open/close、FD/长期内存泄漏、
+   73-action 原版全差分及最终清洁性门禁；这些任务仍必须分别建立证据。
+
 提交：
 
 - `测试：建立七十三项 action 全量差分门禁`

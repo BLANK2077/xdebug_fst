@@ -149,3 +149,16 @@ P6 第五十八批修复 `signal.changes` action 层丢失同时间 FST delta：
 `.fst` 发布有序类型化 change，action 使用请求内 `scan_changes` 做窗口与投影，没有预扫后
 落盘、私有索引或第二套分析后端。Wellen/Verilator/ABI 未修改，TCP/fileport 与 fallback
 仍禁止。该批只关闭 typed change timeline 的 delta 贯通，Goal 保持 active。
+
+## 八、P7 第一批 sanitizer 防漂移审计记录
+
+ASan/UBSan 只作为本仓库 C/C++ 构建和运行时门禁，绝不成为新的波形访问层或分析实现。
+两套独立构建继续使用同一原始 `.fst` fixture、Wellen 按需读取、冻结 action 语义和 Verilator
+DesignDB 静态事实；没有转换、预扫、私有索引、离线数据库、全量内存快照、export 回灌、
+TCP/fileport 或 fallback。宿主运行库缺失经用户明确授权后安装 ABI 匹配且签名通过的系统包，
+保持 GCC 8.5 和原测试层级，不把环境修复冒充功能修复。
+
+ASan 的 leak/遇错即停门禁与 UBSan 的遇错即停门禁分别通过 CTest 6/6、pytest 266/266，
+普通构建 CTest 8/8、pytest 266/266 与冻结基线继续通过。该结果只证明当前测试覆盖下的
+sanitizer 基础门禁；并发 session、engine crash、重复 open/close、FD/长期内存泄漏、
+73-action 全差分和 P6 复杂语义缺口仍未完成，Goal 必须保持 active。

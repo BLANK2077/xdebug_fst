@@ -1043,6 +1043,26 @@ frontier，响应为 `limit/max_nodes`、零 origin；默认预算则完整返�
 预算预扫 FST，也没有建立图或事件索引。该证据关闭基础 ref 反馈/node 组合，time/depth/
 chain 与 driver/分支反馈的联合语义仍待差分。
 
+### 9.8 ASan/UBSan 是构建门禁，不是波形后端
+
+P7 第一批在顶层 CMake 增加互斥的 `XDEBUG_ENABLE_ASAN` 和 `XDEBUG_ENABLE_UBSAN`。开关在
+所有 target 之前统一施加编译/链接参数，覆盖主程序、C++ 测试和运行时装载的测试 DesignDB
+共享库；ASan 与 UBSan 使用独立绝对构建目录，避免混合运行时或 CMake cache 污染归因。
+两套构建都继续链接同一冻结 Wellen C ABI、wellenx 和 Verilator DesignDB ABI，没有产生
+sanitizer 专用 backend 或数据路径。
+
+ASan 在 `detect_leaks=1` 与遇错即停配置下、UBSan 在 `halt_on_error=1` 和栈输出配置下，
+分别通过 CTest 6/6 与 pytest 266/266。测试中的波形输入仍是原始 `.fst`：Wellen 只按 action
+请求读取所需信号、时间和 delta，xdebug action 继续负责协议、筛选、推理和响应，DesignDB
+继续只提供静态 HDL 事实。sanitizer 运行时不读取波形，也不允许借机引入 FST 转换、预扫、
+私有索引、离线数据库、全量快照、export 回灌或 fallback，因此不改变
+`GOAL-FST-DIRECT-001` 的架构边界。
+
+宿主最初只有 GCC 8 linker script，缺少其指向的 `libasan.so.5.0.0` 与
+`libubsan.so.1.0.0`。经用户授权安装 ABI 匹配且 GPG 验证通过的运行库后，保持 GCC 8.5、
+相同源码、相同 fixture 和相同测试层级重新执行并通过。该环境修复不能被解释为功能修复，
+也不覆盖仍待执行的并发、崩溃、重复生命周期和长期资源泄漏门禁。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；
