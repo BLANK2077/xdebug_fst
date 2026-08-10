@@ -356,6 +356,18 @@
       "evidence": "tools/check_truncation_applicability.py"
     },
     {
+      "action": "signal.resolve",
+      "dimension": "truncation",
+      "reason": "The frozen request accepts exactly one final leaf signal, forbids aggregate expansion and exposes no result limit; success resolves that scalar design lookup without a truncatable row lifecycle.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
+      "action": "signal.xz_verify",
+      "dimension": "truncation",
+      "reason": "The frozen request exposes no row/result limit and the success contract returns only initial_value plus one nullable first_mismatch, terminating at window_end or first_mismatch rather than truncating response rows.",
+      "evidence": "tools/check_truncation_applicability.py"
+    },
+    {
       "action": "stream.config.get",
       "dimension": "truncation",
       "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",

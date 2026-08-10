@@ -50,6 +50,11 @@ EXPECTED_NOT_APPLICABLE = {
     "waveform.cursor.use",
 }
 
+EXPECTED_SEMANTIC_NOT_APPLICABLE = {
+    "signal.resolve",
+    "signal.xz_verify",
+}
+
 
 def schema_types(value: Any) -> set[str]:
     if not isinstance(value, dict):
@@ -119,6 +124,63 @@ def truncation_fields(schema: dict[str, Any]) -> set[str]:
     return result
 
 
+def require_timeout_only_limits(action: str, request: dict[str, Any]) -> None:
+    limits = request.get("properties", {}).get("limits", {})
+    properties = limits.get("properties", {})
+    if set(properties) != {"timeout_ms"} or limits.get("additionalProperties") is not False:
+        raise RuntimeError(f"{action} gained a public result limit")
+
+
+def prove_semantic_scalar_actions(schema_root: Path) -> None:
+    resolve_request = json.loads(
+        (schema_root / "signal.resolve.request.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    require_timeout_only_limits("signal.resolve", resolve_request)
+    resolve_args = resolve_request["properties"]["args"]
+    if resolve_args.get("required") != ["signal"] or \
+            set(resolve_args.get("properties", {})) != {"signal"} or \
+            resolve_args.get("additionalProperties") is not False:
+        raise RuntimeError("signal.resolve is no longer a single-leaf request")
+    signal_description = resolve_args["properties"]["signal"].get("description", "")
+    if "Final leaf signal path" not in signal_description or \
+            "not expanded automatically" not in signal_description:
+        raise RuntimeError("signal.resolve final-leaf invariant changed")
+
+    xz_request = json.loads(
+        (schema_root / "signal.xz_verify.request.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    require_timeout_only_limits("signal.xz_verify", xz_request)
+    xz_args = xz_request["properties"]["args"]
+    if set(xz_args.get("required", [])) != {
+        "signal", "expected_state", "time_range"
+    } or "line_limit" in xz_args.get("properties", {}):
+        raise RuntimeError("signal.xz_verify gained row selection or a result limit")
+
+    xz_response = json.loads(
+        (schema_root / "signal.xz_verify.response.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    data_branches = xz_response["$defs"]["successData"]["anyOf"]
+    for branch in data_branches:
+        if set(branch.get("properties", {})) != {
+            "time_range", "initial_value", "sample_time_semantics",
+            "first_mismatch",
+        }:
+            raise RuntimeError("signal.xz_verify success data is no longer scalar")
+    summary_branches = xz_response["$defs"]["successSummary"]["anyOf"]
+    stop_reasons = {
+        branch["properties"]["stop_reason"].get("const")
+        for branch in summary_branches
+    }
+    if stop_reasons != {"window_end", "first_mismatch"}:
+        raise RuntimeError("signal.xz_verify early-stop lifecycle changed")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, required=True)
@@ -137,6 +199,7 @@ def main() -> int:
         )
 
     schema_root = repo_root / "compat/xdebug-v1/schemas/v1/actions"
+    prove_semantic_scalar_actions(schema_root)
     not_applicable: set[str] = set()
     applicable: dict[str, set[str]] = {}
     for path in sorted(schema_root.glob("*.response.schema.json")):
@@ -157,9 +220,17 @@ def main() -> int:
     if len(applicable) + len(not_applicable) != 73:
         raise RuntimeError("truncation applicability does not cover 73 actions")
 
+    runtime_applicable = set(applicable) - EXPECTED_SEMANTIC_NOT_APPLICABLE
+    if len(runtime_applicable) != 35:
+        raise RuntimeError(
+            f"expected 35 runtime-applicable truncation actions, got "
+            f"{len(runtime_applicable)}"
+        )
+
     print(
         "truncation applicability: OK "
-        f"({len(applicable)} applicable actions; "
+        f"({len(runtime_applicable)} runtime-applicable actions; "
+        f"{len(EXPECTED_SEMANTIC_NOT_APPLICABLE)} scalar-lifecycle actions; "
         f"{len(not_applicable)} schema-unrepresentable actions)"
     )
     return 0
