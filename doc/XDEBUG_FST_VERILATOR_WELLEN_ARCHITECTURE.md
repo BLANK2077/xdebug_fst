@@ -967,6 +967,38 @@ output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并
 
 这些文件只在请求明确给出输出路径时写出，不参与 session.open，不被任何 action 自动重载，不是 file transport，也不允许在 Wellen 失败时充当 fallback。生产分析唯一波形事实源仍是会话中由 Wellen 直接按需读取的 `.fst`。因此“必须适配 FST 波形”和“允许公共 export action 产生最终结果文件”并不冲突：前者约束分析输入与事实来源，后者只是调用者显式要求的输出。
 
+### interface/modport 成员边界为什么需要最小 Verilator 补充
+
+原版 active-driver composite 语义要求链显式展示 sink/source 两侧的 interface 成员，例如
+`parent output → sink output → sink.bus.data → shared bus.data → source.bus.data → parent input`。
+仅有共享 `bus.data` 不足以回答它经由哪个实例、哪个 modport 和哪个方向跨过边界；零宽
+interface port 本身也没有成员宽度或可采样值。原始 FST 确实保留
+`u_sink.bus.data`、`u_source.bus.data` 和共享 `bus.data` alias，但这些 alias 只证明这些名称
+在某时刻具有何值，不能证明 HDL 静态连接、modport 方向或 driver 归属。若通过扫描 FST
+同值 alias 重建结构，就会违反 `GOAL-FST-DIRECT-001`，把 FST 错当分析引擎。
+
+Verilator 的最小改动因此选在事实仍精确存在、但即将消失的时间点：`V3Scope` 已建立
+`AstVarScope` 后，`V3LinkDot` 尚未删除 `AstAliasScope` 前。只有启用 `--design-db` 时才执行
+只读 capture，记录 modport 实例端口、实际 interface scope、`AstModportVarRef` 成员和声明
+方向；正常 AST 不被修改。最终 emitter 在既有 XDD v2 中追加波形可寻址的实例成员 signal，
+用 `interface_modport_member` port connection 连接共享成员，并让 source/output 成员复用
+共享成员已有的静态驱动描述。没有新增 ABI 函数、结构体字段或 capability，也没有移动普通
+lowering、优化、调度、仿真和 FST trace 流程。修改前失败证据为 `ac880d295`，最小实现为
+`d5f5b21fd`；11 个 XDD 回归和 3 个普通 interface/modport 回归通过。
+
+xdebug consumer 不按名称猜边界。根/父 output 只有在谓词完全可解、恰好一个活动
+`cont_assign`、且 DesignDB 连接给出唯一最深 output 时才进入子实例；从子 output 回映输入
+时，允许已发布的 `<instance>.<interface-port>.<member>` 位于实例下一层，但仍要求与父 RHS
+连接后只有一个候选。任何不唯一或不可读情况保持失败关闭；NBA/过程 assignment 继续使用
+冻结终止语义。真实 30ps 六跳链已按上述规则闭环。
+
+Wellen 对这一能力的要求只有波形侧事实：输入必须是原始 `.fst`，FST 必须保存 DesignDB 所
+指向的实例成员 alias，且 Wellen 能按需 resolve/sample 每一个明确 hop；Wellen 不解析
+SystemVerilog interface、不推断 modport、不枚举同值信号寻找结构，也不建立离线事件库或
+全量快照。当前 fixture 直接用锁定 Verilator `--trace-fst --design-db` 同次生成，生产测试只
+保留 599-byte `waves.fst`、最小 DesignDB `.so` 和 manifest。没有 VCD/JSON 转换、私有索引、
+TCP、fileport 或 fallback。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；
@@ -1004,7 +1036,7 @@ output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `9863225406f8c0190e7358226f5eab22888e7bf6`
+- revision `d5f5b21fdfbc02d20fba05b6571cabafc227f6ab`
 
 对应提交：
 
@@ -1035,6 +1067,7 @@ output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并
 - Verilator `1eb25de82`、`5d4e40132`：先证明独立 `matches` 的直接顶层点星仍被双重门禁拒绝，再用一次全 X RHS 通配比较实现恒真语义，并以带副作用函数验证左侧只求值一次；嵌套 wildcard、binding 和 tagged 继续失败关闭，DesignDB header/ABI 未变；
 - Verilator `1ae90d55d`、`487482500`、`da63eb075`：先以普通仿真和 DesignDB 锁定仅 `default` 的 `case matches` 被总括门禁拒绝，并隔离独立四态函数参数限制；随后只取消“至少一个精确 item”的要求，保留 tagged、binding 与嵌套 wildcard 的失败关闭，普通 lowering、XDD header/ABI 和 Wellen 均不变；
 - Verilator `b3ed369d7`、`986322540`：先证明同源行三元 self/data 叶子缺少 predicate-local 自引用事实，再仅为直接 self 叶子发布 `self_rhs` 角色；它不是上游数据依赖，`q+1` 不误标，普通仿真与 C ABI 函数签名不变；
+- Verilator `ac880d295`、`d5f5b21fd`：先证明 DesignDB 缺少实例侧 modport 成员边界，再仅在 `--design-db` 下于 LinkDot 前只读捕获 interface alias，并通过既有 XDD v2 表追加成员 signal/connection/driver；AST、普通仿真、FST 生成和 ABI/capability 不变；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
@@ -1072,3 +1105,4 @@ output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并
 - xdebug-fst `888de09`、`fc27f1d`：冻结同源行跨实例 output driver 误合并，并以 consumer-only 静态实例 identity 恢复两条活动候选。
 - xdebug-fst `7c5b0a2`、`f3b5143`：冻结常量 NBA hop 源行丢失，并在不沿 control 追踪的前提下恢复活动 assignment 源码证据。
 - xdebug-fst `ae76785`、`07bb94c`：冻结复杂 output 在父 net 过早报告多 RHS，并恢复 child output 边界与同实例 input evidence。
+- xdebug-fst `7b99803`、`29f70d2`、`43f8a0b`：先冻结 interface/modport 跨边界失败，再锁定最小 Verilator 静态事实与原始 FST 固件，最后用唯一连续 output/成员连接恢复六跳 sink/shared/source 链；Wellen 只按需读取已选 FST alias。

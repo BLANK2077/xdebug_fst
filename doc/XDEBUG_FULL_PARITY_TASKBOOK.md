@@ -776,6 +776,26 @@ input→flattened source 和父 statement RHS，故无需扩大 ABI。consumer �
 signal index。任何一个 RHS 映射失败都不会部分改写。完成映射后复用既有
 `multiple_rhs_sources` evidence，保证普通单实例表达式仍是一个 statement。
 
+第五十二批关闭基础 interface/modport source/sink 成员边界。冻结原版 composite chain
+要求路径显式跨过 sink/source 两侧 interface 成员，不能把共享 `bus.data` 当作全部层级。
+修改前锁定 Verilator 只发布零宽 interface port 和共享成员，FST 虽保真包含
+`u_sink.bus.data/u_source.bus.data` alias，也只能证明运行时值，不能承担静态成员分析。
+因此先在 Verilator 仓库提交独立失败回归，再把唯一获准改动限制在 `--design-db`：于
+`V3Scope` 后、`V3LinkDot` 前只读捕获随后会消失的 `AstAliasScope`，精确保存 modport
+端口、实际 interface scope、成员与方向；发射阶段只向既有 XDD v2 表追加实例成员信号、
+`interface_modport_member` 连接和 source 成员已有驱动，不修改 AST、普通仿真、FST 生成、
+ABI 或 capability。xdebug action 只在唯一活动连续 statement、唯一最深 output 和唯一
+同实例 input 映射均成立时跨边界；NBA/过程赋值、多个最深候选、不可读或映射不唯一均
+保持原合同或失败关闭。
+
+本批同时重申 `GOAL-FST-DIRECT-001` 的双断言：Wellen 的输入仍只能是当前 session 的原始
+`.fst`，它按需读取六个已由 DesignDB/action 静态选定的 hop 值；interface/member 结构、
+方向、driver 和边界唯一性全部来自 Verilator DesignDB，chain 顺序和终止来自冻结 xdebug
+action 语义。禁止扫描 FST alias 或相同值反推 interface 结构，禁止转换、预扫、私有索引、
+离线数据库、全量内存快照、TCP、fileport 或 backend fallback。基础六跳 source/sink 链已
+关闭；ref、嵌套/数组 interface、多 interface driver，以及 modport 与 X-origin 的
+node/time/depth/loop 组合仍须单独差分，不得据此宣称任意 interface 能力完成。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。

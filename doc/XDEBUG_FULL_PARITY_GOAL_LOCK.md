@@ -99,3 +99,16 @@ P6 第三十七批继续按同一门禁处理 NBA 纯自保持：DesignDB 的精
 P6 第三十八批进一步锁定：门控 predicate 为假、statement 未赋值，与活动 `q <= q` self-hold 是两种不同静态语义，禁止仅凭 FST “值未变化”合并判断。前者由 DesignDB predicate 证明 statement 不活动，action 保留目标原始 FST 的此前观察点；后者才由精确 self load 触发有界回溯。该批 `d2f3f74` 未修改三方实现或 ABI，继续满足 `GOAL-FST-DIRECT-001`。
 
 P6 第三十九批把 self-hold 证明进一步收紧为 DesignDB predicate-local `self_rhs`：只有 RHS 叶子本身恰好等于目标才发布，xdebug action 不把该角色作为上游数据依赖。FST/Wellen 不负责识别三元语法、自引用或 assignment 身份，只按 DesignDB 已指定的时钟读取当前原始 `.fst` 边沿；因此 `22e810d` 仍严格满足“静态事实 + 原始 FST 运行时事实 → action 分析”，没有退化为波形值启发式。
+
+## 七、P6 第五十二批 interface/modport 防漂移审计记录
+
+interface/modport 六跳闭环严格执行本 Goal 的双断言。Verilator `d5f5b21fd` 只在
+`--design-db` 下发布 modport 实例成员、方向、连接和 source driver 静态事实；xdebug-fst
+`43f8a0b` 只按冻结 action 合同和唯一性门禁组合这些事实；Wellen 只对当前 session 的原始
+`.fst` 按需 resolve/sample 已被静态选定的六个 hop。FST 中存在同值 alias 不能证明
+interface 结构，禁止据此枚举或推断成员、方向、driver 或边界。
+
+本批实际输入只有 `testdata/fixtures/interface_modport/waves.fst`，没有 VCD/JSON 转换、预扫、
+私有索引、离线数据库、全量内存快照、TCP、fileport 或 fallback。基础 source/sink modport
+成员链已闭环，但 ref、嵌套/数组 interface、多 interface driver 和 modport 与 X-origin
+预算/反馈组合仍未完成；当前 Goal 继续保持 active，不能以本批通过宣称完全一致。
