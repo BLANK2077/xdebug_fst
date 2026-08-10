@@ -456,6 +456,15 @@ if(BUILD_TESTING)
             ${CMAKE_SOURCE_DIR}/testdata/fixtures/counter/obj_dir/libVcounter_top__DesignDb.so
     )
 
+    add_test(
+        NAME session-stability
+        COMMAND ${Python3_EXECUTABLE}
+            ${CMAKE_SOURCE_DIR}/tests/test_session_stability.py
+            $<TARGET_FILE:xdebug-fst>
+            ${CMAKE_SOURCE_DIR}/testdata/fixtures/waves.fst
+    )
+    set_tests_properties(session-stability PROPERTIES TIMEOUT 120)
+
     if(XDEBUG_ENABLE_MCP_INTEGRATION_TESTS)
         if(NOT EXISTS "${XVERIF_MCP_SOURCE_DIR}/xverif_mcp/adapters/xdebug.py")
             message(FATAL_ERROR
