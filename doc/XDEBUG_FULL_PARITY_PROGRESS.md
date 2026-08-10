@@ -264,3 +264,17 @@ list/gc/close-all/kill-all；`6a6def3` 登记 20 项严格 N/A，并同时保留
 生产修复后的 CTest 9/9 通过。Wellen、Verilator 和 XDD ABI 未修改，原始 FST 仍只由 Wellen
 按需读取，FST 不承担分析；没有转换、索引、离线库、TCP/fileport 或 fallback。Goal 仍
 active，下一维度为 completeness，之后还需 X/Z、P6 剩余复杂语义和最终原版归一化差分。
+
+## P7 第十二批 completeness 全量裁定
+
+`591ea74` 将完整性信用限制在 `summary/data` 直接布尔字段，补入冻结字段
+`value_width_complete`，并以全部成功响应 Schema 冻结 41 项适用、32 项不可表达。旧 trace
+重算后准确暴露 expr.eval_at、list.first_change、verify.conditions 三项缺失。`730fdcb` 依据
+原版统一 LogicValue 后处理，只在三个 xdebug action 的成功摘要补确定宽度的
+`value_width_complete=true,width_diagnostics=[]`；没有修改求值、采样或波形扫描。
+`4cf5484` 登记 32 项严格 N/A。最终 1137-event 新 trace 为 completeness 41 observed +
+32 N/A，pytest 全量与 CTest 9/9 通过。
+
+Wellen、Verilator、XDD ABI 和 transport 均未修改；原始 FST 仍只由 Wellen 按需读取，FST
+不承担分析，没有转换、索引、离线库、TCP/fileport 或 fallback。Goal 继续 active，下一维
+为 X/Z，之后仍有 P6 复杂差分和最终原版归一化差分。

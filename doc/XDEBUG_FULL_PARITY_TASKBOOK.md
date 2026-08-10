@@ -1337,3 +1337,24 @@ P6 剩余复杂语义和最终 73-action 原版归一化差分仍必须继续完
 语义”；DesignDB 只提供静态事实。FST 不是分析引擎。本批未修改 Wellen、Verilator 或 XDD
 ABI，不存在 VCD/JSON 转换、预扫持久化、私有索引、离线数据库、全量内存快照、export
 回灌、TCP/fileport 或 fallback。
+
+## 九、P7 第十二批 completeness 全量裁定任务记录
+
+完整性审计现在只接受 `summary` 或 `data` 的直接布尔字段：`scan_complete`、
+`analysis_complete`、`cleanup_complete`、`data_complete`、`complete` 和
+`value_width_complete`。禁止将嵌套 validation/diagnostic 对象中的同名字段计为 action
+完整性。冻结 73 项成功响应 Schema 穷举得到 41 项可表达、32 项不可表达，后者全部登记
+严格 N/A。
+
+旧审计遗漏 `value_width_complete`，且候选的 `expr.eval_at`、`list.first_change`、
+`verify.conditions` 未执行原版统一 LogicValue 后处理的宽度摘要语义。三项均已在 xdebug-fst
+响应层补 `value_width_complete=true` 与空 `width_diagnostics`：所有值来自 Wellen 已报告的
+确定宽度，没有伪造未知宽度，也没有改变表达式、采样、首变或条件判定算法。
+
+最终全新 1137-event trace 为 completeness 41 observed + 32 N/A，73 项无缺口；全量 pytest
+和 CTest 9/9 通过。该维度只证明公开完整性字段覆盖，不能替代 X/Z 全量裁定、P6 剩余复杂
+语义或最终原版归一化差分，Goal 必须保持 active。
+
+唯一数据流继续是原始 `.fst` 由 Wellen 直接按需读取、xdebug action 执行语义、DesignDB
+提供静态事实。FST 不是分析引擎。本批未修改 Wellen、Verilator、XDD ABI 或 transport，
+不存在转换、预扫、索引、离线数据库、全量快照、export 回灌、TCP/fileport 或 fallback。

@@ -1315,3 +1315,19 @@ Verilator、XDD ABI 和普通仿真均无需修改。这体现了 Verilator 克�
 执行，也不能回灌分析。仍然禁止 FST→VCD/JSON 转换、预扫持久化、离线数据库、全量内存
 快照、export 重新导入、TCP/fileport 和 fallback。最终证据为 53 项运行时多结果与 20 项
 合同 N/A；该数字只关闭本维度，不能代替 completeness、X/Z 或原版归一化差分。
+
+## P7 completeness 全量裁定对架构的约束
+
+完整性是 action 对所消费事实质量的公开声明，不是 FST 自己执行分析。`scan_complete` 和
+`analysis_complete` 由协议/追踪扫描传播，`value_width_complete` 则汇总 LogicValue 的宽度
+事实。Wellen 直接从当前原始 `.fst` 提供信号类型、width、值与读取诊断；xdebug action 决定
+这些事实是否足以完成请求并生成冻结摘要，Verilator DesignDB 仍只提供静态设计信息。
+
+本批补齐 expr.eval_at、list.first_change、verify.conditions 的确定宽度摘要，是原版统一
+LogicValue 后处理在候选 action 层的等价结果。它没有让 FST 成为表达式或条件分析器，也没有
+要求扩展 Wellen/Verilator ABI。未来若 backend 返回未知/冲突 width，必须传播
+`value_width_complete=false` 和冻结原因，不能继续硬编码 complete 或静默丢失诊断。
+
+覆盖 trace 仅为 `/tmp` 中的测试证据，不参与 runtime。仍禁止 FST 转换、预扫持久化、私有
+索引、离线数据库、全量快照、export 回灌、TCP/fileport 和 fallback。41 observed + 32 N/A
+只关闭完整性字段维度，不代表 X/Z 或最终原版归一化差分完成。

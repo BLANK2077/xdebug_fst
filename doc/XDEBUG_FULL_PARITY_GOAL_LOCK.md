@@ -297,3 +297,20 @@ multiple_results 已达到 53 项真实运行 observed + 20 项 N/A，严格覆�
 按需读取，xdebug action 执行语义，DesignDB 提供静态事实；FST 不是分析引擎。禁止转换、
 离线索引/数据库、全量快照、export 回灌、TCP/fileport 和 fallback。Goal 保持 active，
 completeness、X/Z、P6 剩余复杂差分和最终原版归一化差分尚未完成。
+
+## 十九、P7 第十二批 completeness 全量裁定防漂移记录
+
+completeness 已达到 41 项真实运行 observed + 32 项 N/A，严格覆盖 73 action。只允许
+`summary/data` 直接布尔完整性字段提供信用，必须包含冻结的 `value_width_complete`；嵌套
+validation/diagnostic 同名字段无效。32 项 N/A 只能由全部冻结成功响应 Schema 不可表达直接
+完整性字段证明。
+
+expr.eval_at、list.first_change、verify.conditions 现在与原版 LogicValue 后处理一致，在
+Wellen 已提供确定 width 时报告 `value_width_complete=true` 和空诊断。不得以固定 true 掩盖
+未来真实宽度缺失；如果 Wellen/backend 诊断变化，action 必须传播 false 与原因，适用性检查
+不得被改成 N/A 逃避。
+
+新 trace 为 41 observed + 32 N/A，pytest 全量和 CTest 9/9 通过。本批没有修改 Wellen、
+Verilator 或 XDD ABI。原始 FST 仍由 Wellen 直接按需读取，FST 不是分析引擎；禁止转换、
+离线索引/数据库、全量快照、export 回灌、TCP/fileport 和 fallback。Goal 保持 active，X/Z、
+P6 剩余复杂差分和最终原版归一化差分尚未完成。
