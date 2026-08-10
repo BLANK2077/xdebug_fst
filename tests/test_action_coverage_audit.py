@@ -321,11 +321,27 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
         (action, "multiple_results")
         for action in multiple_not_applicable_actions
     }
+    completeness_not_applicable_actions = {
+        "actions", "apb.config.list", "apb.config.load", "axi.config.list",
+        "axi.config.load", "batch", "event.config.load", "expr.normalize",
+        "list.add", "list.create", "list.delete", "list.load", "list.show",
+        "list.validate", "nwave.rc.generate", "schema", "session.close",
+        "session.doctor", "session.gc", "session.kill", "session.list",
+        "session.open", "signal.canonicalize", "stream.config.get",
+        "stream.config.list", "stream.config.load", "stream.describe",
+        "waveform.cursor.delete", "waveform.cursor.get", "waveform.cursor.list",
+        "waveform.cursor.set", "waveform.cursor.use",
+    }
+    completeness_entries = {
+        (action, "completeness")
+        for action in completeness_not_applicable_actions
+    }
     manifest_actions = {
         action
         for action, _dimension in (
             resource_entries | empty_entries | truncation_entries |
-            limit_entries | boundary_entries | multiple_entries
+            limit_entries | boundary_entries | multiple_entries |
+            completeness_entries
         )
     }
     applicability = load_not_applicable(
@@ -334,5 +350,6 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     )
     assert set(applicability) == (
         resource_entries | empty_entries | truncation_entries |
-        limit_entries | boundary_entries | multiple_entries
+        limit_entries | boundary_entries | multiple_entries |
+        completeness_entries
     )

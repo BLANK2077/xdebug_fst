@@ -1074,6 +1074,198 @@
       "dimension": "multiple_results",
       "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
       "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "actions",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "apb.config.list",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "apb.config.load",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "axi.config.list",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "axi.config.load",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "batch",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "event.config.load",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "expr.normalize",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "list.add",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "list.create",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "list.delete",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "list.load",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "list.show",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "list.validate",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "nwave.rc.generate",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "schema",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "session.close",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "session.doctor",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "session.gc",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "session.kill",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "session.list",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "session.open",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "signal.canonicalize",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "stream.config.get",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "stream.config.list",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "stream.config.load",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "stream.describe",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.delete",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.get",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.list",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.set",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.use",
+      "dimension": "completeness",
+      "reason": "The frozen success response schema exposes no direct boolean completeness field.",
+      "evidence": "tools/check_completeness_applicability.py"
     }
   ]
 }
