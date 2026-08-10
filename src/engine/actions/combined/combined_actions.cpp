@@ -1388,12 +1388,21 @@ struct TraceXOriginHandler : public EngineActionHandler {
                     const Sample upstream=sample_at(waveform,candidate,state.time);
                     if (!upstream.ok||!has_x(upstream.bits)) continue;
                     const uint64_t upstream_onset=x_onset_time(waveform,upstream);
-                    if (state.visited.count(visit_key(candidate,upstream_onset))) continue;
                     IDesignBackend::DriverRecord relation;
                     relation.src_signal=other;
                     relation.kind=port.kind;
                     relation.dependency_role="port";
-                    sources.push_back({candidate,"port",upstream_onset,relation});
+                    Source source{candidate,"port",upstream_onset,relation};
+                    const bool returns_to_parent=state.hops.size()>=2&&
+                        state.hops[state.hops.size()-2].value(
+                            "signal",std::string())==candidate;
+                    if (state.visited.count(
+                            visit_key(candidate,upstream_onset))&&
+                        !returns_to_parent) {
+                        loop_sources.push_back(std::move(source));
+                    } else if (!returns_to_parent) {
+                        sources.push_back(std::move(source));
+                    }
                 }
             }
 

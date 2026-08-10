@@ -1318,7 +1318,7 @@ def test_trace_x_origin_reports_ref_port_feedback_as_loop(
     assert chain["current"]["signal"] == "GCD.T_14"
     assert "origin" not in chain
     assert [hop["signal"] for hop in chain["hops"]] == [
-        "GCD.T_14", "GCD.GEN_0"]
+        "GCD.T_14", "GCD.GEN_0", "GCD.GEN_1"]
     assert all(hop["relation"] in {"root", "port"}
                for hop in chain["hops"])
     assert rsp["data"]["limitations"] == []

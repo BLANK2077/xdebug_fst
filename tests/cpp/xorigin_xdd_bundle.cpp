@@ -67,23 +67,24 @@ constexpr int kLoadCount = 3;
 const XddSignalInfo kSignals[] = {
     {"GCD.T_14", "port", 33, "xorigin_ref_port_loop.sv", 2},
     {"GCD.GEN_0", "port", 32, "xorigin_ref_port_loop.sv", 3},
+    {"GCD.GEN_1", "port", 32, "xorigin_ref_port_loop.sv", 4},
 };
 
-const int kDirections[] = {3, 3};
+const int kDirections[] = {3, 3, 3};
 
 const XddDriverRec kDrivers[] = {
     {-1, -1, nullptr, nullptr, nullptr, 0},
 };
 
-const int kDriverStart[] = {0, 0};
+const int kDriverStart[] = {0, 0, 0};
 
 const XddLoadRec kLoads[] = {
     {-1, -1, nullptr, nullptr, 0},
 };
 
-const int kLoadStart[] = {0, 0};
+const int kLoadStart[] = {0, 0, 0};
 
-constexpr int kSignalCount = 2;
+constexpr int kSignalCount = 3;
 constexpr int kDriverCount = 0;
 constexpr int kLoadCount = 0;
 
@@ -344,7 +345,7 @@ void xdd_trace_load(XddDb*, int index, int offset, int* consumer,
 
 int xdd_port_connection_count(XddDb*, int index) {
 #if defined(XDEBUG_TEST_REF_PORT_LOOP)
-    return index >= 0 && index <= 1 ? 1 : 0;
+    return index >= 0 && index <= 2 ? 1 : 0;
 #elif defined(XDEBUG_TEST_ALIAS_COALESCE) || defined(XDEBUG_TEST_MODPORT_ALIAS)
     return index >= 0 && index <= 3 ? 2 : 0;
 #else
@@ -358,8 +359,8 @@ void xdd_port_connection(XddDb*, int index, int offset, int* connected,
     *connected = -1;
     *kind = nullptr;
 #if defined(XDEBUG_TEST_REF_PORT_LOOP)
-    if (index >= 0 && index <= 1 && offset == 0) {
-        *connected = index == 0 ? 1 : 0;
+    if (index >= 0 && index <= 2 && offset == 0) {
+        *connected = (index + 1) % 3;
         *kind = "module_port";
     }
 #elif defined(XDEBUG_TEST_ALIAS_COALESCE) || defined(XDEBUG_TEST_MODPORT_ALIAS)
