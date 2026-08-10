@@ -60,10 +60,12 @@ RESULT_COUNT_KEYS = {
 }
 
 RESULT_LIST_KEYS = {
+    "actions",
     "chains",
     "change_points",
     "changed_signals",
     "changes",
+    "checks",
     "configs",
     "cursors",
     "depth_frontiers",
@@ -80,12 +82,15 @@ RESULT_LIST_KEYS = {
     "payloads",
     "preview",
     "ready_without_valid_intervals",
+    "removed",
+    "removed_sessions",
     "results",
     "rows",
     "samples",
     "scopes",
     "sessions",
     "signals",
+    "kept_sessions",
     "transactions",
     "transfers",
 }

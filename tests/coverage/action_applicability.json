@@ -36,6 +36,114 @@
       "dimension": "resource_missing",
       "reason": "The frozen request schema forbids target.session_id; original and candidate reject it before resource lookup.",
       "evidence": "tools/check_resource_applicability.py"
+    },
+    {
+      "action": "apb.config.load",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; the action returns one loaded configuration.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "axi.config.load",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; the action returns one loaded configuration.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "event.config.load",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; the action returns one loaded configuration.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "expr.eval_at",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; the action returns one scalar expression evaluation.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "expr.normalize",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; the action returns one normalized expression.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "list.add",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; the action reports one mutation.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "list.delete",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; removed is a required scalar mutation result, not a collection.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "schema",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; the action returns one requested schema document.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "session.doctor",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; the action returns one health diagnosis.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "session.open",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; success returns one opened session.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "signal.canonicalize",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; success returns one canonical signal mapping.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "stream.config.get",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; success returns one named configuration.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "stream.config.load",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; empty issues are auxiliary diagnostics, not an empty primary result.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "stream.describe",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; success returns one stream description.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.delete",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; success reports one cursor mutation.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.get",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; success returns one cursor.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.set",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; success reports one cursor mutation.",
+      "evidence": "tools/check_empty_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.use",
+      "dimension": "empty_result",
+      "reason": "The exhaustive frozen original success schema has no canonical primary-result cardinality field; success activates one cursor.",
+      "evidence": "tools/check_empty_applicability.py"
     }
   ]
 }

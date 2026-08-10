@@ -101,6 +101,15 @@ def test_empty_classifier_accepts_primary_results_not_auxiliary_lists() -> None:
     ))
     assert empty_diagnostics == {"success"}
 
+    empty_session_cleanup = classify(event(
+        {"api_version": "xdebug.v1", "action": "session.gc"},
+        {
+            "ok": True,
+            "data": {"removed": [], "kept_sessions": []},
+        },
+    ))
+    assert empty_session_cleanup == {"empty_result", "success"}
+
 
 def test_classifier_keeps_observed_dimensions_independent() -> None:
     dimensions = classify(event(
@@ -151,18 +160,25 @@ def test_pre_dispatch_resource_error_does_not_credit_request_dimensions() -> Non
 
 
 def test_resource_applicability_manifest_is_explicit_and_valid() -> None:
+    empty_actions = {
+        "apb.config.load", "axi.config.load", "event.config.load",
+        "expr.eval_at", "expr.normalize", "list.add", "list.delete",
+        "schema", "session.doctor", "session.open",
+        "signal.canonicalize", "stream.config.get",
+        "stream.config.load", "stream.describe",
+        "waveform.cursor.delete", "waveform.cursor.get",
+        "waveform.cursor.set", "waveform.cursor.use",
+    }
     applicability = load_not_applicable(
         REPO_ROOT / "tests/coverage/action_applicability.json",
-        [
+        sorted(empty_actions | {
             "actions",
             "batch",
-            "expr.normalize",
-            "schema",
             "session.gc",
             "session.list",
-        ],
+        }),
     )
-    assert set(applicability) == {
+    resource_entries = {
         ("actions", "resource_missing"),
         ("batch", "resource_missing"),
         ("expr.normalize", "resource_missing"),
@@ -170,3 +186,7 @@ def test_resource_applicability_manifest_is_explicit_and_valid() -> None:
         ("session.gc", "resource_missing"),
         ("session.list", "resource_missing"),
     }
+    empty_entries = {
+        (action, "empty_result") for action in empty_actions
+    }
+    assert set(applicability) == resource_entries | empty_entries
