@@ -1202,6 +1202,38 @@ time/limits/XZ 误记为 action 执行覆盖的问题：
 
 完成后创建 `parity-p7` tag。
 
+#### P7 第八批：truncation 七十三项全量裁定
+
+2026-08-10 完成 truncation 维度全部 73 项裁定，并以失败证据修复三处真实缺口：
+
+1. 冻结成功 Schema 的穷举检查先得到 37 项可表达 canonical truncation、36 项不可表达；
+   后续没有把“Schema 含通用完整性字段”直接当作运行适用性结论。
+2. 35 项 action 已由真实运行观察到截断或非空 `truncation_scopes`。新增门禁覆盖
+   `axi.query`、`axi.channel_stall`、`axi.analysis`、`axi.statistics`、
+   `axi.transaction.cursor`、`axi.export` 和 `stream.validate`；测试输入均为 Wellen 仓库中的
+   原始 `.fst`，由 Wellen 在当前 session 内按需读取。
+3. `scope.list` 原先忽略 `limits.max_rows`，`trace.driver/trace.load` 原先忽略
+   `limits.max_results`；均在 xdebug-fst 内执行完整扫描后只裁剪响应，保留 total/returned
+   与对应 response scope，不修改 DesignDB 或 Verilator。
+4. AXI 扫描器原先把采样点未知 reset/valid/ready 静默当作无握手并虚报完整。修改前真实
+   原始 FST 回归失败；修复后未知控制边沿被跳过且 `analysis_transactions` 传播到所有依赖
+   同一扫描结果的 AXI action。独立 channel-stall 扫描也记录未知 valid/ready。
+5. `stream.validate` 冻结请求明确声明 `line_limit` 限制 evidence rows，因此不能标为 N/A。
+   修复后 stream 动态扫描统计 control/data X/Z 与 ready/bp 冲突，转换为冻结 issue 结构，
+   并用 `analysis_samples` 与 `response_issues` 区分分析不完整和响应截断。
+6. `signal.resolve` 与 `signal.xz_verify` 是第二类 N/A：前者只接受一个 final leaf、禁止
+   aggregate 自动展开且没有结果上限；后者只返回 initial value 和一个 nullable first
+   mismatch，以 window end 或 first mismatch 终止，也没有 row/result limit。该结论由
+   `tools/check_truncation_applicability.py` 对冻结请求和成功 Schema fail-closed 检查；合同变化
+   会直接使门禁失败。
+7. 最新 1113-event trace 为 truncation 35 observed + 38 N/A，未裁定为 0；其中 N/A 包含
+   36 项 Schema 不可表达和 2 项标量生命周期。全量 pytest、CTest 9/9 与冻结适用性检查通过。
+8. 本批没有修改 Wellen、Verilator、XDD ABI、backend 或 transport。没有 FST→VCD/JSON
+   转换、预扫持久化、私有索引、离线数据库、全量内存快照、export 回灌、TCP/fileport 或
+   fallback。FST 仍只是必须适配的波形输入，不是分析引擎。
+9. truncation 维度完成不代表 Goal 完成；boundary_time、multiple_results、limits、
+   completeness、X/Z 和最终原版归一化差分仍须继续逐项闭环。
+
 ## 六、最终完成门禁
 
 只有同时满足以下条件才允许完成 Goal：

@@ -239,3 +239,21 @@ empty_result 已达到 45 observed + 28 N/A，73 项全部裁定。18 项 N/A �
 本批没有修改生产 action、Wellen、Verilator、ABI、backend 或 transport。显式 export 不参与
 后续分析，唯一波形事实路径仍是当前 session 原始 `.fst` 由 Wellen 按需读取。Goal 保持 active，
 下一维度为 truncation。
+
+## 十五、P7 第八批 truncation 全量裁定防漂移记录
+
+truncation 已达到 35 项真实运行 observed + 38 项 N/A，严格覆盖 73 action。38 项 N/A 中，
+36 项由全部冻结成功 Schema 无法表达 canonical truncation 证明；`signal.resolve` 与
+`signal.xz_verify` 另由冻结单一 final-leaf/标量 first-mismatch 生命周期和无结果 limit 证明。
+任何未来 Schema 增加 selector、row limit、可截断集合或改变终止语义，检查器必须失败，禁止
+继续沿用旧 N/A。
+
+`stream.validate` 因冻结请求明确含 `line_limit`，不得降级成 N/A。真实原始 FST 已同时触发
+control X/Z 与 data X/Z issue，并证明 line_limit 截断。AXI 未知 reset/valid/ready 也必须报告
+`analysis_transactions`，不得静默当低电平后虚报完整。上述修复全部位于 xdebug-fst；没有修改
+Wellen、Verilator 或 XDD ABI。
+
+唯一允许的数据流仍是“当前 session 原始 `.fst` → Wellen 按需读取 → 冻结 action 语义”，
+DesignDB 只提供静态设计事实。禁止把 FST 变成分析引擎，禁止 VCD/JSON 转换、预扫持久化、
+私有索引、离线数据库、全量快照、export 回灌、TCP/fileport 和 fallback。该维度关闭不代表
+Goal 完成，其余覆盖维度、复杂 P6 差分和最终 73-action 原版归一化差分仍保持 active。

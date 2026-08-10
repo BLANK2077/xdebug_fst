@@ -1154,6 +1154,22 @@ N/A 分成两类保存证据：18 项的冻结原版全部成功 schema 没有�
 最新 1073 次 public exchange 中 empty_result 未裁定为 0。显式 export 只验证用户请求的输出
 合同，不回灌 action；其余事实仍来自 Wellen 对原始 `.fst` 的按需扫描和 DesignDB 静态查询。
 
+### 9.15 Truncation 完整性由 action 负责，FST 不承担分析
+
+P7 第八批把 truncation 收口为 35 项真实运行 observed + 38 项 N/A。Wellen 的职责仍仅是从
+当前 session 的原始 `.fst` 按需返回四态值、时间、delta 和层级事实；它不解释 AXI/stream，
+不决定 limit，也不生成 truncation scope。xdebug-fst action 完成协议扫描、过滤、问题分类、
+total/returned 计数和响应裁剪；Verilator DesignDB 在本批没有参与波形协议分析，也没有修改。
+
+这一区分暴露并修复了两个真实问题。AXI 扫描曾把未知 reset/valid/ready 当作低电平，现由
+action 标记 `analysis_transactions`；stream 动态验证曾固定报告零 X/Z issue 并忽略 line_limit，
+现由 action 根据 Wellen 返回的原始四态样本形成 `analysis_samples` 与 `response_issues`。这些都
+不是“用 FST 做分析”，而是 action 消费 FST 波形事实执行冻结语义。
+
+适用性同样由冻结合同约束：36 项成功 Schema 无截断表达，2 项是无结果上限的标量生命周期，
+其余 35 项必须有真实运行证据。禁止用字段名猜测适用性，也禁止为了制造截断把 FST 转成 VCD、
+JSON、私有索引、离线数据库或全量快照；显式 export 仍是最终用户产物，不能回灌分析。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；
