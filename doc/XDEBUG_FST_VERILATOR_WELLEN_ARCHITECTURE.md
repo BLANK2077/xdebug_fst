@@ -1063,6 +1063,24 @@ ASan 在 `detect_leaks=1` 与遇错即停配置下、UBSan 在 `halt_on_error=1`
 相同源码、相同 fixture 和相同测试层级重新执行并通过。该环境修复不能被解释为功能修复，
 也不覆盖仍待执行的并发、崩溃、重复生命周期和长期资源泄漏门禁。
 
+### 9.9 Session 稳定性与波形分析职责隔离
+
+P7 第二批把并发和资源门禁放在 frontend/UDS/engine 生命周期层，而不是 Wellen 或 action
+分析层。8 个并行 frontend 共享同一个文件锁保护的 registry，但每个 session 拥有独立
+generation、engine PID 和 UDS socket；并发 doctor 只通过对应 socket ping 对应 generation，
+并发 close 只按 generation 清理自身记录和 artifact。长驻 stdio frontend 的 27 轮同名
+open/doctor/close 则证明 generation 可更新、child 可回收、session id 可复用且父进程 FD 不
+增长。既有 `SIGKILL → doctor unhealthy → gc` 用例继续证明异常 engine 不会被健康结果掩盖。
+
+RSS 门禁区分普通 allocator 与 ASan quarantine：普通/UBSan 增长上限为 4 MiB，ASan 为
+64 MiB，同时强制 LeakSanitizer；FD 在所有模式都要求计量前后精确相等。该差异只反映检测
+器自身的内存保留策略，不更换 backend、fixture 或测试目标。普通 CTest 9/9、ASan 7/7、
+UBSan 7/7 均通过。
+
+所有 session 仍打开同一原始 `.fst`，engine 内部继续由 Wellen 按 action 请求读取波形。
+registry、UDS、PID、FD 和 RSS 只管理进程与资源，不能发布 driver/load、X-origin、协议或
+表达式分析事实；没有 FST 转换、预扫索引、离线数据库、全量快照、TCP/fileport 或 fallback。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；

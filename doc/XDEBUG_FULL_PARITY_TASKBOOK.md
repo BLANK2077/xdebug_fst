@@ -1021,6 +1021,33 @@ onset 时间表、持久化事件索引或离线数据库。冻结 query schema 
 6. 本批尚未替代 P7 的并发 session、engine crash、重复 open/close、FD/长期内存泄漏、
    73-action 原版全差分及最终清洁性门禁；这些任务仍必须分别建立证据。
 
+#### P7 第二批：并发、崩溃、重复生命周期与资源稳定性
+
+2026-08-10 在第一批 sanitizer 基础上增加独立 `session-stability` CTest，并与既有
+`session-uds-lifecycle` 组合关闭当前 UDS session 稳定性门禁：
+
+1. 使用 8 个并行 one-shot frontend 同时创建 8 个不同名称的 UDS session，再并行执行
+   doctor 和 close。必须证明 PID、socket path、内部 generation 全部唯一，registry 同时完整
+   保存 8 条 active 记录，最终 8 个 engine 进程和 socket 全部消失且 registry 为零 session。
+2. 使用一个长驻 `--stdio-loop --json` frontend，先执行 3 轮预热，再执行 24 轮计量的同名
+   `open → doctor → close`。每一轮都必须安全复用 session id、回收当轮 child PID/socket，
+   最终 registry 精确等于 `{"sessions":[],"version":2}`。
+3. `/proc/<frontend-pid>/fd` 在计量前后必须精确相等。普通与 UBSan 构建的 frontend RSS
+   增长不得超过 4096 KiB；ASan 因 allocator quarantine 允许 65536 KiB 仪器化上限，但必须
+   同时保持 `detect_leaks=1`，不能用扩大 RSS 上限替代 LeakSanitizer。
+4. 测试自身保存所有已创建 PID；任意中间断言失败时，只对命令行仍为本轮 `xdebug-fst`
+   的精确 PID 发送终止信号，避免失败测试遗留 engine 或误伤其他 session。
+5. 既有 `session-uds-lifecycle` 已真实对一个 active engine 发送 `SIGKILL`，要求
+   `session.doctor` 返回 `SESSION_UNHEALTHY`，随后 `session.gc` 删除 registry、generation
+   artifact 和 socket；该用例继续纳入普通、ASan 和 UBSan 完整 CTest，不以新重复测试替代。
+6. 验收结果：普通构建 CTest 9/9、pytest 266/266、冻结基线通过；ASan 在 leak/遇错即停
+   下完整 CTest 7/7，UBSan 在遇错即停下完整 CTest 7/7；新 stability 又分别连续重复 3 次
+   通过。一次 ASan 高并发 doctor 的 1 秒 ping 超时未在随后三轮重复中复现，因此没有修改
+   生产 timeout，也没有通过重试逻辑、降低普通并发度或 fallback 掩盖测试。
+7. 本批输入仍只有 `testdata/fixtures/waves.fst`，Wellen 直接按需读取原始 FST。session
+   concurrency、process cleanup、FD/RSS 和 sanitizer 都属于运行稳定性门禁，不承担波形分析，
+   不改变 `GOAL-FST-DIRECT-001`。
+
 提交：
 
 - `测试：建立七十三项 action 全量差分门禁`

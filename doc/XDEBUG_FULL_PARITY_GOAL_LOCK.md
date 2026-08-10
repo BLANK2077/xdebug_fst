@@ -162,3 +162,15 @@ ASan 的 leak/遇错即停门禁与 UBSan 的遇错即停门禁分别通过 CTes
 普通构建 CTest 8/8、pytest 266/266 与冻结基线继续通过。该结果只证明当前测试覆盖下的
 sanitizer 基础门禁；并发 session、engine crash、重复 open/close、FD/长期内存泄漏、
 73-action 全差分和 P6 复杂语义缺口仍未完成，Goal 必须保持 active。
+
+## 九、P7 第二批 session 稳定性防漂移审计记录
+
+并发、crash、重复生命周期和 FD/RSS 测试只验证 frontend、registry、UDS 与 engine 资源管理。
+8 路并发 session 和长驻 stdio 的 27 轮生命周期都继续打开唯一原始 `waves.fst`；Wellen 只在
+engine 内按需提供波形事实，registry/PID/socket/FD/RSS 不参与 driver、X-origin、协议或表达式
+分析。没有转换、预扫、私有索引、离线数据库、全量快照、TCP/fileport 或 fallback。
+
+普通 CTest 9/9、ASan 7/7、UBSan 7/7 证明当前 session 稳定性门禁通过；ASan 的 64 MiB
+RSS 上限只覆盖 quarantine，真实泄漏仍由 `detect_leaks=1` 否决，FD 仍精确零增长。既有
+`SIGKILL → doctor unhealthy → gc` 负责 crash 证据，新测试负责并发和重复资源证据，二者
+不能互相替代。P6 复杂语义、73-action 全量差分和最终交付仍未完成，Goal 保持 active。
