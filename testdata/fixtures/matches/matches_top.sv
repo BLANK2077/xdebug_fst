@@ -105,4 +105,12 @@ module matches_top (
     else
       hold_q <= hold_q;
   end
+
+  reg [7:0] gated_q;
+  wire [7:0] gated_out;
+  assign gated_out = gated_q;
+  always @(posedge clk) begin
+    if (sel == 2'd1)
+      gated_q <= data;
+  end
 endmodule
