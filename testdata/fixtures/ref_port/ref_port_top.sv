@@ -6,8 +6,8 @@ module ref_stage(
     ref    logic [7:0] link,
     output logic [7:0] observed
 );
-    always_comb link = source;
-    always_comb observed = link;
+    assign link = source;
+    assign observed = link;
 endmodule
 
 module ref_port_top(
