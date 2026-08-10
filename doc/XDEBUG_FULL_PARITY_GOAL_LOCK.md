@@ -127,3 +127,10 @@ action 负责透明 alias 合并、RHS/control 身份保持和 `max_nodes=6` 预
 或执行分析：没有 alias 扫描、值相等推断、波形转换、预扫、私有索引、离线数据库、全量
 快照、TCP、fileport 或 fallback。Verilator/Wellen/生产 consumer 均未修改；复杂
 interface/ref/反馈和联合限制仍未完成，Goal 保持 active。
+
+P6 第五十五批继续遵守同一门禁：DesignDB 只发布 direction=3 三节点静态 port 环，Wellen
+只从现有 GCD 原始 `.fst` 按需确认三个节点的 X 值，xdebug action 用请求内路径状态区分
+直接父 alias 反向边与返回更早节点的真实反馈。最终 `loop_detected` 由 action 语义生成，
+不是扫描 FST 相同值或 alias 得出。Verilator、Wellen 和 XDD ABI 未修改，没有转换、预扫、
+私有索引、离线库、全量快照、TCP、fileport 或 fallback。本批只关闭基础 ref 纯端口环；
+复杂 driver/分支/预算反馈、嵌套 interface 和其余 P6 差分仍未完成，Goal 继续 active。

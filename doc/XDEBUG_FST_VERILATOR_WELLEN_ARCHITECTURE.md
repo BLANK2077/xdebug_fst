@@ -1016,6 +1016,15 @@ control 语义身份，并在 `max_nodes=6` 计数前合并汇聚探索态。结
 证明的是已发布 modport 静态边在 action 中的 alias/budget 语义，不等于已经覆盖任意真实
 嵌套/数组 interface、ref X-origin、端口反馈或联合预算场景。
 
+基础 ref 端口反馈沿用同一层次边界。DesignDB 发布三个 direction=3 信号和静态 port 环，
+Wellen 只对这些已选名称从当前 GCD 原始 `.fst` 读取 X/onset；action 的路径 visited 才负责
+判环。双向连接回到直接父节点只是 alias 反向边，必须忽略，否则合法 module/modport 边都会
+产生假 loop；返回更早、非直接父节点的已访问 `(signal,onset)` 才进入既有 `loop_sources`。
+第五十五批以三节点环证明最终响应保留物理 port hop、current 回到根节点、无 origin，并以
+`loop_detected` 完整终止。初始两节点模型在相邻 modport 回归中暴露为过宽后已收紧，避免
+为了让新测试通过而破坏普通 alias。该修复只在 consumer 中增加局部分类，不修改 Verilator、
+Wellen、XDD ABI 或 FST 数据路径；带 driver/分支和联合预算的复杂反馈仍待验证。
+
 ## 十、后续演进原则
 
 1. `GOAL-FST-DIRECT-001` 始终生效：Wellen 仅从当前 session 的原始 `.fst` 按需提供波形事实，Verilator 负责设计静态事实，xdebug-fst 负责合同和组合推理；

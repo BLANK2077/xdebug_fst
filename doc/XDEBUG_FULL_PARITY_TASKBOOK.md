@@ -812,6 +812,16 @@ inout 加入 output 同实例 RHS 的唯一端口映射，并在从双向端口�
 ABI。该证据只关闭基础 modport alias/node-budget 交互；嵌套/数组 interface、ref
 X-origin、端口反馈以及 node/time/depth/loop 联合限制仍须独立差分。
 
+第五十五批关闭 direction=3 `ref` 纯端口反馈的基础 X-origin 环合同。修改前 action 在沿
+port 边返回已访问 X 节点时直接过滤该候选，随后把环上节点误报为 `candidate_x_source`。
+初始两节点失败模型又被第五十四批 modport 回归证明过宽：双向连接返回直接父节点只是普通
+alias 的反向记录，不是反馈。最终测试因此收紧为 `T_14 → GEN_0 → GEN_1 → T_14` 三节点
+direction=3 静态端口环；consumer 只把返回非直接父节点的已访问候选送入既有
+`loop_sources`，直接父边仍忽略。结果保留三个物理 hop，current 回到 `T_14`，以
+`loop_detected` 完整终止且没有 origin。测试继续使用 GCD 原始 `.fst` 按需确认三个节点为
+X，不从值相等推断连接。带 driver/分支的端口反馈以及反馈与 node/time/depth/chain 限制的
+联合交互仍未关闭。
+
 #### trace.active_driver
 
 1. 根据当前时间的控制条件判断有效分支。
@@ -857,8 +867,9 @@ X-origin、端口反馈以及 node/time/depth/loop 联合限制仍须独立差�
 正常来源。测试只允许由 DesignDB 发布静态依赖、由 action 判断 `(signal,onset)` 路径状态，
 Wellen 仅从当前 session 原始 `.fst` 按需确认候选 X 值。不得扫描同值信号推断依赖或环，
 不得生成波形转换、事件索引或离线分析数据库。当前基础同语句 loop+normal 已关闭；基础
-modport alias 与 node 预算组合在第五十四批关闭，复杂端口反馈、嵌套/数组 interface、ref
-和 node/time/depth/loop 联合限制仍须独立差分。
+modport alias 与 node 预算组合在第五十四批关闭，基础 ref 纯端口反馈在第五十五批关闭；
+带 driver/分支的复杂端口反馈、嵌套/数组 interface 及 node/time/depth/loop 联合限制仍须
+独立差分。
 
 第 49 批关闭基础 branch+depth 组合：同一请求同时限制 `max_chains` 和 `max_depth` 时，保留
 语义链必须以 `max_depth` frontier 终止，被省略语义分支必须继续出现在该链的 pending 与
