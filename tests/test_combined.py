@@ -1044,6 +1044,33 @@ def test_trace_x_origin_time_step_limit_counts_distinct_x_onsets(
     assert rsp["data"]["chains"][0]["current"]["x_onset_time"] == "55015000ps"
 
 
+def test_trace_x_origin_preserves_query_and_per_signal_x_onset_times(
+        loop_runner: StdioLoopRunner, wide_xz_fst,
+        xorigin_time_design_db) -> None:
+    open_session(loop_runner, wide_xz_fst, xorigin_time_design_db)
+    root = (
+        "AXI_top_tb_from_compiled.dut.a_regex_coprocessor.genblk1."
+        "a_topology.genblk1[0].genblk1[0].engine_and_station_i.anEngine."
+        "anEngine.g.aregex_cpu.EXE2_Instr")
+    upstream = (
+        "AXI_top_tb_from_compiled.dut.a_regex_coprocessor.genblk1."
+        "a_topology.genblk1[0].genblk1[0].engine_and_station_i.anEngine."
+        "anEngine.g.aregex_cpu.current_character")
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": root, "time": "55215000ps", "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["query_time"] == "55215000ps"
+    assert rsp["data"]["query"]["query_time"] == "55215000ps"
+
+    chain = rsp["data"]["chains"][0]
+    assert chain["hops"][0]["signal"] == root
+    assert chain["hops"][0]["x_onset_time"] == "55215000ps"
+    assert chain["current"]["signal"] == upstream
+    assert chain["current"]["x_onset_time"] == "55015000ps"
+    assert chain["hops"][-1]["signal"] == upstream
+    assert chain["hops"][-1]["x_onset_time"] == "55015000ps"
+
+
 def test_trace_x_origin_x_mask_preserves_signal_width(
         loop_runner: StdioLoopRunner, wide_xz_fst,
         xorigin_time_design_db) -> None:
