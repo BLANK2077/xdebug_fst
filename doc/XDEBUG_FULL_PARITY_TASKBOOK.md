@@ -1062,7 +1062,7 @@ onset 时间表、持久化事件索引或离线数据库。冻结 query schema 
    truncation、completeness、X/Z。每个标记保留 pytest node 证据；没有观察到就保持 missing，
    不从 handler 名、schema 字段存在或文档声明推断已覆盖。
 3. 第一份基线由 342 项 pytest 中的 925 次 public action 交换生成：success 73/73、
-   invalid_request 73/73、resource_missing 18/73、empty_result 9/73、boundary_time 23/73、
+   invalid_request 73/73、resource_missing 18/73、empty_result 9/73、boundary_time 22/73、
    multiple_results 35/73、limits 20/73、truncation 3/73、completeness 37/73、X/Z 7/73。
    73 个 action 均有至少一次交换和成功响应；负例中的 `clock_point_query`、`no.such.action`
    作为 unknown action 单独报告，不计入冻结 73 项。
@@ -1084,6 +1084,42 @@ onset 时间表、持久化事件索引或离线数据库。冻结 query schema 
 8. 下一步必须先按 schema/原版裁定 applicability，再从缺口最大的资源缺失、空结果和
    truncation 开始补真实请求/响应差分；只有全部适用维度都有可定位证据且归一化语义一致，
    才允许启用 `--require-complete` 作为硬门禁。
+
+#### P7 第四批：resource_missing 全 action 适用性裁定
+
+2026-08-10 完成 resource_missing 维度的 73 项裁定，同时修复审计器把路由失败请求中的
+time/limits/XZ 误记为 action 执行覆盖的问题：
+
+1. runtime verbose catalog 的冻结资源分组为：55 waveform、4 design、3 combined、3 session、
+   2 any、6 none。对前四组共 65 项和 any 中的 `scope.roots`，逐项加载该 action 自己的
+   第一份冻结合法 request example，只把 target 替换为不存在的 session；66/66 必须返回
+   退出码 1、原 action 和精确 `SESSION_NOT_FOUND/session_manager`。
+2. 使用 action 自身 example 保证必填 args、selector/config shape 先通过 schema，资源缺失
+   不会被 `INVALID_REQUEST` 冒充。`session.open` 不经过 managed-session 路由，其既有不存在
+   `.fst` 回归返回 `WAVEFORM_OPEN_FAILED`。因此 observed resource_missing 为 67/73。
+3. 剩余 6 个 `requires=none` action 为 `actions`、`batch`、`expr.normalize`、`schema`、
+   `session.gc`、`session.list`。冻结 request schema 禁止 `target.session_id`；只读原版与开源
+   候选对附加缺失 session target 的完整响应逐项精确一致，均在资源查找前返回 schema
+   `INVALID_REQUEST`。五项 `invalid_arg=target.session_id`；`expr.normalize` 的 `oneOf` 合同
+   为 `invalid_arg=$`，同时在 `validation_issues` 明确指出 target/session_id。
+4. `tests/coverage/action_applicability.json` 只把上述六个 action 的 resource_missing 标为
+   N/A，并为每项保存原因和 `tools/check_resource_applicability.py` 证据。审计器对未知 action、
+   未知维度、重复项、空原因/证据或多余字段 fail closed；observed 与 N/A 分列，不得相加
+   伪造实际错误执行数。
+5. 审计器现在只有在成功响应后才从请求登记 boundary_time/XZ，limits 也只在成功或真实
+   truncation/limit 结果后登记。资源路由失败只记 resource_missing。对同一 992-event trace
+   重算后 resource_missing 为 67 observed + 6 N/A，boundary_time 从旧误计 23 校正为 22，
+   limits 保持 20。
+6. 原版适用性差分与带 N/A 矩阵复现命令：
+
+   ```bash
+   ${XFST_CONDA_ENV} ${REPO_ROOT}/tools/check_resource_applicability.py --repo-root ${REPO_ROOT} --original-root ${XDEBUG_ORIGINAL_ROOT}
+   ${XFST_CONDA_ENV} ${REPO_ROOT}/tools/audit_action_coverage.py --repo-root ${REPO_ROOT} --trace /tmp/xdebug-action-coverage.ndjson --applicability ${REPO_ROOT}/tests/coverage/action_applicability.json --output-json /tmp/xdebug-action-coverage.json --output-markdown /tmp/xdebug-action-coverage.md
+   ```
+7. 全量 pytest 345/345、CTest 9/9、冻结基线和原版差分 6/6 通过。所有 managed session
+   测试仍只引用原始 `.fst`；本批未修改生产实现、Wellen、Verilator、ABI 或数据路径。
+8. 下一优先级为 empty_result 9/73 与 truncation 3/73；仍须先裁定每个 action 的适用性，
+   不得把 resource_missing 的 73 项完成外推到其他维度。
 
 提交：
 

@@ -184,6 +184,18 @@ Wellen 或 DesignDB，也不参与生产 action。审计生成的 NDJSON/JSON/Ma
 
 首份矩阵的 success/invalid_request 为 73/73，但 resource_missing、empty_result、
 boundary_time、multiple_results、limits、truncation、completeness、X/Z 仍分别只有
-18/9/23/35/20/3/37/7 项观察证据。这些数字是 TODO 索引，不是完整兼容率；单个 action
+18/9/22/35/20/3/37/7 项观察证据。这些数字是 TODO 索引，不是完整兼容率；单个 action
 十列有勾选也必须继续原版归一化差分。任何 N/A 必须由冻结 schema 与原版真实行为证明，
 不得由审计器或实现便利擅自缩小目标。P6/P7 仍有大量缺口，Goal 保持 active。
+
+## 十一、P7 第四批 resource applicability 防漂移记录
+
+resource_missing 由 67 项真实运行错误和 6 项原版/schema 证明的 N/A 完整裁定。66 个 managed
+action 使用自身冻结合法 example 到达缺失 session 路由；`session.open` 使用缺失 `.fst`。
+六个 `requires=none` action 只在冻结 schema 已禁止 session target、且只读原版与候选完整
+响应逐项一致后标 N/A。禁止根据实现方便、category 名称或缺少测试擅自增加 N/A。
+
+审计器已禁止资源路由失败请求虚增 time/limits/XZ 覆盖，旧 boundary_time 23 校正为 22。
+applicability 文件只是合同证据元数据，不含波形、不参与 action，也不得回灌分析。生产仍由
+Wellen 直接按需读取当前 session 原始 `.fst`，本批没有修改 Wellen、Verilator、ABI、backend
+或 transport。empty/truncation 等其余维度仍未裁定，Goal 保持 active。

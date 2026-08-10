@@ -1089,7 +1089,7 @@ xdebug.v1 JSON，并关联 pytest node；不接触 FST 文件、不调用 Wellen
 索引；生成文件只位于 `/tmp`，不作为 action 输入、缓存、export 或后续波形分析数据库。
 
 第一份 925-event 基线证明 73/73 action 都有成功和非法请求运行证据，同时暴露资源缺失
-18/73、空结果 9/73、边界时间 23/73、多结果 35/73、limits 20/73、truncation 3/73、
+18/73、空结果 9/73、边界时间 22/73、多结果 35/73、limits 20/73、truncation 3/73、
 completeness 37/73、X/Z 7/73 的观察覆盖。数字只反映现有 pytest，不等于字段语义一致；
 即使一个 action 十列都有记录，也仍须原版归一化差分。资源/时间无关 action 的 N/A 只能由
 冻结 schema 与原版行为裁定，工具不会擅自缩小任务。
@@ -1097,6 +1097,21 @@ completeness 37/73、X/Z 7/73 的观察覆盖。数字只反映现有 pytest，�
 因此该 trace 与 FST 分析完全隔离：生产事实路径仍是原始 `.fst → Wellen 按需读取 → action`，
 静态事实仍只来自 DesignDB；审计日志不得回灌 action，不得成为波形索引、离线数据库或
 fallback。
+
+### 9.11 Resource applicability 由 schema 与原版裁定
+
+P7 第四批不再把十个维度机械套到所有 action。66 个 managed-resource action 用各自冻结
+合法 example 替换成缺失 session，真实到达 frontend resource route 并统一返回
+`SESSION_NOT_FOUND`；`session.open` 用缺失原始 `.fst` 返回 `WAVEFORM_OPEN_FAILED`。
+这 67 项是 observed resource errors。
+
+六个 `requires=none` action 的冻结 schema 在资源查找前禁止 `target.session_id`，只读原版与
+候选完整响应 6/6 精确一致，因此 resource_missing 明确为 N/A。N/A 只保存在独立 applicability
+清单并带差分工具证据，审计报告与 observed 分列；工具不能根据 category 猜测 N/A。
+
+这一裁定仍不改变波形架构。缺失 session 发生在 frontend/registry，缺失 FST 发生在 session
+资源打开边界；没有生成替代波形、切换 backend 或让 action trace 参与分析。运行时事实路径
+仍只有原始 `.fst → Wellen 按需读取 → action`。
 
 ## 十、后续演进原则
 
