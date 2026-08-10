@@ -916,6 +916,7 @@ expression、tagged pattern、pattern variable、嵌套 wildcard，以及带绑�
 - xdebug-fst `9e6dbbe`：锁定 Verilator 多驱动修复并以真实 FST/DesignDB 组合恢复双连续活动候选歧义。
 - xdebug-fst `6d5adcd`：以 RHS-only 四态通配与闭区间求值消费 case inside 谓词，运行时值仍直接来自原始 FST。
 - xdebug-fst `d67ef94`：锁定精确表达式 `case matches` 的有限 Verilator 子集，并以独立原始 FST 在 active time 验证 item/default；FST 只提供 selector 波形事实。
+- xdebug-fst `2f56de3`、`3c34f7b`：先记录独立精确/顶层通配 `matches` 尚未进入固件的 `SIGNAL_NOT_FOUND` 失败，再用锁定 Verilator 同步生成原始 FST 与 DesignDB；45ps/65ps 精确真/假和顶层点星恒真均由 action 组合静态谓词与 Wellen 按需波形事实完成，三方实现和 ABI 无需再改；
 - xdebug-fst `022d316`：锁定 inout lowering 原始 RHS 替换语义，并以真实 FST 完成跨端口四跳链。
 - xdebug-fst `fcd5e06`：以带独立中间 net 的真实两级 inout 固件验证六跳父向链，三方实现和 ABI 均无需修改。
 - xdebug-fst `7e07599`、`970aae1`：冻结 output 边界折叠失败，并仅组合既有 XDD 端口/驱动事实恢复原版五跳模块链。
