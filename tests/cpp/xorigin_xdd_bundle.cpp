@@ -7,7 +7,38 @@
 
 namespace {
 
-#if defined(XDEBUG_TEST_X_TIME_LIMIT)
+#if defined(XDEBUG_TEST_ALIAS_COALESCE)
+
+const XddSignalInfo kSignals[] = {
+    {"GCD.T_14", "wire", 33, "xorigin_alias.sv", 2},
+    {"GCD.GEN_0", "wire", 32, "xorigin_alias.sv", 3},
+    {"GCD.GEN_1", "wire", 32, "xorigin_alias.sv", 4},
+    {"GCD.x", "wire", 32, "xorigin_alias.sv", 5},
+    {"GCD.io_a", "port", 32, "xorigin_alias.sv", 1},
+    {"GCD.y", "port", 32, "xorigin_alias.sv", 1},
+};
+
+const int kDirections[] = {0, 0, 0, 0, 1, 1};
+
+const XddDriverRec kDrivers[] = {
+    {3, 4, "cont_assign", "rhs", "xorigin_alias.sv", 5},
+    {3, 5, "cont_assign", "rhs", "xorigin_alias.sv", 5},
+};
+
+const int kDriverStart[] = {0, 0, 0, 0, 2, 2};
+
+const XddLoadRec kLoads[] = {
+    {4, 3, "rhs_use", "xorigin_alias.sv", 5},
+    {5, 3, "rhs_use", "xorigin_alias.sv", 5},
+};
+
+const int kLoadStart[] = {0, 0, 0, 0, 0, 1};
+
+constexpr int kSignalCount = 6;
+constexpr int kDriverCount = 2;
+constexpr int kLoadCount = 2;
+
+#elif defined(XDEBUG_TEST_X_TIME_LIMIT)
 
 const XddSignalInfo kSignals[] = {
     {"AXI_top_tb_from_compiled.dut.a_regex_coprocessor.genblk1.a_topology.genblk1[0].genblk1[0].engine_and_station_i.anEngine.anEngine.g.aregex_cpu.EXE2_Instr",
@@ -202,12 +233,31 @@ void xdd_trace_load(XddDb*, int index, int offset, int* consumer,
     *line = load.line;
 }
 
-int xdd_port_connection_count(XddDb*, int) { return 0; }
+int xdd_port_connection_count(XddDb*, int index) {
+#if defined(XDEBUG_TEST_ALIAS_COALESCE)
+    return index >= 0 && index <= 3 ? 2 : 0;
+#else
+    (void)index;
+    return 0;
+#endif
+}
 
-void xdd_port_connection(XddDb*, int, int, int* connected,
+void xdd_port_connection(XddDb*, int index, int offset, int* connected,
                          const char** kind) {
     *connected = -1;
     *kind = nullptr;
+#if defined(XDEBUG_TEST_ALIAS_COALESCE)
+    static const int kConnections[4][2] = {
+        {1, 2}, {0, 3}, {0, 3}, {1, 2},
+    };
+    if (index >= 0 && index <= 3 && offset >= 0 && offset < 2) {
+        *connected = kConnections[index][offset];
+        *kind = "module_port";
+    }
+#else
+    (void)index;
+    (void)offset;
+#endif
 }
 
 }  // extern "C"

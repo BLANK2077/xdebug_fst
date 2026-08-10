@@ -240,6 +240,27 @@ if(BUILD_TESTING)
         CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVxorigin_time__DesignDb.so\"\n}\n"
     )
 
+    set(XORIGIN_ALIAS_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/xorigin_alias/obj_dir")
+    file(MAKE_DIRECTORY "${XORIGIN_ALIAS_XDD_BUNDLE_DIR}")
+    add_library(test-xorigin-alias-xdd-bundle SHARED
+        tests/cpp/xorigin_xdd_bundle.cpp
+    )
+    target_include_directories(test-xorigin-alias-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    target_compile_definitions(test-xorigin-alias-xdd-bundle PRIVATE
+        XDEBUG_TEST_ALIAS_COALESCE=1
+    )
+    set_target_properties(test-xorigin-alias-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vxorigin_alias__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${XORIGIN_ALIAS_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${XORIGIN_ALIAS_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVxorigin_alias__DesignDb.so\"\n}\n"
+    )
+
     add_executable(test-xdd-design-backend
         tests/cpp/test_xdd_design_backend.cpp
         src/backend/xdd_design_backend.cpp

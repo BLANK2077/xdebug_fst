@@ -160,6 +160,11 @@ def xorigin_time_design_db(xfst_bin: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
+def xorigin_alias_design_db(xfst_bin: Path) -> Path:
+    return xfst_bin.parent / "testdata" / "fixtures" / "xorigin_alias" / "obj_dir"
+
+
+@pytest.fixture(scope="session")
 def apb_fst() -> Path:
     return _fix("apb")
 
