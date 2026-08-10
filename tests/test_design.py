@@ -100,6 +100,24 @@ def test_trace_load_contract(loop_runner: StdioLoopRunner, counter_fst,
         assert len(path["signal_path"]) == 2
 
 
+def test_trace_driver_and_load_empty_at_static_boundaries(
+        loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    drivers = loop_runner.request("trace.driver", args={"signal": "top.reset"})
+    assert drivers.get("ok"), drivers
+    assert drivers["summary"]["total_count"] == 0
+    assert drivers["summary"]["returned_count"] == 0
+    assert drivers["data"]["paths"] == []
+
+    loads = loop_runner.request(
+        "trace.load", args={"signal": "top.counter_top.overflow"}
+    )
+    assert loads.get("ok"), loads
+    assert loads["summary"]["total_count"] == 0
+    assert loads["summary"]["returned_count"] == 0
+    assert loads["data"]["paths"] == []
+
+
 def test_expr_normalize_contract(loop_runner: StdioLoopRunner) -> None:
     rsp = loop_runner.request("expr.normalize",
                               args={"expr": "valid && !ready"}, target={})

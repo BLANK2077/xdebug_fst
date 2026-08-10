@@ -474,6 +474,20 @@ def test_trace_active_driver_requires_both(loop_runner: StdioLoopRunner,
     assert rsp["error"]["code"] == "DESIGN_NOT_LOADED"
 
 
+def test_trace_active_driver_empty_for_primary_input(
+        loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    rsp = loop_runner.request("trace.active_driver", args={
+        "signal": "top.reset", "time": "100ps",
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "no_driver"
+    assert rsp["summary"]["termination_detail"] == "no_driver"
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["data"]["paths"] == []
+
+
 def test_trace_active_driver_chain(loop_runner: StdioLoopRunner, counter_fst,
                                    counter_design_db) -> None:
     open_session(loop_runner, counter_fst, counter_design_db)

@@ -388,6 +388,18 @@ def test_scope_roots(loop_runner: StdioLoopRunner, counter_fst) -> None:
     assert rsp["data"]["roots"][0]["status"] == "wave_only"
     assert rsp["data"]["wave_roots"][0]["queryable"] is True
 
+    design_only = loop_runner.request("scope.roots", args={"source": "design"})
+    assert design_only.get("ok"), design_only
+    assert design_only["summary"]["resource_available"] is True
+    assert design_only["summary"]["design_available"] is False
+    assert design_only["summary"]["total_count"] == 0
+    assert design_only["summary"]["returned_count"] == 0
+    assert design_only["summary"]["analysis_complete"] is False
+    assert design_only["summary"]["truncation_scopes"] == [
+        "analysis_sources"
+    ]
+    assert design_only["data"]["roots"] == []
+
 
 def test_scope_roots_reports_design_wave_mismatch(
         loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
