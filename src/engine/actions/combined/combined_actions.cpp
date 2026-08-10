@@ -886,7 +886,15 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     }
                 }
             }
-            if (direction==0&&evaluated.unresolved.empty()&&groups.size()==1) {
+            const int previous_index=previous.empty()
+                ?-1:design.resolve(previous.c_str());
+            // Returning from a ref/inout port already crossed the child
+            // boundary.  Follow the parent driver's RHS instead of reflecting
+            // through another child output connected to the same alias net.
+            const bool arrived_from_ref=previous_index>=0&&
+                design.signal_direction(previous_index)==3;
+            if (direction==0&&!arrived_from_ref&&
+                evaluated.unresolved.empty()&&groups.size()==1) {
                 std::vector<int> output_ports=ports_connected_to(design,index,2);
                 output_ports.erase(std::remove_if(output_ports.begin(),output_ports.end(),
                     [&](int port) {
@@ -924,6 +932,10 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                         for (const auto& flattened : mapped_group.rhs) {
                             std::vector<int> input_ports=ports_connected_to(
                                 design,flattened.src_signal,1);
+                            const std::vector<int> ref_ports=ports_connected_to(
+                                design,flattened.src_signal,3);
+                            input_ports.insert(input_ports.end(),
+                                ref_ports.begin(),ref_ports.end());
                             input_ports.erase(std::remove_if(
                                 input_ports.begin(),input_ports.end(),[&](int port) {
                                     const std::string port_scope=signal_scope(
