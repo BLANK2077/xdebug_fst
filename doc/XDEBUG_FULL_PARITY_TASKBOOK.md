@@ -700,8 +700,13 @@ top.data`。若任一步不唯一，不得靠 FST 同值搜索猜测。该批关
 边界。第十六批又验证复杂 output 表达式必须先进入子 output，再以同实例多个 input port
 报告一个 statement 的多 RHS；第三十三批验证同一实例两个独立 output port 共同驱动父 net
 时必须保留两条活动 statement，不能按端口顺序、FST 值或可读性合并。至此单 output 多 RHS
-和同实例多 output 两种基础组合已关闭；带条件 output、跨层 output/inout 混合反馈和更复杂
-多驱动组合仍须独立差分。
+和同实例多 output 两种基础组合已关闭。第三十四批进一步关闭带条件的单 output 基础边界：
+Verilator lowering 谓词引用内部一位信号，而原始 FST 保存等价子模块 input port；consumer
+只能依据 DesignDB 已有端口边，在位宽一致、波形可读且候选唯一时改写谓词引用，任何缺失
+或歧义继续 `predicate_unresolved`。活动信号分支映射到同实例 input 后继续上溯；活动常量
+分支必须在子 output 保留父 statement 的精确源码行并终止，不能沿父子 alias 折返。该修复
+不构成 FST 分析：FST/Wellen 只提供被静态选定端口的运行时值，候选唯一性、谓词和链合同
+由 DesignDB 与 action 负责。跨层 output/inout 混合反馈和更复杂多驱动组合仍须独立差分。
 
 第十三批在同一真实 FST 固件中加入两个独立 `always @(posedge clk)` 对同一 reg 的 NBA：
 第一条受 `!reset` 控制，第二条受 `sel[0]` 控制。25ps 只有第一条活动，必须唯一返回第

@@ -820,6 +820,21 @@ expression、tagged pattern、pattern variable、嵌套 wildcard，以及带绑�
 继续明确不支持，
 不得把本批次描述成通用 pattern matching 已完成，也不得近似成 case inside。
 
+条件 output 的跨层链继续复用上述双事实架构，而不要求扩展 Verilator。lowering 后的
+activation predicate 可能引用不在 FST 中保存的内部 `__vcellinp__` 信号，但既有 DesignDB
+同时保留该信号与声明 input port 的精确 `port_boundary`，原始 FST 也保留可直接读取的
+模块端口。xdebug action 只有在遍历静态端口边后得到恰好一个位宽一致且 Wellen 可读的候选
+时，才把表达式树中的内部名替换为端口名；零个或多个候选一律保持
+`predicate_unresolved`，不会按名称相似度、值相等或第一个可读项选择。
+
+进入子 output 后，父 net 的唯一活动 statement 若含 RHS，仍执行同实例 input 的全有或全无
+映射；若该活动分支是常量、没有 RHS，则保留同一 statement 的 file/line/kind/predicate
+作为子 output hop 证据并就地终止，不能退回父 net 形成 alias 环。45ps 信号分支因此沿
+`conditional_output_bus → data_o → data_i → case_top.data → top.data` 到达 primary input，
+25ps 常量分支在 `data_o` 的第 180 行终止。这里 DesignDB 决定端口等价关系和静态谓词，
+Wellen 只从当前原始 `.fst` 按需读取 `sel_i` 与 hop 值，xdebug action 决定活动分支和终止
+合同；没有 FST 转换、预扫、离线索引、全量快照或 fallback，也没有修改 Verilator/Wellen。
+
 显式文件产物必须与“离线 FST 分析”严格区分：
 
 - `list.export` 按公共合同写出 `u64bin.v1`，用于调用者消费最终列表数据；
@@ -919,6 +934,7 @@ expression、tagged pattern、pattern variable、嵌套 wildcard，以及带绑�
 - xdebug-fst `2f56de3`、`3c34f7b`：先记录独立精确/顶层通配 `matches` 尚未进入固件的 `SIGNAL_NOT_FOUND` 失败，再用锁定 Verilator 同步生成原始 FST 与 DesignDB；45ps/65ps 精确真/假和顶层点星恒真均由 action 组合静态谓词与 Wellen 按需波形事实完成，三方实现和 ABI 无需再改；
 - xdebug-fst `116761c`、`519e7e9`：先记录同一 posedge 过程连续两条 NBA 尚未进入固件的失败，再以同步原始 FST/DesignDB 证明两条 assignment handle 在 60ps 同时活动；action 按冻结原版合同保留第 88/89 行双候选歧义，不按源码顺序或最终值任选，三方实现和 ABI 无需修改；
 - xdebug-fst `3654e70`、`54f332b`：先记录同一子实例两个 output 端口共同驱动父 net 尚未进入固件的失败，再以同步原始 FST/DesignDB 验证同实例端口 identity；action 保留第 160/161 行两条活动 statement，不按端口顺序、FST 值或可读性合并候选，三方实现和 ABI 无需修改；
+- xdebug-fst `b46b5cd`、`b6f2617`：先记录条件 output 未进入固件的失败，再同步原始 FST/DesignDB 并仅在 consumer 内以唯一、同宽、可读的 DesignDB 端口边解析 lowering 谓词信号；信号分支跨 input 上溯，常量分支保留第 180 行终止，Verilator/Wellen/XDD ABI 均未修改；
 - xdebug-fst `022d316`：锁定 inout lowering 原始 RHS 替换语义，并以真实 FST 完成跨端口四跳链。
 - xdebug-fst `fcd5e06`：以带独立中间 net 的真实两级 inout 固件验证六跳父向链，三方实现和 ABI 均无需修改。
 - xdebug-fst `7e07599`、`970aae1`：冻结 output 边界折叠失败，并仅组合既有 XDD 端口/驱动事实恢复原版五跳模块链。
