@@ -82,6 +82,26 @@ def test_empty_classifier_accepts_zero_total_and_explicit_not_found() -> None:
     assert count_only == {"multiple_results", "success"}
 
 
+def test_empty_classifier_accepts_primary_results_not_auxiliary_lists() -> None:
+    empty_primary = classify(event(
+        {"api_version": "xdebug.v1", "action": "axi.latency_outlier"},
+        {
+            "ok": True,
+            "data": {"outliers": []},
+        },
+    ))
+    assert empty_primary == {"empty_result", "success"}
+
+    empty_diagnostics = classify(event(
+        {"api_version": "xdebug.v1", "action": "stream.config.load"},
+        {
+            "ok": True,
+            "data": {"issues": [], "recommended_actions": []},
+        },
+    ))
+    assert empty_diagnostics == {"success"}
+
+
 def test_classifier_keeps_observed_dimensions_independent() -> None:
     dimensions = classify(event(
         {
