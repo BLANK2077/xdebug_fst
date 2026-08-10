@@ -643,6 +643,13 @@ alias 中间节点仍会保留，汇聚后的相同状态只探索一次，并�
 波形值、不跨 session/request、不落盘或序列化，也不能由后续 action 重载，因而不是 FST
 索引、缓存或离线分析数据库。超过 max-depth 的 frontier 先形成明确限制证据，不进入集合。
 
+当前路径 visited 与全局 explored-state 语义不同：visited 命中表示本条因果链将闭环，必须
+形成完成的 `loop_detected` chain，而不是静默过滤后把当前节点误报成 X origin；全局集合
+命中则表示另一条物理路径已经探索过同一语义状态，可以抑制重复工作。loop child 不重复
+追加目标 hop，`current` 指向闭环目标，origin 为空；summary 只存在 loop chain 时返回
+`loop_detected`，但没有找到 X origin，因此 evidence status 仍保持 unresolved。是否成环由
+DesignDB 静态依赖和 action 的 `(signal,onset)` 路径状态决定，不由 FST 值相等推断。
+
 同一源文件行也不能直接等同于同一条动态语句。lowering 后的三元表达式可能把信号 RHS
 叶子与常量 RHS 叶子保留在同一 `(file,line,kind)` 下，但每片叶子具有不同的静态
 activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为语句身份，
