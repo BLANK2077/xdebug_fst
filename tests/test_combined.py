@@ -541,11 +541,14 @@ def test_trace_active_driver_chain_crosses_interface_modports(
     assert rsp["summary"]["termination"] == "primary_input"
     assert rsp["summary"]["analysis_complete"] is True
     signals = [hop["signal"] for hop in rsp["data"]["hops"]]
-    assert signals[0] == "top.observed"
-    assert signals[-1] == "top.source"
-    assert any(".bus.data" in signal for signal in signals)
-    assert any(".u_sink" in signal for signal in signals)
-    assert any(".u_source" in signal for signal in signals)
+    assert signals == [
+        "top.observed",
+        "top.interface_modport_top.u_sink.data_o",
+        "top.interface_modport_top.u_sink.bus.data",
+        "top.interface_modport_top.bus.data",
+        "top.interface_modport_top.u_source.bus.data",
+        "top.source",
+    ]
     assert {hop["value"] for hop in rsp["data"]["hops"]} == {"8'h77"}
 
 

@@ -851,6 +851,41 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             }
 
             const int direction=design.signal_direction(index);
+            // A top/parent output may be a flattened alias of one child output.
+            // Cross only a unique deepest continuous boundary; procedural/NBA
+            // assignments retain their own frozen termination semantics.
+            if (direction==2&&previous.empty()&&evaluated.unresolved.empty()&&
+                groups.size()==1&&groups[0].kind=="cont_assign") {
+                std::vector<int> child_outputs=ports_connected_to(design,index,2);
+                child_outputs.erase(std::remove_if(
+                    child_outputs.begin(),child_outputs.end(),[&](int port) {
+                        const std::string candidate=signal_name(design,port);
+                        return port==index||
+                            hierarchy_depth(candidate)<=hierarchy_depth(current);
+                    }),child_outputs.end());
+                if (!child_outputs.empty()) {
+                    const size_t deepest=hierarchy_depth(signal_name(
+                        design,*std::max_element(child_outputs.begin(),child_outputs.end(),
+                            [&](int left,int right) {
+                                return hierarchy_depth(signal_name(design,left))<
+                                    hierarchy_depth(signal_name(design,right));
+                            })));
+                    std::vector<int> deepest_outputs;
+                    std::copy_if(child_outputs.begin(),child_outputs.end(),
+                        std::back_inserter(deepest_outputs),[&](int port) {
+                            return hierarchy_depth(signal_name(design,port))==deepest;
+                        });
+                    if (deepest_outputs.size()==1) {
+                        const std::string candidate=signal_name(
+                            design,deepest_outputs.front());
+                        if (sample_at(waveform,candidate,sample.active_time).ok) {
+                            ambiguity_kind.clear();
+                            upstream=candidate;
+                            selected=nullptr;
+                        }
+                    }
+                }
+            }
             if (direction==0&&evaluated.unresolved.empty()&&groups.size()==1) {
                 std::vector<int> output_ports=ports_connected_to(design,index,2);
                 output_ports.erase(std::remove_if(output_ports.begin(),output_ports.end(),
@@ -891,8 +926,12 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                                 design,flattened.src_signal,1);
                             input_ports.erase(std::remove_if(
                                 input_ports.begin(),input_ports.end(),[&](int port) {
-                                    return signal_scope(signal_name(design,port))!=
-                                        instance_scope;
+                                    const std::string port_scope=signal_scope(
+                                        signal_name(design,port));
+                                    // A modport member is nested below its
+                                    // instance as <instance>.<port>.<member>.
+                                    return port_scope!=instance_scope&&
+                                        !is_scope_ancestor(instance_scope,port_scope);
                                 }),input_ports.end());
                             if (input_ports.size()!=1) {
                                 mapping_complete=false;
