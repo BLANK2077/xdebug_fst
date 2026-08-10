@@ -650,6 +650,12 @@ Verilator `01f9f2a4b` 先以独立失败回归锁定简单 posedge 与异步 res
 实现以请求 `max_nodes` 为静态前瞻预算并维护 signal visited set；只有谓词可解、唯一活动
 statement、连续赋值、唯一 RHS 四项同时成立才继续，到达唯一 NBA `event_*` 后才传播时间。
 两级 alias 已全部恢复 60ps；歧义、环、缺失或非连续边界一律停止而不 fallback。
+第三十七批进一步区分“同值数据赋值”和“纯自保持赋值”：`q <= q` 在新 posedge 执行时
+不能成为新的数据根因。只有 DesignDB load 精确证明同目标、同文件、同行 self RHS，且该行
+只有一个静态 statement identity 时，action 才沿明确 `event_*` 对当前原始 FST 时钟边沿
+有界回溯；同源行混合叶子、常量、缺失或不唯一证据均不猜测。`max_nodes` 同时约束回溯，
+耗尽明确返回 limit。65ps 已跳过 60ps self-hold，恢复 40ps 数据赋值和 primary input 链；
+这不是按目标值是否变化推断，也没有建立事件索引或修改 Verilator/Wellen。
 第二十批进一步用不与 posedge 重合的 30ps `negedge async_reset_n` 写入同值，证明 consumer
 会从 DesignDB 的多敏感项中选择真实最近事件，并在该时刻判定复位常量分支；现有实现
 直接返回 30ps 并按常量 assignment 终止，因此不修改任何仓库算法或 ABI。

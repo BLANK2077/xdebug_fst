@@ -93,3 +93,5 @@ active-driver 的 activation predicate 也属于上述静态 HDL 事实，而不
 仅 `default` 的 `case matches` 闭环再次验证本 Goal 的不可拆分双断言：Verilator DesignDB 提供唯一分支的恒真静态谓词，冻结的 xdebug action 执行 active-driver 合同，Wellen 只在 45ps/65ps 对当前 session 的原始 `.fst` 按需读取运行时事实。该批没有把 `matches` 语法、分支识别或 driver 判定下沉到 FST/Wellen，也没有引入 VCD/JSON 转换、私有索引、离线库、全量快照、TCP/fileport 或 fallback。
 
 对应失败证据和实现为 Verilator `1ae90d55d`、`487482500`、`da63eb075` 及 xdebug-fst `813ee36`、`f8d0aee`。XDD header/ABI 未改变，Wellen 未修改；tagged、binding 与嵌套 wildcard 继续失败关闭。因此该批只能声明“仅 `default` 子集已闭环”，不能声明通用 matches 或 Goal 已完成。
+
+P6 第三十七批继续按同一门禁处理 NBA 纯自保持：DesignDB 的精确 self load 与静态 `event_*` 负责证明 `q <= q` 及其敏感源，Wellen 只对当前原始 `.fst` 的已确定时钟按需读取边沿，xdebug action 执行有界历史回溯与冻结 active-driver 合同。实现 `e700d34` 没有从目标 FST 值是否变化推断 self-hold，没有建立事件索引或离线库，也没有修改 Verilator/Wellen/ABI；因此仍是“静态事实 + 原始 FST 运行时事实 → action 分析”，不是“用 FST 做分析”。

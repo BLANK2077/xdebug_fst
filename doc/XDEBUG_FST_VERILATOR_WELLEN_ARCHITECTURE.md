@@ -740,6 +740,17 @@ Wellen 也能读取原始 FST 中所有相关信号，但 consumer 只前看一�
 环。到达唯一 NBA 的 `event_*` 才返回因果时间。未决谓词、多 statement、多 RHS、非连续
 类型、缺失波形或环均失败关闭该时间传播路径，不改变既有驱动歧义报告，也不触发其他
 backend。两级 alias 因而从同一原始 FST 得到 60ps，而 Verilator/Wellen 无需再修改。
+
+纯自保持 NBA 是不同的时间语义：`q <= q` 虽在敏感事件执行，却不应覆盖此前真正提供数据
+的 assignment。第三十七批不从 FST 的“目标没有变化”推断 self-hold，而是复用 DesignDB
+已有 load 静态事实；只有 load 的 consumer 与 target 相同、文件/行与活动 NBA 完全一致，
+且该源码行只有一个 statement identity，才安全认定为纯自保持。同源行条件/三元混合叶子
+会因身份不唯一继续失败关闭，避免把常量叶子误判为 self-hold。action 随后以 `max_nodes`
+为预算，逐个回看该 statement 已明确的 `event_*`，每个候选时刻仍由 Wellen 从当前原始
+`.fst` 按需读取时钟 Before/Raw 值并重新求 activation predicate。65ps 查询因此跳过 60ps
+的 `hold_q <= hold_q`，恢复 40ps 的 `hold_q <= data`；预算耗尽返回 `limit/max_nodes`。
+Verilator/Wellen/XDD ABI 均未修改，也没有按值相等猜测、预扫事件或建立离线索引。
+
 异步复位审计又把 `negedge async_reset_n` 安排在 30ps 的时钟下降沿，确保它不是 posedge 的
 替身；复位 NBA 写入同值，使目标 FST 不产生 30ps 变化。DesignDB 同一 statement 的
 `event_posedge(clk)` 与 `event_negedge(async_reset_n)` 都参与候选，action 选择原始 FST 中
@@ -948,6 +959,7 @@ output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并
 - xdebug-fst `b46b5cd`、`b6f2617`：先记录条件 output 未进入固件的失败，再同步原始 FST/DesignDB 并仅在 consumer 内以唯一、同宽、可读的 DesignDB 端口边解析 lowering 谓词信号；信号分支跨 input 上溯，常量分支保留第 180 行终止，Verilator/Wellen/XDD ABI 均未修改；
 - xdebug-fst `1fb4532`、`4cd2214`：以独立原始 FST/DesignDB 固件先证明父子 output 两条活动赋值被唯一边界错误覆盖，再仅将边界优先收紧到单一活动 statement；相同 FST 值不合并静态候选，Verilator/Wellen/XDD ABI 均未修改；
 - xdebug-fst `813ee36`、`f8d0aee`：先以旧固件的 `SIGNAL_NOT_FOUND` 保存仅 `default` 的 `case matches` 动态缺口，再用干净 Verilator `da63eb075` 同步刷新原始 FST 与 DesignDB；action 无修改即在 45ps/65ps 唯一返回第 95 行，证明分析仍由 DesignDB 静态谓词和冻结 action 承担，Wellen/FST 只提供按需运行时事实；
+- xdebug-fst `282ed4d`、`e700d34`：先保存 NBA 纯自保持固件缺口，再同步原始 FST/DesignDB 暴露 60ps self-hold 错误覆盖 40ps 数据赋值；consumer 只凭精确且唯一的 DesignDB self load 证明做有界事件回溯，Wellen 仍只按需读取当前 FST 时钟事实，Verilator/Wellen/XDD ABI 未修改；
 - xdebug-fst `022d316`：锁定 inout lowering 原始 RHS 替换语义，并以真实 FST 完成跨端口四跳链。
 - xdebug-fst `fcd5e06`：以带独立中间 net 的真实两级 inout 固件验证六跳父向链，三方实现和 ABI 均无需修改。
 - xdebug-fst `7e07599`、`970aae1`：冻结 output 边界折叠失败，并仅组合既有 XDD 端口/驱动事实恢复原版五跳模块链。
