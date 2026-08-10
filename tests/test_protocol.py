@@ -415,6 +415,24 @@ def test_axi_transaction_cursor(loop_runner: StdioLoopRunner, axi_fst) -> None:
     assert rsp["data"]["transaction"]["direction"] == "write"
 
 
+def test_axi_transaction_cursor_empty_at_end(
+        loop_runner: StdioLoopRunner, axi_fst) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    for op in ("begin", "next"):
+        rsp = loop_runner.request(
+            "axi.transaction.cursor", args={"name": "axi0", "op": op}
+        )
+        assert rsp.get("ok"), rsp
+        assert rsp["summary"]["found"] is True
+    end = loop_runner.request(
+        "axi.transaction.cursor", args={"name": "axi0", "op": "next"}
+    )
+    assert end.get("ok"), end
+    assert end["summary"]["found"] is False
+    assert end["data"] == {}
+
+
 def test_axi_channel_stall(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
     _load_axi(loop_runner)
@@ -446,6 +464,20 @@ def test_axi_latency_outlier(loop_runner: StdioLoopRunner, axi_fst) -> None:
     assert rsp["summary"]["total_count"] == 1
 
 
+def test_axi_latency_outlier_empty(loop_runner: StdioLoopRunner,
+                                   axi_fst) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.latency_outlier", args={
+        "name": "axi0", "direction": "all",
+        "method": "threshold", "threshold": "1us",
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["data"]["outliers"] == []
+
+
 def test_axi_outstanding_timeline(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
     _load_axi(loop_runner)
@@ -455,6 +487,19 @@ def test_axi_outstanding_timeline(loop_runner: StdioLoopRunner, axi_fst) -> None
     assert max(rsp["summary"]["peak_read"], rsp["summary"]["peak_write"]) >= 1
     for point in rsp["data"]["change_points"]:
         assert point["read"] >= 0 and point["write"] >= 0
+
+
+def test_axi_outstanding_timeline_empty(loop_runner: StdioLoopRunner,
+                                        axi_fst) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.outstanding_timeline", args={
+        "name": "axi0", "direction": "all",
+        "time_range": {"begin": "0ps", "end": "10ps"},
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["data"]["change_points"] == []
 
 
 def test_axi_request_response_pair(loop_runner: StdioLoopRunner, axi_fst) -> None:
@@ -468,3 +513,17 @@ def test_axi_request_response_pair(loop_runner: StdioLoopRunner, axi_fst) -> Non
     for pair in pairs:
         assert pair["latency"] != "0ns"
         assert "address" in pair and "response" in pair
+
+
+def test_axi_request_response_pair_empty(loop_runner: StdioLoopRunner,
+                                         axi_fst) -> None:
+    open_session(loop_runner, axi_fst)
+    _load_axi(loop_runner)
+    rsp = loop_runner.request("axi.request_response_pair", args={
+        "name": "axi0", "direction": "all",
+        "time_range": {"begin": "0ps", "end": "10ps"},
+    })
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["data"]["transactions"] == []

@@ -107,6 +107,33 @@ def test_stream_query_max_rows(loop_runner: StdioLoopRunner, stream_fst) -> None
     assert rsp["summary"]["returned_count"] == 2
 
 
+def test_stream_query_and_export_empty(loop_runner: StdioLoopRunner,
+                                       stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
+    loop_runner.request("stream.config.load", args={"config": STREAM_CONFIG})
+    empty_range = {"begin": "0ps", "end": "10ps"}
+
+    queried = loop_runner.request("stream.query", args={
+        "stream": "fifo", "query": "transfer_window",
+        "cache_scope": "range", "time_range": empty_range,
+        "line_limit": 16,
+    })
+    assert queried.get("ok"), queried
+    assert queried["summary"]["total_count"] == 0
+    assert queried["summary"]["returned_count"] == 0
+    assert queried["data"]["rows"] == []
+
+    exported = loop_runner.request("stream.export", args={
+        "stream": "fifo", "kind": "transfer", "cache_scope": "range",
+        "time_range": empty_range, "line_limit": 16,
+    })
+    assert exported.get("ok"), exported
+    assert exported["summary"]["status"] == "preview"
+    assert exported["summary"]["total_count"] == 0
+    assert exported["summary"]["returned_count"] == 0
+    assert exported["data"]["preview"] == []
+
+
 def test_stream_query_summary(loop_runner: StdioLoopRunner, stream_fst) -> None:
     open_session(loop_runner, stream_fst)
     loop_runner.request("stream.config.load", args={"config": STREAM_CONFIG})

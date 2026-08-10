@@ -192,6 +192,38 @@ def test_signal_sampled_pulse_inspect(loop_runner: StdioLoopRunner,
     assert rsp["summary"]["returned_count"] == len(rsp["data"]["findings"])
 
 
+def test_sampled_pulse_and_handshake_empty_before_first_edge(
+        loop_runner: StdioLoopRunner, stream_fst) -> None:
+    open_session(loop_runner, stream_fst)
+    empty_range = {"begin": "0ps", "end": "5ps"}
+    pulse = loop_runner.request("signal.sampled_pulse.inspect", args={
+        "valid": "top.in_valid", "clock": "top.clk",
+        "edge": "posedge",
+        "sample_point": "after", "time_range": empty_range,
+        "line_limit": 10,
+    })
+    assert pulse.get("ok"), pulse
+    assert pulse["summary"]["sample_count"] == 0
+    assert pulse["summary"]["total_count"] == 0
+    assert pulse["data"]["findings"] == []
+
+    handshake = loop_runner.request("protocol.handshake.inspect", args={
+        "clock": "top.clk", "valid": "top.in_valid",
+        "ready": "top.in_ready", "data": "top.in_data",
+        "edge": "posedge", "sample_point": "after",
+        "time_range": empty_range,
+        "rules": {
+            "max_wait_cycles": 1,
+            "check_data_stable_when_stalled": True,
+            "ready_without_valid": "summary",
+        },
+    })
+    assert handshake.get("ok"), handshake
+    assert handshake["summary"]["sample_count"] == 0
+    assert handshake["summary"]["total_count"] == 0
+    assert handshake["data"]["findings"] == []
+
+
 def test_signal_sampled_pulse_rule_requires_payloads(
         loop_runner: StdioLoopRunner, stream_fst) -> None:
     open_session(loop_runner, stream_fst)
