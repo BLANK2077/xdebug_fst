@@ -629,6 +629,13 @@ termination 规则混为一套。
 Wellen 对整份 FST 的预扫时间表，也不是持久化事件索引。预算耗尽时保留待继续信号及其
 onset，返回 `limit/max_time_steps` 和不完整性证据。
 
+纯 module/interface port hop 是可见的路径证据，但不是新的 X 语义分支。X-origin 因此以
+非 `port` relation、信号和 X onset 构造语义 chain identity；复合 relation 只移除其中的
+`port` token，保留 `rhs`、`control` 等因果角色。物理 alias 变体先按该 identity 合并，
+`max_chains` 再作用于语义链；响应仍保留被选中物理路径的全部 port hop。不同 RHS、control
+或 onset 不得合并，FST 值相等也不参与身份判断。当前证据关闭基础汇聚路径与 chain limit
+交互，复杂 modport/ref、反馈环及 node/time 预算下的探索态合并仍须独立差分。
+
 同一源文件行也不能直接等同于同一条动态语句。lowering 后的三元表达式可能把信号 RHS
 叶子与常量 RHS 叶子保留在同一 `(file,line,kind)` 下，但每片叶子具有不同的静态
 activation predicate。xdebug-fst 因此用 `(file,line,kind,predicate)` 作为语句身份，
