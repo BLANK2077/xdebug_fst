@@ -660,6 +660,11 @@ statement、连续赋值、唯一 RHS 四项同时成立才继续，到达唯一
 执行，目标原始 FST 的最近实际变化观察点仍为 40ps，现有 action 直接在该点选择数据赋值，
 不需要套用 self-hold 回溯。门控空事件和活动 self-assignment 必须保持两类，不能仅凭“值
 未变化”合并；同步固件后 action、Verilator、Wellen 和 ABI 均无需修改。
+第三十九批关闭同源行三元 self-hold：无 predicate 的 load 文件/行不足以区分 self 与 data
+叶子，因此 Verilator 只对“叶子本身恰好等于目标”发布 predicate-local `self_rhs`，而
+`q+1` 等表达式不标记。xdebug action 只用该角色证明纯保持，绝不把它当上游 RHS；45ps
+已跳过 40ps self 叶子并回到 20ps data 叶子。该附加角色不改变 C ABI 函数签名、普通仿真
+或 Wellen，运行时边沿仍由 Wellen 从当前原始 FST 按需读取。
 第二十批进一步用不与 posedge 重合的 30ps `negedge async_reset_n` 写入同值，证明 consumer
 会从 DesignDB 的多敏感项中选择真实最近事件，并在该时刻判定复位常量分支；现有实现
 直接返回 30ps 并按常量 assignment 终止，因此不修改任何仓库算法或 ABI。

@@ -758,6 +758,15 @@ Verilator/Wellen/XDD ABI 均未修改，也没有按值相等猜测、预扫事�
 DesignDB 静态 statement/predicate 是否活动，FST/Wellen 仍只提供目标观察点和已指定时钟
 边沿，不能用“值没变”把二者合并成同一波形启发式。
 
+同一源码行的三元 self/data 叶子不能继续依赖 load 的 file/line：两片叶子行号相同但
+predicate 不同。Verilator `986322540` 只在条件拆分后的 RHS 叶子本身恰好是赋值目标时，
+通过既有 driver role 字符串附加 `self_rhs`，同时保留该叶子的 predicate；包含目标的
+`q+1` 等计算表达式不发布该角色。xdebug statement 聚合天然按 predicate 分组，只把
+`self_rhs` 当纯保持证明，不加入普通 RHS 或 X-origin 上游枚举。这样 45ps 可跳过 40ps
+self 叶子并恢复 20ps data 叶子，而同源行常量/计算叶子不会被误判。该改动仅发生在显式
+`--design-db` emitter，C ABI 函数签名、普通仿真和 Wellen 不变；Wellen 仍只对 DesignDB
+已经指定的时钟从当前原始 `.fst` 按需读取边沿。
+
 异步复位审计又把 `negedge async_reset_n` 安排在 30ps 的时钟下降沿，确保它不是 posedge 的
 替身；复位 NBA 写入同值，使目标 FST 不产生 30ps 变化。DesignDB 同一 statement 的
 `event_posedge(clk)` 与 `event_negedge(async_reset_n)` 都参与候选，action 选择原始 FST 中
@@ -909,7 +918,7 @@ output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并
 - `src/V3EmitDesignDb.*`
 - `include/xdd_api.h`
 - `test_regress/t/t_xdd_*`
-- revision `da63eb07552df93426165c83dad4dc868afe3fa1`
+- revision `9863225406f8c0190e7358226f5eab22888e7bf6`
 
 对应提交：
 
@@ -939,6 +948,7 @@ output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并
 - Verilator `fab41bf9e`、`e5b1a28e2`：先证明独立 `matches` 的精确标量和 packed assignment pattern 被总括门禁拒绝，再只对不含绑定、通配和 tagged 节点的 RHS 复用 `AstEqCase` 四态精确比较；PatternVar、PatternStar、TaggedExpr 与 TaggedPattern 保持失败关闭，DesignDB header/ABI 未变；
 - Verilator `1eb25de82`、`5d4e40132`：先证明独立 `matches` 的直接顶层点星仍被双重门禁拒绝，再用一次全 X RHS 通配比较实现恒真语义，并以带副作用函数验证左侧只求值一次；嵌套 wildcard、binding 和 tagged 继续失败关闭，DesignDB header/ABI 未变；
 - Verilator `1ae90d55d`、`487482500`、`da63eb075`：先以普通仿真和 DesignDB 锁定仅 `default` 的 `case matches` 被总括门禁拒绝，并隔离独立四态函数参数限制；随后只取消“至少一个精确 item”的要求，保留 tagged、binding 与嵌套 wildcard 的失败关闭，普通 lowering、XDD header/ABI 和 Wellen 均不变；
+- Verilator `b3ed369d7`、`986322540`：先证明同源行三元 self/data 叶子缺少 predicate-local 自引用事实，再仅为直接 self 叶子发布 `self_rhs` 角色；它不是上游数据依赖，`q+1` 不误标，普通仿真与 C ABI 函数签名不变；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
 - xdebug-fst `5b2595a`：锁定 Wellen 与 Verilator 兼容版本。
 - xdebug-fst `f61670a`：补齐 FST delta、观察点、批量游标与扫描完整性；
@@ -968,6 +978,7 @@ output 行为。静态语句数量来自 DesignDB，FST 的相同值既不合并
 - xdebug-fst `813ee36`、`f8d0aee`：先以旧固件的 `SIGNAL_NOT_FOUND` 保存仅 `default` 的 `case matches` 动态缺口，再用干净 Verilator `da63eb075` 同步刷新原始 FST 与 DesignDB；action 无修改即在 45ps/65ps 唯一返回第 95 行，证明分析仍由 DesignDB 静态谓词和冻结 action 承担，Wellen/FST 只提供按需运行时事实；
 - xdebug-fst `282ed4d`、`e700d34`：先保存 NBA 纯自保持固件缺口，再同步原始 FST/DesignDB 暴露 60ps self-hold 错误覆盖 40ps 数据赋值；consumer 只凭精确且唯一的 DesignDB self load 证明做有界事件回溯，Wellen 仍只按需读取当前 FST 时钟事实，Verilator/Wellen/XDD ABI 未修改；
 - xdebug-fst `df90d59`、`d2f3f74`：以无 else 的门控 NBA 区分“时钟发生但 statement 未赋值”和活动 self-hold；同步原始 FST/DesignDB 后现有 action 直接保留 40ps 数据来源，三方实现与 ABI 无需修改；
+- xdebug-fst `e5da919`、`22e810d`：先保存同源行三元 self-hold 动态缺口，再锁定 predicate-local `self_rhs` 并同步原始 FST/DesignDB；action 跳过 40ps self 叶子、恢复 20ps data 叶子，Wellen 只提供按需边沿事实；
 - xdebug-fst `022d316`：锁定 inout lowering 原始 RHS 替换语义，并以真实 FST 完成跨端口四跳链。
 - xdebug-fst `fcd5e06`：以带独立中间 net 的真实两级 inout 固件验证六跳父向链，三方实现和 ABI 均无需修改。
 - xdebug-fst `7e07599`、`970aae1`：冻结 output 边界折叠失败，并仅组合既有 XDD 端口/驱动事实恢复原版五跳模块链。

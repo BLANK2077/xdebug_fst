@@ -97,3 +97,5 @@ active-driver 的 activation predicate 也属于上述静态 HDL 事实，而不
 P6 第三十七批继续按同一门禁处理 NBA 纯自保持：DesignDB 的精确 self load 与静态 `event_*` 负责证明 `q <= q` 及其敏感源，Wellen 只对当前原始 `.fst` 的已确定时钟按需读取边沿，xdebug action 执行有界历史回溯与冻结 active-driver 合同。实现 `e700d34` 没有从目标 FST 值是否变化推断 self-hold，没有建立事件索引或离线库，也没有修改 Verilator/Wellen/ABI；因此仍是“静态事实 + 原始 FST 运行时事实 → action 分析”，不是“用 FST 做分析”。
 
 P6 第三十八批进一步锁定：门控 predicate 为假、statement 未赋值，与活动 `q <= q` self-hold 是两种不同静态语义，禁止仅凭 FST “值未变化”合并判断。前者由 DesignDB predicate 证明 statement 不活动，action 保留目标原始 FST 的此前观察点；后者才由精确 self load 触发有界回溯。该批 `d2f3f74` 未修改三方实现或 ABI，继续满足 `GOAL-FST-DIRECT-001`。
+
+P6 第三十九批把 self-hold 证明进一步收紧为 DesignDB predicate-local `self_rhs`：只有 RHS 叶子本身恰好等于目标才发布，xdebug action 不把该角色作为上游数据依赖。FST/Wellen 不负责识别三元语法、自引用或 assignment 身份，只按 DesignDB 已指定的时钟读取当前原始 `.fst` 边沿；因此 `22e810d` 仍严格满足“静态事实 + 原始 FST 运行时事实 → action 分析”，没有退化为波形值启发式。
