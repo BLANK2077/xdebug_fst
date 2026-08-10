@@ -38,6 +38,42 @@ std::string x_mask(const std::string& bits) {
     return mask;
 }
 
+std::string x_origin_semantic_relation(const std::string& relation) {
+    std::string semantic;
+    size_t begin=0;
+    while (begin<=relation.size()) {
+        const size_t end=relation.find('+',begin);
+        const std::string token=relation.substr(
+            begin,end==std::string::npos?std::string::npos:end-begin);
+        if (!token.empty()&&token!="port") {
+            if (!semantic.empty()) semantic+='+';
+            semantic+=token;
+        }
+        if (end==std::string::npos) break;
+        begin=end+1;
+    }
+    return semantic;
+}
+
+void append_identity_field(std::string& key,const std::string& value) {
+    key+=std::to_string(value.size());
+    key+=':';
+    key+=value;
+}
+
+std::string x_origin_semantic_chain_key(const Json& chain) {
+    std::string key;
+    for (const auto& hop : chain.value("hops",Json::array())) {
+        const std::string relation=x_origin_semantic_relation(
+            hop.value("relation",""));
+        if (relation.empty()) continue;
+        append_identity_field(key,relation);
+        append_identity_field(key,hop.value("signal",""));
+        append_identity_field(key,hop.value("x_onset_time",""));
+    }
+    return key;
+}
+
 struct Sample {
     bool ok=false;
     uint32_t ref=0,time_idx=0,width=0;
@@ -1304,6 +1340,24 @@ struct TraceXOriginHandler : public EngineActionHandler {
             for (auto it=children.rbegin();it!=children.rend();++it)
                 pending.push_back(std::move(*it));
         }
+
+        // Module/interface port hops are observable evidence but transparent
+        // to semantic branch identity.  Coalesce their physical variants
+        // before applying max_chains so aliases cannot consume branch budget.
+        Json semantic_chains=Json::array();
+        std::map<std::string,size_t> semantic_indices;
+        for (const auto& chain : chains) {
+            const std::string key=x_origin_semantic_chain_key(chain);
+            const auto [found,inserted]=semantic_indices.emplace(
+                key,semantic_chains.size());
+            if (inserted) {
+                semantic_chains.push_back(chain);
+            } else if (!semantic_chains[found->second].value("complete",false)&&
+                       chain.value("complete",false)) {
+                semantic_chains[found->second]=chain;
+            }
+        }
+        chains=std::move(semantic_chains);
 
         if (chains.size()>max_chains) {
             Json& retained=chains[0];
