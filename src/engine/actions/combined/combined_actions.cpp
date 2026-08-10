@@ -258,6 +258,7 @@ struct StatementGroup {
     int line=0;
     bool has_event_time=false;
     uint64_t event_time=0;
+    bool predicate_waveform_unknown=false;
     std::vector<IDesignBackend::DriverRecord> records;
     std::vector<IDesignBackend::DriverRecord> rhs;
 };
@@ -296,7 +297,10 @@ std::vector<StatementGroup> statement_groups(
     return statements;
 }
 
-enum class PredicateState { Active, Inactive, Unresolved };
+// Keep a four-state waveform result separate from missing static/runtime
+// evidence.  X-origin may trace the former; every consumer must fail closed
+// on the latter.
+enum class PredicateState { Active, Inactive, WaveformUnknown, Unresolved };
 
 bool event_edge_matches(const std::string& role,const std::string& before,
                         const std::string& after) {
@@ -415,7 +419,8 @@ PredicateState evaluate_predicate(const StatementGroup& statement,
         return PredicateState::Unresolved;
     const LogicValue value=eval_expression(
         expression.get(),waveform,waveform.time_idx_of(active_time));
-    if (!value.known||value.bits.empty()) return PredicateState::Unresolved;
+    if (value.bits.empty()) return PredicateState::Unresolved;
+    if (!value.known) return PredicateState::WaveformUnknown;
     return value.bits.find('1')==std::string::npos
         ?PredicateState::Inactive:PredicateState::Active;
 }
@@ -464,7 +469,10 @@ EvaluatedStatements active_statement_groups(
                 ?statement.event_time:active_time);
         if (state==PredicateState::Active)
             result.active.push_back(std::move(statement));
-        else if (state==PredicateState::Unresolved)
+        else if (state==PredicateState::WaveformUnknown) {
+            statement.predicate_waveform_unknown=true;
+            result.unresolved.push_back(std::move(statement));
+        } else if (state==PredicateState::Unresolved)
             result.unresolved.push_back(std::move(statement));
     }
     return result;
@@ -1174,15 +1182,28 @@ struct TraceXOriginHandler : public EngineActionHandler {
                 chains.push_back(std::move(chain));
                 continue;
             }
-            if (!evaluated.unresolved.empty()) {
+            const bool opaque_unresolved=std::any_of(
+                evaluated.unresolved.begin(),evaluated.unresolved.end(),
+                [](const auto& statement) {
+                    return !statement.predicate_waveform_unknown;
+                });
+            if (opaque_unresolved) {
                 limitations.push_back(
                     "activation predicate unresolved at "+state.signal);
                 chains.push_back(finish_chain(state,sample,onset,"unresolved",
                     "predicate_unresolved",false,false));
                 continue;
             }
+            // A predicate that was fully resolved from the current FST but
+            // evaluated to X/Z is itself causal evidence for X-origin.  Add
+            // only those statically published statement dependencies; an
+            // opaque unresolved predicate was rejected above.
             std::vector<IDesignBackend::DriverRecord> active_drivers;
             for (const auto& statement : evaluated.active) {
+                active_drivers.insert(active_drivers.end(),
+                    statement.records.begin(),statement.records.end());
+            }
+            for (const auto& statement : evaluated.unresolved) {
                 active_drivers.insert(active_drivers.end(),
                     statement.records.begin(),statement.records.end());
             }
