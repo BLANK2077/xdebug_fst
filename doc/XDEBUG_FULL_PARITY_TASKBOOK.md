@@ -835,6 +835,11 @@ hop 和各上游 hop/current 必须分别记录自身 X onset，不能跨信号�
 根据 DesignDB 静态依赖选出的信号执行当前请求内的按需向前查找；禁止预扫整份 FST 生成
 onset 时间表、持久化事件索引或离线数据库。冻结 query schema 不增加 onset 字段。
 
+第 51 批关闭基础 primitive output 合同：若 DesignDB 已发布真实 primitive RHS，chain 必须
+先沿静态证据追到上游，不能把根节点伪报为一跳 primary input；primary input 只能在声明
+方向和无父连接事实同时成立的实际来源处终止。公开 hop 使用冻结的 file/line、signal path
+字段，不得为测试扩 schema。复杂 primitive、strength 与 tristate 组合继续保留差分任务。
+
 提交：
 
 `功能：实现多分支 X 来源追踪`

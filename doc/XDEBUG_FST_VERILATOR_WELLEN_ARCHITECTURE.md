@@ -673,6 +673,12 @@ X-origin 的用户查询时间和逐信号 X 首发时间属于不同事实。�
 宽度或不同历史的上游。query 对象不因此扩 schema 字段，首发时间仍只属于 chain 证据。
 这是一组按需读取，不是对整份 FST 建立事件时间表或持久化索引。
 
+primitive output 不能仅因特殊静态 kind 或声明方向未知而被当成外部 primary input。第 51 批
+由测试 DesignDB 明确发布 primitive RHS 与源码位置，active-driver chain 先沿该静态证据
+进入真实上游，再仅在无父连接的 input-like 信号处终止。Wellen 只读取这两个 DesignDB
+已确定信号的原始 FST 值，不参与判断 primitive、端口方向或源码位置。冻结 hop schema 以
+file/line 和 signal path 表达公开证据，不为测试私自增加 kind 字段。
+
 X mask 是确定性响应事实，不是装饰文本。Wellen 返回当前信号的实际位串和宽度，action
 逐位把 X 类状态映射为 1、其余映射为 0，并使用 `<width>'b<bits>` 输出；query、current、
 hop 和 frontier 必须共用同一规则，不能复用根信号宽度渲染不同宽度上游。冻结目录中的
