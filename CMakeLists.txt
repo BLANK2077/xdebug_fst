@@ -33,8 +33,37 @@ option(XDEBUG_VERIFY_DEPENDENCY_REVISIONS
     "Require the exact Wellen and Verilator revisions from the compatibility lock" ON)
 option(XDEBUG_ENABLE_MCP_INTEGRATION_TESTS
     "Run integration tests against the adjacent xverif MCP loop wrapper" OFF)
+option(XDEBUG_ENABLE_ASAN
+    "Build xdebug-fst and its C/C++ tests with AddressSanitizer" OFF)
+option(XDEBUG_ENABLE_UBSAN
+    "Build xdebug-fst and its C/C++ tests with UndefinedBehaviorSanitizer" OFF)
 set(XVERIF_MCP_SOURCE_DIR "${CMAKE_SOURCE_DIR}/../../xverif/xverif_mcp/src"
     CACHE PATH "xverif_mcp source directory used only by optional integration tests")
+
+if(XDEBUG_ENABLE_ASAN AND XDEBUG_ENABLE_UBSAN)
+    message(FATAL_ERROR
+        "XDEBUG_ENABLE_ASAN and XDEBUG_ENABLE_UBSAN are independent gates; "
+        "enable only one per build directory")
+endif()
+
+if(XDEBUG_ENABLE_ASAN OR XDEBUG_ENABLE_UBSAN)
+    if(NOT CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" OR
+       NOT CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        message(FATAL_ERROR
+            "xdebug-fst sanitizer gates require GNU or Clang C/C++ compilers")
+    endif()
+
+    add_compile_options(-fno-omit-frame-pointer)
+    if(XDEBUG_ENABLE_ASAN)
+        add_compile_options(-fsanitize=address)
+        add_link_options(-fsanitize=address)
+        message(STATUS "xdebug-fst AddressSanitizer gate enabled")
+    else()
+        add_compile_options(-fsanitize=undefined -fno-sanitize-recover=undefined)
+        add_link_options(-fsanitize=undefined -fno-sanitize-recover=undefined)
+        message(STATUS "xdebug-fst UndefinedBehaviorSanitizer gate enabled")
+    endif()
+endif()
 
 if(XDEBUG_VERIFY_DEPENDENCY_REVISIONS)
     xdebug_require_git_revision("Wellen" "${WELLEN_REPOSITORY_DIR}" "${XDEBUG_WELLEN_REVISION}")
