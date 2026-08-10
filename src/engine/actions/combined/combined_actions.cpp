@@ -470,6 +470,66 @@ EvaluatedStatements active_statement_groups(
     return result;
 }
 
+bool is_pure_self_hold(
+    const StatementGroup& statement,
+    const std::vector<IDesignBackend::DriverRecord>& all_drivers,
+    IDesignBackend& design,int target_signal) {
+    if (statement.kind!="nba"||!statement.rhs.empty()||
+        statement.file.empty()||statement.line<=0) return false;
+    std::set<std::tuple<std::string,std::string,std::string>> identities;
+    for (const auto& driver : all_drivers) {
+        if (driver.file==statement.file&&driver.line==statement.line) {
+            identities.emplace(driver.kind,driver.activation_predicate,
+                               driver.statement_identity);
+        }
+    }
+    if (identities.size()!=1) return false;
+    std::vector<IDesignBackend::LoadRecord> loads;
+    design.trace_load(target_signal,loads);
+    return std::any_of(loads.begin(),loads.end(),[&](const auto& load) {
+        return load.consumer==target_signal&&load.file==statement.file&&
+            load.line==statement.line;
+    });
+}
+
+EvaluatedStatements active_statement_groups_skipping_self_hold(
+    const std::vector<IDesignBackend::DriverRecord>& drivers,
+    IDesignBackend& design,IWaveformBackend& waveform,int target_signal,
+    uint64_t active_time,uint64_t event_horizon,size_t max_backtracks,
+    bool* backtrack_limited=nullptr) {
+    if (backtrack_limited) *backtrack_limited=false;
+    EvaluatedStatements original=active_statement_groups(
+        drivers,design,waveform,active_time,event_horizon);
+    apply_unique_nba_priority(original);
+    EvaluatedStatements current=original;
+    uint64_t horizon=event_horizon;
+    for (size_t attempt=0;;++attempt) {
+        if (!current.unresolved.empty()||current.active.empty()||
+            !std::all_of(current.active.begin(),current.active.end(),
+                [&](const auto& statement) {
+                    return is_pure_self_hold(
+                        statement,drivers,design,target_signal);
+                })) return current;
+        if (attempt>=max_backtracks) {
+            if (backtrack_limited) *backtrack_limited=true;
+            return original;
+        }
+        uint64_t self_hold_time=0;
+        bool has_event=false;
+        for (const auto& statement : current.active) {
+            if (!statement.has_event_time) return original;
+            if (!has_event||statement.event_time>self_hold_time)
+                self_hold_time=statement.event_time;
+            has_event=true;
+        }
+        if (!has_event||self_hold_time==0) return original;
+        horizon=self_hold_time-1;
+        current=active_statement_groups(
+            drivers,design,waveform,active_time,horizon);
+        apply_unique_nba_priority(current);
+    }
+}
+
 bool causal_event_time_through_unique_chain(
     IDesignBackend& design,IWaveformBackend& waveform,
     const std::string& signal,uint64_t horizon,size_t remaining,
@@ -481,9 +541,8 @@ bool causal_event_time_through_unique_chain(
     if (!sample.ok) return false;
     auto drivers=drivers_for(design,index);
     annotate_output_instance_identities(design,index,drivers);
-    auto evaluated=active_statement_groups(
-        drivers,design,waveform,sample.active_time,horizon);
-    apply_unique_nba_priority(evaluated);
+    auto evaluated=active_statement_groups_skipping_self_hold(
+        drivers,design,waveform,index,sample.active_time,horizon,remaining);
     if (!evaluated.unresolved.empty()||evaluated.active.size()!=1) return false;
     const StatementGroup& statement=evaluated.active.front();
     if (statement.kind=="nba"&&statement.has_event_time) {
@@ -688,9 +747,19 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             if (!sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST: "+current);
             auto drivers=drivers_for(design,index);
             annotate_output_instance_identities(design,index,drivers);
-            auto evaluated=active_statement_groups(
-                drivers,design,waveform,sample.active_time,current_time);
-            apply_unique_nba_priority(evaluated);
+            bool self_hold_backtrack_limited=false;
+            auto evaluated=active_statement_groups_skipping_self_hold(
+                drivers,design,waveform,index,sample.active_time,current_time,
+                max_nodes,&self_hold_backtrack_limited);
+            if (self_hold_backtrack_limited) {
+                hops.push_back(trace_hop(depth,current,sample,
+                    depth==0?"root":"driver",nullptr,design,index,waveform,
+                    unit,format));
+                limited=true;
+                termination="limit";
+                detail="max_nodes";
+                break;
+            }
             std::vector<StatementGroup> groups;
             for (const auto& statement : evaluated.active) {
                 const bool has_control=std::any_of(
