@@ -165,6 +165,16 @@ def case_design_db() -> Path:
 
 
 @pytest.fixture(scope="session")
+def output_mixed_fst() -> Path:
+    return _fix("output_mixed")
+
+
+@pytest.fixture(scope="session")
+def output_mixed_design_db() -> Path:
+    return FIXTURES / "output_mixed" / "obj_dir"
+
+
+@pytest.fixture(scope="session")
 def matches_fst() -> Path:
     return _fix("matches")
 

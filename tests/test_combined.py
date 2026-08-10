@@ -689,6 +689,27 @@ def test_trace_active_driver_chain_selects_conditional_child_output(
     assert constant_branch["data"]["hops"][-1]["line"] == 180
 
 
+def test_trace_active_driver_chain_preserves_parent_and_child_output_drivers(
+        loop_runner: StdioLoopRunner, output_mixed_fst,
+        output_mixed_design_db) -> None:
+    open_session(loop_runner, output_mixed_fst, output_mixed_design_db)
+    rsp = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.output_mixed_top.mixed_bus", "time": "5ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["termination"] == "ambiguous"
+    assert rsp["summary"]["termination_detail"] == \
+        "multiple_active_candidates"
+    assert [hop["signal"] for hop in rsp["data"]["hops"]] == [
+        "top.output_mixed_top.mixed_bus"]
+    evidence = rsp["data"]["ambiguity_evidence"]
+    assert evidence["statement_count"] == 2
+    assert evidence["rhs_signal_count"] == 2
+    assert {statement["line"] for statement in evidence["statements"]} == {
+        13, 21}
+
+
 def test_trace_active_driver_chain_honors_max_nodes(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         gcd_xorigin_design_db) -> None:
