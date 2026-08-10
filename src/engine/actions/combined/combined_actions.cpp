@@ -31,7 +31,7 @@ bool has_x(const std::string& bits) {
 }
 
 std::string x_mask(const std::string& bits) {
-    std::string mask="'b";
+    std::string mask=std::to_string(bits.size())+"'b";
     for (char bit : bits)
         mask += (bit=='x'||bit=='X'||bit=='h'||bit=='H'||bit=='u'||bit=='U'||
                  bit=='w'||bit=='W'||bit=='-')?'1':'0';
