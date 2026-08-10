@@ -34,6 +34,43 @@ WELLEN_APB_CONFIG = {
     "pslverr": "top.masslav_if.Pslave_err",
 }
 
+WELLEN_AXI_CONFIG = {
+    "clock": "top.masslav_if.clk", "edge": "posedge",
+    "sample_point": "after",
+    "reset": {
+        "signal": "top.masslav_if.Pslave_err", "polarity": "active_high",
+    },
+    "awaddr": "top.masslav_if.Paddr",
+    "awid": "top.masslav_if.Pslave_err",
+    "awlen": "top.masslav_if.Pslave_err",
+    "awsize": "top.masslav_if.Pslave_err",
+    "awburst": "top.masslav_if.Pslave_err",
+    "awvalid": "top.masslav_if.Psel",
+    "awready": "top.masslav_if.Pready",
+    "wdata": "top.masslav_if.Pwdata",
+    "wstrb": "top.masslav_if.Paddr",
+    "wlast": "top.masslav_if.Penable",
+    "wvalid": "top.masslav_if.Penable",
+    "wready": "top.masslav_if.Pready",
+    "bid": "top.masslav_if.Pslave_err",
+    "bresp": "top.masslav_if.Pslave_err",
+    "bvalid": "top.masslav_if.Penable",
+    "bready": "top.masslav_if.Pready",
+    "araddr": "top.masslav_if.Paddr",
+    "arid": "top.masslav_if.Pslave_err",
+    "arlen": "top.masslav_if.Pslave_err",
+    "arsize": "top.masslav_if.Pslave_err",
+    "arburst": "top.masslav_if.Pslave_err",
+    "arvalid": "top.masslav_if.Psel",
+    "arready": "top.masslav_if.Pready",
+    "rid": "top.masslav_if.Pslave_err",
+    "rdata": "top.masslav_if.Prdata",
+    "rresp": "top.masslav_if.Pslave_err",
+    "rlast": "top.masslav_if.Penable",
+    "rvalid": "top.masslav_if.Penable",
+    "rready": "top.masslav_if.Pready",
+}
+
 
 def load_apb(loop_runner: StdioLoopRunner, apb_fst, name: str = "apb0") -> None:
     open_session(loop_runner, apb_fst)
@@ -402,6 +439,40 @@ def test_axi_query_empty(loop_runner: StdioLoopRunner, axi_fst) -> None:
     assert rsp["summary"]["returned_count"] == 0
     assert rsp["data"]["transactions"] == []
     assert rsp["data"]["filter"]["direction"] == "write"
+
+
+def test_axi_query_and_channel_stall_truncate_direct_raw_fst(
+        loop_runner: StdioLoopRunner, wellen_apb_fst) -> None:
+    open_session(loop_runner, wellen_apb_fst)
+    loaded = loop_runner.request("axi.config.load", args={
+        "name": "wellen_axi", "config": WELLEN_AXI_CONFIG,
+    })
+    assert loaded.get("ok"), loaded
+
+    query = loop_runner.request("axi.query", args={
+        "name": "wellen_axi", "direction": "read",
+        "query": {"line_limit": 1},
+    })
+    assert query.get("ok"), query
+    assert query["summary"]["total_count"] == 10
+    assert query["summary"]["returned_count"] == 1
+    assert query["summary"]["response_truncated"] is True
+    assert query["summary"]["truncation_scopes"] == [
+        "response_transactions"
+    ]
+    assert len(query["data"]["transactions"]) == 1
+
+    channel = loop_runner.request("axi.channel_stall", args={
+        "name": "wellen_axi", "channel": "aw", "line_limit": 1,
+    })
+    assert channel.get("ok"), channel
+    assert channel["summary"]["total_count"] == 10
+    assert channel["summary"]["returned_count"] == 1
+    assert channel["summary"]["response_truncated"] is True
+    assert channel["summary"]["truncation_scopes"] == [
+        "response_transactions"
+    ]
+    assert len(channel["data"]["findings"]) == 1
 
 
 def test_axi_analysis(loop_runner: StdioLoopRunner, axi_fst) -> None:
