@@ -954,6 +954,126 @@
       "dimension": "boundary_time",
       "reason": "The frozen request schema exposes no explicit time, times, or time_range selector, so a successful temporal zero-boundary request is not representable.",
       "evidence": "tools/check_boundary_time_applicability.py"
+    },
+    {
+      "action": "apb.config.load",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "axi.config.load",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "event.config.load",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "expr.eval_at",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "expr.normalize",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "list.add",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "list.delete",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "list.load",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "schema",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "session.doctor",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "session.open",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "signal.canonicalize",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "signal.resolve",
+      "dimension": "multiple_results",
+      "reason": "The frozen request contract accepts one exact final-leaf signal path and explicitly does not expand aggregate, array, struct, or pattern roots.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "stream.config.get",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "stream.config.load",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "stream.describe",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.delete",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.get",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.set",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
+    },
+    {
+      "action": "waveform.cursor.use",
+      "dimension": "multiple_results",
+      "reason": "The frozen success response schema has no direct primary-result count or collection capable of cardinality greater than one.",
+      "evidence": "tools/check_multiple_results_applicability.py"
     }
   ]
 }

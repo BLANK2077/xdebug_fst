@@ -347,6 +347,10 @@ def _load_axi(loop_runner: StdioLoopRunner) -> dict:
 
 def test_axi_config_list(loop_runner: StdioLoopRunner, axi_fst) -> None:
     open_session(loop_runner, axi_fst)
+    empty = loop_runner.request("axi.config.list")
+    assert empty.get("ok"), empty
+    assert empty["summary"]["count"] == 0
+    assert empty["data"] == {"configs": []}
     for name in ("axi0", "axi1"):
         loaded = loop_runner.request(
             "axi.config.load", args={"name": name, "config": AXI_CONFIG})

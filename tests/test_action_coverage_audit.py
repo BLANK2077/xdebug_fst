@@ -300,11 +300,23 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
         (action, "boundary_time")
         for action in boundary_not_applicable_actions
     }
+    multiple_not_applicable_actions = {
+        "apb.config.load", "axi.config.load", "event.config.load",
+        "expr.eval_at", "expr.normalize", "list.add", "list.delete",
+        "list.load", "schema", "session.doctor", "session.open",
+        "signal.canonicalize", "signal.resolve", "stream.config.get",
+        "stream.config.load", "stream.describe", "waveform.cursor.delete",
+        "waveform.cursor.get", "waveform.cursor.set", "waveform.cursor.use",
+    }
+    multiple_entries = {
+        (action, "multiple_results")
+        for action in multiple_not_applicable_actions
+    }
     manifest_actions = {
         action
         for action, _dimension in (
             resource_entries | empty_entries | truncation_entries |
-            limit_entries | boundary_entries
+            limit_entries | boundary_entries | multiple_entries
         )
     }
     applicability = load_not_applicable(
@@ -313,5 +325,5 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     )
     assert set(applicability) == (
         resource_entries | empty_entries | truncation_entries |
-        limit_entries | boundary_entries
+        limit_entries | boundary_entries | multiple_entries
     )
