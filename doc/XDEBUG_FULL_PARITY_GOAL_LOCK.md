@@ -332,3 +332,25 @@ stream 的 X 值或非零四态计数。Wellen 只保真返回当前 session FST
 资源差分通过。本批未修改 Wellen、Verilator 或 XDD ABI，不存在转换、离线索引/数据库、
 全量快照、export 回灌、TCP/fileport 或 fallback。Goal 继续 active；P6 剩余复杂差分和最终
 73-action 原版归一化差分仍未完成。
+
+## Phase 5 循环选择语义锁（2026-08-11）
+
+Goal 后续执行必须永久保留本次原版只读重放已经证明的四项行为：物化 unpacked `dout`
+使用展开后最终 selector 并返回单 statement/六 RHS 的 `multiple_rhs_sources`；packed
+`flag[2]` 对完整 selector 域做存在性求值并返回双 statement/九 RHS 的
+`multiple_active_candidates`；动态 RHS 证据保持 `mask_a[lane]`、`mask_b[lane]` 且因原始
+FST 不存在该动态路径而报告 `signal_not_found`；多活动候选在当前 node 创建前终止，根查询
+必须是空 hops、count 0、evidence root/hop_index 0。
+
+Verilator 只允许消费已证明必要且已回归的三个附加 DesignDB role：`target_loop_index`、
+`rhs_loop_selected`、`rhs_loop_index`，当前精确 SHA 为
+`6f3d245342c07c0835b3caa4d53574a72ab2e33d`，XDD header/ABI 保持不变。Wellen 不承担上述
+分析，只直接按需读取当前 session 的原始 `.fst` 值与时间；xdebug action 负责组合静态事实
+并执行冻结语义。禁止转换、预扫、索引、离线库、全量快照、export 回灌、TCP/fileport 和
+fallback。
+
+所有后续 C/C++ 工作固定使用 `XDEBUG_GCC_TOOLCHAIN` 指向的 GCC/G++ 13.3.1，仓库通过
+`XDEBUG_VERILATOR_REPO`、`XDEBUG_WELLEN_REPO` 定位；缺失依赖安装到对应仓库或
+`/workspace/work/xdebug_oc` 私有目录。本批的 12/12 Verilator XDD、74/74 combined、
+395/395 pytest 和 9/9 CTest 是持续回归门禁，不是 Goal 完成声明。P6 剩余复杂语义与最终
+73-action 原版归一化差分未全部关闭前，Goal 必须保持 active。

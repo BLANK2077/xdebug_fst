@@ -1352,3 +1352,82 @@ AXI 过滤请求本身仍使用冻结 Schema 允许的已知字面量，`unresol
 本批无需修改 Wellen、Verilator 或 XDD ABI，说明现有保真访问层和静态事实已经足够，差异
 应在测试/合同层闭环。继续禁止 FST 转换、预扫持久化、私有索引、离线数据库、全量内存
 快照、export 回灌、TCP/fileport 和 fallback；FST 永远不是分析引擎。
+
+## Phase 5 循环数组选择的三层闭环（2026-08-11）
+
+### 为什么不能只看 FST
+
+Phase 5 同时包含 procedural `for`、动态 LHS `dout[lane]/flag[lane]`、动态 RHS
+`mask_a[lane]/mask_b[lane]`、函数调用和嵌套三元表达式。原始 FST 能精确回答某个物理信号在
+某个时间的值和最近变化时间，但不保存“哪个循环体 statement 驱动该位”“`lane` 是目标选择器
+还是数据来源”“动态 RHS 的选择器是谁”等 HDL 静态关系。仅凭值相等反推这些关系会把 FST
+错误升级为分析引擎，并在相同值、多驱动和未变化赋值场景产生不可证明结论。
+
+本批保持以下数据流：
+
+```text
+原始 waves.fst ──Wellen 按需读取──┐
+                                  ├── xdebug action：时间对齐、谓词求值、歧义与证据合同
+Verilator DesignDB ──静态角色─────┘
+```
+
+Wellen 的责任仍只有原始 FST 的层级、类型、宽度、四态值、物理时间、delta、before/after 和
+批量访问。它不解析 SystemVerilog 循环、不选择 active statement、不建立 driver chain，也不
+生成离线索引。Verilator 只发布 FST 不包含的静态结构；xdebug action 才执行原版冻结语义。
+
+### 对 Verilator 做了什么以及为什么足够
+
+修改前差分证明既有 DesignDB 把动态 LHS 的 selector 和动态 RHS 的 base/index 混在普通
+dependency 中，消费者无法区分结构角色。Verilator 因此只在 `V3EmitDesignDb.cpp` 的
+DesignDB emitter 中附加三个内部 role：
+
+| role | 含义 | xdebug 用途 |
+| --- | --- | --- |
+| `target_loop_index` | 动态 LHS 使用的循环变量 | 为 statement predicate 建立 selector 域 |
+| `rhs_loop_selected` | RHS 数组选择的 base 信号 | 标记需要保留动态索引形式的 RHS |
+| `rhs_loop_index` | RHS 数组选择使用的循环变量 | 将证据渲染为 `base[lane]` |
+
+这些 role 复用既有 driver 记录通道，没有增加 C API、没有修改 `xdd_api.h`、ABI version 或
+capability，也没有移动 pass、改变 AST、调度或普通仿真。红测/实现提交依次为
+`6f39e2ff4`/`1052c6c85` 与 `12da1e1f6`/`6f3d24534`。最终依赖完整 SHA 为
+`6f3d245342c07c0835b3caa4d53574a72ab2e33d`。
+
+### xdebug 如何组合这些事实
+
+1. 根请求先由 Wellen 对原始 FST 采样；DesignDB resolve 只用于找到同名静态对象或其 packed
+   base，不能替代波形采样。
+2. 精确物化的 unpacked 元素复现原版展开后循环体的最终 selector 语义；packed 位只是一个
+   向量的选择视图，因此对完整位域做存在性谓词求值，保留任一 selector 可活动的 statement。
+3. 只有跨越唯一连续输出边界且父级明确存在 procedural driver 时，才把 flattened 父级事实
+   用于当前选择视图；不能按名字或值猜测边界。
+4. `__vlemcall_` 表达式临时量依据 DesignDB 依赖递归展开。目标 loop index 与父级 control
+   被排除，避免把控制量重复计入 RHS；真正源信号恢复为原版六项 RHS 集合。
+5. `rhs_loop_selected` 与唯一 `rhs_loop_index` 配对后只改变证据名称，例如
+   `top.mask_a[lane]`。由于 FST 中没有动态变量路径，该项的 before/after 正确报告
+   `signal_not_found`，不会把 `mask_a[2]` 或其他物理位伪装成原版动态证据。
+6. `multiple_active_candidates` 在原版创建当前 hop 以前检测，故根查询保留
+   `ambiguity_evidence(signal=root, hop_index=0)` 但返回空 hops；`multiple_rhs_sources` 是
+   node 建立后的 statement 内歧义，因此仍保留当前 hop。
+
+### Wellen/FST 的明确需求与非需求
+
+本能力对 Wellen 的需求是：直接打开用户给定的原始 `.fst`，按需可靠返回 packed/unpacked
+可寻址对象的值、查询时间和 active time，并在路径不存在时明确失败。它不需要也不允许：
+
+- 扫描整份 FST 后建立 driver 或表达式数据库；
+- 把 FST 转换为 VCD、JSON、私有索引、离线数据库或全量内存镜像；
+- 根据波形相关性推断循环变量、端口关系、statement 或 RHS；
+- 读取 export 产物作为后续输入；
+- 增加 TCP/fileport 或在缺失能力时 fallback 到其他 backend/fixture。
+
+本批没有修改 Wellen。Phase 5 小型 FST 只是可重复生成的运行时值 fixture；DesignDB 共享库
+提供独立静态事实，二者由 xdebug action 在当前 session 合并。该边界同时满足“只需要且必须
+适配 FST 波形”和“不得退化为用 FST 做分析”两项 Goal 硬门禁。
+
+### 工具链与验证边界
+
+所有 C/C++ 构建继续使用 `${REPO_ROOT}/../.toolchains/gcc-13` 中的 GCC/G++
+13.3.1；仓库索引只使用 `XDEBUG_VERILATOR_REPO`、`XDEBUG_WELLEN_REPO` 和
+`XDEBUG_GCC_TOOLCHAIN`。Verilator 格式环境缺失的 `distro==1.9.0` 安装在其仓库本地
+`.tools/format-venv` 并由本地 exclude 排除。12 个 Verilator XDD 用例、xdebug combined
+74/74、全量 pytest 395/395、CTest 9/9 与依赖锁检查均通过。

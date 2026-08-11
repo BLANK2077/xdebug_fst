@@ -5,19 +5,43 @@
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
 - Goal 永久门禁：`GOAL-FST-DIRECT-001`；当前 session 原始 `.fst` → Wellen 按需访问 → action 查询/推理，是唯一允许的波形事实路径。该门禁已写入 Goal 权威任务书和架构文档，并作为每批提交审查及最终 `complete` 的否决条件
 - 当前阶段：P5 功能批次已覆盖；P6 进行中（Active Driver 与 X Origin）
-- 当前任务：继续补齐 P6 的 tagged/pattern matches、更多 NBA/常量组合、复杂 output/inout/interface/ref alias，以及混合类型和调度边界多驱动原版差分；当前 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` pattern/range、精确表达式及仅 `default` 的 `case matches`、独立精确/直接顶层通配 `matches`、lowering 后条件、同源行三元分支、嵌套常量 NBA、独立及同源行三元 NBA 纯自保持与门控空事件历史语义、input/inout alias 上溯、基本多级 inout、基本及条件 output 模块边界、基础 interface/modport 与 ref 链及纯端口反馈、modport X-origin/node-budget、NBA self-RHS 分类、基础双连续、双条件过程及跨实例 output 多驱动歧义，以及 X predicate 下 control/RHS 双来源已完成，但不得据此宣称 P6 全部关闭
+- 当前任务：Phase 5 procedural-for/unpacked/packed 选择器差分已闭环；继续补齐 P6 的 tagged/pattern matches、更多 NBA/常量组合、复杂 output/inout/interface/ref alias，以及混合类型和调度边界多驱动原版差分。既有完成项和本次循环选择闭环均不得据此宣称 P6 全部关闭
 - 全局硬门禁：生产、回归和最终验收只打开 FST 波形；VCD 仅可作为可重复生成 FST 的源文件，禁止作为输入或 fallback
 - 2026-08-10 用户再次确认：项目只需要并且也必须完整适配 FST 波形；唯一波形事实路径是当前 session 中由 Wellen 直接按需读取原始 `.fst`。不得建立独立“FST 分析”数据库，不得转成 VCD/JSON/私有索引/离线库/全量内存快照后分析；显式 export 产物永不回灌。该约束已写入 Goal 权威任务书，覆盖旧 Goal 或历史文档中的相反表述
 - 2026-08-10 用户进一步锁定职责边界：FST 只是唯一波形输入容器，Wellen 只是保真按需访问层；分析能力属于冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合。禁止把“必须适配 FST”偷换成“由 FST 自身做分析”，也禁止据此简化 driver/load、active-driver、chain、X-origin、协议、表达式、完整性或错误合同。该定义已加入任务书与 Goal 权威附件，作为逐批门禁和 Goal 完成否决项
 - 2026-08-10 Goal 防漂移再确认：用户原意“不得退化到用 FST 做分析，只需要并且也必须适配 FST 波形”已写入 `XDEBUG_FULL_PARITY_GOAL_LOCK.md` 的独立解释锁。今后上下文压缩、阶段切换和交接均须同时保留“FST-only 输入”与“FST 非分析引擎”两项，不得只保留前半句造成架构漂移
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
-- xdebug-fst 当前功能与验收提交：`01963b8`；X mask 宽度失败证据为 `8b6d6f2`、修复为 `01963b8`；X 来源 driver loop 失败证据为 `08e3603`、修复为 `40e45ae`；汇聚 alias 重复消耗 node 预算的失败证据为 `a7679f1`、修复为 `72d1ed9`；端口 alias 在 chain limit 前合并的失败证据为 `969c90f`、修复为 `10bb8c2`；X 来源不同 onset 时间步限制闭环为 `2ed53b7`；内部零驱动证据分类失败为 `20140ee`、修复为 `6167b6b`；不透明 predicate 响应合同失败证据为 `4f1bf63`、修复为 `64989f5`；X predicate 下 control/RHS 双来源失败证据为 `61b7227`、终点断言校正为 `9fb960c`、实现为 `9f9d93b`；同源行三元 self-hold 失败证据为 xdebug-fst `e5da919` 与 Verilator `b3ed369d7`，Verilator 最小实现为 `986322540`；门控 NBA 空事件失败证据为 `df90d59`，独立纯自保持回溯失败证据为 `282ed4d`、实现为 `e700d34`；仅 `default` 的 `case matches` 修改前证据为 xdebug-fst `813ee36` 与 Verilator `1ae90d55d`，Verilator 最小实现为 `da63eb075`；精确表达式 `case matches` 的 Verilator 修改前证据为 `ea1d3c9b4`、最小实现为 `adc193c2f`；同值 NBA 事件依赖的 Verilator 修改前证据为 `01f9f2a4b`、最小实现为 `6239de45e`；复杂 output 表达式修改前失败证据为 `ae76785`，条件 output 修改前失败证据为 `b46b5cd`，父子 output 混合多驱动失败证据为 `1fb4532`；过程/常量、多级端口、固件、架构说明与全量门禁证据均已登记
-- Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `066d86ad26e82ae02407ad2a64c5a226b8ebe212`
-- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `9863225406f8c0190e7358226f5eab22888e7bf6`
+- xdebug-fst 当前功能提交：`e57ea65`；本次 Phase 5 失败证据为 `ae3363d`、多活动候选首跳合同证据为 `c7baaea`、依赖与固件同步为 `33ab2c5`、消费端闭环为 `e57ea65`。更早 P6/P7 证据详见下方 commit 和测试记录
+- Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `afab0abd1fe4c06db9744f0b7b20b18d23b7f8df`
+- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `6f3d245342c07c0835b3caa4d53574a72ab2e33d`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
 - 原版 xdebug runtime build ID：`8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 原版 schema revision：`c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 冻结 action 数量：严格 73 个；schema 文件：282 个，其中 public action schema：146 个
+
+## 2026-08-11 P6 Phase 5 循环选择差分闭环
+
+### 原版只读重放结论
+
+- 使用只读原版 `${XDEBUG_ORIGINAL_ROOT}/xdebug` 重放 Phase 5 的 10 个冻结查询点；没有修改原版源码、数据库或仓库状态。
+- `dout[2]` 在 10/20/30/41/90ns 以及 `dout[1]` 在 50/60ns 均终止为 `multiple_rhs_sources`。每次只有普通分支一个 statement，包含 `en1`、`ctrl_sel`、`ctrl_mode`、`src_a`、`src_b`、`src_c` 六个 RHS；60ns 查询的 active time 为 50ns。该结果说明原版对物化 unpacked 元素使用展开后循环体的最终 selector 语义，而不是把请求下标直接绑定到循环变量。
+- `flag[2]` 在 71/81/100ns 均终止为 `multiple_active_candidates`，active time 固定为 71ns；special 与 normal 两条 statement 同时保留，共九个 RHS。动态证据名必须是 `mask_a[lane]`、`mask_b[lane]`，它们不是 FST 中的物理信号，因此 before/after 均为 `signal_not_found`，`changed=null`。
+- `multiple_rhs_sources` 在当前 statement node 建立后才发现，故保留一个 hop；`multiple_active_candidates` 在原版 resolver 创建当前 node 前即发现，故根查询时 `hops=[]`、`total_count=0`、`returned_count=0`，但 `ambiguity_evidence.signal` 仍是根请求、`hop_index=0`。
+
+### Verilator 最小静态事实
+
+- 修改前红测提交为 Verilator `6f39e2ff4` 与 `12da1e1f6`；最小实现提交为 `1052c6c85` 与 `6f3d24534`。改动只位于 DesignDB emitter，发布动态 LHS 的 `target_loop_index`，以及 RHS 数组选择的 `rhs_loop_selected`、`rhs_loop_index` 结构角色。
+- 没有增加或修改 XDD C ABI 函数、header、ABI version、capability、普通 Verilator AST/调度/仿真路径；`xdd_api.h` SHA 保持不变。xdebug-fst 精确锁定完整 revision `6f3d245342c07c0835b3caa4d53574a72ab2e33d`。
+- 使用 xdebug_oc 私有 GCC 13.3.1 构建，并以 Verilator 仓库本地 Python 3.12 环境真实执行全部 12 个 `t_xdd*.py`：simple、full、UART、metadata、ops、trace、p3、p4、interface/modport、self-RHS、matches-default-only、unpacked-array 均通过。
+- Verilator 格式工具缺少的 `distro==1.9.0` 安装在 `${VERILATOR_HOME}/.tools/format-venv`，由该仓库 `.git/info/exclude` 排除；未污染系统 Python，也没有形成源码提交。以后同类缺失依赖继续安装到对应仓库或 `/workspace/work/xdebug_oc` 的私有工具目录。
+
+### xdebug-fst 消费语义与测试
+
+- `ae3363d` 与 `c7baaea` 先分别锁定动态 RHS 完整证据和多活动候选首跳前停止的红测；`33ab2c5` 单独同步依赖锁与 GCC 13 重生成的 Phase 5 DesignDB/FST；`e57ea65` 实现消费端闭环。
+- 消费端区分精确物化 unpacked 元素与 packed 位视图：前者复现原版最终展开 selector；后者在向量完整 selector 域内做存在性谓词求值。只在唯一连续输出边界且父级存在 procedural 事实时消费 flattened output，避免凭波形值猜测设计关系。
+- Verilator 表达式临时量在 xdebug action 内按 DesignDB 依赖递归展开；目标循环索引与父级控制信号不冒充 RHS。`rhs_loop_selected` 与唯一 `rhs_loop_index` 只用于把静态证据渲染为 `base[lane]`，不尝试从 FST 合成不存在的动态变量信号。
+- 指定工具链为 `${REPO_ROOT}/../.toolchains/gcc-13`，GCC/G++ 版本均为 13.3.1；构建目录为 `${REPO_ROOT}/build/gcc13`。定向差分 3/3、`tests/test_combined.py` 74/74、全量 pytest 395/395、CTest 9/9、依赖基线检查全部通过。
+- 全部运行时波形仍是当前 session 直接打开的原始 `.fst`，由 Wellen 按需读取值与 active time。没有 FST→VCD/JSON 转换、私有索引、离线数据库、全量快照、export 回灌、TCP/fileport 或 fallback；Wellen 和 XDD ABI 本批均未修改。
 
 ## 阶段状态
 

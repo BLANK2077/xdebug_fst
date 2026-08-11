@@ -1385,3 +1385,35 @@ JSON 报告只作为临时验收证据，不提交、不回灌、不参与 runti
 提供必要静态事实。禁止转换、预扫持久化、私有索引、离线数据库、全量快照、export 回灌、
 TCP/fileport 和 fallback。该维度关闭不代表 Goal 完成；P6 剩余复杂语义和最终原版归一化
 差分仍必须完成。
+
+## 十一、P6 Phase 5 循环选择闭环后的强制任务锁（2026-08-11）
+
+本节登记当前已由原版只读重放证明、并由红测到实现闭环的循环选择语义。它是后续 P6/P7
+工作和 Goal 完成验收的强制回归项，不得在重构、依赖升级、上下文压缩或测试提速时删除、
+放宽或改写为近似语义。
+
+1. `dout` 物化 unpacked 元素必须复现原版展开后循环体的最终 selector 语义；冻结查询返回
+   普通分支单 statement、六个精确 RHS 和 `multiple_rhs_sources`。不得擅自改成按请求元素
+   下标绑定循环变量，除非先获得新的原版版本差分证据并显式更新冻结基线。
+2. `flag[2]` packed 选择视图必须对完整向量 selector 域做存在性谓词求值，保留 special 和
+   normal 两个活动候选；冻结结果为 `multiple_active_candidates`、两条 statement、九个 RHS。
+3. 动态 RHS 必须保留 `mask_a[lane]`、`mask_b[lane]` 的结构证据名。它们在原始 FST 中不存在
+   时必须报告 `signal_not_found` 与 `changed=null`，不得用某个具体 bit、base 向量值或静态
+   猜测代替。
+4. `multiple_active_candidates` 必须在当前 hop 入链前终止：根查询 `hops=[]`、两个 count
+   均为 0，同时 evidence 保留根 signal 和 `hop_index=0`。`multiple_rhs_sources` 仍在当前
+   statement node 后终止并保留 hop；两种歧义不得合并处理。
+5. Verilator 允许保留的新增事实仅为既有 driver 通道中的 `target_loop_index`、
+   `rhs_loop_selected` 和 `rhs_loop_index`。当前 revision 固定为
+   `6f3d245342c07c0835b3caa4d53574a72ab2e33d`；XDD header/ABI 不变。任何进一步 Verilator
+   修改仍须先有独立红测证明 xdebug-fst 与现有静态事实无法解决，并保持附加、局部和克制。
+6. Wellen 继续只直接、按需读取当前 session 原始 `.fst` 的值、时间和采样事实；循环、driver、
+   predicate、RHS 和歧义分析全部属于 xdebug action 与 DesignDB 组合。不得转换、预扫、建立
+   私有索引/离线库/全量快照，不得回灌 export，不得增加 TCP/fileport 或 fallback。
+7. 所有后续 C/C++ 构建和测试使用 `XDEBUG_GCC_TOOLCHAIN` 指向的
+   `${REPO_ROOT}/../.toolchains/gcc-13`（GCC/G++ 13.3.1）；仓库路径只通过
+   `XDEBUG_VERILATOR_REPO` 与 `XDEBUG_WELLEN_REPO` 索引。缺失依赖安装到对应仓库或
+   `/workspace/work/xdebug_oc` 私有目录，不污染系统环境。
+8. 当前闭环门禁为 Verilator XDD 12/12、xdebug combined 74/74、pytest 395/395、CTest 9/9
+   和依赖基线检查。该批次完成不等于 P6 或 Goal 完成；tagged/pattern matches、更多
+   NBA/常量、复杂端口/接口/ref、多驱动调度边界与最终 73-action 原版归一化差分仍需继续。
