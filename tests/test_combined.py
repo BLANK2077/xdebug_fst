@@ -1460,6 +1460,12 @@ def test_trace_active_driver_chain_matches_original_phase5_public_semantics(
         assert evidence["active_time"] == active_time
         assert evidence["statement_count"] == 1
         assert evidence["rhs_signal_count"] == 6
+        statement = evidence["statements"][0]
+        assert statement["line"] == 39
+        assert {sample["signal"] for sample in statement["rhs_samples"]} == {
+            "top.en1", "top.ctrl_sel", "top.ctrl_mode",
+            "top.src_a", "top.src_b", "top.src_c",
+        }
 
     for query_time in ("71ns", "81ns", "100ns"):
         rsp = loop_runner.request("trace.active_driver_chain", args={
@@ -1475,3 +1481,26 @@ def test_trace_active_driver_chain_matches_original_phase5_public_semantics(
         assert evidence["active_time"] == "71ns"
         assert evidence["statement_count"] == 2
         assert evidence["rhs_signal_count"] == 9
+        statements = {statement["line"]: statement
+                      for statement in evidence["statements"]}
+        assert set(statements) == {37, 42}
+        assert {sample["signal"]
+                for sample in statements[37]["rhs_samples"]} == {
+            "top.en0", "top.mask_a[lane]", "top.mask_b[lane]",
+        }
+        assert {sample["signal"]
+                for sample in statements[42]["rhs_samples"]} == {
+            "top.en1", "top.en2", "top.ctrl_sel", "top.ctrl_mode",
+            "top.mask_a[lane]", "top.mask_b[lane]",
+        }
+        indexed_samples = [
+            sample
+            for statement in statements.values()
+            for sample in statement["rhs_samples"]
+            if "[lane]" in sample["signal"]
+        ]
+        assert len(indexed_samples) == 4
+        for sample in indexed_samples:
+            assert sample["before"]["status"] == "signal_not_found"
+            assert sample["after"]["status"] == "signal_not_found"
+            assert sample["changed"] is None
