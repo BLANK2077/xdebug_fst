@@ -55,6 +55,10 @@ public:
         std::string file;
         int         line = 0;
         std::string statement_identity;  // consumer-only hierarchy discriminator
+        bool        has_target_loop_range = false;  // consumer-bound selector domain
+        int64_t     target_loop_first = 0;
+        int64_t     target_loop_last = 0;
+        int         rhs_selector_signal = -1;  // consumer-only expression evidence
     };
 
     /// Number of driver entries for a signal.

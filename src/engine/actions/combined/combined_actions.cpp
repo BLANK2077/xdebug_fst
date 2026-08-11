@@ -11,6 +11,7 @@
 #include <cctype>
 #include <deque>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
@@ -184,6 +185,62 @@ std::string signal_name(IDesignBackend& design, int index) {
     return name?std::string(name):std::string();
 }
 
+bool final_numeric_selector(const std::string& signal,std::string& base,
+                            int64_t& value) {
+    if (signal.empty()||signal.back()!=']') return false;
+    const size_t open=signal.rfind('[');
+    if (open==std::string::npos||open==0||open+2>signal.size()) return false;
+    const std::string selector=signal.substr(open+1,signal.size()-open-2);
+    if (selector.empty()||selector.find(':')!=std::string::npos) return false;
+    size_t offset=0;
+    bool negative=false;
+    if (selector.front()=='-'||selector.front()=='+') {
+        negative=selector.front()=='-';
+        offset=1;
+    }
+    if (offset==selector.size()) return false;
+    uint64_t magnitude=0;
+    const uint64_t limit=negative
+        ?static_cast<uint64_t>(std::numeric_limits<int64_t>::max())+1
+        :static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+    for (;offset<selector.size();++offset) {
+        const unsigned char ch=static_cast<unsigned char>(selector[offset]);
+        if (!std::isdigit(ch)) return false;
+        const uint64_t digit=static_cast<uint64_t>(selector[offset]-'0');
+        if (magnitude>(limit-digit)/10) return false;
+        magnitude=magnitude*10+digit;
+    }
+    if (negative) {
+        value=magnitude==limit?std::numeric_limits<int64_t>::min()
+                              :-static_cast<int64_t>(magnitude);
+    } else {
+        value=static_cast<int64_t>(magnitude);
+    }
+    base=signal.substr(0,open);
+    return !base.empty();
+}
+
+struct SelectedDesignSignal {
+    int index=-1;
+    bool exact=false;
+    bool has_numeric_selector=false;
+    std::string base;
+    int64_t selector=0;
+};
+
+SelectedDesignSignal resolve_selected_design_signal(
+    IDesignBackend& design,const std::string& signal) {
+    SelectedDesignSignal selected;
+    selected.index=design.resolve(signal.c_str());
+    selected.exact=selected.index>=0&&
+        signal_name(design,selected.index)==signal;
+    selected.has_numeric_selector=final_numeric_selector(
+        signal,selected.base,selected.selector);
+    if (selected.index<0&&selected.has_numeric_selector)
+        selected.index=design.resolve(selected.base.c_str());
+    return selected;
+}
+
 size_t hierarchy_depth(const std::string& signal) {
     return static_cast<size_t>(std::count(signal.begin(),signal.end(),'.'));
 }
@@ -317,6 +374,7 @@ struct StatementGroup {
     bool has_event_time=false;
     uint64_t event_time=0;
     bool predicate_waveform_unknown=false;
+    std::map<int,std::pair<int64_t,int64_t>> target_loop_ranges;
     std::vector<IDesignBackend::DriverRecord> records;
     std::vector<IDesignBackend::DriverRecord> rhs;
 };
@@ -337,6 +395,11 @@ std::vector<StatementGroup> statement_groups(
         if (statement.predicate.empty())
             statement.predicate=driver.activation_predicate;
         statement.records.push_back(driver);
+        if (driver.dependency_role=="target_loop_index"&&
+            driver.src_signal>=0&&driver.has_target_loop_range) {
+            statement.target_loop_ranges[driver.src_signal]={
+                driver.target_loop_first,driver.target_loop_last};
+        }
         if (driver.dependency_role=="rhs"&&driver.src_signal>=0&&
             std::none_of(statement.rhs.begin(),statement.rhs.end(),
                 [&](const auto& item){return item.src_signal==driver.src_signal;})) {
@@ -346,6 +409,17 @@ std::vector<StatementGroup> statement_groups(
     std::vector<StatementGroup> statements;
     for (auto& [key,statement] : grouped) {
         (void)key;
+        std::set<int> target_loop_indices;
+        for (const auto& record : statement.records) {
+            if (record.dependency_role=="target_loop_index"&&
+                record.src_signal>=0) {
+                target_loop_indices.insert(record.src_signal);
+            }
+        }
+        statement.rhs.erase(std::remove_if(
+            statement.rhs.begin(),statement.rhs.end(),[&](const auto& driver) {
+                return target_loop_indices.count(driver.src_signal)>0;
+            }),statement.rhs.end());
         std::sort(statement.rhs.begin(),statement.rhs.end(),
             [](const auto& left,const auto& right){
                 return left.src_signal<right.src_signal;
@@ -441,6 +515,175 @@ std::string predicate_waveform_signal(const std::string& signal,
     return candidates.size()==1?*candidates.begin():std::string();
 }
 
+void map_driver_waveform_aliases(
+    IDesignBackend& design,IWaveformBackend& waveform,
+    std::vector<IDesignBackend::DriverRecord>& drivers) {
+    for (auto& driver : drivers) {
+        if (driver.src_signal<0) continue;
+        const std::string source=signal_name(design,driver.src_signal);
+        if (source.empty()) continue;
+        const std::string waveform_signal=predicate_waveform_signal(
+            source,design,waveform);
+        if (waveform_signal.empty()||waveform_signal==source) continue;
+        const int waveform_index=design.resolve(waveform_signal.c_str());
+        if (waveform_index>=0) driver.src_signal=waveform_index;
+    }
+}
+
+bool select_flattened_output_driver_facts(
+    IDesignBackend& design,IWaveformBackend& waveform,int waveform_index,
+    bool allow_sampleable_flattened,
+    std::vector<IDesignBackend::DriverRecord>& drivers,int& driver_index) {
+    if (design.signal_direction(waveform_index)!=2) return false;
+    const std::vector<StatementGroup> boundary=statement_groups(drivers);
+    if (boundary.size()!=1||boundary.front().kind!="cont_assign"||
+        boundary.front().rhs.size()!=1) {
+        return false;
+    }
+
+    const int flattened_index=boundary.front().rhs.front().src_signal;
+    const std::string flattened=signal_name(design,flattened_index);
+    const std::string waveform_signal=signal_name(design,waveform_index);
+    if (flattened.empty()||waveform_signal.empty()||
+        design.signal_direction(flattened_index)!=2||
+        hierarchy_depth(flattened)>=hierarchy_depth(waveform_signal)||
+        (!allow_sampleable_flattened&&
+         waveform.find_signal(flattened)!=IWaveformBackend::kInvalidSignalRef)) {
+        return false;
+    }
+
+    const std::vector<int> connected_outputs=ports_connected_to(
+        design,flattened_index,2);
+    if (std::find(connected_outputs.begin(),connected_outputs.end(),
+                  waveform_index)==connected_outputs.end()) {
+        return false;
+    }
+
+    auto flattened_drivers=drivers_for(design,flattened_index);
+    const bool has_procedural_facts=std::any_of(
+        flattened_drivers.begin(),flattened_drivers.end(),[](const auto& driver) {
+            return driver.kind!="cont_assign";
+        });
+    if (!has_procedural_facts) return false;
+
+    map_driver_waveform_aliases(design,waveform,flattened_drivers);
+    drivers=std::move(flattened_drivers);
+    driver_index=flattened_index;
+    return true;
+}
+
+bool is_verilator_expression_temporary(const std::string& signal) {
+    const size_t dot=signal.rfind('.');
+    const std::string leaf=dot==std::string::npos
+        ?signal:signal.substr(dot+1);
+    return leaf.rfind("__vlemcall_",0)==0;
+}
+
+void collect_expression_sources(
+    IDesignBackend& design,int source,const std::set<int>& parent_controls,
+    std::set<int>& visited,std::set<int>& sources) {
+    const std::string source_name=signal_name(design,source);
+    if (!is_verilator_expression_temporary(source_name)) {
+        if (source>=0) sources.insert(source);
+        return;
+    }
+    if (!visited.insert(source).second) {
+        sources.insert(source);
+        return;
+    }
+
+    const auto temporary_drivers=drivers_for(design,source);
+    std::set<int> target_loop_indices;
+    for (const auto& driver : temporary_drivers) {
+        if (driver.dependency_role=="target_loop_index"&&driver.src_signal>=0)
+            target_loop_indices.insert(driver.src_signal);
+    }
+    bool found_dependency=false;
+    for (const auto& driver : temporary_drivers) {
+        if (driver.src_signal<0||
+            (driver.dependency_role!="rhs"&&driver.dependency_role!="control")||
+            target_loop_indices.count(driver.src_signal)>0||
+            (driver.dependency_role=="control"&&
+             parent_controls.count(driver.src_signal)>0)) {
+            continue;
+        }
+        found_dependency=true;
+        collect_expression_sources(design,driver.src_signal,parent_controls,
+                                   visited,sources);
+    }
+    if (!found_dependency) sources.insert(source);
+}
+
+void expand_expression_temporaries(
+    IDesignBackend& design,IWaveformBackend& waveform,
+    std::vector<IDesignBackend::DriverRecord>& drivers) {
+    std::set<int> parent_controls;
+    for (const auto& driver : drivers) {
+        if (driver.dependency_role=="control"&&driver.src_signal>=0)
+            parent_controls.insert(driver.src_signal);
+    }
+
+    std::vector<IDesignBackend::DriverRecord> expanded;
+    for (const auto& driver : drivers) {
+        const std::string source=signal_name(design,driver.src_signal);
+        if (driver.dependency_role!="rhs"||
+            !is_verilator_expression_temporary(source)) {
+            expanded.push_back(driver);
+            continue;
+        }
+        std::set<int> visited;
+        std::set<int> sources;
+        collect_expression_sources(design,driver.src_signal,parent_controls,
+                                   visited,sources);
+        if (sources.size()==1&&sources.count(driver.src_signal)>0) {
+            expanded.push_back(driver);
+            continue;
+        }
+        for (int source_index : sources) {
+            auto source_driver=driver;
+            source_driver.src_signal=source_index;
+            expanded.push_back(std::move(source_driver));
+        }
+    }
+    map_driver_waveform_aliases(design,waveform,expanded);
+    drivers=std::move(expanded);
+}
+
+void annotate_loop_selected_rhs(
+    std::vector<IDesignBackend::DriverRecord>& drivers) {
+    using StatementKey=
+        std::tuple<std::string,int,std::string,std::string,std::string>;
+    std::map<StatementKey,std::vector<size_t>> records_by_statement;
+    for (size_t index=0;index<drivers.size();++index) {
+        const auto& driver=drivers[index];
+        records_by_statement[{driver.file,driver.line,driver.kind,
+                              driver.activation_predicate,
+                              driver.statement_identity}].push_back(index);
+    }
+    for (const auto& [key,indices] : records_by_statement) {
+        (void)key;
+        std::set<int> selected_sources;
+        std::set<int> selector_sources;
+        for (size_t index : indices) {
+            const auto& driver=drivers[index];
+            if (driver.src_signal<0) continue;
+            if (driver.dependency_role=="rhs_loop_selected")
+                selected_sources.insert(driver.src_signal);
+            else if (driver.dependency_role=="rhs_loop_index")
+                selector_sources.insert(driver.src_signal);
+        }
+        if (selector_sources.size()!=1) continue;
+        const int selector=*selector_sources.begin();
+        for (size_t index : indices) {
+            auto& driver=drivers[index];
+            if (driver.dependency_role=="rhs"&&
+                selected_sources.count(driver.src_signal)>0) {
+                driver.rhs_selector_signal=selector;
+            }
+        }
+    }
+}
+
 void replace_expression_signal(ExprNode* node,const std::string& from,
                                const std::string& to) {
     if (!node) return;
@@ -452,15 +695,93 @@ void replace_expression_signal(ExprNode* node,const std::string& from,
     replace_expression_signal(node->right,from,to);
 }
 
-PredicateState evaluate_predicate(const StatementGroup& statement,
-                                  IDesignBackend& design,
-                                  IWaveformBackend& waveform,
-                                  uint64_t active_time) {
+void bind_expression_signal(ExprNode* node,const std::string& signal,
+                            int64_t value,int signal_width) {
+    if (!node) return;
+    if ((node->kind==ExprNode::Kind::Signal||
+         node->kind==ExprNode::Kind::Slice)&&node->signal==signal) {
+        uint64_t raw=static_cast<uint64_t>(value);
+        int width=std::clamp(signal_width,1,64);
+        if (node->kind==ExprNode::Kind::Slice) {
+            width=std::clamp(node->msb-node->lsb+1,1,64);
+            raw=node->lsb>=64?0:raw>>node->lsb;
+            if (width<64) raw&=(UINT64_C(1)<<width)-1;
+        }
+        node->kind=ExprNode::Kind::Const;
+        node->op.clear();
+        node->signal.clear();
+        node->msb=-1;
+        node->lsb=-1;
+        node->value=logic_value_from_u64(raw,width);
+        return;
+    }
+    bind_expression_signal(node->left,signal,value,signal_width);
+    bind_expression_signal(node->right,signal,value,signal_width);
+}
+
+bool last_materialized_selector(IDesignBackend& design,const std::string& base,
+                                int64_t& last) {
+    bool found=false;
+    for (int index=0;index<design.signal_count();++index) {
+        const std::string candidate=signal_name(design,index);
+        std::string candidate_base;
+        int64_t selector=0;
+        if (!final_numeric_selector(candidate,candidate_base,selector)||
+            candidate_base!=base) {
+            continue;
+        }
+        if (!found||selector>last) last=selector;
+        found=true;
+    }
+    return found;
+}
+
+bool bind_target_loop_indices(
+    IDesignBackend& design,const SelectedDesignSignal& selected,
+    std::vector<IDesignBackend::DriverRecord>& drivers) {
+    if (!selected.has_numeric_selector||selected.index<0) return false;
+    int64_t first=0;
+    int64_t last=0;
+    if (selected.exact) {
+        // Original active-trace exposes one elaborated loop-body statement for
+        // materialized unpacked elements and evaluates it with the final
+        // elaborated selector, independently of the requested element.
+        if (!last_materialized_selector(design,selected.base,last)) return false;
+        first=last;
+    } else {
+        // A packed bit is a waveform view of one vector object.  The original
+        // reports every statement whose loop predicate can be active for any
+        // vector position, so retain the full selector domain here.
+        const int width=design.signal_width(selected.index);
+        if (width<=0) return false;
+        last=static_cast<int64_t>(width)-1;
+    }
+    bool bound=false;
+    for (auto& driver : drivers) {
+        if (driver.dependency_role!="target_loop_index"||driver.src_signal<0)
+            continue;
+        driver.has_target_loop_range=true;
+        driver.target_loop_first=first;
+        driver.target_loop_last=last;
+        bound=true;
+    }
+    return bound;
+}
+
+PredicateState evaluate_predicate_once(
+    const StatementGroup& statement,const std::map<int,int64_t>& bindings,
+    IDesignBackend& design,IWaveformBackend& waveform,uint64_t active_time) {
     if (statement.predicate.empty()) return PredicateState::Unresolved;
     std::string error;
     std::unique_ptr<ExprNode> expression(
         parse_expression(statement.predicate,error));
     if (!expression) return PredicateState::Unresolved;
+    for (const auto& [index,value] : bindings) {
+        const std::string bound_signal=signal_name(design,index);
+        if (bound_signal.empty()) return PredicateState::Unresolved;
+        bind_expression_signal(expression.get(),bound_signal,value,
+                               design.signal_width(index));
+    }
     std::vector<uint32_t> refs;
     for (const std::string& signal : expression_signals(expression.get())) {
         const std::string resolved=predicate_waveform_signal(
@@ -481,6 +802,52 @@ PredicateState evaluate_predicate(const StatementGroup& statement,
     if (!value.known) return PredicateState::WaveformUnknown;
     return value.bits.find('1')==std::string::npos
         ?PredicateState::Inactive:PredicateState::Active;
+}
+
+PredicateState evaluate_predicate(const StatementGroup& statement,
+                                  IDesignBackend& design,
+                                  IWaveformBackend& waveform,
+                                  uint64_t active_time) {
+    if (statement.target_loop_ranges.empty()) {
+        return evaluate_predicate_once(
+            statement,{},design,waveform,active_time);
+    }
+
+    constexpr size_t kMaxLoopSelectorBindings=65536;
+    std::vector<std::map<int,int64_t>> bindings(1);
+    for (const auto& [index,range] : statement.target_loop_ranges) {
+        const auto [first,last]=range;
+        if (last<first) return PredicateState::Unresolved;
+        const uint64_t span=static_cast<uint64_t>(last-first)+1;
+        if (span>kMaxLoopSelectorBindings||
+            bindings.size()>kMaxLoopSelectorBindings/span) {
+            return PredicateState::Unresolved;
+        }
+        std::vector<std::map<int,int64_t>> expanded;
+        expanded.reserve(bindings.size()*static_cast<size_t>(span));
+        for (const auto& existing : bindings) {
+            for (int64_t value=first;;++value) {
+                auto current=existing;
+                current[index]=value;
+                expanded.push_back(std::move(current));
+                if (value==last) break;
+            }
+        }
+        bindings=std::move(expanded);
+    }
+
+    bool waveform_unknown=false;
+    bool unresolved=false;
+    for (const auto& binding : bindings) {
+        const PredicateState state=evaluate_predicate_once(
+            statement,binding,design,waveform,active_time);
+        if (state==PredicateState::Active) return state;
+        waveform_unknown|=state==PredicateState::WaveformUnknown;
+        unresolved|=state==PredicateState::Unresolved;
+    }
+    if (unresolved) return PredicateState::Unresolved;
+    return waveform_unknown
+        ?PredicateState::WaveformUnknown:PredicateState::Inactive;
 }
 
 struct EvaluatedStatements {
@@ -638,8 +1005,9 @@ bool known_bits(const std::string& bits) {
 }
 
 Json ambiguity_value(const Sample& sample,IWaveformBackend& waveform,
-                     TimeRenderUnit unit,ValueRenderFormat format) {
-    if (!sample.ok) return {{"status","missing_value"},{"value",nullptr},
+                     TimeRenderUnit unit,ValueRenderFormat format,
+                     const char* missing_status="missing_value") {
+    if (!sample.ok) return {{"status",missing_status},{"value",nullptr},
         {"known",nullptr},{"value_time",nullptr}};
     return {{"status","ok"},{"value",logic_string(sample,format)},
         {"known",known_bits(sample.bits)},
@@ -659,11 +1027,26 @@ Json ambiguity_evidence(const std::string& kind,const std::string& signal,
         for (const auto& driver : group.rhs) {
             ++rhs_count;
             if (returned>=max_trace_signals) continue;
-            const std::string source=signal_name(design,driver.src_signal);
+            std::string source=signal_name(design,driver.src_signal);
+            if (driver.rhs_selector_signal>=0) {
+                const std::string selector=signal_name(
+                    design,driver.rhs_selector_signal);
+                const size_t dot=selector.rfind('.');
+                const std::string leaf=dot==std::string::npos
+                    ?selector:selector.substr(dot+1);
+                if (!source.empty()&&!leaf.empty())
+                    source+="["+leaf+"]";
+            }
+            const bool source_exists=waveform.find_signal(source)!=
+                IWaveformBackend::kInvalidSignalRef;
+            const char* missing_status=source_exists
+                ?"missing_value":"signal_not_found";
             const Sample before=sample_before(waveform,source,active_time);
             const Sample after=sample_at(waveform,source,active_time);
-            Json before_json=ambiguity_value(before,waveform,unit,format);
-            Json after_json=ambiguity_value(after,waveform,unit,format);
+            Json before_json=ambiguity_value(
+                before,waveform,unit,format,missing_status);
+            Json after_json=ambiguity_value(
+                after,waveform,unit,format,missing_status);
             Json changed=nullptr;
             if (before.ok&&after.ok) changed=before.bits!=after.bits;
             samples.push_back({{"signal",source},{"before",before_json},
@@ -784,6 +1167,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         std::set<std::string> visited;
         std::string current=root,termination="unresolved",detail="unresolved";
         std::string previous;
+        SelectedDesignSignal loop_selection_context;
+        bool has_loop_selection_context=false;
         uint64_t current_time=time;
         bool limited=false,ambiguity_limited=false,ambiguity_incomplete=false;
         std::string frontier_signal; Sample frontier_sample;
@@ -793,15 +1178,32 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             if (!visited.insert(visit_key).second) {
                 termination="loop_detected"; detail="loop_detected"; break;
             }
-            const int index=design.resolve(current.c_str());
+            const SelectedDesignSignal selected_signal=
+                resolve_selected_design_signal(design,current);
+            if (selected_signal.has_numeric_selector) {
+                loop_selection_context=selected_signal;
+                has_loop_selection_context=true;
+            }
+            const int index=selected_signal.index;
             if (index<0) return action_error("SIGNAL_NOT_FOUND","signal not found in design: "+current);
             Sample sample=sample_at(waveform,current,current_time);
             if (!sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST: "+current);
             auto drivers=drivers_for(design,index);
-            annotate_output_instance_identities(design,index,drivers);
+            int driver_index=index;
+            select_flattened_output_driver_facts(
+                design,waveform,index,
+                selected_signal.has_numeric_selector&&!selected_signal.exact,
+                drivers,driver_index);
+            if (has_loop_selection_context&&bind_target_loop_indices(
+                    design,loop_selection_context,drivers)) {
+                has_loop_selection_context=false;
+            }
+            annotate_output_instance_identities(design,driver_index,drivers);
+            expand_expression_temporaries(design,waveform,drivers);
+            annotate_loop_selected_rhs(drivers);
             bool self_hold_backtrack_limited=false;
             auto evaluated=active_statement_groups_skipping_self_hold(
-                drivers,design,waveform,index,sample.active_time,current_time,
+                drivers,design,waveform,driver_index,sample.active_time,current_time,
                 max_nodes,&self_hold_backtrack_limited);
             if (self_hold_backtrack_limited) {
                 hops.push_back(trace_hop(depth,current,sample,
@@ -1028,15 +1430,25 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     sample.active_time=causal_event_time;
                 }
             }
-            hops.push_back(trace_hop(depth,current,sample,depth==0?"root":"driver",
-                selected,design,index,waveform,unit,format));
+            const bool stops_before_current_hop=
+                ambiguity_kind=="multiple_active_candidates";
+            // The original resolver checks assignment-handle multiplicity
+            // before constructing a node.  Other ambiguity kinds are found
+            // only after the current node exists and therefore keep the hop.
+            if (!stops_before_current_hop) {
+                hops.push_back(trace_hop(depth,current,sample,
+                    depth==0?"root":"driver",selected,design,index,waveform,
+                    unit,format));
+            }
 
             if (!ambiguity_kind.empty()) {
                 const auto& evidence_groups=ambiguity_kind=="predicate_unresolved"
                     ?evaluated.unresolved:groups;
+                const size_t ambiguity_hop_index=stops_before_current_hop
+                    ?hops.size():hops.size()-1;
                 ambiguity=ambiguity_evidence(ambiguity_kind,current,
-                    sample.active_time,hops.size()-1,evidence_groups,max_trace_signals,
-                    design,waveform,unit,format);
+                    sample.active_time,ambiguity_hop_index,evidence_groups,
+                    max_trace_signals,design,waveform,unit,format);
                 if (ambiguity_kind=="predicate_unresolved") {
                     ambiguity["analysis_complete"]=false;
                     ambiguity_incomplete=true;
