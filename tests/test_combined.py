@@ -632,6 +632,11 @@ def test_trace_active_driver_chain_reports_real_multiple_active_drivers(
     assert evidence["rhs_signal_count"] == 2
     assert {statement["line"] for statement in evidence["statements"]} == {
         54, 55}
+    assert evidence["signal"] == "top.case_top.multiple_driver_out"
+    assert evidence["hop_index"] == 0
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["data"]["hops"] == []
 
 
 def test_trace_active_driver_selects_case_inside_pattern_and_range(
@@ -876,8 +881,9 @@ def test_trace_active_driver_chain_preserves_parent_and_child_output_drivers(
     assert rsp["summary"]["termination"] == "ambiguous"
     assert rsp["summary"]["termination_detail"] == \
         "multiple_active_candidates"
-    assert [hop["signal"] for hop in rsp["data"]["hops"]] == [
-        "top.output_mixed_top.mixed_bus"]
+    assert rsp["summary"]["total_count"] == 0
+    assert rsp["summary"]["returned_count"] == 0
+    assert rsp["data"]["hops"] == []
     evidence = rsp["data"]["ambiguity_evidence"]
     assert evidence["statement_count"] == 2
     assert evidence["rhs_signal_count"] == 2
@@ -1479,8 +1485,13 @@ def test_trace_active_driver_chain_matches_original_phase5_public_semantics(
         evidence = rsp["data"]["ambiguity_evidence"]
         assert evidence["kind"] == "multiple_active_candidates"
         assert evidence["active_time"] == "71ns"
+        assert evidence["signal"] == "top.phase5_dut.flag[2]"
+        assert evidence["hop_index"] == 0
         assert evidence["statement_count"] == 2
         assert evidence["rhs_signal_count"] == 9
+        assert rsp["summary"]["total_count"] == 0
+        assert rsp["summary"]["returned_count"] == 0
+        assert rsp["data"]["hops"] == []
         statements = {statement["line"]: statement
                       for statement in evidence["statements"]}
         assert set(statements) == {37, 42}
