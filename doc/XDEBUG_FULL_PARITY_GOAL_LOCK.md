@@ -92,7 +92,7 @@ active-driver 的 activation predicate 也属于上述静态 HDL 事实，而不
 
 仅 `default` 的 `case matches` 闭环再次验证本 Goal 的不可拆分双断言：Verilator DesignDB 提供唯一分支的恒真静态谓词，冻结的 xdebug action 执行 active-driver 合同，Wellen 只在 45ps/65ps 对当前 session 的原始 `.fst` 按需读取运行时事实。该批没有把 `matches` 语法、分支识别或 driver 判定下沉到 FST/Wellen，也没有引入 VCD/JSON 转换、私有索引、离线库、全量快照、TCP/fileport 或 fallback。
 
-对应失败证据和实现为 Verilator `1ae90d55d`、`487482500`、`da63eb075` 及 xdebug-fst `813ee36`、`f8d0aee`。XDD header/ABI 未改变，Wellen 未修改；tagged、binding 与嵌套 wildcard 继续失败关闭。因此该批只能声明“仅 `default` 子集已闭环”，不能声明通用 matches 或 Goal 已完成。
+对应失败证据和实现为 Verilator `1ae90d55d`、`487482500`、`da63eb075` 及 xdebug-fst `813ee36`、`f8d0aee`。XDD header/ABI 未改变，Wellen 未修改；tagged、binding 与嵌套 wildcard 在该批结束时继续失败关闭。因此该批只能声明“仅 `default` 子集已闭环”，不能声明通用 matches 或 Goal 已完成；后续第五十九批对无 binding packed 嵌套 wildcard 的闭环以本文件后文的新锁为准。
 
 P6 第三十七批继续按同一门禁处理 NBA 纯自保持：DesignDB 的精确 self load 与静态 `event_*` 负责证明 `q <= q` 及其敏感源，Wellen 只对当前原始 `.fst` 的已确定时钟按需读取边沿，xdebug action 执行有界历史回溯与冻结 active-driver 合同。实现 `e700d34` 没有从目标 FST 值是否变化推断 self-hold，没有建立事件索引或离线库，也没有修改 Verilator/Wellen/ABI；因此仍是“静态事实 + 原始 FST 运行时事实 → action 分析”，不是“用 FST 做分析”。
 
@@ -344,15 +344,15 @@ FST 不存在该动态路径而报告 `signal_not_found`；多活动候选在当
 
 Verilator 只允许消费已证明必要且已回归的三个附加 DesignDB role：`target_loop_index`、
 `rhs_loop_selected`、`rhs_loop_index`，当前精确 SHA 为
-`6f3d245342c07c0835b3caa4d53574a72ab2e33d`，XDD header/ABI 保持不变。Wellen 不承担上述
+`9c8ae78cba35ab152e13644a50d6fc0c882955d4`，XDD header/ABI 保持不变。Wellen 不承担上述
 分析，只直接按需读取当前 session 的原始 `.fst` 值与时间；xdebug action 负责组合静态事实
 并执行冻结语义。禁止转换、预扫、索引、离线库、全量快照、export 回灌、TCP/fileport 和
 fallback。
 
 所有后续 C/C++ 工作固定使用 `XDEBUG_GCC_TOOLCHAIN` 指向的 GCC/G++ 13.3.1，仓库通过
 `XDEBUG_VERILATOR_REPO`、`XDEBUG_WELLEN_REPO` 定位；缺失依赖安装到对应仓库或
-`/workspace/work/xdebug_oc` 私有目录。本批的 12/12 Verilator XDD、74/74 combined、
-395/395 pytest 和 9/9 CTest 是持续回归门禁，不是 Goal 完成声明。P6 剩余复杂语义与最终
+`/workspace/work/xdebug_oc` 私有目录。本批的 13/13 Verilator XDD、75/75 combined、
+397/397 pytest 和 9/9 CTest 是持续回归门禁，不是 Goal 完成声明。P6 剩余复杂语义与最终
 73-action 原版归一化差分未全部关闭前，Goal 必须保持 active。
 
 ## GCC 13 私有 sanitizer 运行时锁（2026-08-11）
@@ -367,3 +367,20 @@ GCC 8、关闭 instrumentation、缩小测试集合或更换 backend/fixture。C
 原始 `.fst`，Wellen 按需提供波形事实，DesignDB 提供静态事实，xdebug action 执行分析；
 不得引入转换、索引、离线库、全量快照、TCP/fileport 或 fallback。该门禁通过不表示 P6、
 最终原版差分或 Goal 已完成。
+
+## matches 嵌套通配语义锁（2026-08-11）
+
+无 binding packed assignment pattern 内的 `.*` 已按逐位 value/mask 闭环：普通成员 mask
+必须为一，只有通配成员 mask 为零，并以四态 `===` 比较掩码后的 selector/value。该规则同时
+适用于 `case matches` 和独立 `matches`；禁止降级成会吞掉普通 X/Z 的 casez/casex 近似。
+
+Verilator DesignDB 只发布上述静态掩码 predicate，当前锁定 SHA 为
+`9c8ae78cba35ab152e13644a50d6fc0c882955d4`，XDD header/ABI/capability 未变。xdebug action
+在 active time 执行 predicate 并选择 driver；Wellen 只从当前原始 `.fst` 按需返回控制值。
+不得把 pattern 语义下沉到 Wellen/FST，也不得转换、预扫、建立索引/离线库/全量快照、回灌
+export、增加 TCP/fileport 或 fallback。
+
+`c4cc865` 的旧固件 `SIGNAL_NOT_FOUND` 是动态修改前证据；最终门禁为 45ps data item、65ps
+case default/standalone else 四项唯一选择，combined 75/75、pytest 397/397、CTest 9/9、
+Verilator XDD 13/13。PatternVar binding 与全部 tagged union/expression/pattern 继续失败关闭，
+本批不得被描述为“通用 matches 完成”，Goal 继续 active。

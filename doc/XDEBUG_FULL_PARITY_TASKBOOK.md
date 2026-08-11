@@ -650,9 +650,10 @@ FST 完成 `trace.active_driver` 动态闭环。这里 FST/Wellen 仍只提供�
 pattern 语法和静态谓词属于 Verilator，合同判定属于 xdebug action。第三十六批又在普通
 仿真、DesignDB 和 xdebug 动态三层失败证据后关闭仅 `default` 的 `case matches`：Verilator
 只移除“必须存在精确 item”的误门禁，DesignDB 为唯一 default 分支发布恒真谓词，action
-结合 Wellen 按需读取的当前原始 FST 值完成 45ps/65ps 闭环。tagged union、tagged
-expression/pattern、pattern variable/binding 与嵌套 wildcard 仍明确不支持，不得冒充通用
-matches 完成。第十八批又以等价 NBA 时序固件证明“最近赋值事件”不能退化为
+结合 Wellen 按需读取的当前原始 FST 值完成 45ps/65ps 闭环。该批结束时 tagged union、tagged
+expression/pattern、pattern variable/binding 与嵌套 wildcard 仍明确不支持；第五十九批随后
+已用精确 value/mask 关闭无 binding packed 嵌套 wildcard，但 PatternVar/tagged 仍未完成，
+不得冒充通用 matches 完成。第十八批又以等价 NBA 时序固件证明“最近赋值事件”不能退化为
 FST 的“最近值变化”：同值 NBA 在 20ps/40ps/60ps 均执行，修改前 65ps 查询只得到 20ps。
 Verilator `01f9f2a4b` 先以独立失败回归锁定简单 posedge 与异步 reset 的完整敏感事件需求，
 `6239de45e` 再只通过既有 driver role 发布 direct `event_*` 静态事实，不改 ABI 布局、仿真
@@ -1405,7 +1406,7 @@ TCP/fileport 和 fallback。该维度关闭不代表 Goal 完成；P6 剩余复�
    statement node 后终止并保留 hop；两种歧义不得合并处理。
 5. Verilator 允许保留的新增事实仅为既有 driver 通道中的 `target_loop_index`、
    `rhs_loop_selected` 和 `rhs_loop_index`。当前 revision 固定为
-   `6f3d245342c07c0835b3caa4d53574a72ab2e33d`；XDD header/ABI 不变。任何进一步 Verilator
+   `9c8ae78cba35ab152e13644a50d6fc0c882955d4`；XDD header/ABI 不变。任何进一步 Verilator
    修改仍须先有独立红测证明 xdebug-fst 与现有静态事实无法解决，并保持附加、局部和克制。
 6. Wellen 继续只直接、按需读取当前 session 原始 `.fst` 的值、时间和采样事实；循环、driver、
    predicate、RHS 和歧义分析全部属于 xdebug action 与 DesignDB 组合。不得转换、预扫、建立
@@ -1414,8 +1415,8 @@ TCP/fileport 和 fallback。该维度关闭不代表 Goal 完成；P6 剩余复�
    `${REPO_ROOT}/../.toolchains/gcc-13`（GCC/G++ 13.3.1）；仓库路径只通过
    `XDEBUG_VERILATOR_REPO` 与 `XDEBUG_WELLEN_REPO` 索引。缺失依赖安装到对应仓库或
    `/workspace/work/xdebug_oc` 私有目录，不污染系统环境。
-8. 当前闭环门禁为 Verilator XDD 12/12、xdebug combined 74/74、pytest 395/395、CTest 9/9
-   和依赖基线检查。该批次完成不等于 P6 或 Goal 完成；tagged/pattern matches、更多
+8. 当前闭环门禁为 Verilator XDD 13/13、xdebug combined 75/75、pytest 397/397、CTest 9/9
+   和依赖基线检查。该批次完成不等于 P6 或 Goal 完成；tagged/binding matches、更多
    NBA/常量、复杂端口/接口/ref、多驱动调度边界与最终 73-action 原版归一化差分仍需继续。
 9. GCC 13 sanitizer devel/runtime 必须保存在
    `${REPO_ROOT}/../.toolchains/gcc-13`。pytest、CTest、session engine 与其他
@@ -1425,3 +1426,31 @@ TCP/fileport 和 fallback。该维度关闭不代表 Goal 完成；P6 剩余复�
     `halt_on_error=1:print_stacktrace=1`。当前两套独立 CTest 均为 9/9，普通/ASan/UBSan
     pytest 均为 396/396；以后每个改变 C/C++ 运行时语义的高风险批次必须保持该门禁。sanitizer
     只检查实现，不得成为新的波形访问、转换、索引或分析层。
+
+## 十二、P6 第五十九批 matches 嵌套通配闭环后的强制任务锁（2026-08-11）
+
+本节把 packed assignment pattern 内部 `.*` 的三层闭环登记为后续 P6/P7 与最终验收的强制
+回归项。它只关闭无 binding 的 packed struct 成员通配，不得扩大解释为 tagged union、tagged
+expression/pattern 或 PatternVar binding 已完成。
+
+1. Verilator 前端必须把普通 pattern 成员构造成全一 mask，把 `.*` 对应成员构造成全零 mask，
+   并以 `(selector & mask) === (value & mask)` 执行四态精确匹配。禁止把整个 pattern 降级为
+   `casez/casex`，因为那会错误地把普通成员中的 X/Z 也当成通配位。
+2. `case matches` 与独立 `matches` 必须共享同一 value/mask 语义；item/default 必须互补，
+   source item 顺序保持不变。直接顶层 `.*` 的既有恒真语义继续保留。
+3. DesignDB 必须发布可由冻结 xdebug expression evaluator 执行的同一掩码 predicate，不能输出
+   `???? // PATTERNTEST`、空 predicate 或近似运算。XDD header、ABI 与 capability 保持不变。
+4. tagged union、TaggedExpr、TaggedPattern 和 PatternVar binding 仍必须在前端或静态事实边界
+   失败关闭；不得因为无绑定嵌套 wildcard 已通过而抑制这些诊断。
+5. xdebug-fst 动态门禁使用 `matches_top.sv` 同一源码同步生成的 raw `waves.fst` 和 DesignDB。
+   45ps 的 `sel=1` 必须唯一选择 data 分支；65ps 的 `sel=2` 必须唯一选择 case default 与
+   standalone else 常量分支。源路径和行号必须来自 DesignDB，不得由 FST 猜测。
+6. Wellen 只直接、按需读取当前 session 原始 `.fst` 中的 `nested_match_packet` 和数据值；pattern
+   展开、mask、predicate、driver 选择与合同投影分别属于 Verilator 静态事实和 xdebug action。
+   禁止转换、预扫、私有索引、离线库、全量快照、export 回灌、TCP/fileport 或 fallback。
+7. 修改链固定为 Verilator 红测试 `b5d526c72`、精确前端实现 `f59f6e4c8`、XDD 红测试
+   `3212f4580/2eb7713b6` 与最小 emitter 实现 `9c8ae78cb`；xdebug 动态红证据为 `c4cc865`。
+8. 当前回归为 matches/tagged 聚焦 10/10、Verilator XDD 13/13、distribution 与 Python lint
+   全绿、xdebug combined 75/75、pytest 397/397、CTest 9/9 和冻结依赖基线通过。该批闭环
+   不等于 P6 或 Goal 完成，PatternVar/tagged、复杂端口与联合限制、最终 73-action 归一化差分
+   仍必须继续。

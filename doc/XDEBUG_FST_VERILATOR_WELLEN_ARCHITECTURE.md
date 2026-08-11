@@ -254,8 +254,9 @@ emitter 在 `V3Scope` 已经建立 `AstVarScope` 之后运行，因为此时能�
 - 同时反向生成 load 记录。
 
 predicate 仍是静态设计事实，不包含任何运行时值。`casez/casex` 只发布匹配种类与
-item 模式，实际 expression 值仍由 Wellen 从 FST 读取；尚未精确表达的 case inside/matches
-发布空 predicate 并要求消费者失败关闭。这些记录回答的是
+item 模式；`case inside` 发布 item-side wildcard/range；无 binding 的 packed `case matches`
+成员通配发布逐位 value/mask predicate。实际 expression 值仍由 Wellen 从 FST 读取；tagged
+union/expression/pattern 和 PatternVar binding 继续失败关闭。这些记录回答的是
 “哪些信号和语句可能影响 target”以及“激活该语句需要满足什么静态条件”，不是“某个
 时刻哪一条分支已经被证明激活”。后者必须由 xdebug-fst 在 active time 通过 Wellen 直接
 读取原始 FST 中的控制值并执行四态求值。
@@ -356,7 +357,10 @@ Verilator 是上游大型编译器。对它的修改会影响解析、展开、�
 
 每个用例拥有独立 prefix、obj_dir、生成 C++、`.so` 和 validator。UART 静态 DesignDB 提取使用 `--no-timing`，避免当前未启用 coroutine 的 Verilator 构建把测试标记为 skip；这不会修改 UART RTL，也不改变要提取的静态设计关系。
 
-当前验收结果是 8 个 XDD/DesignDB 用例全部真实执行通过，同时通过 Verilator distribution copyright/license 检查。ELF、临时 FST、obj_dir 和临时验证程序均被忽略，不进入 Git；xdebug-fst 只提交既有最小 fixture 的原始 FST 和可独立装载 DesignDB bundle。
+当前验收结果是 13 个 XDD/DesignDB 用例全部真实执行通过，同时通过 Verilator distribution
+copyright、cppstyle、whitespace 和 Python lint 检查。仿真 ELF、生成 C++、临时 obj_dir 和
+临时验证程序均被忽略，不进入 Git；xdebug-fst 只提交既有最小 fixture 的原始 FST 和可独立
+装载 DesignDB bundle。
 
 ## 七、xdebug-fst 对 Wellen 的需求
 
@@ -569,8 +573,9 @@ C++ adapter 同时持有：
   条件/过程/跨层多 driver 和更多 NBA 边界仍须逐项差分，不能据当前用例宣称全部关闭；
 - XDD 已表达普通 `if/else`、普通 `case/default`、`casez/casex` predicate，并在当前
   emitter 内拆分 V3Inst 合并的 `AstCond` RHS，恢复叶子源位置与条件；case inside 已覆盖
-  item-side wildcard 与闭区间；精确表达式 case matches 复用 `===`，tagged/pattern
-  matches 仍明确 unsupported，不恢复或猜测；
+  item-side wildcard 与闭区间；精确表达式和无 binding packed assignment pattern 的
+  case/standalone matches 使用 `===`，嵌套 `.*` 只把对应 mask 位清零；PatternVar binding 与
+  tagged union/expression/pattern 仍明确 unsupported，不恢复或猜测；
 - direction/port connection 仍有上层推导逻辑；
 - P2 已完成 UDS idle timeout、完整失败补偿、MCP direct 和 fake-LSF；TCP/file
   已按用户明确要求裁剪，不作为实现或验收项；
@@ -930,9 +935,9 @@ item。xdebug 表达式求值器在 active time 用 Wellen 直接读取的 FST e
 不新增 capability，也不把区间匹配下沉到 Wellen。
 
 `case matches` 按独立证据逐层关闭。Verilator `adc193c2f` 先放行精确表达式 item；
-`a5232efb6` 把直接顶层点星 wildcard 规范化为恒真的四态自比较；`7c4d19ee2` 再允许不含
+`a5232efb6` 把直接顶层点星 wildcard 规范化为恒真的四态自比较；`7c4d19ee2` 当时只允许不含
 绑定、嵌套 wildcard 或 tagged 节点的 assignment pattern，并在 Width 中用 case expression
-dtype 复用既有 packed pattern 展开。`e5b1a28e2` 进一步只放行独立 `matches` 中同样不含
+dtype 复用既有 packed pattern 展开。`e5b1a28e2` 当时进一步只放行独立 `matches` 中同样不含
 PatternVar、PatternStar 或 tagged 节点的精确标量和 assignment pattern，将其规范化为
 `AstEqCase` 四态精确比较；它是 Verilator 前端的有限语言能力，不是 FST/Wellen 分析能力，
 `5d4e40132` 再把独立 `matches` 的直接顶层点星规范化为一次 `==? 'x`，对任意四态值恒真且
@@ -943,9 +948,14 @@ predicate 字符串中发布展开后的 `===`，default
 并执行四态谓词求值，FST 不是 pattern 或 driver 分析器。Verilator `da63eb075` 进一步只
 移除仅 `default` 形式必须存在精确 item 的误门禁；普通 lowering 和 DesignDB 都把该唯一
 分支表示为恒真静态谓词。xdebug 在 45ps/65ps 仍按相同职责组合谓词与 Wellen 对当前原始
-FST 的按需读取，没有让 FST 识别 `matches`。tagged union、tagged expression、tagged pattern、
-pattern variable、嵌套 wildcard，以及带绑定或 tagged 的独立 `matches` 继续明确不支持，
-不得把本批次描述成通用 pattern matching 已完成，也不得近似成 case inside。
+FST 的按需读取，没有让 FST 识别 `matches`。随后 `f59f6e4c8` 对无 binding packed pattern
+递归构造 value/mask：普通成员 mask 全一、`.*` 成员 mask 全零，并以
+`(selector & mask) === (value & mask)` 同时实现 `case matches` 与独立 `matches`；
+`9c8ae78cb` 仅在 DesignDB emitter 发布完全相同的掩码谓词。它不会把普通成员里的 X/Z
+误当通配位，也未改变 XDD header、ABI、capability 或 Wellen。当前仍明确不支持的是 tagged
+union、tagged expression、tagged pattern、pattern variable/binding，以及带绑定或 tagged 的
+独立 `matches`；无 binding packed 嵌套 wildcard 已闭环，不再属于未解决列表。不得把这一
+有限闭环描述成通用 pattern matching 已完成，也不得近似成 case inside。
 
 条件 output 的跨层链继续复用上述双事实架构，而不要求扩展 Verilator。lowering 后的
 activation predicate 可能引用不在 FST 中保存的内部 `__vcellinp__` 信号，但既有 DesignDB
@@ -1254,8 +1264,9 @@ P7 第十批将时间边界限定为冻结请求中的 `time`、`times` 或 `tim
 - Verilator `8623446e6`、`a5232efb6`：先证明顶层点星 pattern wildcard 被 LinkParse 明确拒绝，再仅将无绑定的直接 item wildcard 规范化为 case 表达式与自身的四态精确比较；源码顺序与 X/Z 恒真语义有独立普通仿真覆盖，嵌套 pattern、变量绑定和 tagged union 继续拒绝；
 - Verilator `9cc890153`、`7c4d19ee2`：先证明 packed struct assignment pattern 仅被总括 LinkParse 门禁阻断，再允许无绑定 pattern 从 case expression 取得 dtype 并复用现有展开；位置式、成员命名式和 default 均有普通仿真覆盖，不扩展 tagged/binding 语义；
 - Verilator `fab41bf9e`、`e5b1a28e2`：先证明独立 `matches` 的精确标量和 packed assignment pattern 被总括门禁拒绝，再只对不含绑定、通配和 tagged 节点的 RHS 复用 `AstEqCase` 四态精确比较；PatternVar、PatternStar、TaggedExpr 与 TaggedPattern 保持失败关闭，DesignDB header/ABI 未变；
-- Verilator `1eb25de82`、`5d4e40132`：先证明独立 `matches` 的直接顶层点星仍被双重门禁拒绝，再用一次全 X RHS 通配比较实现恒真语义，并以带副作用函数验证左侧只求值一次；嵌套 wildcard、binding 和 tagged 继续失败关闭，DesignDB header/ABI 未变；
-- Verilator `1ae90d55d`、`487482500`、`da63eb075`：先以普通仿真和 DesignDB 锁定仅 `default` 的 `case matches` 被总括门禁拒绝，并隔离独立四态函数参数限制；随后只取消“至少一个精确 item”的要求，保留 tagged、binding 与嵌套 wildcard 的失败关闭，普通 lowering、XDD header/ABI 和 Wellen 均不变；
+- Verilator `1eb25de82`、`5d4e40132`：先证明独立 `matches` 的直接顶层点星仍被双重门禁拒绝，再用一次全 X RHS 通配比较实现恒真语义，并以带副作用函数验证左侧只求值一次；该批当时让嵌套 wildcard、binding 和 tagged 继续失败关闭，DesignDB header/ABI 未变；
+- Verilator `1ae90d55d`、`487482500`、`da63eb075`：先以普通仿真和 DesignDB 锁定仅 `default` 的 `case matches` 被总括门禁拒绝，并隔离独立四态函数参数限制；随后只取消“至少一个精确 item”的要求，该批当时保留 tagged、binding 与嵌套 wildcard 的失败关闭，普通 lowering、XDD header/ABI 和 Wellen 均不变；
+- Verilator `b5d526c72`、`f59f6e4c8`、`3212f4580`、`2eb7713b6`、`9c8ae78cb`：先以普通仿真锁定 packed pattern 内 `.*` 的前端失败，再以精确 value/mask 实现 case 与独立 matches；随后以 XDD 红测锁定缺失静态谓词，只在 DesignDB emitter 发布同一掩码表达式。PatternVar/tagged 继续失败关闭，XDD header/ABI/capability、普通调度与 Wellen 均不变；
 - Verilator `b3ed369d7`、`986322540`：先证明同源行三元 self/data 叶子缺少 predicate-local 自引用事实，再仅为直接 self 叶子发布 `self_rhs` 角色；它不是上游数据依赖，`q+1` 不误标，普通仿真与 C ABI 函数签名不变；
 - Verilator `ac880d295`、`d5f5b21fd`：先证明 DesignDB 缺少实例侧 modport 成员边界，再仅在 `--design-db` 下于 LinkDot 前只读捕获 interface alias，并通过既有 XDD v2 表追加成员 signal/connection/driver；AST、普通仿真、FST 生成和 ABI/capability 不变；
 - xdebug-fst `9a529cc`：统一 wellenx 与 Wellen 的信号句柄编码；
@@ -1389,8 +1400,9 @@ DesignDB emitter 中附加三个内部 role：
 
 这些 role 复用既有 driver 记录通道，没有增加 C API、没有修改 `xdd_api.h`、ABI version 或
 capability，也没有移动 pass、改变 AST、调度或普通仿真。红测/实现提交依次为
-`6f39e2ff4`/`1052c6c85` 与 `12da1e1f6`/`6f3d24534`。最终依赖完整 SHA 为
-`6f3d245342c07c0835b3caa4d53574a72ab2e33d`。
+`6f39e2ff4`/`1052c6c85` 与 `12da1e1f6`/`6f3d24534`。该批依赖完整 SHA 当时为
+`6f3d245342c07c0835b3caa4d53574a72ab2e33d`；完成 matches 嵌套通配闭环后的当前冻结 SHA 为
+`9c8ae78cba35ab152e13644a50d6fc0c882955d4`。
 
 ### xdebug 如何组合这些事实
 
@@ -1429,8 +1441,8 @@ capability，也没有移动 pass、改变 AST、调度或普通仿真。红测/
 所有 C/C++ 构建继续使用 `${REPO_ROOT}/../.toolchains/gcc-13` 中的 GCC/G++
 13.3.1；仓库索引只使用 `XDEBUG_VERILATOR_REPO`、`XDEBUG_WELLEN_REPO` 和
 `XDEBUG_GCC_TOOLCHAIN`。Verilator 格式环境缺失的 `distro==1.9.0` 安装在其仓库本地
-`.tools/format-venv` 并由本地 exclude 排除。12 个 Verilator XDD 用例、xdebug combined
-74/74、全量 pytest 395/395、CTest 9/9 与依赖锁检查均通过。
+`.tools/format-venv` 并由本地 exclude 排除。当前 13 个 Verilator XDD 用例、xdebug combined
+75/75、全量 pytest 397/397、CTest 9/9 与依赖锁检查均通过。
 
 ### GCC 13 sanitizer 的运行时路径
 
