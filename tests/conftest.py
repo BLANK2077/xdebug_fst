@@ -115,7 +115,11 @@ def xfst_bin(pytestconfig: pytest.Config) -> Path:
 
 def _base_env(test_home: Path | None = None) -> dict:
     env = dict(os.environ)
-    env["LD_LIBRARY_PATH"] = ":".join(_LD_EXTRA)
+    library_paths = list(_LD_EXTRA)
+    for path in env.get("LD_LIBRARY_PATH", "").split(":"):
+        if path and path not in library_paths:
+            library_paths.append(path)
+    env["LD_LIBRARY_PATH"] = ":".join(library_paths)
     if test_home is not None:
         env["HOME"] = str(test_home)
     return env
