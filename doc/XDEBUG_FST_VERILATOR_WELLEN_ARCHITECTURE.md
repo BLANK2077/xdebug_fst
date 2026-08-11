@@ -1431,3 +1431,16 @@ capability，也没有移动 pass、改变 AST、调度或普通仿真。红测/
 `XDEBUG_GCC_TOOLCHAIN`。Verilator 格式环境缺失的 `distro==1.9.0` 安装在其仓库本地
 `.tools/format-venv` 并由本地 exclude 排除。12 个 Verilator XDD 用例、xdebug combined
 74/74、全量 pytest 395/395、CTest 9/9 与依赖锁检查均通过。
+
+### GCC 13 sanitizer 的运行时路径
+
+GCC 13 ASan/UBSan 是实现质量门禁，不属于波形 backend。编译器、devel archive/linker
+script 和动态 runtime 全部安装在 `${REPO_ROOT}/../.toolchains/gcc-13`；
+`.codex/config.toml` 发布 CC、CXX、toolchain root 和私有 `LD_LIBRARY_PATH`。pytest 为
+Wellen/wellenx 追加运行库路径时必须保留父进程路径，否则 instrumentation binary 会在输出
+stdio-loop ready envelope 前因 `libasan.so.8` 缺失退出，形成统一 fixture 启动失败。
+
+这一环境修复不改变运行时数据流：sanitizer binary 与普通 binary 打开完全相同的原始 FST，
+Wellen 仍只按需读取，DesignDB 仍只提供静态事实，action 仍执行全部分析。独立 GCC 13
+ASan/UBSan 构建均通过 CTest 9/9 和 pytest 396/396；没有借用其他编译器、转换波形或更换
+backend/fixture/transport。

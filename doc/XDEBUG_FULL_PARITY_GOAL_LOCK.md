@@ -354,3 +354,16 @@ fallback。
 `/workspace/work/xdebug_oc` 私有目录。本批的 12/12 Verilator XDD、74/74 combined、
 395/395 pytest 和 9/9 CTest 是持续回归门禁，不是 Goal 完成声明。P6 剩余复杂语义与最终
 73-action 原版归一化差分未全部关闭前，Goal 必须保持 active。
+
+## GCC 13 私有 sanitizer 运行时锁（2026-08-11）
+
+ASan/LSan/UBSan devel 与 runtime 已按签名验证后安装到
+`${REPO_ROOT}/../.toolchains/gcc-13`，不得因 sanitizer 动态库缺失切换回系统
+GCC 8、关闭 instrumentation、缩小测试集合或更换 backend/fixture。Codex 环境必须携带私有
+`lib64`；pytest 子进程只能追加 Wellen/wellenx 路径，不能覆盖父进程 `LD_LIBRARY_PATH`。
+
+当前 GCC 13 ASan 和 UBSan 独立 CTest 均为 9/9，普通/ASan/UBSan 全量 pytest 均为
+396/396，无 sanitizer 诊断。sanitizer 永远只是 C/C++ 实现质量门禁：其测试仍直接打开同一
+原始 `.fst`，Wellen 按需提供波形事实，DesignDB 提供静态事实，xdebug action 执行分析；
+不得引入转换、索引、离线库、全量快照、TCP/fileport 或 fallback。该门禁通过不表示 P6、
+最终原版差分或 Goal 已完成。

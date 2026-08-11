@@ -1417,3 +1417,11 @@ TCP/fileport 和 fallback。该维度关闭不代表 Goal 完成；P6 剩余复�
 8. 当前闭环门禁为 Verilator XDD 12/12、xdebug combined 74/74、pytest 395/395、CTest 9/9
    和依赖基线检查。该批次完成不等于 P6 或 Goal 完成；tagged/pattern matches、更多
    NBA/常量、复杂端口/接口/ref、多驱动调度边界与最终 73-action 原版归一化差分仍需继续。
+9. GCC 13 sanitizer devel/runtime 必须保存在
+   `${REPO_ROOT}/../.toolchains/gcc-13`。pytest、CTest、session engine 与其他
+   子进程不得覆盖父进程私有 runtime 路径；只能在其前方追加 Wellen/wellenx 路径并去重。
+   禁止因为动态库缺失切换回系统 GCC 8 或降低 sanitizer 测试层级。
+10. GCC 13 ASan 使用 `detect_leaks=1:abort_on_error=1:halt_on_error=1`，UBSan 使用
+    `halt_on_error=1:print_stacktrace=1`。当前两套独立 CTest 均为 9/9，普通/ASan/UBSan
+    pytest 均为 396/396；以后每个改变 C/C++ 运行时语义的高风险批次必须保持该门禁。sanitizer
+    只检查实现，不得成为新的波形访问、转换、索引或分析层。

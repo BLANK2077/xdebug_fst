@@ -11,7 +11,7 @@
 - 2026-08-10 用户进一步锁定职责边界：FST 只是唯一波形输入容器，Wellen 只是保真按需访问层；分析能力属于冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合。禁止把“必须适配 FST”偷换成“由 FST 自身做分析”，也禁止据此简化 driver/load、active-driver、chain、X-origin、协议、表达式、完整性或错误合同。该定义已加入任务书与 Goal 权威附件，作为逐批门禁和 Goal 完成否决项
 - 2026-08-10 Goal 防漂移再确认：用户原意“不得退化到用 FST 做分析，只需要并且也必须适配 FST 波形”已写入 `XDEBUG_FULL_PARITY_GOAL_LOCK.md` 的独立解释锁。今后上下文压缩、阶段切换和交接均须同时保留“FST-only 输入”与“FST 非分析引擎”两项，不得只保留前半句造成架构漂移
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
-- xdebug-fst 当前功能提交：`e57ea65`；本次 Phase 5 失败证据为 `ae3363d`、多活动候选首跳合同证据为 `c7baaea`、依赖与固件同步为 `33ab2c5`、消费端闭环为 `e57ea65`。更早 P6/P7 证据详见下方 commit 和测试记录
+- xdebug-fst 当前门禁提交：`2d7838c`；本次 Phase 5 失败证据为 `ae3363d`、多活动候选首跳合同证据为 `c7baaea`、依赖与固件同步为 `33ab2c5`、消费端闭环为 `e57ea65`；GCC 13 私有运行库环境红测为 `27a787c`、修复为 `2d7838c`。更早 P6/P7 证据详见下方 commit 和测试记录
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `afab0abd1fe4c06db9744f0b7b20b18d23b7f8df`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `6f3d245342c07c0835b3caa4d53574a72ab2e33d`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
@@ -42,6 +42,15 @@
 - Verilator 表达式临时量在 xdebug action 内按 DesignDB 依赖递归展开；目标循环索引与父级控制信号不冒充 RHS。`rhs_loop_selected` 与唯一 `rhs_loop_index` 只用于把静态证据渲染为 `base[lane]`，不尝试从 FST 合成不存在的动态变量信号。
 - 指定工具链为 `${REPO_ROOT}/../.toolchains/gcc-13`，GCC/G++ 版本均为 13.3.1；构建目录为 `${REPO_ROOT}/build/gcc13`。定向差分 3/3、`tests/test_combined.py` 74/74、全量 pytest 395/395、CTest 9/9、依赖基线检查全部通过。
 - 全部运行时波形仍是当前 session 直接打开的原始 `.fst`，由 Wellen 按需读取值与 active time。没有 FST→VCD/JSON 转换、私有索引、离线数据库、全量快照、export 回灌、TCP/fileport 或 fallback；Wellen 和 XDD ABI 本批均未修改。
+
+## 2026-08-11 GCC 13 sanitizer 门禁迁移
+
+- 私有 GCC/G++ 13.3.1 编译器原先缺少 64 位 sanitizer devel/runtime；`g++ -print-file-name=libasan.so` 只返回裸库名。系统 DNF 的 BaseOS 又指向不存在的共享目录，已保存其 metadata 下载失败，不通过系统 GCC 8 runtime 冒充 GCC 13 门禁。
+- 从 Rocky Linux 8 官方 BaseOS/AppStream 下载 GCC Toolset 13 ASan/LSan/UBSan devel 包及 EL8 对应运行库，在隔离 rpmdb 中使用指纹 `7051 C470 A929 F454 CEBE 37B7 15AF 5DAC 6D74 5A60` 验证，全部为 `digests signatures OK`。包名、SHA-256、ABI 依赖和 linker script 调整记录保存在 `${REPO_ROOT}/../.toolchains/gcc-13/XDEBUG_SANITIZER_INSTALL_RECEIPT.md`。
+- 所有文件只安装到 `${REPO_ROOT}/../.toolchains/gcc-13`；没有修改系统 RPM 数据库。EL8 devel 包固定引用 `/usr/lib64` 的 GNU ld script 被改为同 SONAME，由私有 GCC 标准 library search path 解析私有 `lib64`。
+- 首次 ASan 全量 pytest 在 session 级 stdio-loop 启动超时，后续大量错误均为同一 fixture 失败级联。根因是 `_base_env` 覆盖父进程 `LD_LIBRARY_PATH`，使子进程找不到私有 `libasan.so.8`；`27a787c` 先以单元红测锁定，`2d7838c` 再改为保留并去重追加父路径，同时把私有 `lib64` 写入 `.codex/config.toml`。
+- 验收使用独立 `${REPO_ROOT}/build/gcc13-asan` 和 `build/gcc13-ubsan`。ASan 设置 `detect_leaks=1:abort_on_error=1:halt_on_error=1`，UBSan 设置 `halt_on_error=1:print_stacktrace=1`；两者 CTest 均 9/9，普通、ASan、UBSan 全量 pytest 均 396/396，无 sanitizer 诊断。
+- sanitizer 只检查同一 xdebug C/C++ 运行时；三套测试继续直接打开相同原始 `.fst`，由 Wellen 按需读取并与 DesignDB 静态事实组合。未增加波形转换、索引、离线库、全量快照、TCP/fileport、backend/fixture 切换或 fallback。
 
 ## 阶段状态
 
