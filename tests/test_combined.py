@@ -159,6 +159,45 @@ def test_trace_active_driver_selects_standalone_matches_predicates(
         "top.data", "top.matches_top.wildcard_match_out"]
 
 
+def test_trace_active_driver_selects_nested_pattern_wildcards(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    selected_case = loop_runner.request("trace.active_driver", args={
+        "signal": "top.matches_top.nested_match_case_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert selected_case.get("ok"), selected_case
+    assert selected_case["summary"]["analysis_complete"] is True
+    assert selected_case["summary"]["total_count"] == 1
+    assert selected_case["data"]["paths"][0]["signal_path"] == [
+        "top.data", "top.matches_top.nested_match_case_out"]
+
+    default_case = loop_runner.request("trace.active_driver", args={
+        "signal": "top.matches_top.nested_match_case_out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert default_case.get("ok"), default_case
+    assert default_case["summary"]["analysis_complete"] is True
+    assert default_case["summary"]["total_count"] == 1
+    assert default_case["data"]["paths"][0]["line"] == 136
+
+    selected_expr = loop_runner.request("trace.active_driver", args={
+        "signal": "top.matches_top.nested_match_expr_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert selected_expr.get("ok"), selected_expr
+    assert selected_expr["summary"]["analysis_complete"] is True
+    assert selected_expr["summary"]["total_count"] == 1
+    assert selected_expr["data"]["paths"][0]["signal_path"] == [
+        "top.data", "top.matches_top.nested_match_expr_out"]
+
+    default_expr = loop_runner.request("trace.active_driver", args={
+        "signal": "top.matches_top.nested_match_expr_out", "time": "65ps",
+        "render_time_unit": "ps"})
+    assert default_expr.get("ok"), default_expr
+    assert default_expr["summary"]["analysis_complete"] is True
+    assert default_expr["summary"]["total_count"] == 1
+    assert default_expr["data"]["paths"][0]["line"] == 142
+
+
 def test_trace_active_driver_selects_default_only_case_matches(
         loop_runner: StdioLoopRunner, matches_fst,
         matches_design_db) -> None:

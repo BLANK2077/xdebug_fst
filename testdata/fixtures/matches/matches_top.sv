@@ -119,4 +119,26 @@ module matches_top (
   assign ternary_hold_out = ternary_hold_q;
   always @(posedge clk)
     ternary_hold_q <= sel[0] ? ternary_hold_q : data;
+
+  typedef struct packed {
+    logic [1:0] tag;
+    logic [3:0] payload;
+  } match_packet_t;
+
+  match_packet_t nested_match_packet;
+  reg [7:0] nested_match_case_out;
+  reg [7:0] nested_match_expr_out;
+  assign nested_match_packet = {sel, data[3:0]};
+
+  always_comb begin
+    case (nested_match_packet) matches
+      '{tag: 2'd1, payload: .*}: nested_match_case_out = data;
+      default: nested_match_case_out = 8'h5a;
+    endcase
+
+    if (nested_match_packet matches '{tag: 2'd1, payload: .*})
+      nested_match_expr_out = data;
+    else
+      nested_match_expr_out = 8'ha5;
+  end
 endmodule
