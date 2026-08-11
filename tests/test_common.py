@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import open_session
+from conftest import _base_env, open_session
 from runner import CliRunner, StdioLoopRunner
 
 
@@ -36,6 +36,17 @@ ALL_ACTIONS = [
     "waveform.cursor.delete", "waveform.cursor.get", "waveform.cursor.list",
     "waveform.cursor.set", "waveform.cursor.use", "window.verify",
 ]
+
+
+def test_subprocess_environment_preserves_private_runtime_path(
+        monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    private_runtime = "/opt/xdebug-private-toolchain/lib64"
+    monkeypatch.setenv("LD_LIBRARY_PATH", private_runtime)
+
+    environment = _base_env(tmp_path)
+
+    assert private_runtime in environment["LD_LIBRARY_PATH"].split(":")
+    assert environment["HOME"] == str(tmp_path)
 
 
 def test_actions_catalog(cli_runner: CliRunner) -> None:
