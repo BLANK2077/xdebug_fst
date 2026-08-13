@@ -202,11 +202,37 @@ def test_trace_active_driver_selects_pattern_variable_binding(
         loop_runner: StdioLoopRunner, matches_fst,
         matches_design_db) -> None:
     open_session(loop_runner, matches_fst, matches_design_db)
-    rsp = loop_runner.request("trace.active_driver", args={
-        "signal": "top.matches_top.bound_match_out", "time": "45ps",
-        "render_time_unit": "ps"})
-    assert rsp.get("ok") is False, rsp
-    assert rsp["error"]["code"] == "SIGNAL_NOT_FOUND"
+    cases = [
+        ("45ps", 149, "top.matches_top.unnamedblk1.bound_payload"),
+        ("65ps", 151, "top.matches_top.unnamedblk2.bound_payload"),
+    ]
+    for query_time, line, binding in cases:
+        rsp = loop_runner.request("trace.active_driver", args={
+            "signal": "top.matches_top.bound_match_out", "time": query_time,
+            "render_time_unit": "ps"})
+        assert rsp.get("ok"), rsp
+        assert rsp["summary"]["analysis_complete"] is True
+        assert rsp["summary"]["total_count"] == 1
+        assert rsp["data"]["paths"][0]["line"] == line
+        assert rsp["data"]["paths"][0]["signal_path"] == [
+            binding, "top.matches_top.bound_match_out"]
+
+        chain = loop_runner.request("trace.active_driver_chain", args={
+            "signal": "top.matches_top.bound_match_out", "time": query_time,
+            "render_time_unit": "ps"})
+        assert chain.get("ok"), chain
+        assert chain["summary"]["termination"] == "ambiguous"
+        assert chain["summary"]["termination_detail"] == \
+            "multiple_rhs_sources"
+        assert [hop["signal"] for hop in chain["data"]["hops"]] == [
+            "top.matches_top.bound_match_out",
+            "top.matches_top.nested_match_packet",
+        ]
+        evidence = chain["data"]["ambiguity_evidence"]
+        assert evidence["signal"] == \
+            "top.matches_top.nested_match_packet"
+        assert evidence["statement_count"] == 1
+        assert evidence["rhs_signal_count"] == 2
 
 
 def test_trace_active_driver_selects_default_only_case_matches(
@@ -456,15 +482,16 @@ def test_trace_active_driver_reports_force_as_resolved_driver(
     assert rsp["summary"]["termination"] == "force"
     assert rsp["summary"]["termination_detail"] == "force"
     assert rsp["summary"]["total_count"] == 1
-    assert rsp["data"]["paths"] == [{
-        "file": "testdata/fixtures/matches/matches_top.sv",
-        "line": 58,
-        "source_context": [],
-        "signal_path": [
-            "top.data",
-            "top.matches_top.forced_q",
-        ],
-    }]
+    assert len(rsp["data"]["paths"]) == 1
+    path = rsp["data"]["paths"][0]
+    assert path["file"].endswith(
+        "testdata/fixtures/matches/matches_top.sv")
+    assert path["line"] == 58
+    assert path["source_context"] == []
+    assert path["signal_path"] == [
+        "top.data",
+        "top.matches_top.forced_q",
+    ]
 
 
 def test_trace_active_driver_preserves_lowered_nested_if_identity(
@@ -1469,6 +1496,27 @@ def test_trace_x_origin_keeps_loop_and_normal_source_branches(
     assert origin_chain["termination_detail"] == "candidate_x_source"
     assert origin_chain["origin"]["signal"] == "GCD.y"
     assert origin_chain["current"]["signal"] == "GCD.y"
+
+
+def test_trace_x_origin_crosses_unobserved_pattern_variable_binding(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        xorigin_patternvar_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst,
+                 xorigin_patternvar_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "origin_found"
+    assert rsp["summary"]["analysis_complete"] is True
+    assert rsp["summary"]["chain_count"] == 1
+    assert rsp["summary"]["origin_count"] == 1
+    chain = rsp["data"]["chains"][0]
+    assert chain["termination_detail"] == "candidate_x_source"
+    assert chain["origin"]["signal"] == "GCD.y"
+    assert chain["current"]["signal"] == "GCD.y"
+    assert [hop["signal"] for hop in chain["hops"]] == [
+        "GCD.T_14", "GCD.y"]
 
 
 def test_trace_x_origin_not_x_late(loop_runner: StdioLoopRunner, xprop_fst,

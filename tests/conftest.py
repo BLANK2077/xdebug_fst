@@ -235,6 +235,12 @@ def xorigin_loop_branch_design_db(xfst_bin: Path) -> Path:
 
 
 @pytest.fixture(scope="session")
+def xorigin_patternvar_design_db(xfst_bin: Path) -> Path:
+    return (xfst_bin.parent / "testdata" / "fixtures" /
+            "xorigin_patternvar" / "obj_dir")
+
+
+@pytest.fixture(scope="session")
 def primitive_output_design_db(xfst_bin: Path) -> Path:
     return (xfst_bin.parent / "testdata" / "fixtures" /
             "primitive_output" / "obj_dir")

@@ -579,11 +579,40 @@ bool is_verilator_expression_temporary(const std::string& signal) {
     return leaf.rfind("__vlemcall_",0)==0;
 }
 
-void collect_expression_sources(
-    IDesignBackend& design,int source,const std::set<int>& parent_controls,
-    std::set<int>& visited,std::set<int>& sources) {
+bool is_transparent_expression_signal(
+    IDesignBackend& design,IWaveformBackend& waveform,int source) {
     const std::string source_name=signal_name(design,source);
-    if (!is_verilator_expression_temporary(source_name)) {
+    if (is_verilator_expression_temporary(source_name)) return true;
+    if (source_name.empty()||
+        waveform.find_signal(source_name)!=IWaveformBackend::kInvalidSignalRef) {
+        return false;
+    }
+
+    // Pattern-variable bindings and similar combinational lowering locals can
+    // be present in DesignDB without being emitted into the FST.  They are
+    // safe to expand only when every static record belongs to a combinational
+    // assignment and at least one real RHS dependency exists.  Sequential,
+    // force and stateful unobservable signals must remain hard boundaries.
+    const auto source_drivers=drivers_for(design,source);
+    bool has_rhs=false;
+    for (const auto& driver : source_drivers) {
+        if (driver.kind!="cont_assign"&&driver.kind!="proc_assign")
+            return false;
+        if (driver.dependency_role=="rhs") has_rhs=true;
+        if (driver.dependency_role=="self_rhs"||
+            driver.dependency_role.rfind("event_",0)==0) {
+            return false;
+        }
+    }
+    return has_rhs;
+}
+
+void collect_expression_sources(
+    IDesignBackend& design,IWaveformBackend& waveform,int source,
+    const std::set<int>& parent_controls,std::set<int>& visited,
+    std::set<int>& sources) {
+    const std::string source_name=signal_name(design,source);
+    if (!is_transparent_expression_signal(design,waveform,source)) {
         if (source>=0) sources.insert(source);
         return;
     }
@@ -608,8 +637,8 @@ void collect_expression_sources(
             continue;
         }
         found_dependency=true;
-        collect_expression_sources(design,driver.src_signal,parent_controls,
-                                   visited,sources);
+        collect_expression_sources(design,waveform,driver.src_signal,
+                                   parent_controls,visited,sources);
     }
     if (!found_dependency) sources.insert(source);
 }
@@ -625,16 +654,16 @@ void expand_expression_temporaries(
 
     std::vector<IDesignBackend::DriverRecord> expanded;
     for (const auto& driver : drivers) {
-        const std::string source=signal_name(design,driver.src_signal);
         if (driver.dependency_role!="rhs"||
-            !is_verilator_expression_temporary(source)) {
+            !is_transparent_expression_signal(
+                design,waveform,driver.src_signal)) {
             expanded.push_back(driver);
             continue;
         }
         std::set<int> visited;
         std::set<int> sources;
-        collect_expression_sources(design,driver.src_signal,parent_controls,
-                                   visited,sources);
+        collect_expression_sources(design,waveform,driver.src_signal,
+                                   parent_controls,visited,sources);
         if (sources.size()==1&&sources.count(driver.src_signal)>0) {
             expanded.push_back(driver);
             continue;
@@ -1690,6 +1719,7 @@ struct TraceXOriginHandler : public EngineActionHandler {
 
             auto all_drivers=drivers_for(design,index);
             annotate_output_instance_identities(design,index,all_drivers);
+            expand_expression_temporaries(design,waveform,all_drivers);
             auto evaluated=active_statement_groups(
                 all_drivers,design,waveform,sample.active_time);
             apply_unique_nba_priority(evaluated);

@@ -384,6 +384,27 @@ if(BUILD_TESTING)
         CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVxorigin_loop_branch__DesignDb.so\"\n}\n"
     )
 
+    set(XORIGIN_PATTERNVAR_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/xorigin_patternvar/obj_dir")
+    file(MAKE_DIRECTORY "${XORIGIN_PATTERNVAR_XDD_BUNDLE_DIR}")
+    add_library(test-xorigin-patternvar-xdd-bundle SHARED
+        tests/cpp/xorigin_xdd_bundle.cpp
+    )
+    target_include_directories(test-xorigin-patternvar-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    target_compile_definitions(test-xorigin-patternvar-xdd-bundle PRIVATE
+        XDEBUG_TEST_PATTERNVAR_BINDING=1
+    )
+    set_target_properties(test-xorigin-patternvar-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vxorigin_patternvar__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${XORIGIN_PATTERNVAR_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${XORIGIN_PATTERNVAR_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVxorigin_patternvar__DesignDb.so\"\n}\n"
+    )
+
     set(PRIMITIVE_OUTPUT_XDD_BUNDLE_DIR
         "${CMAKE_BINARY_DIR}/testdata/fixtures/primitive_output/obj_dir")
     file(MAKE_DIRECTORY "${PRIMITIVE_OUTPUT_XDD_BUNDLE_DIR}")

@@ -7,7 +7,36 @@
 
 namespace {
 
-#if defined(XDEBUG_TEST_PRIMITIVE_OUTPUT)
+#if defined(XDEBUG_TEST_PATTERNVAR_BINDING)
+
+const XddSignalInfo kSignals[] = {
+    {"GCD.T_14", "wire", 33, "xorigin_patternvar.sv", 8},
+    {"GCD.unnamedblk1.bound_payload", "wire", 32,
+     "xorigin_patternvar.sv", 6},
+    {"GCD.y", "port", 32, "xorigin_patternvar.sv", 2},
+};
+
+const int kDirections[] = {0, 0, 1};
+
+const XddDriverRec kDrivers[] = {
+    {0, 1, "proc_assign", "rhs", "xorigin_patternvar.sv", 8},
+    {1, 2, "proc_assign", "rhs", "xorigin_patternvar.sv", 6},
+};
+
+const int kDriverStart[] = {0, 1, 2};
+
+const XddLoadRec kLoads[] = {
+    {1, 0, "rhs_use", "xorigin_patternvar.sv", 8},
+    {2, 1, "rhs_use", "xorigin_patternvar.sv", 6},
+};
+
+const int kLoadStart[] = {0, 0, 1};
+
+constexpr int kSignalCount = 3;
+constexpr int kDriverCount = 2;
+constexpr int kLoadCount = 2;
+
+#elif defined(XDEBUG_TEST_PRIMITIVE_OUTPUT)
 
 const XddSignalInfo kSignals[] = {
     {"GCD.T_14", "wire", 33, "primitive_output.sv", 4},
