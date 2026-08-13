@@ -26,7 +26,7 @@
 1. 恢复 handler 专用 XOUT 调度。canonical response 通过 schema 校验后才渲染；managed UDS 用私有 sidecar 传递 XOUT，公开 JSON 不增加字段。
 2. 默认 handler 不再返回 JSON dump；没有专用 renderer 时走统一通用 renderer。对象数组不再固定裁剪 20 行，嵌套集合不会被静默丢弃。
 3. `value.at` 使用多信号乘多时间值矩阵，覆盖 2 信号乘 5 时间、X/Z、进制和缺失值语义。
-4. trace 使用 source path、chain、hop、origin、ambiguity statement 和 RHS sample 领域表，保留查询时间、active time、X onset、关系、终止和完整性。
+4. trace 使用源码窗口、active signal、chain、hop、origin、ambiguity statement 和 RHS sample 领域证据，保留查询时间、active time、X onset、关系、终止和完整性。2026-08-13 的复核发现首版只显示 file/line 表，没有真正投影 `source_context`；该遗漏已按下述“Trace 源码证据复核”关闭。
 5. stream query/export 使用 transfer、stall、packet、首尾字段与多 beat preview 表；单 beat 不重复显示相同 head/tail。
 6. `scope.roots` 使用统一 design/wave 对齐表，不再重复打印三套 root 数据。
 7. session XOUT 显示最小必要身份 `session_id/mode/transport`，不显示 socket、PID、inode、缓存路径等运行时遥测。
@@ -108,10 +108,10 @@
 | `stream.export` | P1：关键遗漏 | 完整且精炼 | `4d6181ade4b4` | `44cfb1459c35` |
 | `stream.query` | 完整且精炼 | 完整且精炼 | `3b3b4023c3b0` | `31ab0f8fba46` |
 | `stream.validate` | 完整且精炼 | 完整，接受 P2 布局 | `75d0680a4f2a` | `38580adc9e96` |
-| `trace.active_driver` | 完整且精炼 | 完整且精炼 | `bb3568696518` | `7e004e4d137b` |
-| `trace.active_driver_chain` | 完整且精炼 | 完整且精炼 | `04e8d4a857b0` | `bd044badbaec` |
-| `trace.driver` | 完整且精炼 | 完整且精炼 | `32e4e1499702` | `c2207bbfcca4` |
-| `trace.load` | 完整且精炼 | 完整且精炼 | `c34f9fbad2ac` | `d52e710e37a9` |
+| `trace.active_driver` | 完整且精炼 | 完整且精炼（含源码） | `bb3568696518` | `6054ed0198e9` |
+| `trace.active_driver_chain` | 完整且精炼 | 完整且精炼（含源码） | `04e8d4a857b0` | `665db000ef92` |
+| `trace.driver` | 完整且精炼 | 完整且精炼（含源码） | `32e4e1499702` | `66d2c9222d3f` |
+| `trace.load` | 完整且精炼 | 完整且精炼（含源码） | `c34f9fbad2ac` | `7618cd386da0` |
 | `trace.x_origin` | 完整且精炼 | 完整且精炼 | `310b88bc25fb` | `ed663370ef38` |
 | `value.at` | 完整且精炼 | 完整且精炼 | `f73705a07e91` | `3e995db6726f` |
 | `verify.conditions` | 完整且精炼 | 完整，接受 P2 布局 | `746abce87927` | `a8dbf61e0a8b` |
@@ -132,3 +132,48 @@
 ## 七、最终验收状态
 
 最终验收通过：候选 73/73 Action 具备与各自 JSON 一致的关键信息语义，复杂 Action 已有领域布局，所有已识别 P0/P1 均关闭，P2 均已修复或在本报告明确接受。GCC 13 的 414/414 pytest 与 9/9 CTest 通过；GCC 13 ASan 的 414/414 pytest 与 9/9 CTest 通过；GCC 13 UBSan 的 414/414 pytest 与 9/9 CTest 通过。
+
+## 八、2026-08-13 Trace 源码证据复核与修正
+
+用户在实际查看 `trace.active_driver_chain` XOUT 时发现没有源码文本。复核确认此前表中五个
+Trace Action 的“完整且精炼”结论对 file/line、chain/hop、time/relation 等结构化事实成立，
+但遗漏了原版具备的源码上下文展示能力，因此旧 Trace 哈希只作为修复前档案，不能作为当前
+实现证据。
+
+原版源码 `trace_source_path_formatter` 的实际逻辑如下：
+
+1. handler 根据 DesignDB location 读取 HDL 文件，默认取活动行前后各 3 行；环境变量
+   `XDEBUG_TRACE_SOURCE_CONTEXT_LINES` 可在 0–1000 内调整。
+2. JSON source path/hop 中保存 `{line,text,active}` 的 `source_context`；文件不可读时不伪造
+   文本。
+3. XOUT 按响应顺序处理源码点；同文件、相邻两点行距小于默认 10 行时合并窗口，阈值由
+   `XDEBUG_TRACE_SOURCE_MERGE_THRESHOLD_LINES` 控制。合并窗口只把真实 location 行标为 `>`。
+4. 每个 `source: file:first-last` 源码块后输出 `active_signals`，关联 chain/hop、time、
+   active time、X onset、relation、line 和 signal path；随后再输出 ambiguity、origin、
+   frontier、limitations 等非源码证据。
+5. `trace.driver`、`trace.load`、`trace.active_driver`、`trace.active_driver_chain` 和
+   `trace.x_origin` 五个入口最终都使用这套源码渲染逻辑。
+
+候选实现现用共享 `trace_source_context` 完成同一能力。因为 Verilator DesignDB fixture 常只
+记录 `counter_top.sv` 这样的 basename，读取时依次检查原始绝对路径、进程工作目录以及当前
+session 的 DesignDB/FST 所在目录和父目录；这些候选全部由本次 session 的绝对输入路径确定，
+不会遍历仓库猜文件，也不会跨 backend fallback。公开响应继续保留 DesignDB 原始 file 字符串，
+本地绝对解析路径只用于读源码，不泄漏到 XOUT。
+
+四个已有 `source_context` 冻结字段的 Action 现在返回真实上下文。`trace.x_origin` 的冻结 hop
+schema 没有该字段，因此不修改 JSON schema，而是在 XOUT 渲染阶段按 hop 的 file/line 读取并
+合并源码。源码完全不可读时仍显示原有 paths/hops 表；部分可读时保留结构表以确保不可读项不
+丢失。这样既不伪造源码，也不因可读性优化损失结构化事实。
+
+修正后同响应捕获共 1081 条，SHA-256 为
+`38f3c0a2fa9e4c2e5d8ea157ce782084738d5453ad67a562aff3c730190bca51`；审计 JSON
+SHA-256 为 `66722956d2b4fd15977f38619e219a3d519bba710a5cc5cef9b8ef331dabf78c`，73/73
+Action 通过。五项当前 primary XOUT 哈希前缀分别为：`trace.driver=66d2c9222d3f`、
+`trace.load=7618cd386da0`、`trace.active_driver=6054ed0198e9`、
+`trace.active_driver_chain=665db000ef92`、`trace.x_origin=ed663370ef38`。最后一项的 primary
+fixture 源文件不可读，故保持结构化 hops 输出；另有 source-backed 回归专门证明
+`trace.x_origin` 可输出源码块且 JSON schema 不漂移。
+
+本修正没有修改 Wellen、Verilator、XDD ABI、FST 文件或 transport。FST 仍只是 Wellen 直接
+按需读取的唯一波形事实容器；源码读取只服务于已有静态 location 的展示，不参与 driver、
+active-driver 或 X-origin 分析。

@@ -281,3 +281,16 @@ XOUT 必须保留：
 - 候选剩余 P2：异构 `batch` 以及配置、sampling、validation 的字段路径式嵌套 section。它们语义完整、没有静默裁剪，且有助于映射 JSON 字段，已在最终报告明确接受。
 - 真实 xverif MCP direct 集成测试已证明：无状态 one-shot XOUT 与原生 one-shot 逐字一致，managed session XOUT 与原生 UDS 路由逐字一致；未使用 TCP 或 fileport。
 - GCC 13 普通构建 9/9 CTest 通过；GCC 13 ASan 构建 414/414 pytest、9/9 CTest 通过；GCC 13 UBSan 构建 414/414 pytest、9/9 CTest 通过。
+
+### 2026-08-13 Trace 源码上下文遗漏修正
+
+- 用户复核发现 `trace.active_driver_chain` 只有 file/line/hop 表，没有原版的源码窗口；阶段 5
+  和阶段 7 的旧结论在源码展示这一子能力上不成立，已重新打开并修复。
+- 已逐项检查全部五个 Trace Action，并直接复核原版 `trace_source_path_formatter`：默认上下文
+  3 行、同文件相邻点小于 10 行合并、活动行标记和 `active_signals` 关联均已实现。
+- `trace.driver/load/active_driver/active_driver_chain` 补全冻结 JSON 中已有的
+  `source_context`；`trace.x_origin` 不改冻结 schema，只增强 XOUT。
+- 源文件仅依据当前 session 的绝对 DesignDB/FST 路径确定性解析；不可读时不伪造、不 fallback，
+  并保留 paths/hops 表防止信息丢失。
+- 新增五 Action XOUT、JSON context、合并窗口、缺源边界和审计器领域投影测试；新鲜同响应
+  审计 73/73 通过。Wellen、Verilator、XDD ABI、FST 与 transport 均未修改。

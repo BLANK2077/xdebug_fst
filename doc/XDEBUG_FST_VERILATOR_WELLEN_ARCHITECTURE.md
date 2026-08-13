@@ -1501,3 +1501,31 @@ stdio-loop ready envelope 前因 `libasan.so.8` 缺失退出，形成统一 fixt
 Wellen 仍只按需读取，DesignDB 仍只提供静态事实，action 仍执行全部分析。独立 GCC 13
 ASan/UBSan 构建均通过 CTest 9/9 和 pytest 396/396；没有借用其他编译器、转换波形或更换
 backend/fixture/transport。
+
+## Trace 源码证据架构（2026-08-13 修正）
+
+Trace 的动态结论与源码展示是两条不同的数据链。driver、load、predicate、端口关系和 statement
+location 来自 Verilator DesignDB；query time、active time、X onset 和值来自 Wellen 对当前
+原始 FST 的按需读取；xdebug action 组合二者得到路径、活动链和 X 来源。源码文件只在结论
+形成之后，根据已经确定的 file/line 读取，用于把静态 location 展示成人可读上下文。源码文本
+绝不反向参与 driver 选择、predicate 求值或 X-origin 搜索。
+
+原版把该职责集中在 `trace_source_path_formatter`：读取 location 前后默认 3 行，按响应顺序把
+同文件且连续间距小于默认 10 行的点合并，在真实 location 前标 `>`，并用 `active_signals`
+表关联 signal path、chain/hop、time、active time、X onset 和 relation。候选版采用相同分层，
+共享 `trace_source_context` 负责确定性路径解析和源码窗口，领域 XOUT renderer 负责分组与关联。
+
+Verilator fixture 中的 file 常是 basename，而 session 输入是绝对 DesignDB/FST 路径。因此候选
+只检查原始绝对 file、当前工作目录、DesignDB/FST 所在目录及各自父目录；不递归搜索整个仓库，
+不按文件名任选，不请求 Wellen 找源码，也不切换 backend。公开 file 字段保持 DesignDB 原值，
+解析后的主机绝对路径不会进入响应。文件不可读时返回空 context，并显示结构化 paths/hops
+作为完整证据。
+
+冻结 schema 已包含 `trace.driver`、`trace.load`、`trace.active_driver` 路径和
+`trace.active_driver_chain` hop 的 `source_context`，所以这些字段现在填入真实
+`{line,text,active}`。`trace.x_origin` hop 没有该冻结字段，候选不扩 schema，而在 XOUT 阶段
+从 hop location 读取。这一选择保持机器合同稳定，同时恢复与原版一致的源码展示能力。
+
+该修正不要求 Wellen 增加任何能力，也没有修改 Wellen、Verilator、XDD ABI 或 FST。Wellen
+继续只需保真读取唯一原始 `.fst` 的波形值与时间；Verilator 继续只发布静态 DesignDB 事实；
+xdebug action 继续执行全部分析。没有 FST 转换、预扫索引、TCP/fileport 或 fallback。
