@@ -1,7 +1,11 @@
 #include "protocol/domain_xout_renderer.h"
 
+#include "common/env_config.h"
+#include "engine/trace_source_context.h"
 #include "protocol/text_response_builder.h"
 
+#include <algorithm>
+#include <iomanip>
 #include <sstream>
 #include <set>
 #include <vector>
@@ -69,6 +73,102 @@ void emit_hops(TextResponseBuilder& out, const Json& hops) {
     out.emit_table({"index", "chain_id", "relation", "signal", "active_time",
                     "x_onset_time", "value", "x_mask", "file", "line",
                     "signal_path"}, rows);
+}
+
+enum class SourceEvidenceKind { path, active_chain, x_origin };
+
+struct SourceEvidenceGroup {
+    std::string file;
+    int first_line = 0;
+    int last_line = 0;
+    int last_seen_line = 0;
+    std::set<int> active_lines;
+    std::vector<Json> items;
+};
+
+std::vector<SourceEvidenceGroup> source_evidence_groups(const Json& items) {
+    std::vector<SourceEvidenceGroup> groups;
+    const int threshold =
+        xdebug_core::xdebug_trace_source_merge_threshold_lines();
+    for (const auto& item : items) {
+        const std::string file = item.value("file", std::string());
+        const int line = item.value("line", 0);
+        if (file.empty() || file == "<unknown>" || line <= 0) continue;
+        const bool merge = !groups.empty() && groups.back().file == file &&
+            std::abs(line - groups.back().last_seen_line) < threshold;
+        if (!merge) {
+            groups.push_back({file, line, line, line, {line}, {item}});
+            continue;
+        }
+        auto& group = groups.back();
+        group.first_line = std::min(group.first_line, line);
+        group.last_line = std::max(group.last_line, line);
+        group.last_seen_line = line;
+        group.active_lines.insert(line);
+        group.items.push_back(item);
+    }
+    return groups;
+}
+
+std::vector<std::string> source_evidence_row(const Json& item,
+                                             SourceEvidenceKind kind) {
+    const std::string path = joined_path(
+        item.value("signal_path", Json::array()));
+    if (kind == SourceEvidenceKind::path) {
+        return {json_to_xout_value(item.value("line", Json())), path};
+    }
+    if (kind == SourceEvidenceKind::active_chain) {
+        return {item.value("chain_id", std::string()),
+                json_to_xout_value(item.value("index", Json())),
+                item.value("time", std::string()),
+                item.value("active_time", std::string()),
+                item.value("relation", std::string()),
+                json_to_xout_value(item.value("line", Json())), path};
+    }
+    return {item.value("chain_id", std::string()),
+            json_to_xout_value(item.value("index", Json())),
+            item.value("x_onset_time", std::string()),
+            item.value("active_time", std::string()),
+            item.value("relation", std::string()),
+            json_to_xout_value(item.value("line", Json())), path};
+}
+
+size_t emit_source_evidence(TextResponseBuilder& out, const Json& items,
+                            SourceEvidenceKind kind) {
+    size_t rendered_count = 0;
+    for (const auto& group : source_evidence_groups(items)) {
+        Json context = trace_source_context(
+            group.file, group.first_line, group.last_line);
+        if (context.empty()) continue;
+        rendered_count += group.items.size();
+        const int begin = context.front().value("line", group.first_line);
+        const int end = context.back().value("line", group.last_line);
+        std::ostringstream source;
+        source << "\nsource: " << group.file << ":" << begin << "-" << end
+               << "\n";
+        for (const auto& row : context) {
+            const int line = row.value("line", 0);
+            source << (group.active_lines.count(line) ? '>' : ' ')
+                   << std::setw(5) << line << " | "
+                   << row.value("text", std::string()) << "\n";
+        }
+        out.emit_raw(source.str());
+
+        std::vector<std::vector<std::string>> rows;
+        for (const auto& item : group.items)
+            rows.push_back(source_evidence_row(item, kind));
+        out.emit_section("active_signals");
+        if (kind == SourceEvidenceKind::path) {
+            out.emit_table({"line", "signal_path"}, rows);
+        } else if (kind == SourceEvidenceKind::active_chain) {
+            out.emit_table({"chain", "hop", "time", "active_time",
+                            "relation", "line", "signal_path"}, rows);
+        } else {
+            out.emit_table({"chain", "hop", "x_onset_time", "active_time",
+                            "relation", "line", "signal_path"}, rows);
+        }
+    }
+    return rendered_count;
 }
 
 void emit_ambiguity(TextResponseBuilder& out, const Json& ambiguity) {
@@ -239,7 +339,9 @@ std::string render_source_paths_xout(const std::string& action,
     emit_summary(out, response);
     const Json paths = response.value("data", Json::object())
                            .value("paths", Json::array());
-    if (!paths.empty()) {
+    if (!paths.empty() &&
+        emit_source_evidence(out, paths, SourceEvidenceKind::path) <
+            paths.size()) {
         std::vector<std::vector<std::string>> rows;
         for (const auto& path : paths) {
             rows.push_back({joined_path(path.value("signal_path", Json::array())),
@@ -257,7 +359,10 @@ std::string render_active_driver_chain_xout(const Json& response) {
     out.emit_header("trace.active_driver_chain");
     emit_summary(out, response);
     const Json data = response.value("data", Json::object());
-    emit_hops(out, data.value("hops", Json::array()));
+    const Json hops = data.value("hops", Json::array());
+    if (emit_source_evidence(out, hops, SourceEvidenceKind::active_chain) <
+        hops.size())
+        emit_hops(out, hops);
     emit_ambiguity(out, data.value("ambiguity_evidence", Json()));
     return out.str();
 }
@@ -314,7 +419,9 @@ std::string render_x_origin_xout(const Json& response) {
         out.emit_table({"chain_id", "status", "termination", "complete",
                         "current_signal", "current_value", "current_x_mask",
                         "current_x_onset"}, chain_rows);
-        emit_hops(out, all_hops);
+        if (emit_source_evidence(
+                out, all_hops, SourceEvidenceKind::x_origin) < all_hops.size())
+            emit_hops(out, all_hops);
         if (!origin_rows.empty()) {
             out.emit_section("origins");
             out.emit_table({"chain_id", "signal", "kind", "reason",

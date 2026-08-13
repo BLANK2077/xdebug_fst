@@ -1,6 +1,7 @@
 // signal_resolve.cpp — signal.resolve, trace.driver, trace.load (BSD-3-Clause)
 #include "engine/engine_action_handler.h"
 #include "engine/engine_globals.h"
+#include "engine/trace_source_context.h"
 #include "protocol/domain_xout_renderer.h"
 
 #include <string>
@@ -95,7 +96,8 @@ struct TraceDriverHandler final : EngineActionHandler {
             signal_path.push_back(signal_name(design, index));
             paths.push_back({{"file", record.file},
                              {"line", record.line},
-                             {"source_context", Json::array()},
+                             {"source_context", trace_source_context(
+                                 record.file, record.line)},
                              {"signal_path", signal_path}});
         }
         const size_t total = paths.size();
@@ -139,7 +141,8 @@ struct TraceLoadHandler final : EngineActionHandler {
             if (!consumer.empty()) signal_path.push_back(consumer);
             paths.push_back({{"file", record.file},
                              {"line", record.line},
-                             {"source_context", Json::array()},
+                             {"source_context", trace_source_context(
+                                 record.file, record.line)},
                              {"signal_path", signal_path}});
         }
         const size_t total = paths.size();

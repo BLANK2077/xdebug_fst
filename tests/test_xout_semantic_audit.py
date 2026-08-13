@@ -133,3 +133,30 @@ def test_audit_rejects_missing_nested_artifact_summary() -> None:
     failures = report["actions"][0]["failures"]
     assert "missing summary field output.path" in failures
     assert "missing summary field output.format" in failures
+
+
+def test_trace_source_block_is_complete_collection_projection() -> None:
+    response = {
+        "ok": True,
+        "summary": {"signal": "top.q", "analysis_complete": True},
+        "data": {"paths": [{
+            "file": "top.sv", "line": 7,
+            "signal_path": ["top.d", "top.q"],
+            "source_context": [
+                {"line": 6, "text": "always_ff @(posedge clk)",
+                 "active": False},
+                {"line": 7, "text": "q <= d;", "active": True},
+            ],
+        }]},
+    }
+    report = AUDIT.audit(["trace.active_driver"], [event(
+        "trace.active_driver", response,
+        "@xdebug.trace.active_driver.v1\nsummary:\n"
+        "  signal: top.q\n  analysis_complete: true\n\n"
+        "source: top.sv:6-7\n"
+        "     6 | always_ff @(posedge clk)\n"
+        ">    7 | q <= d;\n\n"
+        "active_signals:\n  line  signal_path\n"
+        "  7     top.d -> top.q\n",
+    )])
+    assert report["failing_action_count"] == 0, report

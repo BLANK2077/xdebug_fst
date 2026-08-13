@@ -1,6 +1,8 @@
 # test_combined.py — trace.active_driver / active_driver_chain / x_origin (BSD-3-Clause)
 from __future__ import annotations
 
+import shutil
+
 import pytest
 
 from conftest import open_session
@@ -35,6 +37,19 @@ def test_trace_active_driver_preserves_query_and_active_time(
     assert rsp["summary"]["active_time"] == "300ps"
 
 
+def test_trace_active_driver_xout_renders_source_context(
+        loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    xout = loop_runner.request_xout("trace.active_driver", args={
+        "signal": "top.count", "time": "305ps",
+        "render_time_unit": "ps"})
+    assert xout.startswith("@xdebug.trace.active_driver.v1\nsummary:\n")
+    assert "source: counter_top.sv:9-15\n" in xout
+    assert ">   12 |             count <= count + 8'h01;" in xout
+    assert "active_signals:\n" in xout
+    assert "top.count" in xout
+
+
 def test_trace_active_driver_selects_runtime_else_branch(
         loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
     open_session(loop_runner, counter_fst, counter_design_db)
@@ -59,12 +74,15 @@ def test_trace_active_driver_selects_nested_apb_read_branch(
     assert rsp["summary"]["active_time"] == "260ps"
     assert rsp["summary"]["analysis_complete"] is True
     assert rsp["summary"]["total_count"] == 1
-    assert rsp["data"]["paths"] == [{
-        "file": "apb_top.sv",
-        "line": 25,
-        "signal_path": ["top.paddr", "top.prdata"],
-        "source_context": [],
-    }]
+    assert len(rsp["data"]["paths"]) == 1
+    path = rsp["data"]["paths"][0]
+    assert path["file"] == "apb_top.sv"
+    assert path["line"] == 25
+    assert path["signal_path"] == ["top.paddr", "top.prdata"]
+    assert [row["line"] for row in path["source_context"]
+            if row["active"]] == [25]
+    assert path["source_context"][0]["line"] == 22
+    assert path["source_context"][-1]["line"] == 28
 
 
 def test_trace_active_driver_selects_case_item_and_default(
@@ -487,7 +505,8 @@ def test_trace_active_driver_reports_force_as_resolved_driver(
     assert path["file"].endswith(
         "testdata/fixtures/matches/matches_top.sv")
     assert path["line"] == 58
-    assert path["source_context"] == []
+    assert [row["line"] for row in path["source_context"]
+            if row["active"]] == [58]
     assert path["signal_path"] == [
         "top.data",
         "top.matches_top.forced_q",
@@ -578,6 +597,24 @@ def test_trace_active_driver_chain(loop_runner: StdioLoopRunner, counter_fst,
     assert hops[0]["relation"] == "root"
     assert hops[0]["signal"] == "top.counter_top.count"
     assert hops[0]["value"] == "8'h0b"
+    assert all(hop["source_context"] for hop in hops)
+    assert all([row["line"] for row in hop["source_context"]
+                if row["active"]] == [hop["line"]] for hop in hops)
+
+
+def test_trace_active_driver_chain_xout_renders_source_context(
+        loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    xout = loop_runner.request_xout("trace.active_driver_chain", args={
+        "signal": "top.counter_top.count", "time": "300ps",
+        "render_time_unit": "ps", "value_format": "hex"})
+    assert xout.startswith(
+        "@xdebug.trace.active_driver_chain.v1\nsummary:\n")
+    assert "source: counter_top.sv:" in xout
+    assert "active_signals:\n" in xout
+    assert "chain" in xout and "hop" in xout and "active_time" in xout
+    assert "top.counter_top.count" in xout
+    assert "hops:\n" not in xout
 
 
 def test_trace_active_driver_chain_distinguishes_internal_zero_evidence_from_primary_input(
@@ -1369,6 +1406,37 @@ def test_trace_x_origin_xout_uses_chain_hop_and_origin_tables(
     assert "origins:\n" in xout
     assert "GCD.T_14" in xout and "GCD.io_a" in xout
     assert "chains_0_" not in xout and "hops_0_" not in xout
+
+
+def test_trace_x_origin_xout_renders_source_without_changing_json_schema(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        xorigin_alias_design_db, tmp_path) -> None:
+    source_root = tmp_path / "source_backed_xorigin"
+    design_db = source_root / "obj_dir"
+    shutil.copytree(xorigin_alias_design_db, design_db)
+    (source_root / "xorigin_alias.sv").write_text(
+        "input logic [31:0] io_a, y;\n"
+        "wire [32:0] T_14;\n"
+        "wire [31:0] GEN_0;\n"
+        "wire [31:0] GEN_1;\n"
+        "assign x = io_a ^ y;\n",
+        encoding="utf-8")
+    open_session(loop_runner, gcd_xorigin_fst, design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"}, limits={"max_chains": 2})
+    assert rsp.get("ok"), rsp
+    assert all("source_context" not in hop
+               for chain in rsp["data"]["chains"]
+               for hop in chain["hops"])
+    xout = loop_runner.request_xout("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"}, limits={"max_chains": 2})
+    assert "source: xorigin_alias.sv:1-5\n" in xout
+    assert ">    5 | assign x = io_a ^ y;" in xout
+    assert "active_signals:\n" in xout
+    assert "x_onset_time" in xout and "active_time" in xout
+    assert "hops:\n" not in xout
 
 
 def test_trace_x_origin_coalesces_converged_alias_exploration_before_node_limit(

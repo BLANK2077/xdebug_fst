@@ -17,6 +17,10 @@ SPECIAL_COLLECTION_PROJECTIONS = {"actions", "schema"}
 DOMAIN_COLLECTION_PROJECTIONS = {
     "scope.roots", "stream.query", "stream.export",
 }
+TRACE_SOURCE_PROJECTIONS = {
+    "trace.driver", "trace.load", "trace.active_driver",
+    "trace.active_driver_chain", "trace.x_origin",
+}
 IGNORED_VALUE_KEYS = {
     "bits", "known", "width", "has_x", "has_z", "requested_value_format",
 }
@@ -126,8 +130,14 @@ def check_nonempty_arrays(action: str, value: Any, xout: str, path: str,
                 value_matrix = action == "value.at" and child_path in {
                     "data.entries", "data.samples", "data.samples.values",
                 }
+                source_evidence = (
+                    action in TRACE_SOURCE_PROJECTIONS
+                    and key in {"paths", "hops", "source_context"}
+                    and "source:" in xout
+                    and "active_signals:" in xout
+                )
                 if (label not in xout and key not in {"actions", "values"}
-                        and not value_matrix):
+                        and not value_matrix and not source_evidence):
                     failures.append(f"missing non-empty collection {child_path}")
             check_nonempty_arrays(action, item, xout, child_path, failures)
     elif isinstance(value, list):

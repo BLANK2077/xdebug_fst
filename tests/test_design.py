@@ -74,7 +74,11 @@ def test_trace_driver_contract_and_role_filter(loop_runner: StdioLoopRunner,
     for path in rsp["data"]["paths"]:
         assert path["file"] == "counter_top.sv"
         assert path["line"] > 0
-        assert path["source_context"] == []
+        assert path["source_context"]
+        active = [row for row in path["source_context"] if row["active"]]
+        assert [row["line"] for row in active] == [path["line"]]
+        assert all(set(row) == {"line", "text", "active"}
+                   for row in path["source_context"])
         assert path["signal_path"][-1] == "top.overflow"
         assert path["signal_path"][0] == "top.reset"
 
@@ -121,17 +125,33 @@ def test_trace_load_contract(loop_runner: StdioLoopRunner, counter_fst,
     assert limited["summary"]["truncation_scopes"] == ["response_paths"]
 
 
-def test_trace_driver_xout_uses_source_path_table(
+def test_trace_driver_xout_uses_merged_source_evidence(
         loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
     open_session(loop_runner, counter_fst, counter_design_db)
     xout = loop_runner.request_xout("trace.driver", args={
         "signal": "top.overflow", "role": "control",
     })
     assert xout.startswith("@xdebug.trace.driver.v1\nsummary:\n")
-    assert "paths:\n" in xout and "signal_path" in xout
+    assert "source: counter_top.sv:7-16\n" in xout
+    assert ">   10 |             overflow <= 1'b0;" in xout
+    assert ">   13 |             overflow <= (count == 8'hff);" in xout
+    assert "active_signals:\n" in xout and "signal_path" in xout
     assert "top.reset -> top.overflow" in xout
-    assert "counter_top.sv" in xout
+    assert "paths:\n" not in xout
     assert "paths_0_" not in xout
+
+
+def test_trace_load_returns_and_renders_source_context(
+        loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    rsp = loop_runner.request("trace.load", args={"signal": "top.reset"})
+    assert rsp.get("ok"), rsp
+    assert all(path["source_context"] for path in rsp["data"]["paths"])
+    xout = loop_runner.request_xout(
+        "trace.load", args={"signal": "top.reset"})
+    assert xout.startswith("@xdebug.trace.load.v1\nsummary:\n")
+    assert "source: counter_top.sv:" in xout
+    assert "active_signals:\n" in xout
 
 
 def test_trace_driver_and_load_empty_at_static_boundaries(

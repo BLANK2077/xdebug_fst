@@ -2,6 +2,7 @@
 // trace.x_origin (BSD-3-Clause)
 #include "engine/engine_action_handler.h"
 #include "engine/engine_globals.h"
+#include "engine/trace_source_context.h"
 #include "api/json_types.h"
 #include "core/value/logic_value.h"
 #include "waveform/clock_sampling.h"
@@ -358,7 +359,8 @@ Json source_path(const IDesignBackend::DriverRecord& driver,
     if (!source.empty()&&source!=target) path.push_back(source);
     path.push_back(target);
     return {{"file",driver.file.empty()?"<unknown>":driver.file},
-        {"line",std::max(1,driver.line)},{"source_context",Json::array()},
+        {"line",std::max(1,driver.line)},
+        {"source_context",trace_source_context(driver.file,driver.line)},
         {"signal_path",path}};
 }
 
@@ -377,7 +379,8 @@ Json trace_hop(size_t index, const std::string& signal, const Sample& sample,
         {"active_time",waveform.format_time(sample.active_time,unit)},
         {"value",logic_string(sample,format)},{"relation",relation},
         {"file",file.empty()?"<unknown>":file},{"line",std::max(1,line)},
-        {"source_context",Json::array()},{"signal_path",Json::array({signal})}};
+        {"source_context",trace_source_context(file,line)},
+        {"signal_path",Json::array({signal})}};
 }
 
 struct StatementGroup {
