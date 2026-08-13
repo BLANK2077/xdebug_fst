@@ -7,3 +7,6 @@ wellenx_capi/target/
 __pycache__/
 .pytest_cache/
 .xverif-*/
+testdata/fixtures/matches/obj_dir/*
+!testdata/fixtures/matches/obj_dir/libVmatches_top__DesignDb.so
+!testdata/fixtures/matches/obj_dir/xdebug-design-db.json
