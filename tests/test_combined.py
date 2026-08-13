@@ -198,6 +198,17 @@ def test_trace_active_driver_selects_nested_pattern_wildcards(
     assert default_expr["data"]["paths"][0]["line"] == 142
 
 
+def test_trace_active_driver_selects_pattern_variable_binding(
+        loop_runner: StdioLoopRunner, matches_fst,
+        matches_design_db) -> None:
+    open_session(loop_runner, matches_fst, matches_design_db)
+    rsp = loop_runner.request("trace.active_driver", args={
+        "signal": "top.matches_top.bound_match_out", "time": "45ps",
+        "render_time_unit": "ps"})
+    assert rsp.get("ok") is False, rsp
+    assert rsp["error"]["code"] == "SIGNAL_NOT_FOUND"
+
+
 def test_trace_active_driver_selects_default_only_case_matches(
         loop_runner: StdioLoopRunner, matches_fst,
         matches_design_db) -> None:

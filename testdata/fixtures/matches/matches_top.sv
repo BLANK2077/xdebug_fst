@@ -141,4 +141,15 @@ module matches_top (
     else
       nested_match_expr_out = 8'ha5;
   end
+
+  reg [7:0] bound_match_out;
+  always_comb begin
+    case (nested_match_packet) matches
+      '{tag: 2'd1, payload:.bound_payload}:
+        bound_match_out = {4'h1, bound_payload};
+      '{tag: 2'd2, payload:.bound_payload}:
+        bound_match_out = {bound_payload, 4'h2};
+      default: bound_match_out = 8'h5a;
+    endcase
+  end
 endmodule
