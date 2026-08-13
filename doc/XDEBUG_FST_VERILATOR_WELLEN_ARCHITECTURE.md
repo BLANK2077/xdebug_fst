@@ -31,6 +31,14 @@ xdebug action 在 DesignDB 同时证明“纯组合赋值、存在 RHS、没有 
 因此动态路径是“FST 值决定活动 pattern 分支，DesignDB 决定静态 binding 关系，action 组合
 两者完成 chain/X-origin”，不是从 FST 值相等反推关系，也不是把 pattern 分析下沉给 Wellen。
 
+### 1.0.2 Ref 反馈与来源分支的 coalescing 边界
+
+DesignDB 的 ref/modport 连接可产生多个物理 alias 路径。xdebug 为控制 branch budget 可以把
+到达同一终端、同一 X onset 和同一结论的物理变体合并，但 terminal status/current 是用户
+需要的分析事实，绝不能被 port 透明规则抹去。特别是同一 driver 前缀后同时出现反馈环与正常
+来源时，必须保留两条语义链；Wellen 只为每个节点提供当前原始 FST 的 X 值/onset，分支图、
+loop 判定、coalescing 和限制证据均属于 action 与 DesignDB 的组合职责。
+
 ### 1.1 FST-only 架构边界
 
 本架构边界受任务书永久 Goal 约束 **`GOAL-FST-DIRECT-001`** 及其权威执行附件 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 管辖。它是所有后续实现选择的否决条件，不是可以在 action 迁移过程中临时放宽的偏好。

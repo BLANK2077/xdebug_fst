@@ -407,3 +407,10 @@ PatternVar binding 的局部 lowering 变量未写入 FST 时，关系只能来�
 证明为纯组合、有真实 RHS、无 self/event/NBA/force 的不可观测中间量；时序状态、force、无
 静态证据或不完整关系必须失败关闭，不得按值相等推断，也不得要求 Wellen/FST 承担 PatternVar
 分析。本锁已由真实 45ps/65ps active-driver/chain 与独立四态 X-origin 回归固化。
+
+## Ref 分支终端语义锁（2026-08-13）
+
+X-origin 的 ref/modport hop 只对物理 alias 路径透明，不能把共享非 port 前缀但终端不同的
+反馈环与真实来源合并。语义 identity 必须保留最终 status、current signal 和 onset；限制发生
+时必须保留省略来源与 frontier。`36f2b6c` 已用当前原始 GCD FST 锁定 driver→ref→loop 与
+driver→ref→origin 同时存在，以及 depth+chain 联合限制。不得用 FST 值相等选择或删除分支。

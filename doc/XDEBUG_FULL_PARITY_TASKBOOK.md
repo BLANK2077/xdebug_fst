@@ -39,6 +39,14 @@ FST。此时 xdebug action 不得把缺少中间量波形误报为常量赋值�
 active-driver 选中，chain 越过不可观测 binding 后到达可观测 packet，X-origin 的同构四态
 回归到达真实来源。该规则不得推广到时序状态，也不得解释成由 FST 推断 PatternVar 关系。
 
+### P6 ref driver/反馈/来源分支补充（2026-08-13）
+
+端口 hop 可以对 alias 的物理路径身份透明，但不能使不同终端事实透明。若两条 X-origin 链
+共享相同普通 driver 前缀，一条经 ref 端口形成 loop、另一条经 ref 端口到达真实 X 来源，
+coalescing 必须同时保留 `loop_detected` 与 `origin_found`；只允许合并“同一终端、同一 onset、
+同一终止语义”的物理 alias 变体。`max_chains`、`max_depth` 联合限制必须继续报告被省略来源、
+frontier 和可续跑参数。本合同由 `36f2b6c` 的原始四态 FST 回归锁定。
+
 Goal 不可漂移约束：[`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md)。该文档是当前 active Goal 的权威执行附件，固定 FST 唯一输入、Wellen 直接按需读取、禁止转换/离线分析/fallback、TCP/file 裁剪和 Verilator 克制修改等否决条件。
 
 配套架构说明：[`XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md`](XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md)。该文档说明 Verilator DesignDB 修改的范围、原因和数据流，以及 xdebug-fst 对 Wellen 波形能力的需求、双 C ABI 方案和后续收敛边界。

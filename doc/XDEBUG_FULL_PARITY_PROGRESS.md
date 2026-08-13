@@ -11,7 +11,7 @@
 - 2026-08-10 用户进一步锁定职责边界：FST 只是唯一波形输入容器，Wellen 只是保真按需访问层；分析能力属于冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合。禁止把“必须适配 FST”偷换成“由 FST 自身做分析”，也禁止据此简化 driver/load、active-driver、chain、X-origin、协议、表达式、完整性或错误合同。该定义已加入任务书与 Goal 权威附件，作为逐批门禁和 Goal 完成否决项
 - 2026-08-10 Goal 防漂移再确认：用户原意“不得退化到用 FST 做分析，只需要并且也必须适配 FST 波形”已写入 `XDEBUG_FULL_PARITY_GOAL_LOCK.md` 的独立解释锁。今后上下文压缩、阶段切换和交接均须同时保留“FST-only 输入”与“FST 非分析引擎”两项，不得只保留前半句造成架构漂移
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
-- xdebug-fst 当前门禁提交：`1c73aa2`；PatternVar 修改前证据为 `01c17ee`、依赖与确定性固件同步为 `869e932`、消费端 active-driver/chain/X-origin 闭环为 `70a7672`、MCP 多 owner 日志语义适配为 `1c73aa2`。更早 P6/P7 证据详见下方 commit 和测试记录
+- xdebug-fst 当前门禁提交：`36f2b6c`；PatternVar 修改前证据为 `01c17ee`、依赖与确定性固件同步为 `869e932`、消费端 active-driver/chain/X-origin 闭环为 `70a7672`、MCP 多 owner 日志语义适配为 `1c73aa2`、ref driver/反馈/来源分支闭环为 `36f2b6c`。更早 P6/P7 证据详见下方 commit 和测试记录
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `afab0abd1fe4c06db9744f0b7b20b18d23b7f8df`
 - Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `bf01d667c8b27f2f7cee456bb35a84e5372434df`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
@@ -274,7 +274,7 @@
 
 ## 剩余差异
 
-P0、P1、P2、P3、P4 已关闭，P5 的功能迁移批次已覆盖，P6 正在执行。当前已完成 active-driver 的 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` pattern/range、精确表达式 item/default、仅 `default`、直接顶层 `.*`、无 binding packed assignment pattern 及其嵌套 `.*`、PatternVar binding 的 case matches、lowering 后同目标嵌套条件、同源行三元与嵌套常量 NBA、NBA 纯自保持事件回溯、input alias 父级上溯、基本 inout 与真实两级 inout 跨端口上溯、基本及条件 output 模块边界、基本 interface/modport source/sink 成员边界、基础 ref 连续赋值链与纯端口反馈环、modport X-origin/node-budget、NBA self-RHS 分类、基础双连续、双条件过程与跨实例 output 多驱动歧义，以及 X-origin 多分支和 X predicate control/RHS 双来源基础语义；但 tagged union/expression/pattern、更多 NBA/常量组合、复杂 output/inout/interface/ref alias、嵌套/数组 interface、带 driver/分支的端口反馈、node/time/depth/loop 联合限制，以及混合类型/调度边界多驱动的能力语义仍未关闭，因此尚不能宣称完整能力覆盖。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。2026-08-10 新增 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 作为当前 active Goal 的权威执行附件；后续每个批次按 `GOAL-FST-DIRECT-001` 审查唯一 FST 数据流、禁止转换/离线分析/fallback、TCP/file 裁剪及 Verilator 克制修改，任一违反即否决提交与 Goal 完成。
+P0、P1、P2、P3、P4 已关闭，P5 的功能迁移批次已覆盖，P6 正在执行。当前已完成 active-driver 的 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` pattern/range、精确表达式 item/default、仅 `default`、直接顶层 `.*`、无 binding packed assignment pattern 及其嵌套 `.*`、PatternVar binding 的 case matches、lowering 后同目标嵌套条件、同源行三元与嵌套常量 NBA、NBA 纯自保持事件回溯、input alias 父级上溯、基本 inout 与真实两级 inout 跨端口上溯、基本及条件 output 模块边界、基本 interface/modport source/sink 成员边界、基础 ref 连续赋值链、纯端口反馈环及带正常 driver/来源分支的 ref 反馈、基础 depth+chain 联合限制、modport X-origin/node-budget、NBA self-RHS 分类、基础双连续、双条件过程与跨实例 output 多驱动歧义，以及 X-origin 多分支和 X predicate control/RHS 双来源基础语义；但 tagged union/expression/pattern、更多 NBA/常量组合、复杂 output/inout/interface/ref alias、嵌套/数组 interface、time/node 与更深反馈的联合限制，以及混合类型/调度边界多驱动的能力语义仍未关闭，因此尚不能宣称完整能力覆盖。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。2026-08-10 新增 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 作为当前 active Goal 的权威执行附件；后续每个批次按 `GOAL-FST-DIRECT-001` 审查唯一 FST 数据流、禁止转换/离线分析/fallback、TCP/file 裁剪及 Verilator 克制修改，任一违反即否决提交与 Goal 完成。
 
 ## P4 修改前失败证据
 
@@ -354,3 +354,20 @@ GCC 13 combined 77/77、全量 pytest、CTest 9/9、固件双重哈希和仓库�
 `1c73aa2` 另将 fake-LSF 测试适配到当前 MCP 多 owner 日志布局，仍验证相同生命周期事件且未
 切换 backend。带 `--original-root` 的检查发现只读原版安装自 Goal 冻结后发生二进制/schema
 漂移；未修改或重新冻结原版，仓库内冻结快照继续作为本 Goal 基线。
+
+## 2026-08-13 P6 ref driver、反馈环与正常来源分支闭环
+
+`36f2b6c` 新增独立 XDD 图并继续复用 Wellen 的 GCD 原始四态 `.fst`：`T_14` 先沿普通
+RHS driver 到 `GEN_0`，再由 ref 端口一路经 `GEN_1` 回到 `T_14`，另一路到 primary input
+`y`。修改前两条链具有相同非 port 前缀，semantic coalescing 忽略 port 尾部后把真实来源链
+错误合并到 loop，summary 误报 `loop_detected`，`max_chains` 也没有遗漏分支证据。
+
+修复保持 port 物理 hop 对主体 identity 透明，但把最终 status、current signal 和 X onset 加入
+终端语义身份；因此到达同一终端/结论的 alias 物理变体仍合并，不同终端或 loop/origin 结论
+不再互相覆盖。默认请求返回一条完整 `loop_detected` 和一条到 `GCD.y` 的 `origin_found`；
+`max_chains=1` 保留 omitted/pending 来源；`max_depth=1,max_chains=1` 同时保留 `GEN_1`
+frontier、`GCD.y` pending dependency 和续跑建议。
+
+相邻 alias/modport/loop 7/7、combined 80/80、GCC 13 全量 pytest、CTest 9/9 与仓库内冻结
+基线通过。该批关闭“带正常 driver/分支的基础 ref 反馈及 depth+chain 联合限制”；time/node 与
+更深嵌套 interface/ref 的联合组合仍待能力语义复核。Wellen、Verilator、XDD ABI 未修改。
