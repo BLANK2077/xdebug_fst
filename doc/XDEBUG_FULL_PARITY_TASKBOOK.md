@@ -46,6 +46,8 @@ active-driver 选中，chain 越过不可观测 binding 后到达可观测 packe
 coalescing 必须同时保留 `loop_detected` 与 `origin_found`；只允许合并“同一终端、同一 onset、
 同一终止语义”的物理 alias 变体。`max_chains`、`max_depth` 联合限制必须继续报告被省略来源、
 frontier 和可续跑参数。本合同由 `36f2b6c` 的原始四态 FST 回归锁定。
+`3080a4c` 又锁定 `max_nodes+max_chains`：全局 node budget 耗尽不得删除尚未返回的 ref 来源，
+保留链必须携带 node frontier，省略链必须进入 pending/branch event，两种 limitation 均须公开。
 
 Goal 不可漂移约束：[`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md)。该文档是当前 active Goal 的权威执行附件，固定 FST 唯一输入、Wellen 直接按需读取、禁止转换/离线分析/fallback、TCP/file 裁剪和 Verilator 克制修改等否决条件。
 

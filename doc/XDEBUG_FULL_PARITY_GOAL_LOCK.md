@@ -414,3 +414,4 @@ X-origin 的 ref/modport hop 只对物理 alias 路径透明，不能把共享�
 反馈环与真实来源合并。语义 identity 必须保留最终 status、current signal 和 onset；限制发生
 时必须保留省略来源与 frontier。`36f2b6c` 已用当前原始 GCD FST 锁定 driver→ref→loop 与
 driver→ref→origin 同时存在，以及 depth+chain 联合限制。不得用 FST 值相等选择或删除分支。
+`3080a4c` 将同一要求扩展到 node+chain 联合限制；node budget 耗尽不是丢弃其他来源的理由。

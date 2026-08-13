@@ -369,5 +369,8 @@ RHS driver 到 `GEN_0`，再由 ref 端口一路经 `GEN_1` 回到 `T_14`，另�
 frontier、`GCD.y` pending dependency 和续跑建议。
 
 相邻 alias/modport/loop 7/7、combined 80/80、GCC 13 全量 pytest、CTest 9/9 与仓库内冻结
-基线通过。该批关闭“带正常 driver/分支的基础 ref 反馈及 depth+chain 联合限制”；time/node 与
-更深嵌套 interface/ref 的联合组合仍待能力语义复核。Wellen、Verilator、XDD ABI 未修改。
+基线通过。`3080a4c` 进一步以 `max_nodes=2,max_chains=1` 证明 driver 前缀耗尽全局节点预算
+后，保留 `GEN_1` frontier，并把另一条 `GCD.y` 来源登记为 pending，同时报告 node/chain 两种
+限制；combined 81/81。至此关闭“带正常 driver/分支的基础 ref 反馈及 depth/node+chain 联合
+限制”；time 与更深嵌套 interface/ref 的联合组合仍待能力语义复核。Wellen、Verilator、XDD
+ABI 未修改。
