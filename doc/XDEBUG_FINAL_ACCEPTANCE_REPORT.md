@@ -32,7 +32,7 @@
 
 | 仓库 | 分支 | 验收 revision |
 | --- | --- | --- |
-| xdebug-fst | `feature/full-xdebug-parity` | `b3f960e9de8b014809f0726f5530462959ad5cf2`（验收代码；报告提交为 `8312f1c`） |
+| xdebug-fst | `feature/full-xdebug-parity` | `b3f960ebe1d79a949fa890fecf19504777fb0196`（验收代码；报告提交为 `8312f1c`） |
 | Wellen | `feature/xdebug-fst-capi` | `afab0abd1fe4c06db9744f0b7b20b18d23b7f8df` |
 | Verilator | `feature/design-db-for-xdebug` | `bf01d667c8b27f2f7cee456bb35a84e5372434df` |
 
