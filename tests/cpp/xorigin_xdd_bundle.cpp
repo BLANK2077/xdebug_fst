@@ -7,7 +7,34 @@
 
 namespace {
 
-#if defined(XDEBUG_TEST_PATTERNVAR_BINDING)
+#if defined(XDEBUG_TEST_REF_DRIVER_BRANCH)
+
+const XddSignalInfo kSignals[] = {
+    {"GCD.T_14", "wire", 33, "xorigin_ref_driver_branch.sv", 8},
+    {"GCD.GEN_0", "port", 32, "xorigin_ref_driver_branch.sv", 4},
+    {"GCD.GEN_1", "port", 32, "xorigin_ref_driver_branch.sv", 5},
+    {"GCD.y", "port", 32, "xorigin_ref_driver_branch.sv", 2},
+};
+
+const int kDirections[] = {0, 3, 3, 1};
+
+const XddDriverRec kDrivers[] = {
+    {0, 1, "cont_assign", "rhs", "xorigin_ref_driver_branch.sv", 8},
+};
+
+const int kDriverStart[] = {0, 1, 1, 1};
+
+const XddLoadRec kLoads[] = {
+    {1, 0, "rhs_use", "xorigin_ref_driver_branch.sv", 8},
+};
+
+const int kLoadStart[] = {0, 0, 1, 1};
+
+constexpr int kSignalCount = 4;
+constexpr int kDriverCount = 1;
+constexpr int kLoadCount = 1;
+
+#elif defined(XDEBUG_TEST_PATTERNVAR_BINDING)
 
 const XddSignalInfo kSignals[] = {
     {"GCD.T_14", "wire", 33, "xorigin_patternvar.sv", 8},
@@ -373,7 +400,10 @@ void xdd_trace_load(XddDb*, int index, int offset, int* consumer,
 }
 
 int xdd_port_connection_count(XddDb*, int index) {
-#if defined(XDEBUG_TEST_REF_PORT_LOOP)
+#if defined(XDEBUG_TEST_REF_DRIVER_BRANCH)
+    if (index == 0 || index == 2 || index == 3) return 1;
+    return index == 1 ? 2 : 0;
+#elif defined(XDEBUG_TEST_REF_PORT_LOOP)
     return index >= 0 && index <= 2 ? 1 : 0;
 #elif defined(XDEBUG_TEST_ALIAS_COALESCE) || defined(XDEBUG_TEST_MODPORT_ALIAS)
     return index >= 0 && index <= 3 ? 2 : 0;
@@ -387,7 +417,18 @@ void xdd_port_connection(XddDb*, int index, int offset, int* connected,
                          const char** kind) {
     *connected = -1;
     *kind = nullptr;
-#if defined(XDEBUG_TEST_REF_PORT_LOOP)
+#if defined(XDEBUG_TEST_REF_DRIVER_BRANCH)
+    static const int kConnectionStart[] = {0, 1, 3, 4};
+    static const int kConnections[] = {1, 2, 3, 0, 1};
+    if (index >= 0 && index < 4) {
+        const int start = kConnectionStart[index];
+        const int end = index == 3 ? 5 : kConnectionStart[index + 1];
+        if (offset >= 0 && offset < end - start) {
+            *connected = kConnections[start + offset];
+            *kind = "module_port";
+        }
+    }
+#elif defined(XDEBUG_TEST_REF_PORT_LOOP)
     if (index >= 0 && index <= 2 && offset == 0) {
         *connected = (index + 1) % 3;
         *kind = "module_port";

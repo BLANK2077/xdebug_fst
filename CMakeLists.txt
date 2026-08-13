@@ -405,6 +405,27 @@ if(BUILD_TESTING)
         CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVxorigin_patternvar__DesignDb.so\"\n}\n"
     )
 
+    set(XORIGIN_REF_DRIVER_BRANCH_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/xorigin_ref_driver_branch/obj_dir")
+    file(MAKE_DIRECTORY "${XORIGIN_REF_DRIVER_BRANCH_XDD_BUNDLE_DIR}")
+    add_library(test-xorigin-ref-driver-branch-xdd-bundle SHARED
+        tests/cpp/xorigin_xdd_bundle.cpp
+    )
+    target_include_directories(test-xorigin-ref-driver-branch-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    target_compile_definitions(test-xorigin-ref-driver-branch-xdd-bundle PRIVATE
+        XDEBUG_TEST_REF_DRIVER_BRANCH=1
+    )
+    set_target_properties(test-xorigin-ref-driver-branch-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vxorigin_ref_driver_branch__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${XORIGIN_REF_DRIVER_BRANCH_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${XORIGIN_REF_DRIVER_BRANCH_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVxorigin_ref_driver_branch__DesignDb.so\"\n}\n"
+    )
+
     set(PRIMITIVE_OUTPUT_XDD_BUNDLE_DIR
         "${CMAKE_BINARY_DIR}/testdata/fixtures/primitive_output/obj_dir")
     file(MAKE_DIRECTORY "${PRIMITIVE_OUTPUT_XDD_BUNDLE_DIR}")

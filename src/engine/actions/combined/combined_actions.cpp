@@ -82,6 +82,17 @@ std::string x_origin_semantic_chain_key(const Json& chain) {
             append_identity_field(key,current.value("x_onset_time",""));
         }
     }
+    // Port hops are physically transparent, but their terminal semantic
+    // outcome is not.  A feedback loop and a real X source can share the same
+    // non-port prefix and diverge only through ref/modport edges.  Preserve
+    // that distinction while still coalescing physical alias variants that
+    // reach the same terminal signal with the same outcome.
+    append_identity_field(key,chain.value("status",""));
+    if (chain.contains("current")&&chain.at("current").is_object()) {
+        const Json& current=chain.at("current");
+        append_identity_field(key,current.value("signal",""));
+        append_identity_field(key,current.value("x_onset_time",""));
+    }
     return key;
 }
 
