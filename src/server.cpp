@@ -15,6 +15,7 @@
 #include "session/uds_transport.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <unistd.h>
 #include <cstring>
 #include <iostream>
@@ -24,6 +25,7 @@
 namespace xdebug_fst {
 
 static bool s_engine_server_context = false;
+static thread_local std::string s_dispatch_xout;
 
 // ── Helpers ──
 
@@ -137,6 +139,7 @@ static Json dispatch_handler(const Json& request) {
 }
 
 static Json dispatch(const Json& request) {
+    s_dispatch_xout.clear();
     const std::string action = request.is_object() ? request.value("action", "") : "";
     const ContractResult validation = validate_public_request(request);
     if (!validation.ok) return canonical_error(request, action, validation.error);
@@ -166,6 +169,12 @@ static Json dispatch(const Json& request) {
     }
     if (!s_engine_server_context && request_targets_managed_session(request)) {
         Json response = forward_to_managed_session(request);
+        if (response.contains("__xdebug_internal_xout") &&
+            response["__xdebug_internal_xout"].is_string()) {
+            s_dispatch_xout =
+                response["__xdebug_internal_xout"].get<std::string>();
+            response.erase("__xdebug_internal_xout");
+        }
         if (!response.value("ok", false) ||
             response.value("api_version", std::string()) != "xdebug.v1") {
             response = canonical_response(request, action, response);
@@ -182,6 +191,11 @@ static Json dispatch(const Json& request) {
         validate_public_response(action, response);
     if (!response_validation.ok) {
         return canonical_error(request, action, response_validation.error);
+    }
+    if (response.value("ok", false)) {
+        EngineActionHandler* handler = ActionRegistry::instance().find(action);
+        s_dispatch_xout = handler != nullptr
+            ? handler->render_xout(response) : std::string();
     }
     return response;
 }
@@ -209,7 +223,8 @@ int oneshot_main(bool json_mode) {
 
     Json response = dispatch(request);
     const std::string output = json_mode ? response.dump(2) + "\n"
-                                         : render_xout_response(response);
+                                         : render_xout_response(
+                                               response, s_dispatch_xout);
     fprintf(stdout, "%s", output.c_str());
     return response.value("ok", false) ? 0 : 1;
 }
@@ -283,6 +298,9 @@ int server_main(int argc, char** argv) {
             should_quit = true;
         } else {
             response = dispatch(request);
+            if (!s_dispatch_xout.empty()) {
+                response["__xdebug_internal_xout"] = s_dispatch_xout;
+            }
         }
         registry.touch_if_generation(session_id, generation, time(nullptr));
         if (!uds_send_response(client, response, transport_error)) {
@@ -400,9 +418,19 @@ int stdio_loop_main(int argc, char** argv) {
         if (wants_json) {
             env["payload_format"] = "json";
             if (ok) env["json"] = response;
+            const char* audit_capture =
+                std::getenv("XDEBUG_XOUT_AUDIT_CAPTURE");
+            if (audit_capture != nullptr &&
+                std::string(audit_capture) == "1") {
+                // Test-only observation sidecar.  It is outside the public
+                // xdebug.v1 response and avoids replaying stateful actions
+                // merely to compare their JSON and XOUT projections.
+                env["xout_audit"] =
+                    render_xout_response(response, s_dispatch_xout);
+            }
         } else {
             env["payload_format"] = "xout";
-            env["xout"] = render_xout_response(response);
+            env["xout"] = render_xout_response(response, s_dispatch_xout);
         }
         fprintf(stdout, "%s\n", env.dump().c_str());
         fflush(stdout);

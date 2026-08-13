@@ -220,6 +220,31 @@ def test_value_at_list_source(loop_runner: StdioLoopRunner,
         "top.clk", "top.counter_top.count"]
 
 
+def test_value_at_xout_renders_multiple_signals_and_times(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    created = loop_runner.request("list.create", args={
+        "name": "xout_counter_context",
+        "signals": ["top.clk", "top.counter_top.count"],
+    })
+    assert created.get("ok"), created
+
+    xout = loop_runner.request_xout("value.at", args={
+        "list": "xout_counter_context",
+        "times": ["0ps", "100ps", "200ps", "300ps", "305ps"],
+        "value_format": "hex", "render_time_unit": "ps",
+    })
+    assert xout.startswith("@xdebug.value.at.v1\nvalues:\n")
+    assert "name" in xout
+    for time in ("0ps", "100ps", "200ps", "300ps", "305ps"):
+        assert time in xout
+    assert "top.clk" in xout and "1'h1" in xout
+    assert "top.counter_top.count" in xout
+    for value in ("8'h0", "8'h1", "8'h6", "8'hb"):
+        assert value in xout
+    assert "known" not in xout and "width" not in xout
+
+
 def test_value_at_preserves_x_and_decimal_fallback(
         loop_runner: StdioLoopRunner, wide_xz_fst) -> None:
     open_session(loop_runner, wide_xz_fst)

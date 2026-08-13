@@ -3,6 +3,7 @@
 #include "engine/engine_globals.h"
 #include "core/value/logic_value.h"
 #include "api/json_types.h"
+#include "protocol/text_response_builder.h"
 #include "waveform/clock_sampling.h"
 #include "waveform/list/list_manager.h"
 #include "engine/actions/value_source_entries.h"
@@ -287,6 +288,62 @@ struct ValueAtHandler : public EngineActionHandler {
                      {"width_diagnostics", width_diagnostics}};
         return Json{{"ok", true}, {"summary", summary},
                     {"data", {{"entries", entry_json}, {"samples", samples}}}};
+    }
+
+    std::string render_xout(const Json& response) const override {
+        const Json data = response.value("data", Json::object());
+        const Json entries = data.value("entries", Json::array());
+        const Json samples = data.value("samples", Json::array());
+        TextResponseBuilder out("xdebug");
+        out.emit_header(action_name());
+
+        std::vector<std::string> columns{"name"};
+        for (const auto& sample : samples) {
+            columns.push_back(sample.value("time", std::string()));
+        }
+        std::vector<std::vector<std::string>> rows;
+        for (size_t entry_index = 0; entry_index < entries.size(); ++entry_index) {
+            const Json& entry = entries[entry_index];
+            std::vector<std::string> row{
+                entry.value("key", entry.value("path", std::string()))};
+            for (const auto& sample : samples) {
+                const Json values = sample.value("values", Json::array());
+                if (entry_index >= values.size()) {
+                    row.push_back("missing_value");
+                    continue;
+                }
+                const Json& cell = values[entry_index];
+                const std::string status =
+                    cell.value("status", std::string("missing_value"));
+                row.push_back(status == "ok" && cell.contains("value")
+                    ? json_to_xout_value(cell["value"]) : status);
+            }
+            rows.push_back(std::move(row));
+        }
+        out.emit_section("values");
+        out.emit_table(columns, rows);
+
+        bool has_clock_context = false;
+        for (const auto& sample : samples) {
+            if (sample.contains("clock_context") &&
+                sample["clock_context"].is_object()) {
+                has_clock_context = true;
+                break;
+            }
+        }
+        if (has_clock_context) {
+            Json contexts = Json::array();
+            for (const auto& sample : samples) {
+                if (!sample.contains("clock_context") ||
+                    !sample["clock_context"].is_object()) continue;
+                Json context = sample["clock_context"];
+                context["time"] = sample.value("time", std::string());
+                contexts.push_back(std::move(context));
+            }
+            out.emit_section("clock_context");
+            out.emit_json_table(contexts, static_cast<int>(contexts.size()));
+        }
+        return out.str();
     }
 };
 

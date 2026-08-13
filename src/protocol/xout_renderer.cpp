@@ -21,6 +21,14 @@ bool should_emit_scalar_key(const std::string& key, const Json& value) {
     return xdebug_fst::is_xout_scalar_json(value);
 }
 
+bool is_flat_xout_object(const Json& value) {
+    if (!value.is_object()) return false;
+    for (auto item = value.begin(); item != value.end(); ++item) {
+        if (!is_xout_scalar_json(item.value())) return false;
+    }
+    return true;
+}
+
 std::string schema_type_text(const Json& property) {
     if (!property.is_object() || !property.contains("type")) return "any";
     const Json& type = property["type"];
@@ -241,9 +249,25 @@ void render_data_value(TextResponseBuilder& out, const std::string& key,
     } else if (value.is_array() && !value.empty() && value[0].is_object()) {
         int count = static_cast<int>(value.size());
         out.emit_section(key);
-        int n = std::min(20, count);
-        out.emit_json_table(value, n);
-        if (count > n) out.emit_kv("(+ " + std::to_string(count - n) + " more)", "");
+        out.emit_json_table(value, count);
+        // emit_json_table intentionally projects scalar cells only.  Walk
+        // every nested collection as a separate, indexed section so XOUT can
+        // never silently discard facts already present in the public JSON.
+        for (int index = 0; index < count; ++index) {
+            const Json& item = value[index];
+            if (!item.is_object()) continue;
+            for (auto child = item.begin(); child != item.end(); ++child) {
+                if (should_emit_scalar_key(child.key(), child.value()) ||
+                    is_xout_field_map_json(child.value()) ||
+                    is_flat_xout_object(child.value()) ||
+                    (child.value().is_array() && child.value().empty())) {
+                    continue;
+                }
+                render_data_value(out,
+                    key + "[" + std::to_string(index) + "]." + child.key(),
+                    child.value());
+            }
+        }
     } else if (value.is_object()) {
         bool has_direct_fields = false;
         for (auto it = value.begin(); it != value.end(); ++it) {
@@ -268,11 +292,25 @@ void render_data_value(TextResponseBuilder& out, const std::string& key,
 void render_generic(TextResponseBuilder& out, const Json& response) {
     emit_summary(out, response);
     const Json data = response.value("data", Json::object());
+    const Json summary = response.value("summary", Json::object());
     if (data.is_object() && !data.empty()) {
         out.emit_section("data");
         for (auto it = data.begin(); it != data.end(); ++it) {
             if (it.key() == "common_blocks") continue;
-            render_data_value(out, it.key(), it.value());
+            if (summary.is_object() && summary.contains(it.key()) &&
+                summary[it.key()] == it.value()) continue;
+            Json projected = it.value();
+            if (projected.is_object() && summary.is_object()) {
+                for (auto field = projected.begin(); field != projected.end();) {
+                    if (summary.contains(field.key()) &&
+                        summary[field.key()] == field.value()) {
+                        field = projected.erase(field);
+                    } else {
+                        ++field;
+                    }
+                }
+            }
+            if (!projected.empty()) render_data_value(out, it.key(), projected);
         }
     }
     if (response.contains("findings") && response["findings"].is_array() &&

@@ -89,12 +89,75 @@ class StdioLoopRunner:
     def request(self, action: str, args: Optional[Json] = None,
                 target: Optional[Json] = None,
                 limits: Optional[Json] = None) -> Json:
+        env, req = self._request_envelope(
+            action, args=args, target=target, limits=limits,
+            payload_format="json")
+        assert env.get("payload_format") == "json"
+        response = env.get("json", {})
+        self._record_xout_audit(req, response, env.get("xout_audit"))
+        if action == "session.open" and response.get("ok"):
+            self._session_id = args.get("name") if args else None
+        if action in {"session.close", "session.kill"} and response.get("ok"):
+            self._session_id = None
+        record_action_exchange("stdio-loop", req, response, returncode=0)
+        return response
+
+    def _record_xout_audit(self, request: Json, response: Json,
+                           xout: Any) -> None:
+        destination = os.environ.get("XDEBUG_XOUT_AUDIT_LOG")
+        if not destination:
+            return
+        if not isinstance(xout, str):
+            raise AssertionError("XDEBUG XOUT audit capture is missing")
+        path = Path(destination)
+        if not path.is_absolute():
+            raise RuntimeError("XDEBUG_XOUT_AUDIT_LOG must be an absolute path")
+        event = {
+            "test_node": os.environ.get(
+                "PYTEST_CURRENT_TEST", "<outside-pytest>"
+            ).split(" (")[0],
+            "action": request.get("action"),
+            "request": request,
+            "response": response,
+            "xout": xout,
+        }
+        encoded = (json.dumps(
+            event, sort_keys=True, ensure_ascii=False
+        ) + "\n").encode("utf-8")
+        descriptor = os.open(
+            path, os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_CLOEXEC,
+            0o600,
+        )
+        try:
+            written = os.write(descriptor, encoded)
+            if written != len(encoded):
+                raise RuntimeError("short write to XOUT audit trace")
+        finally:
+            os.close(descriptor)
+
+    def request_xout(self, action: str, args: Optional[Json] = None,
+                     target: Optional[Json] = None,
+                     limits: Optional[Json] = None) -> str:
+        env, _ = self._request_envelope(
+            action, args=args, target=target, limits=limits,
+            payload_format="xout")
+        assert env.get("payload_format") == "xout"
+        assert env.get("ok"), env
+        xout = env.get("xout")
+        assert isinstance(xout, str)
+        return xout
+
+    def _request_envelope(self, action: str, args: Optional[Json] = None,
+                          target: Optional[Json] = None,
+                          limits: Optional[Json] = None,
+                          payload_format: str = "json") -> tuple[Json, Json]:
         assert self.proc is not None
         self._seq += 1
         req: Json = {
             "api_version": "xdebug.v1",
             "request_id": f"t-{self._seq}",
             "action": action,
+            "payload_format": payload_format,
         }
         if args is not None:
             req["args"] = args
@@ -113,14 +176,7 @@ class StdioLoopRunner:
         env = self._read_message(60.0)
         assert env.get("id") == req["request_id"], f"id mismatch: {env}"
         assert env.get("api_version") == "xdebug.v1"
-        assert env.get("payload_format") == "json"
-        response = env.get("json", {})
-        if action == "session.open" and response.get("ok"):
-            self._session_id = args.get("name") if args else None
-        if action in {"session.close", "session.kill"} and response.get("ok"):
-            self._session_id = None
-        record_action_exchange("stdio-loop", req, response, returncode=0)
-        return response
+        return env, req
 
     def stop(self) -> None:
         if self.proc is None:

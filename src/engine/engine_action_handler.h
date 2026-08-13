@@ -14,7 +14,10 @@ public:
     virtual bool needs_design() const = 0;
     virtual bool needs_waveform() const = 0;
     virtual Json run(const Json& request) = 0;
-    virtual std::string render_xout(const Json& response) const { return response.dump(2); }
+    // Return an action-specific human-readable projection when the generic
+    // renderer cannot faithfully express the response shape.  An empty
+    // string deliberately selects the generic renderer.
+    virtual std::string render_xout(const Json&) const { return std::string(); }
 };
 
 } // namespace xdebug_fst

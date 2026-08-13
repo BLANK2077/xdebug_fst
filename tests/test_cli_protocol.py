@@ -90,3 +90,20 @@ def test_stdio_loop_ready_override_error_and_quit_envelopes(xfst_bin, repo_root)
         "payload_format": "json",
         "json": {"ok": True, "action": "stdio.quit"},
     }
+
+
+def test_generic_xout_does_not_silently_limit_object_rows(
+        xfst_bin, repo_root) -> None:
+    children = [{
+        "api_version": "xdebug.v1", "action": "schema",
+        "args": {"action": "value.at", "kind": "request"},
+    } for _ in range(25)]
+    request = json.dumps({
+        "api_version": "xdebug.v1", "action": "batch",
+        "args": {"requests": children},
+    }) + "\n"
+    result = run_cli(xfst_bin, repo_root, ["-"], request)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.startswith("@xdebug.batch.v1\n")
+    assert "(+ 5 more)" not in result.stdout
+    assert result.stdout.count("xdebug.v1") >= 25
