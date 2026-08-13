@@ -95,9 +95,15 @@ def main() -> int:
         document = json.loads(registry.read_text(encoding="utf-8"))
         require(document == {"sessions": [], "version": 2}, document)
         if mode == "fake-lsf":
-            lsf_log = root / "logs" / "sessions" / name / "lsf.ndjson"
-            events = [json.loads(line) for line in lsf_log.read_text(
-                encoding="utf-8").splitlines()]
+            session_log_root = root / "logs" / "sessions" / name
+            lsf_logs = sorted(session_log_root.glob(
+                "owners/*/lsf.ndjson"))
+            require(lsf_logs, f"no LSF logs under {session_log_root}")
+            events = [
+                json.loads(line)
+                for lsf_log in lsf_logs
+                for line in lsf_log.read_text(encoding="utf-8").splitlines()
+            ]
             phases = {event["phase"] for event in events}
             require("bsub.start" in phases, phases)
             require("job_id.detected" in phases, phases)
