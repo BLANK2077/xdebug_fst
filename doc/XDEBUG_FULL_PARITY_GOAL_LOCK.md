@@ -432,3 +432,14 @@ Goal 仍要求严格 73 action、关键事实语义和十维适用性无缺项�
 直接按需读取原始 `.fst` 事实，分析由 xdebug action 与 DesignDB 完成；不得转换、预扫、建立
 私有索引/离线库/全量快照，不得增加 TCP/fileport 或 fallback。Verilator 修改继续遵守先有
 红测、证明 producer 事实确实缺失、最小附加且不改变普通行为的约束。
+
+## P7 最终验收锁（2026-08-13）
+
+最终 73-action trace、P6 七能力族、冻结 schema/baseline、普通/ASan/UBSan、session 生命周期、
+Wellen/Wellen C API/wellenx、Verilator DesignDB 与普通行为回归均已通过。权威证据和哈希见
+`doc/XDEBUG_FINAL_ACCEPTANCE_REPORT.md`。该报告提交并创建 `parity-p7` 后，Goal 的必需
+实施与验收任务全部关闭。
+
+完成结论只适用于用户修正后的“能力一致、信息语义一致”范围；不得改写成响应逐字一致或
+Verilator 全 SystemVerilog 语法支持声明，也不得在后续维护中删除 FST-only、禁止离线分析、
+TCP/fileport 裁剪、无 fallback 和 Verilator 克制修改约束。

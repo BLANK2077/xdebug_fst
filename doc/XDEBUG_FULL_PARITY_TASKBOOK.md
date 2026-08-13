@@ -1530,3 +1530,18 @@ expression/pattern 或 PatternVar binding 已完成。
 6. FST-only 架构不变：原始 `.fst` 是唯一波形输入，Wellen 直接按需提供值、时间、类型和
    delta 事实，xdebug action 结合 DesignDB 执行分析。禁止转换、预扫、私有索引、离线库、
    全量快照、export 回灌、TCP/fileport 和 fallback。
+
+## 十四、P7 最终验收关闭记录（2026-08-13）
+
+最终验收报告写入 `doc/XDEBUG_FINAL_ACCEPTANCE_REPORT.md`。当前 405 项 pytest、普通 CTest
+9/9、ASan CTest 9/9 + pytest 405/405、UBSan CTest 9/9 + pytest 405/405 均通过。新鲜
+1212-event trace 覆盖 73/73 action，十个维度全部为真实观察或冻结适用性裁定，无 missing，
+且 observed 与 N/A 零重叠。
+
+Wellen workspace 207 项运行通过、8 ignored、0 失败；C ABI 端到端与 wellenx 2/2 通过。
+Verilator 当前 14 个 `t_xdd_*`、16 个普通行为代表回归、GCC 13 源码构建及两个 distribution
+检查通过。三个仓库 revision、工具链、哈希、命令和架构边界均在最终报告登记。
+
+本节按用户最新“能力一致、信息语义一致”口径关闭 P7，不主张实现或响应文本完全一致。FST
+仍是唯一波形输入，Wellen 直接按需读取，分析仍由 xdebug action 与 DesignDB 完成；TCP/
+fileport 保持裁剪，不存在转换、离线分析或 fallback。

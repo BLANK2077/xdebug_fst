@@ -46,7 +46,7 @@ SystemVerilog 语法构造与所有限制参数笛卡尔积分别当成新的 xd
 ## 四、当前证据
 
 - 新鲜运行 trace：73/73 action 均有 success 与 invalid request，十维审计无 missing。
-- 冻结适用性：boundary 30+43、completeness 41+32、limits 29+44、multiple 53+19+1、
+- 冻结适用性：boundary 31+42、completeness 41+32、limits 29+44、multiple 53+19+1、
   truncation 35+2+36、X/Z 23+50，均完整分区 73。
 - P6 combined：81/81。
 - GCC 13 全量 pytest 与 CTest 9/9 通过。

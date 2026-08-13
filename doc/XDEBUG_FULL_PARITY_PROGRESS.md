@@ -386,3 +386,15 @@ tagged union/expression/pattern、nested/arrayed interface、primitive strength/
 前端语法组合，以及所有限制参数笛卡尔积被显式登记为“非独立 xdebug 能力”，而不是伪报已被
 Verilator 支持。若未来产生新的用户可观察语义，必须重新进入 TODO。独立适用性 pytest 1/1
 通过；本批只增加范围门禁和文档，未修改生产实现、Wellen、Verilator 或 ABI。
+
+## 2026-08-13 P7 最终能力语义验收
+
+当前 405 项 pytest、普通/ASan/UBSan 三套 CTest 9/9 及三套 pytest 全部通过，无 sanitizer
+诊断；新鲜 1212-event trace 的 73 action、十维审计无 missing 且 N/A 零冲突。Wellen workspace 207 项运行
+通过、8 ignored、C ABI 端到端与 wellenx 2/2 通过。Verilator 当前 14 个 XDD 用例、16 个
+普通行为代表回归、GCC 13 源码构建、copyright/cppstyle 均通过。
+
+`parity-p5` 已追溯到 P6 开始前的 `53fea10`，`parity-p6` 指向能力适用性收口提交。最终报告
+登记了三个仓库 revision、冻结哈希、trace 哈希、FST-only 架构和 TCP/fileport 裁剪。待本批
+文档提交并创建 `parity-p7` 后，计划内必需任务全部完成；完整结果见
+`doc/XDEBUG_FINAL_ACCEPTANCE_REPORT.md`。
