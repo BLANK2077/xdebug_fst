@@ -240,6 +240,11 @@ def test_session_multi_result_lifecycle_on_direct_raw_fst(
     cleared = loop_runner.request(
         "session.close", target={"session_id": "all"}, args={})
     assert cleared.get("ok"), cleared
+    empty_kill = loop_runner.request(
+        "session.kill", target={"session_id": "all"}, args={})
+    assert empty_kill.get("ok"), empty_kill
+    assert empty_kill["summary"] == {"requested_count": 0, "removed_count": 0}
+    assert empty_kill["data"] == {"removed_sessions": []}
     for name in ("multiple_close_a", "multiple_close_b"):
         opened = loop_runner.request(
             "session.open", target={"fsdb": str(counter_fst)},

@@ -23,6 +23,7 @@ EXPECTED_APPLICABLE = {
     "signal.xz_verify", "stream.export", "stream.query", "stream.validate",
     "trace.active_driver", "trace.active_driver_chain", "trace.x_origin",
     "value.at", "verify.conditions", "waveform.cursor.set", "window.verify",
+    "batch",
 }
 
 
@@ -69,6 +70,15 @@ def main() -> int:
         )
         if fields:
             applicable[action] = fields
+
+    batch_schema = json.loads(
+        (schema_root / "batch.request.schema.json").read_text(encoding="utf-8")
+    )
+    batch_items = batch_schema["properties"]["args"]["properties"][
+        "requests"]["items"]
+    if batch_items.get("x-deferred-action-validation") is not True:
+        raise RuntimeError("batch child requests no longer use action validation")
+    applicable["batch"] = {"child_request"}
 
     response_actions = {
         path.name.removesuffix(".response.schema.json")

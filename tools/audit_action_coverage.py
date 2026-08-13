@@ -24,6 +24,10 @@ DIMENSIONS = (
     "xz",
 )
 
+
+def row_is_complete(row: dict[str, Any]) -> bool:
+    return not row["missing"] and not row.get("overlap", [])
+
 RESOURCE_ERROR_CODES = {
     "CONFIG_NOT_FOUND",
     "DESIGN_BUNDLE_INVALID",
@@ -388,6 +392,15 @@ def main() -> int:
             dimension: sorted(evidence[action][dimension])
             for dimension in DIMENSIONS
         }
+        not_applicable_dimensions = {
+            dimension for dimension in DIMENSIONS
+            if (action, dimension) in not_applicable
+        }
+        overlap = [
+            dimension for dimension in DIMENSIONS
+            if dimensions[dimension]
+            and dimension in not_applicable_dimensions
+        ]
         rows.append({
             "action": action,
             "event_count": event_counts[action],
@@ -402,6 +415,7 @@ def main() -> int:
                 if not dimensions[dimension]
                 and (action, dimension) not in not_applicable
             ],
+            "overlap": overlap,
         })
 
     dimension_counts = {
@@ -415,13 +429,13 @@ def main() -> int:
         for dimension in DIMENSIONS
     }
     report = {
-        "schema_version": "xdebug.action-coverage-audit.v1",
+        "schema_version": "xdebug.action-coverage-audit.v2",
         "action_count": len(actions),
         "trace_event_count": sum(event_counts.values()),
         "unknown_actions": sorted(unknown_actions),
         "dimension_counts": dimension_counts,
         "not_applicable_counts": not_applicable_counts,
-        "complete_action_count": sum(not row["missing"] for row in rows),
+        "complete_action_count": sum(row_is_complete(row) for row in rows),
         "actions": rows,
         "classification_notice": (
             "Observed trace evidence is conservative audit input, not final "
@@ -452,7 +466,10 @@ def main() -> int:
         ]
         markdown.append(
             "| " + row["action"] + " | " + " | ".join(marks) + " | "
-            + ", ".join(row["missing"]) + " |"
+            + ", ".join(
+                row["missing"]
+                + [f"conflict:{item}" for item in row["overlap"]]
+            ) + " |"
         )
     rendered_markdown = "\n".join(markdown) + "\n"
     if args.output_markdown:

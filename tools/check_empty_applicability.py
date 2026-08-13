@@ -37,11 +37,8 @@ EXPECTED_NONEMPTY_SUCCESS = {
     "batch": ("args.requests", "data.results"),
     "list.load": ("args.config.lists", "data.lists"),
     "nwave.rc.generate": ("args.config_path", "data.rc_preview"),
-    "session.close": ("target.session_id", "data.removed_session"),
-    "session.kill": ("target.session_id", "data.removed_session"),
     "signal.resolve": ("args.signal", "data.matches"),
     "signal.xz_verify": ("args.signal", "summary.total_count"),
-    "trace.active_driver_chain": ("args.signal", "data.hops"),
     "value.at": ("args.signal", "data.samples"),
     "verify.conditions": ("args.conditions", "data.checks"),
 }

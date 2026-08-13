@@ -6,10 +6,19 @@ from tools.audit_action_coverage import (
     has_truncation,
     has_xz,
     load_not_applicable,
+    row_is_complete,
 )
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_complete_row_rejects_missing_and_applicability_overlap() -> None:
+    assert row_is_complete({"missing": [], "overlap": []})
+    assert not row_is_complete({"missing": ["xz"], "overlap": []})
+    assert not row_is_complete({
+        "missing": [], "overlap": ["empty_result"],
+    })
 
 
 def event(request: dict, response: dict) -> dict:
@@ -245,9 +254,8 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
         "stream.config.load", "stream.describe",
         "waveform.cursor.delete", "waveform.cursor.get",
         "waveform.cursor.set", "waveform.cursor.use",
-        "batch", "list.load", "nwave.rc.generate", "session.close",
-        "session.kill", "signal.resolve", "signal.xz_verify",
-        "trace.active_driver_chain", "value.at", "verify.conditions",
+        "batch", "list.load", "nwave.rc.generate", "signal.resolve",
+        "signal.xz_verify", "value.at", "verify.conditions",
     }
     resource_entries = {
         ("actions", "resource_missing"),
@@ -299,7 +307,7 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
         "actions", "apb.config.list", "apb.config.load", "apb.query",
         "apb.statistics", "apb.transaction.cursor", "axi.analysis",
         "axi.config.list", "axi.config.load", "axi.statistics",
-        "axi.transaction.cursor", "batch", "event.config.list",
+        "axi.transaction.cursor", "event.config.list",
         "event.config.load", "expr.normalize", "list.add", "list.create",
         "list.delete", "list.load", "list.show", "list.validate",
         "nwave.rc.generate", "schema", "scope.list", "scope.roots",
