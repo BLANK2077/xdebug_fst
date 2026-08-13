@@ -1,5 +1,32 @@
 # xdebug_oc 全能力兼容修复、Goal 执行与分批提交计划
 
+## 最新验收口径：能力一致、信息语义一致（2026-08-13 用户确认）
+
+用户已明确取消“输出必须与原版完全一致”的过严要求。本文历史章节中出现的“完全一致”、
+“逐字段一致”、“逐字一致”、“全部归一化 JSON 相等”或类似表述，自本节起统一按以下最新
+口径解释；若历史文字与本节冲突，以本节为准：
+
+1. 最终目标是 **能力覆盖一致**：原版公开的 73 个 action 所代表的查询、分析、会话、导出和
+   transport 能力，在本项目已确认的 FST-only、TCP/file 裁剪范围内均有可工作的对应实现。
+2. 最终结果要求 **关键信息语义一致**：对同一有效请求，目标对象、时间、值、范围、计数、
+   driver/load 关系、控制条件、来源路径、完整性、截断状态和失败原因等会影响用户判断的事实
+   必须等价；不得遗漏关键事实、制造错误事实，或把未知/未完成伪装成确定/完整。
+3. 不再要求非语义展示完全相同，包括 JSON object 字段顺序、无序集合的输出顺序、summary
+   和 warning 的逐字措辞、建议动作的文字或排列、等价的时间/数值渲染、实现 build id、耗时、
+   临时路径，以及不影响能力和结论的冗余诊断元数据。
+4. xdebug v1 请求合同和公开 action 名仍作为调用兼容入口；响应 schema 继续用于保证本实现
+   自洽和稳定，但不再以“与原版每个可选字段及输出形状逐项相同”作为完成条件。实现可保留
+   有用的附加诊断字段，也可不复制不影响结论的展示字段。
+5. 后续“原版差分”改为能力与信息语义差分：比较请求是否可执行、关键事实集合是否等价、
+   completeness/limited/truncated 是否如实，以及错误是否属于同一原因类别；不得再用整份
+   归一化 JSON 相等作为唯一或强制门禁。
+6. 这一放宽只移除表面一致性负担，不缩减 73 个 action 的能力族，不放宽
+   `GOAL-FST-DIRECT-001`，不恢复 TCP/file，不允许 fallback，也不降低 active-driver、chain、
+   X-origin 等分析结果的事实正确性要求。
+
+据此，本文后续所有待办和最终审计都应优先回答“用户能否完成同一种工作、得到等价的关键
+事实和结论”，而不是“两个实现是否生成相同 JSON 文本”。
+
 Goal 不可漂移约束：[`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md)。该文档是当前 active Goal 的权威执行附件，固定 FST 唯一输入、Wellen 直接按需读取、禁止转换/离线分析/fallback、TCP/file 裁剪和 Verilator 克制修改等否决条件。
 
 配套架构说明：[`XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md`](XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md)。该文档说明 Verilator DesignDB 修改的范围、原因和数据流，以及 xdebug-fst 对 Wellen 波形能力的需求、双 C ABI 方案和后续收敛边界。

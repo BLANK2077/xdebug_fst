@@ -384,3 +384,18 @@ export、增加 TCP/fileport 或 fallback。
 case default/standalone else 四项唯一选择，combined 75/75、pytest 397/397、CTest 9/9、
 Verilator XDD 13/13。PatternVar binding 与全部 tagged union/expression/pattern 继续失败关闭，
 本批不得被描述为“通用 matches 完成”，Goal 继续 active。
+
+# Goal 最新兼容验收修正（2026-08-13 用户确认）
+
+用户已将验收目标明确修正为“能力一致、信息语义一致”，不要求与原版输出完全一致。当前
+Goal 系统不能原地改写 active objective，因此本节作为 Goal 的最新权威修正；与旧 objective
+或本文历史文字冲突时，以本节为准。
+
+- 必须覆盖原版 73 个公开 action 所代表的能力，但不要求响应逐字段、逐字或逐顺序相等。
+- 必须保证影响用户判断的目标、时间、值、关系、来源、计数、范围、完整性、截断和错误原因
+  在语义上等价；未知和不完整状态必须如实表达。
+- summary/warning/suggestion 的措辞、无序结果排列、等价渲染、易变元数据和不影响结论的
+  冗余诊断字段不再纳入强制相等门禁。
+- “原版归一化差分”自此指能力与关键信息语义差分，不再指整份归一化 JSON 相等。
+- 本修正不改变 `GOAL-FST-DIRECT-001`、FST 唯一输入、Wellen 直接按需读取、禁止转换/离线
+  分析/fallback、TCP/file 裁剪和 Verilator 克制修改等约束。
