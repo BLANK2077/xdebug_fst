@@ -27,6 +27,18 @@
 据此，本文后续所有待办和最终审计都应优先回答“用户能否完成同一种工作、得到等价的关键
 事实和结论”，而不是“两个实现是否生成相同 JSON 文本”。
 
+### P6 PatternVar 动态闭环补充（2026-08-13）
+
+PatternVar lowering 产生的局部绑定变量可以存在于 Verilator DesignDB，但不一定写入原始
+FST。此时 xdebug action 不得把缺少中间量波形误报为常量赋值，也不得从上下游值相等猜测
+关系。允许的处理只有：DesignDB 已证明该中间量为纯组合 cont/proc assignment、存在真实 RHS、
+不含 self-RHS、event、NBA 或 force 时，consumer 才能把它作为静态透明节点展开；活动分支
+谓词和最终可观测信号值仍必须由 Wellen 从当前 session 原始 FST 按需读取。
+
+本合同已由 xdebug-fst `869e932`/`70a7672` 闭环：45ps/65ps 的两条 binding 分支均可由
+active-driver 选中，chain 越过不可观测 binding 后到达可观测 packet，X-origin 的同构四态
+回归到达真实来源。该规则不得推广到时序状态，也不得解释成由 FST 推断 PatternVar 关系。
+
 Goal 不可漂移约束：[`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md)。该文档是当前 active Goal 的权威执行附件，固定 FST 唯一输入、Wellen 直接按需读取、禁止转换/离线分析/fallback、TCP/file 裁剪和 Verilator 克制修改等否决条件。
 
 配套架构说明：[`XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md`](XDEBUG_FST_VERILATOR_WELLEN_ARCHITECTURE.md)。该文档说明 Verilator DesignDB 修改的范围、原因和数据流，以及 xdebug-fst 对 Wellen 波形能力的需求、双 C ABI 方案和后续收敛边界。

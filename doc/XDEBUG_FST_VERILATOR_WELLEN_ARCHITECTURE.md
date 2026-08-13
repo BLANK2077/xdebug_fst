@@ -19,6 +19,18 @@
 元数据与原版完全相同。本文后续“差分”均按能力和关键信息语义理解，不再以整份 JSON 相等
 为架构目标；FST-only 数据流、Wellen 职责边界和 Verilator 克制修改原则不受影响。
 
+### 1.0.1 PatternVar binding 的三方职责
+
+Verilator 编译 `case matches` PatternVar 后，会生成局部 binding 变量。DesignDB 保存
+`目标 → binding → selector/packet` 的静态 RHS 与控制谓词，但这些局部量可能因 trace 策略或
+优化不写入 FST。Wellen 在此场景只需如实报告 binding 不可观测，同时继续提供目标、selector
+和 packet 的原始 FST 值；它不重建 binding，也不解释 pattern。
+
+xdebug action 在 DesignDB 同时证明“纯组合赋值、存在 RHS、没有 self/event/NBA/force”时，
+把不可观测 binding 当成静态透明节点，继续到可观测上游；任何时序或证据不完整边界都停止。
+因此动态路径是“FST 值决定活动 pattern 分支，DesignDB 决定静态 binding 关系，action 组合
+两者完成 chain/X-origin”，不是从 FST 值相等反推关系，也不是把 pattern 分析下沉给 Wellen。
+
 ### 1.1 FST-only 架构边界
 
 本架构边界受任务书永久 Goal 约束 **`GOAL-FST-DIRECT-001`** 及其权威执行附件 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 管辖。它是所有后续实现选择的否决条件，不是可以在 action 迁移过程中临时放宽的偏好。

@@ -5,15 +5,15 @@
 - Goal：active（thread `019fe602-0198-7f23-a9a1-bb3c6a539dec`）
 - Goal 永久门禁：`GOAL-FST-DIRECT-001`；当前 session 原始 `.fst` → Wellen 按需访问 → action 查询/推理，是唯一允许的波形事实路径。该门禁已写入 Goal 权威任务书和架构文档，并作为每批提交审查及最终 `complete` 的否决条件
 - 当前阶段：P5 功能批次已覆盖；P6 进行中（Active Driver 与 X Origin）
-- 当前任务：Phase 5 procedural-for/unpacked/packed 选择器和无 binding packed matches 嵌套通配差分已闭环；继续补齐 P6 的 PatternVar/tagged matches、更多 NBA/常量组合、复杂 output/inout/interface/ref alias，以及混合类型和调度边界多驱动原版差分。既有完成项不得据此宣称 P6 全部关闭
+- 当前任务：Phase 5 procedural-for/unpacked/packed 选择器、无 binding packed matches 嵌套通配及 PatternVar binding 动态追踪已闭环；继续补齐 P6 的 tagged union/expression/pattern、更多 NBA/常量组合、复杂 output/inout/interface/ref alias，以及混合类型和调度边界多驱动能力语义。既有完成项不得据此宣称 P6 全部关闭
 - 全局硬门禁：生产、回归和最终验收只打开 FST 波形；VCD 仅可作为可重复生成 FST 的源文件，禁止作为输入或 fallback
 - 2026-08-10 用户再次确认：项目只需要并且也必须完整适配 FST 波形；唯一波形事实路径是当前 session 中由 Wellen 直接按需读取原始 `.fst`。不得建立独立“FST 分析”数据库，不得转成 VCD/JSON/私有索引/离线库/全量内存快照后分析；显式 export 产物永不回灌。该约束已写入 Goal 权威任务书，覆盖旧 Goal 或历史文档中的相反表述
 - 2026-08-10 用户进一步锁定职责边界：FST 只是唯一波形输入容器，Wellen 只是保真按需访问层；分析能力属于冻结的 xdebug action 语义及其与 Verilator DesignDB 静态事实的组合。禁止把“必须适配 FST”偷换成“由 FST 自身做分析”，也禁止据此简化 driver/load、active-driver、chain、X-origin、协议、表达式、完整性或错误合同。该定义已加入任务书与 Goal 权威附件，作为逐批门禁和 Goal 完成否决项
 - 2026-08-10 Goal 防漂移再确认：用户原意“不得退化到用 FST 做分析，只需要并且也必须适配 FST 波形”已写入 `XDEBUG_FULL_PARITY_GOAL_LOCK.md` 的独立解释锁。今后上下文压缩、阶段切换和交接均须同时保留“FST-only 输入”与“FST 非分析引擎”两项，不得只保留前半句造成架构漂移
 - 2026-08-10 漂移复核：修正架构图遗留的 `FST/VCD/GHW` 输入表述为仅 `原始 .fst`，并将 `GOAL-FST-DIRECT-001` 加入 P0–P7 持续检查与 Goal 完成否决项
-- xdebug-fst 当前门禁提交：`2d7838c`；本次 Phase 5 失败证据为 `ae3363d`、多活动候选首跳合同证据为 `c7baaea`、依赖与固件同步为 `33ab2c5`、消费端闭环为 `e57ea65`；GCC 13 私有运行库环境红测为 `27a787c`、修复为 `2d7838c`。更早 P6/P7 证据详见下方 commit 和测试记录
+- xdebug-fst 当前门禁提交：`1c73aa2`；PatternVar 修改前证据为 `01c17ee`、依赖与确定性固件同步为 `869e932`、消费端 active-driver/chain/X-origin 闭环为 `70a7672`、MCP 多 owner 日志语义适配为 `1c73aa2`。更早 P6/P7 证据详见下方 commit 和测试记录
 - Wellen 分支：`feature/xdebug-fst-capi`，冻结 revision `afab0abd1fe4c06db9744f0b7b20b18d23b7f8df`
-- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `9c8ae78cba35ab152e13644a50d6fc0c882955d4`
+- Verilator 分支：`feature/design-db-for-xdebug`，冻结 revision `bf01d667c8b27f2f7cee456bb35a84e5372434df`
 - 原版 xdebug runtime revision：`8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`
 - 原版 xdebug runtime build ID：`8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
 - 原版 schema revision：`c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c`
@@ -274,7 +274,7 @@
 
 ## 剩余差异
 
-P0、P1、P2、P3、P4 已关闭，P5 的功能迁移批次已覆盖，P6 正在执行。当前已完成 active-driver 的 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` pattern/range、精确表达式 item/default、仅 `default`、直接顶层 `.*`、无 binding packed assignment pattern 及其嵌套 `.*` 的 case/standalone matches、lowering 后同目标嵌套条件、同源行三元与嵌套常量 NBA、NBA 纯自保持事件回溯、input alias 父级上溯、基本 inout 与真实两级 inout 跨端口上溯、基本及条件 output 模块边界、基本 interface/modport source/sink 成员边界、基础 ref 连续赋值链与纯端口反馈环、modport X-origin/node-budget、NBA self-RHS 分类、基础双连续、双条件过程与跨实例 output 多驱动歧义，以及 X-origin 多分支和 X predicate control/RHS 双来源基础语义；但 tagged union/expression/pattern、PatternVar binding 等通用 matches、更多 NBA/常量组合、复杂 output/inout/interface/ref alias、嵌套/数组 interface、带 driver/分支的端口反馈、node/time/depth/loop 联合限制，以及混合类型/调度边界多驱动的原版差分仍未关闭，因此绝不能宣称完全一致。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。2026-08-10 新增 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 作为当前 active Goal 的权威执行附件；后续每个批次按 `GOAL-FST-DIRECT-001` 审查唯一 FST 数据流、禁止转换/离线分析/fallback、TCP/file 裁剪及 Verilator 克制修改，任一违反即否决提交与 Goal 完成。
+P0、P1、P2、P3、P4 已关闭，P5 的功能迁移批次已覆盖，P6 正在执行。当前已完成 active-driver 的 counter `if/else`、APB 嵌套条件、普通 `case/default`、`casez/casex`、`case inside` pattern/range、精确表达式 item/default、仅 `default`、直接顶层 `.*`、无 binding packed assignment pattern 及其嵌套 `.*`、PatternVar binding 的 case matches、lowering 后同目标嵌套条件、同源行三元与嵌套常量 NBA、NBA 纯自保持事件回溯、input alias 父级上溯、基本 inout 与真实两级 inout 跨端口上溯、基本及条件 output 模块边界、基本 interface/modport source/sink 成员边界、基础 ref 连续赋值链与纯端口反馈环、modport X-origin/node-budget、NBA self-RHS 分类、基础双连续、双条件过程与跨实例 output 多驱动歧义，以及 X-origin 多分支和 X predicate control/RHS 双来源基础语义；但 tagged union/expression/pattern、更多 NBA/常量组合、复杂 output/inout/interface/ref alias、嵌套/数组 interface、带 driver/分支的端口反馈、node/time/depth/loop 联合限制，以及混合类型/调度边界多驱动的能力语义仍未关闭，因此尚不能宣称完整能力覆盖。FST 始终由 Wellen 在会话中按需读取，不转换成 VCD、JSON 波形快照、私有索引或离线分析数据库。2026-08-09 用户明确裁剪 TCP 与 file transport，因此二者不再开发或作为验收门禁；显式 export action 写出的最终产物不属于 transport，且禁止作为分析 fallback。严格 validator 和 response gate 保持开启，不为旧测试放宽 schema。2026-08-10 新增 [`XDEBUG_FULL_PARITY_GOAL_LOCK.md`](XDEBUG_FULL_PARITY_GOAL_LOCK.md) 作为当前 active Goal 的权威执行附件；后续每个批次按 `GOAL-FST-DIRECT-001` 审查唯一 FST 数据流、禁止转换/离线分析/fallback、TCP/file 裁剪及 Verilator 克制修改，任一违反即否决提交与 Goal 完成。
 
 ## P4 修改前失败证据
 
@@ -333,3 +333,24 @@ CTest 9/9、全部适用性检查与 6 项原版资源差分通过。Wellen、Ve
 锁定附件已增加权威修正：继续覆盖 73 个 action 的实际能力并保证关键事实、完整性、截断和
 错误原因语义等价；不再追求字段顺序、无序结果顺序、展示措辞、建议文字、等价渲染和冗余
 元数据逐项相同。后续原版差分将使用能力/语义断言，不再要求整份归一化 JSON 相等。
+
+## 2026-08-13 P6 PatternVar 原始 FST 动态闭环
+
+Verilator `71ee4a65a` 完成 PatternVar 与绑定变量的静态关系，`bf01d667c` 校正并锁定既有 XDD
+发射能力；xdebug-fst `869e932` 将依赖锁同步到该 revision，并用环境变量中的 Verilator 与
+GCC 13 生成确定性 matches 固件。FST 日期头仅在测试固件生成阶段固定，连续两次重建均得到
+FST `d418f4bbdd3d75b1dcb755527416d3363f290653b38bdb46bd87ff4a693bf1a0` 和 DesignDB
+`92ea10ce10d55569563509da1dec4ef0db8f411fa5beb0bc72bfaa85e92f2a2c`。
+
+真实动态证据证明 `bound_match_out` 和 `nested_match_packet` 存在于原始 FST，但 lowering 产生的
+`unnamedblk1/2.bound_payload` 不写入 FST。单步 active-driver 已能在 45ps/65ps 选中第 149/151
+行及正确 binding；旧 chain 因强制取样不可观测 binding 而误报 `constant_or_no_rhs_signal`。
+`70a7672` 只透明展开 DesignDB 证明为纯组合、含真实 RHS、无 self/event 的不可观测中间量；
+NBA、force、时序状态和无静态证据边界绝不展开。chain 现在到达 `nested_match_packet` 并在其
+`{sel,data}` 双 RHS 处如实报告歧义；独立 GCD 原始四态 FST 加同构 XDD 证明 X-origin 可跨
+binding 到达真实 `GCD.y` 来源。
+
+GCC 13 combined 77/77、全量 pytest、CTest 9/9、固件双重哈希和仓库内冻结基线均通过。
+`1c73aa2` 另将 fake-LSF 测试适配到当前 MCP 多 owner 日志布局，仍验证相同生命周期事件且未
+切换 backend。带 `--original-root` 的检查发现只读原版安装自 Goal 冻结后发生二进制/schema
+漂移；未修改或重新冻结原版，仓库内冻结快照继续作为本 Goal 基线。

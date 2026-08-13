@@ -399,3 +399,11 @@ Goal 系统不能原地改写 active objective，因此本节作为 Goal 的最�
 - “原版归一化差分”自此指能力与关键信息语义差分，不再指整份归一化 JSON 相等。
 - 本修正不改变 `GOAL-FST-DIRECT-001`、FST 唯一输入、Wellen 直接按需读取、禁止转换/离线
   分析/fallback、TCP/file 裁剪和 Verilator 克制修改等约束。
+
+## PatternVar 不可观测绑定锁（2026-08-13）
+
+PatternVar binding 的局部 lowering 变量未写入 FST 时，关系只能来自 Verilator DesignDB，运行
+时活动谓词和值只能来自 Wellen 对当前原始 FST 的按需读取。xdebug-fst 仅可透明展开 DesignDB
+证明为纯组合、有真实 RHS、无 self/event/NBA/force 的不可观测中间量；时序状态、force、无
+静态证据或不完整关系必须失败关闭，不得按值相等推断，也不得要求 Wellen/FST 承担 PatternVar
+分析。本锁已由真实 45ps/65ps active-driver/chain 与独立四态 X-origin 回归固化。
