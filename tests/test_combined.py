@@ -1602,6 +1602,36 @@ def test_trace_x_origin_combines_ref_driver_depth_and_chain_limits(
         "GCD.GEN_1"
 
 
+def test_trace_x_origin_combines_ref_driver_node_and_chain_limits(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        xorigin_ref_driver_branch_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst,
+                 xorigin_ref_driver_branch_design_db)
+    rsp = loop_runner.request("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps"}, limits={
+            "max_nodes": 2, "max_chains": 1})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["termination"] == "limit"
+    assert rsp["summary"]["analysis_complete"] is False
+    assert rsp["summary"]["chain_count"] == 1
+    assert rsp["summary"]["completed_chain_count"] == 0
+    assert rsp["summary"]["limited_chain_count"] == 1
+    chain = rsp["data"]["chains"][0]
+    assert chain["status"] == "limit"
+    assert chain["termination_detail"] == "max_nodes"
+    assert chain["current"]["signal"] == "GCD.GEN_1"
+    assert [hop["signal"] for hop in chain["hops"]] == [
+        "GCD.T_14", "GCD.GEN_0"]
+    assert {item["signal"] for item in
+            chain["pending_x_dependencies"]} == {"GCD.y"}
+    assert chain["branch_events"][-1]["reason"] == "max_chains"
+    assert rsp["data"]["limitations"] == [
+        "trace truncated by limits.max_nodes",
+        "X semantic branches truncated by limits.max_chains",
+    ]
+
+
 def test_trace_x_origin_not_x_late(loop_runner: StdioLoopRunner, xprop_fst,
                                    xprop_design_db) -> None:
     open_session(loop_runner, xprop_fst, xprop_design_db)
