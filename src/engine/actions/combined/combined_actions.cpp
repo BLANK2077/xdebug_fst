@@ -6,6 +6,7 @@
 #include "core/value/logic_value.h"
 #include "waveform/clock_sampling.h"
 #include "waveform/expr/expr_eval.h"
+#include "protocol/domain_xout_renderer.h"
 
 #include <algorithm>
 #include <cctype>
@@ -1186,6 +1187,10 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
             {"truncation_scopes",truncated?Json::array({"response_paths"}):Json::array()}};
         return {{"ok",true},{"summary",summary},{"data",{{"paths",paths}}}};
     }
+
+    std::string render_xout(const Json& response) const override {
+        return render_source_paths_xout(action_name(), response);
+    }
 };
 
 struct TraceActiveDriverChainHandler : public EngineActionHandler {
@@ -1588,6 +1593,10 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             {"response_truncated",false},{"total_count",hops.size()},
             {"returned_count",hops.size()},{"truncation_scopes",truncation}};
         return {{"ok",true},{"summary",summary},{"data",data}};
+    }
+
+    std::string render_xout(const Json& response) const override {
+        return render_active_driver_chain_xout(response);
     }
 };
 
@@ -2019,6 +2028,10 @@ struct TraceXOriginHandler : public EngineActionHandler {
             {"total_count",chains.size()},{"returned_count",chains.size()},
             {"truncation_scopes",complete?Json::array():Json::array({"analysis_trace"})}};
         return {{"ok",true},{"summary",summary},{"data",data}};
+    }
+
+    std::string render_xout(const Json& response) const override {
+        return render_x_origin_xout(response);
     }
 };
 

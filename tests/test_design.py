@@ -87,6 +87,7 @@ def test_trace_driver_contract_and_role_filter(loop_runner: StdioLoopRunner,
     assert limited["summary"]["response_truncated"] is True
     assert limited["summary"]["truncation_scopes"] == ["response_paths"]
     assert len(limited["data"]["paths"]) == 1
+    assert len(limited["data"]["paths"]) == 1
 
 
 def test_trace_driver_not_found(loop_runner: StdioLoopRunner, counter_fst,
@@ -118,7 +119,19 @@ def test_trace_load_contract(loop_runner: StdioLoopRunner, counter_fst,
     assert limited["summary"]["returned_count"] == 1
     assert limited["summary"]["response_truncated"] is True
     assert limited["summary"]["truncation_scopes"] == ["response_paths"]
-    assert len(limited["data"]["paths"]) == 1
+
+
+def test_trace_driver_xout_uses_source_path_table(
+        loop_runner: StdioLoopRunner, counter_fst, counter_design_db) -> None:
+    open_session(loop_runner, counter_fst, counter_design_db)
+    xout = loop_runner.request_xout("trace.driver", args={
+        "signal": "top.overflow", "role": "control",
+    })
+    assert xout.startswith("@xdebug.trace.driver.v1\nsummary:\n")
+    assert "paths:\n" in xout and "signal_path" in xout
+    assert "top.reset -> top.overflow" in xout
+    assert "counter_top.sv" in xout
+    assert "paths_0_" not in xout
 
 
 def test_trace_driver_and_load_empty_at_static_boundaries(

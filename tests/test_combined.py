@@ -1355,6 +1355,22 @@ def test_trace_x_origin_coalesces_port_aliases_before_chain_limit(
                for hop in chain["hops"])
 
 
+def test_trace_x_origin_xout_uses_chain_hop_and_origin_tables(
+        loop_runner: StdioLoopRunner, gcd_xorigin_fst,
+        xorigin_alias_design_db) -> None:
+    open_session(loop_runner, gcd_xorigin_fst, xorigin_alias_design_db)
+    xout = loop_runner.request_xout("trace.x_origin", args={
+        "signal": "GCD.T_14", "time": "0ps",
+        "render_time_unit": "ps",
+    }, limits={"max_chains": 2})
+    assert xout.startswith("@xdebug.trace.x_origin.v1\nsummary:\n")
+    assert "query_evidence:\n" in xout
+    assert "chains:\n" in xout and "hops:\n" in xout
+    assert "origins:\n" in xout
+    assert "GCD.T_14" in xout and "GCD.io_a" in xout
+    assert "chains_0_" not in xout and "hops_0_" not in xout
+
+
 def test_trace_x_origin_coalesces_converged_alias_exploration_before_node_limit(
         loop_runner: StdioLoopRunner, gcd_xorigin_fst,
         xorigin_alias_design_db) -> None:

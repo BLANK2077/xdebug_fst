@@ -1,6 +1,7 @@
 // signal_resolve.cpp — signal.resolve, trace.driver, trace.load (BSD-3-Clause)
 #include "engine/engine_action_handler.h"
 #include "engine/engine_globals.h"
+#include "protocol/domain_xout_renderer.h"
 
 #include <string>
 #include <vector>
@@ -108,6 +109,10 @@ struct TraceDriverHandler final : EngineActionHandler {
                         query, "driver", total, paths.size())},
                     {"data", {{"paths", paths}}}};
     }
+
+    std::string render_xout(const Json& response) const override {
+        return render_source_paths_xout(action_name(), response);
+    }
 };
 
 struct TraceLoadHandler final : EngineActionHandler {
@@ -147,6 +152,10 @@ struct TraceLoadHandler final : EngineActionHandler {
                     {"summary", completeness_summary(
                         query, "load", total, paths.size())},
                     {"data", {{"paths", paths}}}};
+    }
+
+    std::string render_xout(const Json& response) const override {
+        return render_source_paths_xout(action_name(), response);
     }
 };
 
