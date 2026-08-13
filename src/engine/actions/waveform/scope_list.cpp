@@ -1,6 +1,7 @@
 // scope_list.cpp — scope.list and scope.roots actions (BSD-3-Clause)
 #include "engine/engine_action_handler.h"
 #include "engine/engine_globals.h"
+#include "protocol/domain_xout_renderer.h"
 
 #include <fnmatch.h>
 #include <algorithm>
@@ -163,6 +164,10 @@ struct ScopeRootsHandler final : EngineActionHandler {
             data["limitations"] = limitations;
         }
         return Json{{"ok", true}, {"summary", summary}, {"data", data}};
+    }
+
+    std::string render_xout(const Json& response) const override {
+        return render_scope_roots_xout(response);
     }
 };
 

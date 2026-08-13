@@ -14,6 +14,9 @@ from typing import Any, Iterable
 
 SPECIAL_SUMMARY_PROJECTIONS = {"schema", "value.at"}
 SPECIAL_COLLECTION_PROJECTIONS = {"actions", "schema"}
+DOMAIN_COLLECTION_PROJECTIONS = {
+    "scope.roots", "stream.query", "stream.export",
+}
 IGNORED_VALUE_KEYS = {
     "bits", "known", "width", "has_x", "has_z", "requested_value_format",
 }
@@ -145,7 +148,16 @@ def check_summary(action: str, response: dict[str, Any], xout: str,
             continue
         if value is None or value == [] or value == {}:
             continue
-        if isinstance(value, (dict, list)):
+        if isinstance(value, dict):
+            for nested_key, nested_value in value.items():
+                if nested_value is None or isinstance(nested_value, (dict, list)):
+                    continue
+                if str(nested_value).lower() not in xout.lower():
+                    failures.append(
+                        f"missing summary field {key}.{nested_key}"
+                    )
+            continue
+        if isinstance(value, list):
             continue
         rendered_key = re.sub(r"[^A-Za-z0-9_.-]", "_", key)
         if rendered_key not in xout:
@@ -191,6 +203,17 @@ def check_schema_projection(response: dict[str, Any], xout: str,
             failures.append(f"missing schema {key} synopsis")
 
 
+def check_session_projection(response: dict[str, Any], xout: str,
+                             failures: list[str]) -> None:
+    session = response.get("session")
+    if not isinstance(session, dict):
+        return
+    for key in ("session_id", "mode", "transport"):
+        value = session.get(key)
+        if value is not None and str(value) not in xout:
+            failures.append(f"missing session field {key}")
+
+
 def audit_event(action: str, event: dict[str, Any]) -> tuple[list[str], list[str]]:
     response = event["response"]
     xout = event["xout"]
@@ -213,11 +236,14 @@ def audit_event(action: str, event: dict[str, Any]) -> tuple[list[str], list[str
         check_actions_projection(response, xout, failures)
     elif action == "schema":
         check_schema_projection(response, xout, failures)
-    if action not in SPECIAL_COLLECTION_PROJECTIONS:
+    if action.startswith("session."):
+        check_session_projection(response, xout, failures)
+    if action not in SPECIAL_COLLECTION_PROJECTIONS | DOMAIN_COLLECTION_PROJECTIONS:
         check_nonempty_arrays(action, response.get("data", {}), xout,
                               "data", failures)
         check_nonempty_arrays(action, response.get("findings", []), xout,
                               "findings", failures)
+    if action not in SPECIAL_COLLECTION_PROJECTIONS:
         check_logic_values(response.get("data", {}), xout, "data", failures)
         check_logic_values(response.get("findings", []), xout,
                            "findings", failures)

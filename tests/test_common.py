@@ -194,6 +194,22 @@ def test_session_open_with_design_db(loop_runner: StdioLoopRunner,
     assert rsp["session"]["daidir"] == str(counter_design_db)
 
 
+def test_session_open_xout_identifies_opened_session(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    xout = loop_runner.request_xout(
+        "session.open", target={"fsdb": str(counter_fst)},
+        args={"name": "xout_session_identity"})
+    assert xout.startswith("@xdebug.session.open.v1\nsummary:\n")
+    assert "session:\n" in xout
+    assert "session_id: xout_session_identity" in xout
+    assert "mode      : waveform" in xout
+    assert "transport : uds" in xout
+    assert "socket_path" not in xout and "server_pid" not in xout
+    close_xout = loop_runner.request_xout(
+        "session.close", target={"session_id": "xout_session_identity"})
+    assert close_xout.startswith("@xdebug.session.close.v1\nsummary:\n")
+
+
 def test_session_open_missing_file(loop_runner: StdioLoopRunner) -> None:
     rsp = loop_runner.request("session.open", target={
         "fsdb": "/nonexistent/waves.fst"}, args={"name": "bad"})

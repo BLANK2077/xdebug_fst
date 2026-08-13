@@ -143,6 +143,14 @@ def test_list_export(loop_runner: StdioLoopRunner, counter_fst, tmp_path) -> Non
     data_file = output / manifest["signals"][0]["file"]
     assert data_file.stat().st_size == manifest["signals"][0]["row_count"] * 24
 
+    xout_output = tmp_path / "list-export-xout"
+    xout = loop_runner.request_xout("list.export", args={
+        "name": "ex", "time_range": {"begin": "0ps", "end": "100ps"},
+        "output": {"path": str(xout_output), "file_format": "u64bin"},
+    })
+    assert f"output.path         : {xout_output}" in xout
+    assert f"output.manifest_path: {xout_output / 'manifest.json'}" in xout
+
 
 def test_list_first_change(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)

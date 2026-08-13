@@ -175,7 +175,20 @@ void emit_summary(TextResponseBuilder& out, const Json& response) {
     if (!response.contains("summary") || !response["summary"].is_object()) return;
     out.emit_section("summary");
     for (auto it = response["summary"].begin(); it != response["summary"].end(); ++it) {
-        if (should_emit_scalar_key(it.key(), it.value())) out.emit_kv(it.key(), it.value());
+        if (should_emit_scalar_key(it.key(), it.value())) {
+            out.emit_kv(it.key(), it.value());
+        } else if (it.value().is_object()) {
+            for (auto field = it.value().begin();
+                 field != it.value().end(); ++field) {
+                if (should_emit_scalar_key(field.key(), field.value()))
+                    out.emit_kv(it.key() + "." + field.key(), field.value());
+            }
+        } else if (it.value().is_array() && !it.value().empty()) {
+            bool scalar_array = true;
+            for (const auto& item : it.value())
+                scalar_array = scalar_array && is_xout_scalar_json(item);
+            if (scalar_array) out.emit_kv(it.key(), it.value());
+        }
     }
 }
 
@@ -319,6 +332,46 @@ void render_generic(TextResponseBuilder& out, const Json& response) {
     }
 }
 
+void emit_session_rows(TextResponseBuilder& out, const std::string& section,
+                       const Json& sessions) {
+    if (!sessions.is_array() || sessions.empty()) return;
+    std::vector<std::vector<std::string>> rows;
+    for (const auto& session : sessions) {
+        rows.push_back({
+            session.value("session_id", std::string()),
+            session.value("mode", std::string()),
+            session.value("transport", std::string()),
+            session.value("lifecycle_state", std::string()),
+            json_to_xout_value(session.value("expired", Json())),
+            session.value("recommended_action", std::string()),
+        });
+    }
+    out.emit_section(section);
+    out.emit_table({"session_id", "mode", "transport", "lifecycle_state",
+                    "expired", "recommended_action"}, rows);
+}
+
+void render_session_action(TextResponseBuilder& out, const Json& response) {
+    emit_summary(out, response);
+    const Json session = response.value("session", Json());
+    if (session.is_object()) {
+        out.emit_section("session");
+        for (const char* key : {"session_id", "mode", "transport"})
+            if (session.contains(key)) out.emit_kv(key, session[key]);
+    }
+    const Json data = response.value("data", Json::object());
+    if (!data.is_object()) return;
+    for (const char* key : {"sessions", "kept_sessions", "removed_sessions"})
+        emit_session_rows(out, key, data.value(key, Json::array()));
+    if (data.contains("removed_session") && data["removed_session"].is_object())
+        emit_session_rows(out, "removed_session",
+                          Json::array({data["removed_session"]}));
+    if (data.contains("message")) {
+        out.emit_section("diagnostic");
+        out.emit_kv("message", data["message"]);
+    }
+}
+
 } // namespace
 
 std::string render_xout_response(const Json& response,
@@ -386,7 +439,10 @@ std::string render_xout_response(const Json& response,
         return out.str();
     }
 
-    render_generic(out, response);
+    if (action.rfind("session.", 0) == 0)
+        render_session_action(out, response);
+    else
+        render_generic(out, response);
     emit_warnings(out, response);
     emit_suggestions(out, response);
     emit_common_blocks(out, response);

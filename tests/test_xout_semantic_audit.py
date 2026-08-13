@@ -115,3 +115,21 @@ def test_schema_projection_requires_summary_fields_and_sections() -> None:
         "examples:\n  examples/value-at.json\n",
     )])
     assert report["failing_action_count"] == 0, report
+
+
+def test_audit_rejects_missing_nested_artifact_summary() -> None:
+    report = AUDIT.audit(["list.export"], [event(
+        "list.export",
+        {
+            "ok": True,
+            "summary": {
+                "status": "written",
+                "output": {"path": "/tmp/result", "format": "u64bin"},
+            },
+            "data": {},
+        },
+        "@xdebug.list.export.v1\nsummary:\n  status: written\n",
+    )])
+    failures = report["actions"][0]["failures"]
+    assert "missing summary field output.path" in failures
+    assert "missing summary field output.format" in failures

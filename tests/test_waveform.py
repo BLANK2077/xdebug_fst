@@ -452,6 +452,14 @@ def test_scope_roots_reports_multiple_direct_raw_fst_and_design_roots(
             for root in rsp["data"]["roots"]] == [
         ("GCD", "design_only"), ("top", "wave_only")]
 
+    xout = loop_runner.request_xout("scope.roots", args={"source": "auto"})
+    assert xout.startswith("@xdebug.scope.roots.v1\nsummary:\n")
+    assert "roots:\n" in xout
+    assert "GCD" in xout and "design_only" in xout
+    assert "top" in xout and "wave_only" in xout
+    assert "design_roots:" not in xout and "wave_roots:" not in xout
+    assert "roots_0_" not in xout
+
 
 def test_scope_list(loop_runner: StdioLoopRunner, counter_fst,
                     counter_design_db) -> None:
