@@ -7,6 +7,7 @@
 #include "waveform/expr/expr_eval.h"
 #include "api/json_types.h"
 #include "engine/actions/value_source_entries.h"
+#include "protocol/domain_xout_renderer.h"
 
 #include <algorithm>
 #include <cctype>
@@ -1017,6 +1018,10 @@ struct StreamQueryHandler : public EngineActionHandler {
         }
         return {{"ok",true},{"summary",summary},{"data",data}};
     }
+
+    std::string render_xout(const Json& response) const override {
+        return render_stream_xout(action_name(), response);
+    }
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -1112,6 +1117,10 @@ struct StreamExportHandler : public EngineActionHandler {
         if (written) summary["output"]=output_summary;
         Json data=written?Json::object():Json{{"preview",preview}};
         return {{"ok",true},{"summary",summary},{"data",data}};
+    }
+
+    std::string render_xout(const Json& response) const override {
+        return render_stream_xout(action_name(), response);
     }
 };
 

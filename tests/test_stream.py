@@ -213,6 +213,18 @@ def test_stream_query_packet_window_and_filter(
             for packet in rsp["data"]["packets"]] == [
                 "8'haa", "8'hbb", "8'hcc", "8'hdd"]
 
+    xout = loop_runner.request_xout("stream.query", args={
+        "stream": "packet_fifo", "query": "packet_window",
+        "cache_scope": "full", "line_limit": 16,
+        "render_time_unit": "ps",
+    })
+    assert xout.startswith("@xdebug.stream.query.v1\nsummary:\n")
+    assert "packets:\n" in xout
+    assert "first.byte" in xout and "last.byte" in xout
+    assert "8'haa" in xout and "8'hdd" in xout
+    assert "packet_beats:\n" not in xout  # all packets contain one beat
+    assert "packets_0_" not in xout and "beat_fields_preview" not in xout
+
     filtered = loop_runner.request("stream.query", args={
         "stream": "packet_fifo", "query": "packet_window",
         "cache_scope": "full", "line_limit": 16,
