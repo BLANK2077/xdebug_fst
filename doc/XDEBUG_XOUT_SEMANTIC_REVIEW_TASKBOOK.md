@@ -230,8 +230,10 @@ XOUT 必须保留：
 
 - 阶段 0：已完成，提交 `91738f1`。
 - 阶段 1：已完成；原版与候选实际捕获均已完成，冻结候选 catalog 的 73 项均有同响应 JSON/XOUT 证据。
-- 阶段 2：已完成实现，待本阶段提交；XOUT sidecar、专用 renderer 调度和无损嵌套渲染通过 73/73 审计。
-- 阶段 3–7：待开始。
+- 阶段 2：已完成并提交；XOUT sidecar、专用 renderer 调度和无损嵌套渲染通过 73/73 审计。
+- 阶段 3–5：已完成并分批提交；value、session、export、scope、stream 和 trace 关键领域输出已修复。
+- 阶段 6：已完成；原版 73 项已重新独立评审，未沿用历史全 PASS 结论。
+- 阶段 7：已完成；最终报告、CTest、ASan、UBSan、依赖仓库和工作树门禁全部通过。
 - 当前阻塞：无。
 
 ### 提交与验证记录
@@ -239,13 +241,13 @@ XOUT 必须保留：
 | 阶段 | 状态 | Commit | 验证 | 备注 |
 | --- | --- | --- | --- | --- |
 | 0 | 已完成 | `91738f1` | `git diff --check` | 新 Goal 已建立并处于 active 状态 |
-| 1 | 已完成 | 待提交 | 原版 nightly 1/1；候选 pytest 全量通过；73/73 捕获 | 当前原版 HEAD 的 catalog 漂移作为评审发现记录，不改变冻结协议 |
-| 2 | 已完成 | 待提交 | GCC 13 构建、XOUT 定向测试、73/73 同响应语义审计通过 | 无公开 JSON/schema 变化 |
-| 3 | 待开始 | - | - | - |
-| 4 | 待开始 | - | - | - |
-| 5 | 待开始 | - | - | - |
-| 6 | 待开始 | - | - | - |
-| 7 | 待开始 | - | - | - |
+| 1 | 已完成 | `257039d` | 原版 nightly 1/1；候选 pytest 全量通过；73/73 捕获 | 当前原版 HEAD 的 catalog 漂移作为评审发现记录，不改变冻结协议 |
+| 2 | 已完成 | `72bbd77` | GCC 13 构建、XOUT 定向测试、73/73 同响应语义审计通过 | 无公开 JSON/schema 变化 |
+| 3 | 已完成 | `4ce6941` | session、artifact、scope roots 定向回归通过 | session 最小身份完整，不泄漏运行时遥测 |
+| 4 | 已完成 | `6bb4574` | Stream 全量与 packet XOUT 回归通过 | 单 beat 去重，多 beat 保留 preview 证据 |
+| 5 | 已完成 | `2bfdd58` | Design/Combined 全量回归通过 | source path、chain、hop、origin 与 ambiguity 领域表 |
+| 6 | 已完成 | 待报告提交 | 原版 73 primary 逐项复核 | 发现 5 个 P1、4 个 P2 及 suite 工作树副作用 |
+| 7 | 已完成 | `c2e2a9b`、待最终报告提交 | GCC 13/ASan/UBSan 各 414/414 pytest、9/9 CTest；MCP direct 等价通过 | 最终门禁通过 |
 
 ### Action 覆盖汇总
 
@@ -253,8 +255,8 @@ XOUT 必须保留：
 | --- | ---: | ---: |
 | 原版 primary XOUT | 73 | 73 |
 | FST primary JSON/XOUT | 73 | 73 |
-| 原版逐项评审 | 0 | 73 |
-| FST 修复后逐项验收 | 0 | 73 |
+| 原版逐项评审 | 73 | 73 |
+| FST 修复后逐项验收 | 73 | 73 |
 
 ### 2026-08-13 基线与首轮捕获记录
 
@@ -267,3 +269,15 @@ XOUT 必须保留：
 - Catalog 漂移发现：当前原版 HEAD 与候选冻结基线虽然均为 73 项，但原版独有 `apb.export`，候选独有 `session.kill`。本 Goal 明确禁止改变冻结 public schema/action 能力，因此本轮不擅自增删 Action；该差异作为原版版本漂移和跨版本评审边界写入最终报告，逐项对照以各自冻结的 73 项为准。
 - 首轮 P1 发现：`value.at` JSON 正确包含多信号多时间值，但候选通用 XOUT 丢失 `samples[].values[]`；首轮专用 renderer 已使 2 信号 × 5 时间矩阵完整显示。
 - 首轮 P1 发现：候选通用 renderer 对对象数组固定裁剪为 20 行，且没有有效的省略提示；首轮实现已移除该静默裁剪并递归投影嵌套集合，待全矩阵验证。
+
+### 2026-08-13 最终 XOUT 捕获与评审记录
+
+- GCC 13 全量 pytest：414/414 通过。
+- 最终同响应 JSON/XOUT 证据 1071 行，SHA-256 为 `7ed4b817746c2ac83fc45b6ebc887fbd65998b5ab568147367844143ec522213`。
+- 最终 Action coverage 证据 1223 行，SHA-256 为 `68a969d053673820dde0c1eee4ea6342bd78eb15a044ea0646617104479862fe`。
+- 最终审计 JSON SHA-256 为 `61c3e808b879d73368acdfdda595f7a6702e1015aa48e68ef303fef308aee1e7`，冻结 73/73 Action 通过。
+- 原版 P1：`session.open` 未显示会话身份；`axi.export`、`event.export`、`list.export`、`stream.export` 未显示实际 artifact 路径。
+- 原版 P2：`actions`/`batch` 重复计数和 build telemetry；`session.close`/`session.gc` 输出缓存路径、socket、PID、设备号和 inode；正式 suite 会改写 tracked 报告的易变字段。
+- 候选剩余 P2：异构 `batch` 以及配置、sampling、validation 的字段路径式嵌套 section。它们语义完整、没有静默裁剪，且有助于映射 JSON 字段，已在最终报告明确接受。
+- 真实 xverif MCP direct 集成测试已证明：无状态 one-shot XOUT 与原生 one-shot 逐字一致，managed session XOUT 与原生 UDS 路由逐字一致；未使用 TCP 或 fileport。
+- GCC 13 普通构建 9/9 CTest 通过；GCC 13 ASan 构建 414/414 pytest、9/9 CTest 通过；GCC 13 UBSan 构建 414/414 pytest、9/9 CTest 通过。
