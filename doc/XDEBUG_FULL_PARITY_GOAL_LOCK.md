@@ -415,3 +415,20 @@ X-origin 的 ref/modport hop 只对物理 alias 路径透明，不能把共享�
 时必须保留省略来源与 frontier。`36f2b6c` 已用当前原始 GCD FST 锁定 driver→ref→loop 与
 driver→ref→origin 同时存在，以及 depth+chain 联合限制。不得用 FST 值相等选择或删除分支。
 `3080a4c` 将同一要求扩展到 node+chain 联合限制；node budget 耗尽不是丢弃其他来源的理由。
+
+## P6 能力语义适用性锁（2026-08-13）
+
+Goal 的 P6 完成判断以“能力一致、信息语义一致”为准，不以所有 Verilator SystemVerilog
+前端语法组合或响应文本完全一致为准。`tests/coverage/p6_capability_applicability.json` 是
+机器可读范围：七个分析语义族必须持续由真实测试函数举证，任何证据删除或名称漂移都会使
+门禁失败。
+
+tagged union/expression/pattern 语法、nested/arrayed interface 形态、primitive strength/
+tristate 语法组合及已有限制的全笛卡尔积，不是独立 xdebug 能力完成项。只有它们引入新的
+用户可观察 action、调度优先级、关系类型、来源结论、未知状态、完整性、截断或错误语义时，
+才重新成为 Goal 缺口。这项裁定不等于宣称 Verilator 已完整支持这些语法。
+
+Goal 仍要求严格 73 action、关键事实语义和十维适用性无缺项，并永久保留 FST-only：Wellen
+直接按需读取原始 `.fst` 事实，分析由 xdebug action 与 DesignDB 完成；不得转换、预扫、建立
+私有索引/离线库/全量快照，不得增加 TCP/fileport 或 fallback。Verilator 修改继续遵守先有
+红测、证明 producer 事实确实缺失、最小附加且不改变普通行为的约束。

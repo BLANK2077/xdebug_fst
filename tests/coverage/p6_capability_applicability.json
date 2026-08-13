@@ -1,0 +1,69 @@
+{
+  "schema_version": "xdebug.p6-capability-applicability.v1",
+  "policy": "capability_and_information_semantics",
+  "covered_semantic_families": {
+    "activation_predicates_and_patterns": {
+      "evidence": [
+        "test_trace_active_driver_selects_case_item_and_default",
+        "test_trace_active_driver_selects_casez_and_casex_wildcards",
+        "test_trace_active_driver_selects_pattern_variable_binding"
+      ]
+    },
+    "sequential_and_driver_precedence": {
+      "evidence": [
+        "test_trace_active_driver_chain_prefers_unique_nba_over_blocking_write",
+        "test_trace_active_driver_chain_keeps_two_active_nbas_ambiguous",
+        "test_trace_active_driver_chain_stops_at_force"
+      ]
+    },
+    "module_interface_ref_and_alias": {
+      "evidence": [
+        "test_trace_active_driver_chain_crosses_interface_modports",
+        "test_trace_active_driver_chain_crosses_ref_port",
+        "test_trace_active_driver_chain_traverses_two_inout_boundaries_parentward"
+      ]
+    },
+    "multi_driver_ambiguity": {
+      "evidence": [
+        "test_trace_active_driver_chain_reports_real_multiple_active_drivers",
+        "test_trace_active_driver_chain_reports_two_active_procedural_drivers",
+        "test_trace_active_driver_chain_reports_cross_instance_output_drivers"
+      ]
+    },
+    "x_origin_branch_loop_and_source": {
+      "evidence": [
+        "test_trace_x_origin_keeps_loop_and_normal_source_branches",
+        "test_trace_x_origin_keeps_ref_feedback_and_normal_driver_branch",
+        "test_trace_x_origin_crosses_unobserved_pattern_variable_binding"
+      ]
+    },
+    "x_origin_limits_and_time": {
+      "evidence": [
+        "test_trace_x_origin_time_step_limit_counts_distinct_x_onsets",
+        "test_trace_x_origin_combines_ref_driver_depth_and_chain_limits",
+        "test_trace_x_origin_combines_ref_driver_node_and_chain_limits"
+      ]
+    },
+    "typed_and_delta_waveform_facts": {
+      "evidence": [
+        "test_value_at_preserves_typed_real_value",
+        "test_value_at_preserves_event_kind",
+        "test_signal_changes_preserves_same_time_string_deltas"
+      ]
+    }
+  },
+  "upstream_language_variants_not_separate_xdebug_capabilities": {
+    "tagged_union_expression_and_pattern_syntax": {
+      "reason": "Verilator SystemVerilog frontend syntax coverage; xdebug predicate, binding, branch and source semantics are covered independently"
+    },
+    "nested_or_arrayed_interface_syntax_shapes": {
+      "reason": "Verilator DesignDB topology producer coverage; xdebug consumes generic port and interface_modport_member relations already covered"
+    },
+    "primitive_strength_and_tristate_syntax_combinations": {
+      "reason": "Verilator lowering and static-fact producer coverage; xdebug primitive RHS, inout traversal and multi-driver ambiguity semantics are covered independently"
+    },
+    "cartesian_products_of_existing_limits": {
+      "reason": "not a distinct capability after max_time_steps, max_nodes, max_depth and max_chains accounting and representative interactions are covered"
+    }
+  }
+}

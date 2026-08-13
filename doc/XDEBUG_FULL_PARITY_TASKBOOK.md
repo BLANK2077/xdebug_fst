@@ -1503,3 +1503,30 @@ expression/pattern 或 PatternVar binding 已完成。
    全绿、xdebug combined 75/75、pytest 397/397、CTest 9/9 和冻结依赖基线通过。该批闭环
    不等于 P6 或 Goal 完成，PatternVar/tagged、复杂端口与联合限制、最终 73-action 归一化差分
    仍必须继续。
+
+## 十三、P6 能力与信息语义适用性收口（2026-08-13）
+
+用户最新要求是不追求实现、JSON、措辞和排列“完全一致”，只要求能力一致、关键信息语义
+一致。本节是对本文历史 P6 TODO 的权威范围修正；与较早的“tagged 等全部语法形态必须完成”
+冲突时，以本节为准。
+
+1. 最终门禁仍严格覆盖冻结 73 个公开 action，不删 action，不以 stub、近似返回或测试缺席
+   冒充完成。目标、时间、值、driver/source、关系、计数、范围、完整性、截断、未知状态和
+   错误原因必须保持等价语义。
+2. P6 分为七个用户可观察分析语义族：活动 predicate/pattern，时序与 driver 优先级，模块/
+   interface/ref/alias，多 driver 歧义，X-origin 分支/环/来源，时间及各类预算，typed/delta
+   波形事实。每个能力族必须有至少两项真实仓库回归，证据由
+   `tests/coverage/p6_capability_applicability.json` 和对应 pytest 自动校验。
+3. PatternVar 已完成动态闭环，不再列为剩余项。tagged union/expression/pattern 的额外前端
+   语法、nested/arrayed interface 的更多语法形状、primitive strength/tristate 的语法组合，
+   若只产生已有 DesignDB/FST 事实，属于 Verilator producer 覆盖，不是新的 xdebug action
+   能力；不得为追求语法穷举扩大 Verilator 修改。
+4. max_time_steps/max_nodes/max_depth/max_chains 的单项行为和代表性联合限制必须正确；已有
+   能力的全部参数笛卡尔积不是独立能力。若以后红测证明计数、frontier、pending、续跑建议或
+   最终结论出现新的用户可观察错误，该场景立即重新成为必修缺口。
+5. 上述裁定不声称 Verilator 支持所有列出的 SystemVerilog 语法，也不得用于跳过新的调度
+   优先级、关系类型、未知状态、完整性或 action 能力。详细理由见
+   `doc/XDEBUG_P6_CAPABILITY_APPLICABILITY.md`。
+6. FST-only 架构不变：原始 `.fst` 是唯一波形输入，Wellen 直接按需提供值、时间、类型和
+   delta 事实，xdebug action 结合 DesignDB 执行分析。禁止转换、预扫、私有索引、离线库、
+   全量快照、export 回灌、TCP/fileport 和 fallback。

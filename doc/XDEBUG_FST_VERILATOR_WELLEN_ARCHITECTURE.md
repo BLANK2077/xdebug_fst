@@ -1469,6 +1469,26 @@ capability，也没有移动 pass、改变 AST、调度或普通仿真。红测/
 `.tools/format-venv` 并由本地 exclude 排除。当前 13 个 Verilator XDD 用例、xdebug combined
 75/75、全量 pytest 397/397、CTest 9/9 与依赖锁检查均通过。
 
+## P6 能力边界为何不等同于 Verilator 语法穷举（2026-08-13）
+
+本方案对齐的是原版 xdebug 的调试能力和关键事实语义，而不是要求内部实现、响应文字或
+Verilator 支持的每一种 SystemVerilog 写法完全相同。架构边界据此保持清晰：Verilator 在
+`--design-db` 路径发布必要静态事实，Wellen 直接按需读取唯一原始 `.fst` 的动态事实，xdebug
+action 执行 predicate、driver、端口关系、X 来源、预算及公开合同投影。FST 只是波形事实
+容器，绝不是分析引擎。
+
+P6 的七个能力族和证据登记在 `tests/coverage/p6_capability_applicability.json`。tagged union/
+expression/pattern、nested/arrayed interface、primitive strength/tristate 的更多语法形态，
+如果最终只映射成已有的 predicate、port、driver、RHS 和 waveform facts，就属于 producer
+的语法覆盖，不构成新的 xdebug action 能力。这样做的原因是避免为“写法不同但调试结论相同”
+无边界扩大 Verilator 前端修改，同时继续要求一旦出现新的调度、关系、未知状态、来源或完整性
+语义，就用真实红测重新打开缺口。
+
+这一裁定不放宽 FST 版本对 Wellen 的要求：Wellen 必须保真暴露 signal ref 0、层级/alias、
+timescale、四态宽度、real/string/event、同物理时间 delta 以及 before/after sampling，并支持
+action 的按需和批量读取；它不做 HDL driver、协议或 X-origin 分析。实现中没有 VCD/JSON
+转换、预扫持久化、私有波形索引、离线分析库或全量快照，也不提供 TCP/fileport/fallback。
+
 ### GCC 13 sanitizer 的运行时路径
 
 GCC 13 ASan/UBSan 是实现质量门禁，不属于波形 backend。编译器、devel archive/linker

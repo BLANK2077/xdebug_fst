@@ -374,3 +374,15 @@ frontier、`GCD.y` pending dependency 和续跑建议。
 限制；combined 81/81。至此关闭“带正常 driver/分支的基础 ref 反馈及 depth/node+chain 联合
 限制”；time 与更深嵌套 interface/ref 的联合组合仍待能力语义复核。Wellen、Verilator、XDD
 ABI 未修改。
+
+## 2026-08-13 P6 能力适用性审计
+
+根据用户最新口径，将历史 P6 语法矩阵重整为七个用户可观察能力族，并新增机器清单与 pytest
+门禁。门禁逐项解析仓库测试函数，已证明活动 predicate/pattern、时序/driver 优先级、模块/
+interface/ref/alias、多 driver 歧义、X-origin 分支/环/来源、time/limit 及 typed/delta 波形
+事实均有不少于两项真实证据。
+
+tagged union/expression/pattern、nested/arrayed interface、primitive strength/tristate 的更多
+前端语法组合，以及所有限制参数笛卡尔积被显式登记为“非独立 xdebug 能力”，而不是伪报已被
+Verilator 支持。若未来产生新的用户可观察语义，必须重新进入 TODO。独立适用性 pytest 1/1
+通过；本批只增加范围门禁和文档，未修改生产实现、Wellen、Verilator 或 ABI。
