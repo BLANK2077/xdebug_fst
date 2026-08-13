@@ -228,17 +228,19 @@ XOUT 必须保留：
 
 ### 当前状态
 
-- 阶段 0：任务书与 Goal 已建立，等待首批提交。
-- 阶段 1–7：待开始。
+- 阶段 0：已完成，提交 `91738f1`。
+- 阶段 1：已完成；原版与候选实际捕获均已完成，冻结候选 catalog 的 73 项均有同响应 JSON/XOUT 证据。
+- 阶段 2：已完成实现，待本阶段提交；XOUT sidecar、专用 renderer 调度和无损嵌套渲染通过 73/73 审计。
+- 阶段 3–7：待开始。
 - 当前阻塞：无。
 
 ### 提交与验证记录
 
 | 阶段 | 状态 | Commit | 验证 | 备注 |
 | --- | --- | --- | --- | --- |
-| 0 | 进行中 | 待提交 | 任务书内容与工作树检查 | 新 Goal 已建立并处于 active 状态 |
-| 1 | 待开始 | - | - | - |
-| 2 | 待开始 | - | - | - |
+| 0 | 已完成 | `91738f1` | `git diff --check` | 新 Goal 已建立并处于 active 状态 |
+| 1 | 已完成 | 待提交 | 原版 nightly 1/1；候选 pytest 全量通过；73/73 捕获 | 当前原版 HEAD 的 catalog 漂移作为评审发现记录，不改变冻结协议 |
+| 2 | 已完成 | 待提交 | GCC 13 构建、XOUT 定向测试、73/73 同响应语义审计通过 | 无公开 JSON/schema 变化 |
 | 3 | 待开始 | - | - | - |
 | 4 | 待开始 | - | - | - |
 | 5 | 待开始 | - | - | - |
@@ -249,7 +251,19 @@ XOUT 必须保留：
 
 | 项目 | 已完成 | 目标 |
 | --- | ---: | ---: |
-| 原版 primary XOUT | 0 | 73 |
-| FST primary JSON/XOUT | 0 | 73 |
+| 原版 primary XOUT | 73 | 73 |
+| FST primary JSON/XOUT | 73 | 73 |
 | 原版逐项评审 | 0 | 73 |
 | FST 修复后逐项验收 | 0 | 73 |
+
+### 2026-08-13 基线与首轮捕获记录
+
+- 原版正式入口：`XVERIF_TEST_EXECUTION_ENV=host .conda-xverif/bin/python -m pytest --xverif-gate nightly --xverif-suite xdebug.native_xout_all -q`。
+- 原版结果：1/1 通过，1270 项未选择，73 个 primary、错误族、保护场景及进制变体实际执行；运行使用 `xverif_fixture` 既有缓存，没有 prepare、重建或 fallback。
+- 原版 suite 会重写 tracked 评审报告中的耗时、缓存临时路径和当前 build id；运行后已只恢复该报告，`xverif` 工作树重新干净。这一副作用将列入最终基础设施评审。
+- 候选入口：GCC 13 二进制下执行全量 pytest，同时设置测试专用 `XDEBUG_XOUT_AUDIT_CAPTURE=1`，使同一次 stateful action 响应同时留下 canonical JSON 与 XOUT，避免重放副作用请求。
+- 候选最终基线捕获：全量 pytest 通过，捕获 1067 组同响应 JSON/XOUT；临时证据 `/tmp/xdebug-fst-xout-audit-20260813-v2.ndjson` 共 1067 行，SHA-256 为 `a8a256939ebdeec9682109af0066cf6adeac31130717d71b8bfae57b70d6dc42`。对应 action coverage 证据 1219 行，SHA-256 为 `23b8a3a2062c20a9045605405773485b584550f34b95d8450148b3d78966b115`。
+- 候选冻结 catalog 的 73/73 Action 同响应语义审计通过；审计 JSON SHA-256 为 `0003ad58626a8e63fb2bfc6fcb47cfd75c9a990c983ca68f4909d8d63e939683`，Markdown SHA-256 为 `844e25918b10cebccc9c09647ba0e1951a34efa47fc2802b02f135252a5438b8`。
+- Catalog 漂移发现：当前原版 HEAD 与候选冻结基线虽然均为 73 项，但原版独有 `apb.export`，候选独有 `session.kill`。本 Goal 明确禁止改变冻结 public schema/action 能力，因此本轮不擅自增删 Action；该差异作为原版版本漂移和跨版本评审边界写入最终报告，逐项对照以各自冻结的 73 项为准。
+- 首轮 P1 发现：`value.at` JSON 正确包含多信号多时间值，但候选通用 XOUT 丢失 `samples[].values[]`；首轮专用 renderer 已使 2 信号 × 5 时间矩阵完整显示。
+- 首轮 P1 发现：候选通用 renderer 对对象数组固定裁剪为 20 行，且没有有效的省略提示；首轮实现已移除该静默裁剪并递归投影嵌套集合，待全矩阵验证。

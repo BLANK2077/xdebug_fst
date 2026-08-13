@@ -88,4 +88,59 @@ class CliRunner:
             returncode=result.returncode,
             timed_out=result.timed_out,
         )
+        self._record_stateless_xout_audit(request, result, timeout_sec)
         return result
+
+    def _record_stateless_xout_audit(
+        self, request: Any, json_result: RunResult, timeout_sec: float
+    ) -> None:
+        destination = os.environ.get("XDEBUG_XOUT_AUDIT_LOG")
+        if not destination or not isinstance(request, dict):
+            return
+        # These two actions are resource-free and side-effect-free. Stateful
+        # actions are captured from the same stdio-loop response instead of
+        # being replayed merely for XOUT observation.
+        if request.get("action") not in {"actions", "schema"}:
+            return
+        if not json_result.ok or not isinstance(json_result.response, dict):
+            return
+        path = Path(destination)
+        if not path.is_absolute():
+            raise RuntimeError("XDEBUG_XOUT_AUDIT_LOG must be an absolute path")
+        proc = subprocess.run(
+            [self.command[0], "-"],
+            cwd=self.cwd,
+            env=self.env,
+            input=json.dumps(request) + "\n",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=timeout_sec,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise AssertionError(
+                "stateless XOUT audit replay failed: " + proc.stderr
+            )
+        event = {
+            "test_node": os.environ.get(
+                "PYTEST_CURRENT_TEST", "<outside-pytest>"
+            ).split(" (")[0],
+            "action": request.get("action"),
+            "request": request,
+            "response": json_result.response,
+            "xout": proc.stdout,
+        }
+        encoded = (json.dumps(
+            event, sort_keys=True, ensure_ascii=False
+        ) + "\n").encode("utf-8")
+        descriptor = os.open(
+            path, os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_CLOEXEC,
+            0o600,
+        )
+        try:
+            written = os.write(descriptor, encoded)
+            if written != len(encoded):
+                raise RuntimeError("short write to XOUT audit trace")
+        finally:
+            os.close(descriptor)
