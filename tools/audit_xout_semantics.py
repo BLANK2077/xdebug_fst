@@ -149,6 +149,11 @@ def check_summary(action: str, response: dict[str, Any], xout: str,
         if value is None or value == [] or value == {}:
             continue
         if isinstance(value, dict):
+            if is_logic_value(value):
+                expected = compact_logic_literal(value)
+                if expected not in xout:
+                    failures.append(f"missing summary field {key}")
+                continue
             for nested_key, nested_value in value.items():
                 if nested_value is None or isinstance(nested_value, (dict, list)):
                     continue

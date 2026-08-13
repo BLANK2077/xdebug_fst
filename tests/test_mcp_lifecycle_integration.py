@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 
@@ -61,6 +62,19 @@ def main() -> int:
                 catalog = adapter.actions()
                 require(catalog.get("ok") is True, catalog)
                 require(catalog["summary"]["action_count"] == 73, catalog)
+                mcp_catalog_xout = adapter.query_one_shot(
+                    action="actions", args={}, output_format="xout")
+                native_catalog = subprocess.run(
+                    [str(executable), "-"],
+                    input=json.dumps({
+                        "api_version": "xdebug.v1", "action": "actions",
+                        "args": {},
+                    }) + "\n",
+                    text=True, capture_output=True, check=True,
+                    env=os.environ,
+                ).stdout
+                require(mcp_catalog_xout == native_catalog,
+                        "MCP direct one-shot XOUT differs from native one-shot")
 
             opened = adapter.session_open(name, fsdb=str(waveform))
             require(opened.get("ok") is True, opened)
@@ -76,6 +90,21 @@ def main() -> int:
             require(listed["summary"]["active_count"] == 1, listed)
 
             if mode == "direct":
+                query = {
+                    "api_version": "xdebug.v1", "action": "value.at",
+                    "target": {"session_id": name},
+                    "args": {"signal": "top.u.ready", "time": "120ns"},
+                }
+                managed_xout = adapter.query(
+                    session_id=name, action="value.at",
+                    args=query["args"], output_format="xout")
+                native_managed = subprocess.run(
+                    [str(executable), "-"], input=json.dumps(query) + "\n",
+                    text=True, capture_output=True, check=True,
+                    env=os.environ,
+                ).stdout
+                require(managed_xout == native_managed,
+                        "MCP direct managed XOUT differs from native UDS route")
                 routed = adapter.query(
                     session_id=name,
                     action="trace.active_driver",
