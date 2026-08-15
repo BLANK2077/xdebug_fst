@@ -540,7 +540,8 @@ def main() -> int:
         )
         assert not Path(changed["session"]["socket_path"]).exists()
 
-        # session.list owns idle expiration and reports structured removal.
+        # session.list is observational: even an idle generation remains
+        # visible and no lifecycle lease or cleanup side effect is allowed.
         idle_environment = environment.copy()
         idle_environment["XDEBUG_SESSION_IDLE_TIMEOUT_SEC"] = "1"
         idle = expect_ok(
@@ -556,13 +557,26 @@ def main() -> int:
             "session.open",
         )
         time.sleep(1.1)
-        expired = expect_ok(
+        idle_list = expect_ok(
             invoke(executable, idle_environment, request("session.list", args={})),
             "session.list",
         )
-        assert expired["summary"]["session_count"] == 0
-        assert expired["summary"]["expired_removed_count"] == 1
-        assert expired["data"]["removed"][0]["reason"] == "idle_timeout"
+        assert idle_list["summary"]["session_count"] == 1
+        assert idle_list["summary"]["expired_removed_count"] == 0
+        assert idle_list["data"]["sessions"][0]["session_id"] == "case_idle"
+        assert Path(idle["session"]["socket_path"]).exists()
+        expect_ok(
+            invoke(
+                executable,
+                idle_environment,
+                request(
+                    "session.close",
+                    target={"session_id": "case_idle"},
+                    args={},
+                ),
+            ),
+            "session.close",
+        )
         assert not Path(idle["session"]["socket_path"]).exists()
 
         for name in ("case_close_all_a", "case_close_all_b"):

@@ -2,6 +2,7 @@
 
 #include "common/env_config.h"
 #include "common/sha256.h"
+#include "session/session_lifecycle_lease.h"
 #include "session/session_paths.h"
 #include "session/session_registry.h"
 #include "session/uds_transport.h"
@@ -24,6 +25,7 @@ namespace xdebug_fst {
 namespace {
 
 using xdebug_engine::SessionInfo;
+using xdebug_engine::SessionLifecycleLease;
 using xdebug_engine::SessionRegistry;
 using xdebug_engine::SessionRegistryResult;
 using xdebug_engine::SessionRegistryStatus;
@@ -40,6 +42,14 @@ Json failure(const std::string& code, const std::string& message,
         }
     }
     return {{"ok", false}, {"error", std::move(error)}};
+}
+
+Json registry_lookup_failure(const SessionRegistryResult& result) {
+    return failure(
+        result.status == SessionRegistryStatus::NotFound
+            ? "SESSION_NOT_FOUND"
+            : "SESSION_REGISTRY_FAILED",
+        result.message);
 }
 
 bool random_hex_256(std::string& value) {
@@ -708,6 +718,12 @@ Json open_session(const Json& request) {
         return manifest_error;
     }
 
+    SessionLifecycleLease lease(session_id);
+    if (!lease.locked()) {
+        return failure(
+            "SESSION_LIFECYCLE_LOCK_FAILED",
+            "failed to acquire the session lifecycle lease");
+    }
     SessionRegistry registry;
     std::vector<SessionInfo> before_sessions;
     const SessionRegistryResult before_loaded =
@@ -834,27 +850,13 @@ Json list_sessions() {
                        "session_manager", false);
     }
     Json visible = Json::array();
-    Json removed = Json::array();
-    const time_t now = time(nullptr);
     for (const SessionInfo& session : sessions) {
-        const long long idle_sec = session.last_active > 0 && now > session.last_active
-            ? static_cast<long long>(now - session.last_active) : 0;
-        if (session.lifecycle_state == "active" &&
-            idle_sec >= idle_timeout_sec &&
-            cleanup_managed_session(registry, session, false)) {
-            removed.push_back({{"removed_session", public_session(session)},
-                               {"reason", "idle_timeout"},
-                               {"idle_sec", idle_sec},
-                               {"idle_timeout_sec", idle_timeout_sec}});
-            continue;
-        }
         visible.push_back(public_session(session));
     }
     Json data{{"sessions", visible}};
-    if (!removed.empty()) data["removed"] = removed;
     return {{"ok", true},
             {"summary", {{"session_count", visible.size()},
-                         {"expired_removed_count", removed.size()}}},
+                         {"expired_removed_count", 0}}},
             {"data", std::move(data)}};
 }
 
@@ -863,7 +865,7 @@ Json doctor_session(const Json& request) {
     SessionRegistry registry;
     SessionInfo session;
     const SessionRegistryResult found = registry.get(id, session);
-    if (!found.ok()) return failure("SESSION_NOT_FOUND", found.message);
+    if (!found.ok()) return registry_lookup_failure(found);
     const HealthResult health = diagnose(session);
     if (!health.healthy) {
         return failure("SESSION_UNHEALTHY", health.message,
@@ -875,7 +877,6 @@ Json doctor_session(const Json& request) {
                              : (session.fsdb_file.empty() ? "design" : "combined")},
                         {"session_transport", session.transport}});
     }
-    registry.touch_if_generation(id, session.generation, time(nullptr));
     return {{"ok", true}, {"session", public_session(session)},
             {"summary", {{"healthy", true}}},
             {"data", {{"message", "Session is healthy"}}}};
@@ -899,7 +900,23 @@ Json remove_session(const Json& request, bool force) {
         }
         Json removed_sessions = Json::array();
         Json failed_session_ids = Json::array();
-        for (const SessionInfo& session : sessions) {
+        for (const SessionInfo& snapshot : sessions) {
+            SessionLifecycleLease lease(snapshot.session_id);
+            SessionInfo session;
+            const SessionRegistryResult current =
+                lease.locked()
+                    ? registry.get(snapshot.session_id, session)
+                    : SessionRegistryResult(
+                          SessionRegistryStatus::IoError,
+                          "failed to acquire the session lifecycle lease");
+            if (current.status == SessionRegistryStatus::NotFound) {
+                continue;
+            }
+            if (!current.ok() ||
+                session.generation != snapshot.generation) {
+                failed_session_ids.push_back(snapshot.session_id);
+                continue;
+            }
             if (cleanup_managed_session(registry, session, force)) {
                 removed_sessions.push_back(public_session(session));
             } else {
@@ -920,9 +937,15 @@ Json remove_session(const Json& request, bool force) {
                              {"removed_count", removed_sessions.size()}}},
                 {"data", {{"removed_sessions", removed_sessions}}}};
     }
+    SessionLifecycleLease lease(id);
+    if (!lease.locked()) {
+        return failure(
+            "SESSION_LIFECYCLE_LOCK_FAILED",
+            "failed to acquire the session lifecycle lease");
+    }
     SessionInfo session;
     const SessionRegistryResult found = registry.get(id, session);
-    if (!found.ok()) return failure("SESSION_NOT_FOUND", found.message);
+    if (!found.ok()) return registry_lookup_failure(found);
     if (force) {
         const std::string token = request.value("args", Json::object()).value(
             "ownership_token", std::string());
@@ -953,7 +976,20 @@ Json gc_sessions() {
     if (!loaded.ok()) return failure("SESSION_REGISTRY_FAILED", loaded.message);
     Json kept = Json::array();
     Json removed = Json::array();
-    for (const SessionInfo& session : sessions) {
+    for (const SessionInfo& snapshot : sessions) {
+        SessionLifecycleLease lease(snapshot.session_id);
+        if (!lease.locked()) {
+            kept.push_back(public_session(snapshot));
+            continue;
+        }
+        SessionInfo session;
+        const SessionRegistryResult current =
+            registry.get(snapshot.session_id, session);
+        if (current.status == SessionRegistryStatus::NotFound) continue;
+        if (!current.ok() || session.generation != snapshot.generation) {
+            kept.push_back(public_session(snapshot));
+            continue;
+        }
         const HealthResult health = diagnose(session);
         if (health.healthy) {
             kept.push_back(public_session(session));
@@ -1009,7 +1045,7 @@ Json forward_to_managed_session(const Json& request) {
     SessionRegistry registry;
     SessionInfo session;
     const SessionRegistryResult found = registry.get(id, session);
-    if (!found.ok()) return failure("SESSION_NOT_FOUND", found.message);
+    if (!found.ok()) return registry_lookup_failure(found);
     if (session.lifecycle_state != "active") {
         return failure("SESSION_UNHEALTHY", "session generation is not active");
     }
@@ -1018,7 +1054,6 @@ Json forward_to_managed_session(const Json& request) {
     if (!uds_request(session.socket_path, request, response, 30000, error)) {
         return failure("TRANSPORT_FAILED", error, "transport");
     }
-    registry.touch_if_generation(id, session.generation, time(nullptr));
     return response;
 }
 

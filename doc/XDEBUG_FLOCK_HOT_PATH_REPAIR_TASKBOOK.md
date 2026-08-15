@@ -112,6 +112,7 @@
 - `session.gc` 和 `session.kill all` 先无锁枚举，按 session id 确定顺序，每次只获取一个 lease，锁内重新读取并核对 generation，不同时持有多把 lease。
 - managed query 无锁读取 active generation 快照，校验 endpoint/generation 后发送 UDS 请求；与 close 竞争只允许成功响应或稳定的 session/transport error。
 - `session.doctor`、`session.list` 只读，不 touch registry。
+- 原实现由 `session.list` 顺带执行 idle-timeout 清理，这与“list 零 flock、无副作用”不可同时成立；修复后超时 session 仍由 list 展示，清理只允许通过显式 `session.close/kill/gc` 生命周期 Action 完成。既有 `expired_removed_count` 字段保留并固定为 0，公开 schema 不变。
 - engine 请求完成后只更新 activity marker；删除前端的重复 touch。
 - 删除 `session_registry.cpp` 的 `sys/file.h`、全局 acquire/release 及所有全局 read-modify-write。
 
@@ -196,8 +197,9 @@
 
 - 阶段 0：已完成并提交。
 - 阶段 1：已完成并提交。
-- 阶段 2：已完成，等待本次提交落盘。
-- 阶段 3–5：未开始。
+- 阶段 2：已完成并提交。
+- 阶段 3：已完成，等待本次提交落盘。
+- 阶段 4–5：未开始。
 - 当前阻塞：无。
 - 当前 Goal：`019fe602-0198-7f23-a9a1-bb3c6a539dec`，目标为完整实施本任务书并通过全部验收门禁。
 - 当前分支：`fix/per-session-registry-flock`，基线为 `f12bcd4`。
@@ -208,8 +210,8 @@
 | --- | --- | --- | --- | --- |
 | 0 | 已完成 | `bfec263` | 任务书已落盘，Goal 与分支已建立 | Goal `019fe602-0198-7f23-a9a1-bb3c6a539dec`；从 `f12bcd4` 开始 |
 | 1 | 已完成 | `28d405b` | `test-session-registry` 按预期失败：`empty v2 registry was not retired`；`test_flock_policy.py` 按预期失败并定位 `session_registry.cpp:57,65` | 断言未放宽，阶段 2/3 负责转绿 |
-| 2 | 已完成 | 本次提交 | GCC 13 完整构建通过；`test-session-registry` 与 `test_flock_policy.py` 均通过 | 已实现 state/activity/history、v2 fail-closed 和原子持久化 |
-| 3 | 未开始 | - | - | lifecycle lease |
+| 2 | 已完成 | `72fabe5` | GCC 13 完整构建通过；`test-session-registry` 与 `test_flock_policy.py` 均通过 | 已实现 state/activity/history、v2 fail-closed 和原子持久化 |
+| 3 | 已完成 | 本次提交 | GCC 13 完整构建通过；`session-uds-lifecycle` 与 `test_flock_policy.py` 通过 | open/close/kill/gc 按 session lease；list/doctor/query 零 lease；list 不再隐式清理 |
 | 4 | 未开始 | - | - | 并发、故障与兼容 |
 | 5 | 未开始 | - | - | 全量验收与文档 |
 
@@ -218,6 +220,6 @@
 - [x] 建立新 Goal 和修复分支。
 - [x] 冻结零 flock 与 v2 迁移红测。
 - [x] 实现 per-session state/activity/history。
-- [ ] 接入按 session lifecycle lease。
+- [x] 接入按 session lifecycle lease。
 - [ ] 完成并发、故障、strace 和兼容门禁。
 - [ ] 完成普通/ASan/UBSan 全量验收和最终文档。
