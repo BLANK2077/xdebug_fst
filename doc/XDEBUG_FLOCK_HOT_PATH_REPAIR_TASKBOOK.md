@@ -214,7 +214,7 @@
 | 2 | 已完成 | `72fabe5` | GCC 13 完整构建通过；`test-session-registry` 与 `test_flock_policy.py` 均通过 | 已实现 state/activity/history、v2 fail-closed 和原子持久化 |
 | 3 | 已完成 | `4c8e7b3` | GCC 13 完整构建通过；`session-uds-lifecycle` 与 `test_flock_policy.py` 通过 | open/close/kill/gc 按 session lease；list/doctor/query 零 lease；list 不再隐式清理 |
 | 4 | 已完成 | `4d22a12` | CTest 9/9；静态 flock 门禁通过；strace：list 0、doctor 0、query 0、close 2；旧 registry.lock 持锁与按 session lease 动态隔离门禁通过 | 覆盖 activity/history、损坏隔离、v2 非空/空/非法/归档冲突、同名并发和不同 session 并发；修复 pytest teardown 泄漏 |
-| 5 | 已完成 | 本次提交 | GCC 13 clean configure/build；clean CTest 9/9；普通 pytest 422/422；ASan CTest 9/9；UBSan CTest 9/9；compat baseline OK | 73 Action 与 `session.kill` 保留；Wellen/Verilator 源码工作树干净；架构与验收报告已更新 |
+| 5 | 已完成 | `2cd3bbf` 及后续验收证据提交 | GCC 13 clean configure/build；clean CTest 9/9；普通、ASan、UBSan pytest 均为 422/422；ASan CTest 9/9；UBSan CTest 9/9；compat baseline OK | 73 Action 与 `session.kill` 保留；Wellen/Verilator 源码工作树干净；架构与验收报告已更新 |
 
 ### 剩余 TODO
 
@@ -231,8 +231,8 @@
 - clean build：`build/gcc13-flock-clean` 从全新 configure 完成全部目标编译；顺序 CTest 9/9。
 - 普通 CTest：`build/gcc13` 9/9。
 - 普通 pytest：新增 flock 门禁后共 422 项，按执行通道分为 145、169、108 三组，全部通过；结束后 `/tmp/pytest-of-ryan` 测试 server 为 0。
-- ASan：`detect_leaks=1:abort_on_error=1:halt_on_error=1`，CTest 9/9，无 sanitizer 诊断。
-- UBSan：`halt_on_error=1:print_stacktrace=1`，CTest 9/9，无 sanitizer 诊断。
+- ASan：`detect_leaks=1:abort_on_error=1:halt_on_error=1`，CTest 9/9、pytest 422/422，无 sanitizer 诊断；其中长运行 stream 分组的 JUnit 记录为 39 tests、0 failures、0 errors。
+- UBSan：`halt_on_error=1:print_stacktrace=1`，CTest 9/9、pytest 422/422，无 sanitizer 诊断。
 - compatibility：`tools/check_compat_baseline.py` 返回 `compat baseline: OK`；冻结 catalog 为 73 Action，包含 `session.kill`。
 - flock：静态 allowlist 通过；动态 `strace -f -e flock` 得到 list 0、doctor 0、managed query 0、close 2。
 - concurrency：废弃 `registry.lock` 不阻塞；同 session lease 串行；不同 session 及只读 Action 不等待。

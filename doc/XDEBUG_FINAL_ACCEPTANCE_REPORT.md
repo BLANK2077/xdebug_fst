@@ -117,8 +117,8 @@ ref/alias、多 driver 歧义、X-origin 分支/环/来源、time/limits、typed
 | --- | --- |
 | GCC 13 clean configure/build | 13.3.1，通过 |
 | 普通 CTest | 9/9 |
-| ASan CTest | 9/9，leak/abort/halt 开启 |
-| UBSan CTest | 9/9，halt/stacktrace 开启 |
+| ASan | CTest 9/9、pytest 422/422，leak/abort/halt 开启 |
+| UBSan | CTest 9/9、pytest 422/422，halt/stacktrace 开启 |
 | 普通 pytest | 新增门禁后 422/422，分为 145、169、108 三组执行 |
 | flock 静态门禁 | 仅 `session_lifecycle_lease.h` 可调用 flock |
 | flock 动态门禁 | list 0、doctor 0、managed query 0、close 2 |

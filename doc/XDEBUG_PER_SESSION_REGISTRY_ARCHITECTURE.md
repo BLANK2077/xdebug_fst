@@ -88,7 +88,7 @@ Verilator DesignDB 仍只提供 FST 不包含的静态设计事实，例如 driv
 - 动态 lease 门禁：同 session close 等待；不同 session open 和只读 Action 不等待。
 - `strace -f -e flock`：list 0、doctor 0、managed query 0、close 2（加锁与解锁）。
 - 注册表：activity 单调、history 完整、损坏隔离、generation mismatch、v2 空/非空/非法/归档冲突均有回归。
-- GCC 13 普通、ASan、UBSan CTest 均为 9/9；普通 pytest 共 422 项通过。
+- GCC 13 普通、ASan、UBSan CTest 均为 9/9；三种构建各自运行的 pytest 均为 422/422。
 - MCP direct、fake-LSF、并发、FD/RSS 和 UDS lifecycle 门禁通过。
 
 完整执行记录和 commit 对应关系见 [`XDEBUG_FLOCK_HOT_PATH_REPAIR_TASKBOOK.md`](XDEBUG_FLOCK_HOT_PATH_REPAIR_TASKBOOK.md)。
