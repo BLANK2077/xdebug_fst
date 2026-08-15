@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -323,6 +325,143 @@ def main() -> int:
             ),
             "session.close",
         )
+
+        # A stale process holding the retired global registry lock must not
+        # delay any observational or managed-query path.
+        legacy_lock_path = Path(root) / ".xdebug/engine/registry.lock"
+        legacy_lock_path.touch(mode=0o600, exist_ok=True)
+        with legacy_lock_path.open("r+") as legacy_lock:
+            fcntl.flock(legacy_lock.fileno(), fcntl.LOCK_EX)
+            release = threading.Timer(
+                1.5,
+                lambda: fcntl.flock(legacy_lock.fileno(), fcntl.LOCK_UN),
+            )
+            release.start()
+            started = time.monotonic()
+            expect_ok(
+                invoke(executable, environment, request("session.list", args={})),
+                "session.list",
+            )
+            expect_ok(
+                invoke(
+                    executable,
+                    environment,
+                    request(
+                        "session.doctor",
+                        target={"session_id": "case_a"},
+                        args={},
+                    ),
+                ),
+                "session.doctor",
+            )
+            expect_error(
+                invoke(
+                    executable,
+                    environment,
+                    request(
+                        "trace.active_driver",
+                        target={"session_id": "case_a"},
+                        args={"signal": "top.u.ready", "time": "120ns"},
+                    ),
+                ),
+                "trace.active_driver",
+                "DESIGN_NOT_LOADED",
+            )
+            elapsed = time.monotonic() - started
+            release.join()
+        assert elapsed < 1.0, (
+            f"read/query paths waited {elapsed:.3f}s on retired registry.lock"
+        )
+
+        locked_a = expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.open",
+                    target={"fsdb": waveform},
+                    args={"name": "case_lock_a"},
+                ),
+            ),
+            "session.open",
+        )
+        lifecycle_locks = list(
+            (Path(root) / ".xdebug/engine/lifecycle-locks").glob(
+                "case_lock_a_*.lock"
+            )
+        )
+        assert len(lifecycle_locks) == 1, lifecycle_locks
+        with lifecycle_locks[0].open("r+") as lifecycle_lock:
+            fcntl.flock(lifecycle_lock.fileno(), fcntl.LOCK_EX)
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                waiting_close = executor.submit(
+                    invoke,
+                    executable,
+                    environment,
+                    request(
+                        "session.close",
+                        target={"session_id": "case_lock_a"},
+                        args={},
+                    ),
+                )
+                time.sleep(0.1)
+                assert not waiting_close.done(), (
+                    "same-session close bypassed its lifecycle lease"
+                )
+                started = time.monotonic()
+                locked_b = expect_ok(
+                    invoke(
+                        executable,
+                        environment,
+                        request(
+                            "session.open",
+                            target={"fsdb": waveform},
+                            args={"name": "case_lock_b"},
+                        ),
+                    ),
+                    "session.open",
+                )
+                expect_ok(
+                    invoke(
+                        executable,
+                        environment,
+                        request("session.list", args={}),
+                    ),
+                    "session.list",
+                )
+                expect_ok(
+                    invoke(
+                        executable,
+                        environment,
+                        request(
+                            "session.doctor",
+                            target={"session_id": "case_lock_a"},
+                            args={},
+                        ),
+                    ),
+                    "session.doctor",
+                )
+                independent_elapsed = time.monotonic() - started
+                fcntl.flock(lifecycle_lock.fileno(), fcntl.LOCK_UN)
+                expect_ok(waiting_close.result(timeout=5), "session.close")
+        assert independent_elapsed < 1.0, (
+            "another session or read path waited on case_lock_a lease: "
+            f"{independent_elapsed:.3f}s"
+        )
+        assert not Path(locked_a["session"]["socket_path"]).exists()
+        expect_ok(
+            invoke(
+                executable,
+                environment,
+                request(
+                    "session.close",
+                    target={"session_id": "case_lock_b"},
+                    args={},
+                ),
+            ),
+            "session.close",
+        )
+        assert not Path(locked_b["session"]["socket_path"]).exists()
 
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
             client.settimeout(2)

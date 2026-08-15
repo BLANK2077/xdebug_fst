@@ -181,6 +181,16 @@ class StdioLoopRunner:
     def stop(self) -> None:
         if self.proc is None:
             return
+        if self._session_id is not None:
+            try:
+                self.request(
+                    "session.kill",
+                    target={"session_id": self._session_id},
+                    args={},
+                )
+            except (BrokenPipeError, OSError, StdioLoopError):
+                pass
+            self._session_id = None
         try:
             if self.proc.stdin:
                 self.proc.stdin.write(

@@ -103,9 +103,11 @@ def main() -> int:
         assert len(set(socket_paths)) == PARALLEL_SESSION_COUNT
         assert all(Path(path).is_socket() for path in socket_paths)
 
-        registry = Path(root) / ".xdebug" / "engine" / "registry.json"
-        registry_document = json.loads(registry.read_text(encoding="utf-8"))
-        records = registry_document["sessions"]
+        sessions_root = Path(root) / ".xdebug" / "engine" / "sessions"
+        records = [
+            json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted(sessions_root.glob("*/state.json"))
+        ]
         assert {record["session_id"] for record in records} == set(names)
         assert (
             len({record["generation"] for record in records})
@@ -250,10 +252,11 @@ def main() -> int:
         assert loop.wait(timeout=5) == 0
         TRACKED_PIDS.discard(loop.pid)
 
-        assert json.loads(registry.read_text(encoding="utf-8")) == {
-            "sessions": [],
-            "version": 2,
-        }
+        assert list(sessions_root.glob("*/state.json")) == []
+        assert list(sessions_root.glob("*/activity")) == []
+        assert list(sessions_root.glob("*/history/*.json")), (
+            "closed generations were not retained in per-session history"
+        )
     return 0
 
 

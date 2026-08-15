@@ -120,9 +120,16 @@ def main() -> int:
         finally:
             adapter.close_all()
 
-        registry = home / ".xdebug" / "engine" / "registry.json"
-        document = json.loads(registry.read_text(encoding="utf-8"))
-        require(document == {"sessions": [], "version": 2}, document)
+        sessions_root = home / ".xdebug" / "engine" / "sessions"
+        require(
+            list(sessions_root.glob("*/state.json")) == [],
+            "closed MCP session remains in the per-session registry",
+        )
+        history = list(sessions_root.glob("*/history/*.json"))
+        require(history, "closed MCP generation history is missing")
+        closed = json.loads(history[0].read_text(encoding="utf-8"))
+        require(closed["session_id"] == name, closed)
+        require(closed["final_state"] == "closed", closed)
         if mode == "fake-lsf":
             session_log_root = root / "logs" / "sessions" / name
             lsf_logs = sorted(session_log_root.glob(

@@ -198,8 +198,9 @@
 - 阶段 0：已完成并提交。
 - 阶段 1：已完成并提交。
 - 阶段 2：已完成并提交。
-- 阶段 3：已完成，等待本次提交落盘。
-- 阶段 4–5：未开始。
+- 阶段 3：已完成并提交。
+- 阶段 4：已完成，等待本次提交落盘。
+- 阶段 5：未开始。
 - 当前阻塞：无。
 - 当前 Goal：`019fe602-0198-7f23-a9a1-bb3c6a539dec`，目标为完整实施本任务书并通过全部验收门禁。
 - 当前分支：`fix/per-session-registry-flock`，基线为 `f12bcd4`。
@@ -211,8 +212,8 @@
 | 0 | 已完成 | `bfec263` | 任务书已落盘，Goal 与分支已建立 | Goal `019fe602-0198-7f23-a9a1-bb3c6a539dec`；从 `f12bcd4` 开始 |
 | 1 | 已完成 | `28d405b` | `test-session-registry` 按预期失败：`empty v2 registry was not retired`；`test_flock_policy.py` 按预期失败并定位 `session_registry.cpp:57,65` | 断言未放宽，阶段 2/3 负责转绿 |
 | 2 | 已完成 | `72fabe5` | GCC 13 完整构建通过；`test-session-registry` 与 `test_flock_policy.py` 均通过 | 已实现 state/activity/history、v2 fail-closed 和原子持久化 |
-| 3 | 已完成 | 本次提交 | GCC 13 完整构建通过；`session-uds-lifecycle` 与 `test_flock_policy.py` 通过 | open/close/kill/gc 按 session lease；list/doctor/query 零 lease；list 不再隐式清理 |
-| 4 | 未开始 | - | - | 并发、故障与兼容 |
+| 3 | 已完成 | `4c8e7b3` | GCC 13 完整构建通过；`session-uds-lifecycle` 与 `test_flock_policy.py` 通过 | open/close/kill/gc 按 session lease；list/doctor/query 零 lease；list 不再隐式清理 |
+| 4 | 已完成 | 本次提交 | CTest 9/9；静态 flock 门禁通过；strace：list 0、doctor 0、query 0、close 2；旧 registry.lock 持锁与按 session lease 动态隔离门禁通过 | 覆盖 activity/history、损坏隔离、v2 非空/空/非法/归档冲突、同名并发和不同 session 并发；修复 pytest teardown 泄漏 |
 | 5 | 未开始 | - | - | 全量验收与文档 |
 
 ### 剩余 TODO
@@ -221,5 +222,5 @@
 - [x] 冻结零 flock 与 v2 迁移红测。
 - [x] 实现 per-session state/activity/history。
 - [x] 接入按 session lifecycle lease。
-- [ ] 完成并发、故障、strace 和兼容门禁。
+- [x] 完成并发、故障、strace 和兼容门禁。
 - [ ] 完成普通/ASan/UBSan 全量验收和最终文档。

@@ -1,4 +1,5 @@
 #include "session/session_registry.h"
+#include "session/session_paths.h"
 #include "session/session_endpoint_contract.h"
 #include "session/session_registry_contract.h"
 
@@ -92,8 +93,49 @@ void verify_legacy_v2_migration_boundaries() {
     require(!std::filesystem::exists(active_base / "registry.json.v2.retired"),
             "non-empty v2 registry was unexpectedly archived");
 
+    char invalid_directory[] = "/tmp/xdebug-fst-invalid-v2-XXXXXX";
+    char* invalid_root = mkdtemp(invalid_directory);
+    require(invalid_root != nullptr, "invalid-v2 mkdtemp failed");
+    setenv("HOME", invalid_root, 1);
+    setenv("XVERIF_TEST_TMPDIR", invalid_root, 1);
+    SessionRegistry invalid_registry;
+    const std::filesystem::path invalid_base =
+        std::filesystem::path(invalid_root) / ".xdebug/engine";
+    {
+        std::ofstream invalid(invalid_base / "registry.json");
+        invalid << "{\"version\":2,\"sessions\":[]} trailing\n";
+    }
+    require(invalid_registry.load_all(sessions).status ==
+                SessionRegistryStatus::Invalid,
+            "invalid v2 registry was accepted");
+    require(std::filesystem::exists(invalid_base / "registry.json") &&
+                !std::filesystem::exists(
+                    invalid_base / "registry.json.v2.retired"),
+            "invalid v2 evidence was archived or removed");
+
+    char conflict_directory[] = "/tmp/xdebug-fst-retired-v2-XXXXXX";
+    char* conflict_root = mkdtemp(conflict_directory);
+    require(conflict_root != nullptr, "retired-v2 mkdtemp failed");
+    setenv("HOME", conflict_root, 1);
+    setenv("XVERIF_TEST_TMPDIR", conflict_root, 1);
+    SessionRegistry conflict_registry;
+    write_legacy_registry(conflict_root, {});
+    const std::filesystem::path conflict_base =
+        std::filesystem::path(conflict_root) / ".xdebug/engine";
+    {
+        std::ofstream retired(conflict_base / "registry.json.v2.retired");
+        retired << "preserved evidence\n";
+    }
+    require(conflict_registry.load_all(sessions).status ==
+                SessionRegistryStatus::Invalid,
+            "existing retired evidence was overwritten");
+    require(std::filesystem::exists(conflict_base / "registry.json"),
+            "legacy registry was removed despite archive conflict");
+
     std::filesystem::remove_all(empty_root);
     std::filesystem::remove_all(active_root);
+    std::filesystem::remove_all(invalid_root);
+    std::filesystem::remove_all(conflict_root);
 }
 
 }  // namespace
@@ -127,6 +169,17 @@ int main() {
             "active touch failed");
     require(registry.touch_if_generation("case_a", generation, 110).ok(),
             "older touch should be idempotent");
+    require(std::filesystem::exists(
+                xdebug_design::xdebug_design_session_activity_path("case_a")),
+            "activity marker was not created");
+    nlohmann::json state_document;
+    {
+        std::ifstream state(
+            xdebug_design::xdebug_design_session_state_path("case_a"));
+        state >> state_document;
+    }
+    require(state_document["last_active"] == 101,
+            "activity touch rewrote the durable lifecycle state");
 
     SessionInfo loaded;
     require(registry.get("case_a", loaded).ok(), "active session lookup failed");
@@ -145,6 +198,51 @@ int main() {
             "conditional removal failed");
     require(registry.get("case_a", loaded).status == SessionRegistryStatus::NotFound,
             "removed session remains visible");
+    require(!std::filesystem::exists(
+                xdebug_design::xdebug_design_session_state_path("case_a")) &&
+                !std::filesystem::exists(
+                    xdebug_design::xdebug_design_session_activity_path("case_a")),
+            "retired current state or activity remains visible");
+    const std::filesystem::path history_path =
+        std::filesystem::path(
+            xdebug_design::xdebug_design_session_dir("case_a")) /
+        "history" / (generation + ".json");
+    require(std::filesystem::exists(history_path),
+            "closed generation history is missing");
+    nlohmann::json history;
+    {
+        std::ifstream archived(history_path);
+        archived >> history;
+    }
+    require(history["generation"] == generation &&
+                history["final_state"] == "closed" &&
+                history.contains("closed_at"),
+            "closed generation history is incomplete");
+
+    SessionInfo corrupt = opening_session(std::string(64, 'd'));
+    corrupt.session_id = "case_corrupt";
+    SessionInfo intact = opening_session(std::string(64, 'e'));
+    intact.session_id = "case_intact";
+    require(registry.reserve_opening(corrupt).ok(),
+            "corrupt fixture reservation failed");
+    require(registry.reserve_opening(intact).ok(),
+            "intact fixture reservation failed");
+    {
+        std::ofstream state(
+            xdebug_design::xdebug_design_session_state_path("case_corrupt"),
+            std::ios::out | std::ios::trunc);
+        state << "{broken\n";
+    }
+    require(registry.get("case_corrupt", loaded).status ==
+                SessionRegistryStatus::Invalid,
+            "exact lookup hid a corrupt state as not found");
+    sessions.clear();
+    require(registry.load_all(sessions).ok() && sessions.size() == 1 &&
+                sessions[0].session_id == "case_intact",
+            "one corrupt state contaminated registry enumeration");
+    require(registry.remove_if_generation(
+                "case_intact", intact.generation).ok(),
+            "intact session could not be retired beside corruption");
 
     nlohmann::json endpoint;
     std::string error;
