@@ -104,3 +104,29 @@ ref/alias、多 driver 歧义、X-origin 分支/环/来源、time/limits、typed
   可读 fixture 源描述，验收和生产 action 实际打开的仍只有 `.fst`。
 
 在本报告提交、`parity-p7` 创建、三个仓库再次确认干净后，计划中的必需任务即全部完成。
+
+## 七、2026-08-15 per-session registry 与 flock 热路径复验
+
+原报告完成后，原版 xdebug 修复了全局 registry flock 进入查询热路径的问题。xdebug-fst 经复核存在同类风险：修复前 UDS 生命周期测试触发 146 组排他加锁/解锁，外部持有 `registry.lock` 1.5 秒可令纯 `session.list` 等待约 1452ms。
+
+本次复验将控制面迁移到每 session 的 `state.json`、`activity`、`history` 和稳定 lifecycle lease。只有 open/close/kill/gc 允许按目标 session 加锁；list、doctor、managed query 和 engine activity marker 均不获取全局锁。旧合法空 v2 归档为 `.v2.retired`，非空 v2 返回 `REGISTRY_MIGRATION_REQUIRED`，非法内容和已有归档冲突都保留证据并 fail-closed。
+
+复验结果：
+
+| 门禁 | 结果 |
+| --- | --- |
+| GCC 13 clean configure/build | 13.3.1，通过 |
+| 普通 CTest | 9/9 |
+| ASan CTest | 9/9，leak/abort/halt 开启 |
+| UBSan CTest | 9/9，halt/stacktrace 开启 |
+| 普通 pytest | 新增门禁后 422/422，分为 145、169、108 三组执行 |
+| flock 静态门禁 | 仅 `session_lifecycle_lease.h` 可调用 flock |
+| flock 动态门禁 | list 0、doctor 0、managed query 0、close 2 |
+| 并发 | 同 session 生命周期互斥；不同 session 与只读 Action 不互相等待 |
+| 迁移与损坏 | v2 空/非空/非法/归档冲突、单 session 损坏隔离全部通过 |
+| catalog/schema | 73 Action，保留 `session.kill`；冻结兼容测试通过 |
+| 依赖边界 | Wellen、Verilator 源码未修改；FST-only 数据流不变 |
+
+测试 teardown 同时修复了 stdio-loop 退出时未关闭当前 managed session 的问题。验收前清理了 522 个 socket 位于 `/tmp/pytest-of-ryan/...` 的历史测试 server；修复后完整 pytest 分组结束时遗留测试 server 为 0。该清理没有触碰普通 HOME 下的用户 session。
+
+详细架构见 [`XDEBUG_PER_SESSION_REGISTRY_ARCHITECTURE.md`](XDEBUG_PER_SESSION_REGISTRY_ARCHITECTURE.md)，执行账本见 [`XDEBUG_FLOCK_HOT_PATH_REPAIR_TASKBOOK.md`](XDEBUG_FLOCK_HOT_PATH_REPAIR_TASKBOOK.md)。

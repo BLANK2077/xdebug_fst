@@ -162,10 +162,13 @@ one-shot / stdio frontend
                           └─ 持久 engine（Wellen/XDD 资源只打开一次）
 ```
 
-registry 用独占文件锁、临时文件、`fsync`、原子 `rename` 和 generation
-compare-and-swap 防止同名并发打开、旧进程清理新会话以及时间戳倒退。generation 是
-`/dev/urandom` 产生的 256 bit 随机值；managed wrapper 提供的 ownership token
-只以 SHA-256 摘要持久化，明文不写 registry、日志或响应。
+registry 已由单一数组改为每 session 独立 `state.json`、`activity` 和 `history`。状态发布继续使用
+临时文件、`fsync`、原子 `rename` 和 generation compare-and-swap；只有 open/close/kill/gc
+通过 session id 对应的稳定 lifecycle lease 互斥。list、doctor 和 managed query 不获取 flock，
+不同 session 的生命周期也不再被一个全局 registry lock 串行化。generation 是 `/dev/urandom`
+产生的 256 bit 随机值；managed wrapper 提供的 ownership token 只以 SHA-256 摘要持久化，
+明文不写 state、history、日志或响应。详细布局和迁移边界见
+[`XDEBUG_PER_SESSION_REGISTRY_ARCHITECTURE.md`](XDEBUG_PER_SESSION_REGISTRY_ARCHITECTURE.md)。
 
 UDS 使用一行一个 JSON object 的 framing，单帧上限 16 MiB，socket 权限固定为
 `0600`。`server.ping` 返回 engine generation，frontend 只有在 endpoint generation
@@ -183,9 +186,9 @@ registry 条件删除全部成功后，记录才真正消失。这避免 PID 复
 中途失败可以由 `session.gc` 重试。
 
 `session.doctor` 不只检查 PID：它依次验证 lifecycle、generation marker、daidir/FST
-fingerprint、UDS 节点和 generation ping。`session.list` 根据严格解析的
-`XDEBUG_SESSION_IDLE_TIMEOUT_SEC` 回收 idle session，并返回结构化 removal evidence；
-非法环境值 fail closed。engine 在 resource 打开后、active CAS 前重新采集 fingerprint，
+fingerprint、UDS 节点和 generation ping。`session.list` 是零 flock 的纯观察操作，不再隐式
+回收 idle session；清理只由显式 close/kill/gc 修改生命周期。既有 removal 相关公开字段保留，
+非法 `XDEBUG_SESSION_IDLE_TIMEOUT_SEC` 仍 fail closed。engine 在 resource 打开后、active CAS 前重新采集 fingerprint，
 防止启动窗口内文件被替换。私有 `server.ping/version/quit` 也使用封闭字段合同，额外字段
 不会意外触发 quit。
 
@@ -214,8 +217,8 @@ fingerprint、UDS 节点和 generation ping。`session.list` 根据严格解析�
 重复占用资源，成功响应会按原版合同附加 `RESOURCE_SESSION_ALREADY_ALIVE` advisory，区分
 `same_fsdb`、`same_daidir` 和 `same_combined_resource`，但不会擅自复用或关闭已有 session。
 
-`session.close` 与 `session.kill` 支持 `target.session_id="all"`。frontend 先在锁保护下读取
-当前 generation 集合，再逐项执行同一套 generation-safe 清理，返回 requested/removed 计数
+`session.close` 与 `session.kill` 支持 `target.session_id="all"`。frontend 先无锁读取当前
+generation 集合，再按 session 逐项获取 lifecycle lease、在锁内重读 generation 并执行安全清理，返回 requested/removed 计数
 和 `removed_sessions`；只要有一项失败，就返回 `SESSION_CLEANUP_PARTIAL_FAILURE`、失败 id
 以及已清理数量。批量模式禁止 ownership token，因为一个 token 只能作为一个精确 session
 generation 的条件清理证明。该能力没有放宽 cleanup_failed 保留规则。

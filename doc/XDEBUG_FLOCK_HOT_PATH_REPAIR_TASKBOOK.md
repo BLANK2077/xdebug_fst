@@ -199,9 +199,9 @@
 - 阶段 1：已完成并提交。
 - 阶段 2：已完成并提交。
 - 阶段 3：已完成并提交。
-- 阶段 4：已完成，等待本次提交落盘。
-- 阶段 5：未开始。
-- 当前阻塞：无。
+- 阶段 4：已完成并提交。
+- 阶段 5：已完成，等待最终文档提交落盘。
+- 当前阻塞：无；全部必需门禁已通过。
 - 当前 Goal：`019fe602-0198-7f23-a9a1-bb3c6a539dec`，目标为完整实施本任务书并通过全部验收门禁。
 - 当前分支：`fix/per-session-registry-flock`，基线为 `f12bcd4`。
 
@@ -213,8 +213,8 @@
 | 1 | 已完成 | `28d405b` | `test-session-registry` 按预期失败：`empty v2 registry was not retired`；`test_flock_policy.py` 按预期失败并定位 `session_registry.cpp:57,65` | 断言未放宽，阶段 2/3 负责转绿 |
 | 2 | 已完成 | `72fabe5` | GCC 13 完整构建通过；`test-session-registry` 与 `test_flock_policy.py` 均通过 | 已实现 state/activity/history、v2 fail-closed 和原子持久化 |
 | 3 | 已完成 | `4c8e7b3` | GCC 13 完整构建通过；`session-uds-lifecycle` 与 `test_flock_policy.py` 通过 | open/close/kill/gc 按 session lease；list/doctor/query 零 lease；list 不再隐式清理 |
-| 4 | 已完成 | 本次提交 | CTest 9/9；静态 flock 门禁通过；strace：list 0、doctor 0、query 0、close 2；旧 registry.lock 持锁与按 session lease 动态隔离门禁通过 | 覆盖 activity/history、损坏隔离、v2 非空/空/非法/归档冲突、同名并发和不同 session 并发；修复 pytest teardown 泄漏 |
-| 5 | 未开始 | - | - | 全量验收与文档 |
+| 4 | 已完成 | `4d22a12` | CTest 9/9；静态 flock 门禁通过；strace：list 0、doctor 0、query 0、close 2；旧 registry.lock 持锁与按 session lease 动态隔离门禁通过 | 覆盖 activity/history、损坏隔离、v2 非空/空/非法/归档冲突、同名并发和不同 session 并发；修复 pytest teardown 泄漏 |
+| 5 | 已完成 | 本次提交 | GCC 13 clean configure/build；clean CTest 9/9；普通 pytest 422/422；ASan CTest 9/9；UBSan CTest 9/9；compat baseline OK | 73 Action 与 `session.kill` 保留；Wellen/Verilator 源码工作树干净；架构与验收报告已更新 |
 
 ### 剩余 TODO
 
@@ -223,4 +223,19 @@
 - [x] 实现 per-session state/activity/history。
 - [x] 接入按 session lifecycle lease。
 - [x] 完成并发、故障、strace 和兼容门禁。
-- [ ] 完成普通/ASan/UBSan 全量验收和最终文档。
+- [x] 完成普通/ASan/UBSan 全量验收和最终文档。
+
+## 六、最终验收证据
+
+- GCC/G++：`XDEBUG_GCC_TOOLCHAIN` 所指 13.3.1。
+- clean build：`build/gcc13-flock-clean` 从全新 configure 完成全部目标编译；顺序 CTest 9/9。
+- 普通 CTest：`build/gcc13` 9/9。
+- 普通 pytest：新增 flock 门禁后共 422 项，按执行通道分为 145、169、108 三组，全部通过；结束后 `/tmp/pytest-of-ryan` 测试 server 为 0。
+- ASan：`detect_leaks=1:abort_on_error=1:halt_on_error=1`，CTest 9/9，无 sanitizer 诊断。
+- UBSan：`halt_on_error=1:print_stacktrace=1`，CTest 9/9，无 sanitizer 诊断。
+- compatibility：`tools/check_compat_baseline.py` 返回 `compat baseline: OK`；冻结 catalog 为 73 Action，包含 `session.kill`。
+- flock：静态 allowlist 通过；动态 `strace -f -e flock` 得到 list 0、doctor 0、managed query 0、close 2。
+- concurrency：废弃 `registry.lock` 不阻塞；同 session lease 串行；不同 session 及只读 Action 不等待。
+- persistence：state/activity/history、generation CAS、单条损坏隔离、v2 空/非空/非法/retired 冲突均通过。
+- dependency：Wellen 与 Verilator 源码工作树干净且未修改。xverif 源码未由本任务修改；其 `AGENTS.md` 存在 2026-08-14 的既有工作区改动，本任务未覆盖或提交该文件。
+- cleanup：清理了 522 个 socket 位于 `/tmp/pytest-of-ryan/...` 的历史测试 server；修复后的 teardown 不再遗留当前 managed test session。普通 HOME 下的用户 session 未触碰。
