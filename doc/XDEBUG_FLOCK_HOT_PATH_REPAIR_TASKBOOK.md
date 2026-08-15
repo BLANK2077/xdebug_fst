@@ -195,8 +195,9 @@
 ### 当前状态
 
 - 阶段 0：已完成并提交。
-- 阶段 1：已完成，红测按预期失败，等待本次提交落盘。
-- 阶段 2–5：未开始。
+- 阶段 1：已完成并提交。
+- 阶段 2：已完成，等待本次提交落盘。
+- 阶段 3–5：未开始。
 - 当前阻塞：无。
 - 当前 Goal：`019fe602-0198-7f23-a9a1-bb3c6a539dec`，目标为完整实施本任务书并通过全部验收门禁。
 - 当前分支：`fix/per-session-registry-flock`，基线为 `f12bcd4`。
@@ -206,8 +207,8 @@
 | 阶段 | 状态 | Commit | 验证 | 备注 |
 | --- | --- | --- | --- | --- |
 | 0 | 已完成 | `bfec263` | 任务书已落盘，Goal 与分支已建立 | Goal `019fe602-0198-7f23-a9a1-bb3c6a539dec`；从 `f12bcd4` 开始 |
-| 1 | 已完成 | 本次提交 | `test-session-registry` 按预期失败：`empty v2 registry was not retired`；`test_flock_policy.py` 按预期失败并定位 `session_registry.cpp:57,65` | 断言未放宽，阶段 2/3 负责转绿 |
-| 2 | 未开始 | - | - | per-session registry |
+| 1 | 已完成 | `28d405b` | `test-session-registry` 按预期失败：`empty v2 registry was not retired`；`test_flock_policy.py` 按预期失败并定位 `session_registry.cpp:57,65` | 断言未放宽，阶段 2/3 负责转绿 |
+| 2 | 已完成 | 本次提交 | GCC 13 完整构建通过；`test-session-registry` 与 `test_flock_policy.py` 均通过 | 已实现 state/activity/history、v2 fail-closed 和原子持久化 |
 | 3 | 未开始 | - | - | lifecycle lease |
 | 4 | 未开始 | - | - | 并发、故障与兼容 |
 | 5 | 未开始 | - | - | 全量验收与文档 |
@@ -216,7 +217,7 @@
 
 - [x] 建立新 Goal 和修复分支。
 - [x] 冻结零 flock 与 v2 迁移红测。
-- [ ] 实现 per-session state/activity/history。
+- [x] 实现 per-session state/activity/history。
 - [ ] 接入按 session lifecycle lease。
 - [ ] 完成并发、故障、strace 和兼容门禁。
 - [ ] 完成普通/ASan/UBSan 全量验收和最终文档。
