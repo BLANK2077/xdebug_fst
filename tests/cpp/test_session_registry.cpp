@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -12,6 +13,7 @@ namespace {
 
 using xdebug_engine::SessionInfo;
 using xdebug_engine::SessionRegistry;
+using xdebug_engine::SessionRegistryResult;
 using xdebug_engine::SessionRegistryStatus;
 
 void require(bool condition, const std::string& message) {
@@ -33,6 +35,65 @@ SessionInfo opening_session(const std::string& generation) {
     session.created_at = 100;
     session.last_active = 100;
     return session;
+}
+
+void write_legacy_registry(
+    const std::string& root,
+    const std::vector<SessionInfo>& sessions) {
+    const std::filesystem::path path =
+        std::filesystem::path(root) / ".xdebug/engine/registry.json";
+    nlohmann::json document;
+    std::string error;
+    require(xdebug_core::session_registry_document_to_json(
+                sessions, document, error),
+            "legacy registry serialization failed: " + error);
+    std::ofstream output(path, std::ios::out | std::ios::binary);
+    require(static_cast<bool>(output), "cannot create legacy registry fixture");
+    output << document.dump(2) << '\n';
+    output.close();
+    require(static_cast<bool>(output), "cannot persist legacy registry fixture");
+}
+
+void verify_legacy_v2_migration_boundaries() {
+    char empty_directory[] = "/tmp/xdebug-fst-empty-v2-XXXXXX";
+    char* empty_root = mkdtemp(empty_directory);
+    require(empty_root != nullptr, "empty-v2 mkdtemp failed");
+    setenv("HOME", empty_root, 1);
+    setenv("XVERIF_TEST_TMPDIR", empty_root, 1);
+    SessionRegistry empty_registry;
+    write_legacy_registry(empty_root, {});
+    std::vector<SessionInfo> sessions;
+    require(empty_registry.load_all(sessions).ok() && sessions.empty(),
+            "empty v2 registry should migrate cleanly");
+    const std::filesystem::path empty_base =
+        std::filesystem::path(empty_root) / ".xdebug/engine";
+    require(!std::filesystem::exists(empty_base / "registry.json"),
+            "empty v2 registry was not retired");
+    require(std::filesystem::exists(empty_base / "registry.json.v2.retired"),
+            "empty v2 registry archive is missing");
+
+    char active_directory[] = "/tmp/xdebug-fst-active-v2-XXXXXX";
+    char* active_root = mkdtemp(active_directory);
+    require(active_root != nullptr, "active-v2 mkdtemp failed");
+    setenv("HOME", active_root, 1);
+    setenv("XVERIF_TEST_TMPDIR", active_root, 1);
+    SessionRegistry active_registry;
+    write_legacy_registry(active_root, {opening_session(std::string(64, 'c'))});
+    const SessionRegistryResult blocked = active_registry.load_all(sessions);
+    require(blocked.status == SessionRegistryStatus::Invalid,
+            "non-empty v2 registry was not rejected");
+    require(blocked.message.find("REGISTRY_MIGRATION_REQUIRED") !=
+                std::string::npos,
+            "non-empty v2 rejection lacks migration guidance");
+    const std::filesystem::path active_base =
+        std::filesystem::path(active_root) / ".xdebug/engine";
+    require(std::filesystem::exists(active_base / "registry.json"),
+            "non-empty v2 evidence was modified");
+    require(!std::filesystem::exists(active_base / "registry.json.v2.retired"),
+            "non-empty v2 registry was unexpectedly archived");
+
+    std::filesystem::remove_all(empty_root);
+    std::filesystem::remove_all(active_root);
 }
 
 }  // namespace
@@ -103,5 +164,6 @@ int main() {
             "endpoint accepted an unknown field");
 
     std::filesystem::remove_all(root);
+    verify_legacy_v2_migration_boundaries();
     return 0;
 }
