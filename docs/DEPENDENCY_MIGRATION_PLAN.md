@@ -54,9 +54,9 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 
 ### 阶段 2：版本锁与影子源码解析器
 
-- [ ] 升级 `dependencies.lock.json`，以 JSON 为唯一版本来源；移除手写的 CMake lock 副本。
-- [ ] 新增依赖准备工具：校验环境变量与 Git 对象、通过 `git archive` 解包、校验 tree、应用 patch、生成 stamp。
-- [ ] 生成 `build/dependencies.resolved.json`；所有失败路径禁止 fetch、分支切换或版本 fallback。
+- [x] 升级 `dependencies.lock.json`，以 JSON 为唯一版本来源；手写 CMake lock 副本将在统一构建接入时删除。
+- [x] 新增依赖准备工具：校验环境变量与 Git 对象、通过 `git archive` 解包、校验 tree、应用 patch、生成 stamp。
+- [x] 生成 `build/dependencies.resolved.json`；所有失败路径禁止 fetch、分支切换或版本 fallback。
 - [ ] 测试任意 HOME checkout、脏工作区、对象缺失、patch 冲突和哈希不一致。
 - [ ] 独立提交并推送。
 
@@ -94,6 +94,7 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 | 2026-08-18 | 阶段 0 | 进行中 | 当前分支 `fix/per-session-registry-flock` 已在迁移修改前推送至 origin；计划文档与迁移 goal 已建立。 |
 | 2026-08-18 | 阶段 0 | 完成 | 计划提交 `8abdf7b` 已推送，迁移 goal 已建立。 |
 | 2026-08-18 | 阶段 1 | 完成 | 迁入 Wellen C API；生成 Verilator XDD patchset，并在官方锁定基线归档上验证可应用。 |
+| 2026-08-18 | 阶段 2 | 进行中 | lock v2 与影子源码解析器完成；5 个解析器单测通过，真实 HOME 仓库解析成功且状态未改变。 |
 
 ## 约束与失败策略
 

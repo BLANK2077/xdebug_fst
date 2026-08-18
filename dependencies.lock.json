@@ -1,30 +1,43 @@
 {
-  "lock_version": 1,
+  "lock_version": 2,
+  "bundle_version": "xdebug-fst-dependencies-v1",
+  "rust_workspace": {
+    "cargo_lock": "rust/Cargo.lock",
+    "cargo_lock_sha256": "7257cb0a7874d4edbddf60c49b8137636a11e4a646d601c8d2254a6bb7ea5cdb"
+  },
   "wellen": {
-    "repository": "env:XDEBUG_WELLEN_REPO",
-    "revision": "afab0abd1fe4c06db9744f0b7b20b18d23b7f8df",
-    "branch": "feature/xdebug-fst-capi",
-    "crate_version": "0.25.6",
+    "repository_env": "WELLEN_HOME",
+    "official_url": "https://github.com/ekiwi/wellen.git",
+    "official_branch": "main",
+    "version": "v0.25.6",
+    "revision": "34f40595c4330bcac364397679cdc3d5ae6b5c0c",
+    "tree": "23d2914ffbee8e293e254d70255d1c4e1d64c073",
+    "workspace_patch": "patches/wellen/xdebug-workspace.patch",
+    "workspace_patch_sha256": "077b73c0109e2e27a5bfdfc0c3f955f1a2c398497af5b5f21f7327a47eeb5dfd",
     "capi_header_sha256": "04f85d034f2d91b78da87d10440d3c4cf099a926b1b4366a8f7722980d5513fe",
     "signal_reference_base": 1
   },
   "wellenx_capi": {
-    "repository": ".",
-    "crate_version": "0.1.0",
-    "cargo_lock_sha256": "20bd1693f8cf3ab3544cfde109d5d9c9b3508cbf94a86feda79b2a5f714f32b3",
+    "version": "0.1.0",
     "header_sha256": "31ad5bf0311a438587daacc97d261f7f0e0306522ee6dece76c1003d7a986528",
-    "source_sha256": "50b3f7d65baa7116c37d23bf054bd857f679f11d256d7230275de5cfd53ca910",
     "signal_reference_base": 1
   },
   "verilator": {
-    "repository": "env:XDEBUG_VERILATOR_REPO",
-    "revision": "bf01d667c8b27f2f7cee456bb35a84e5372434df",
-    "branch": "feature/design-db-for-xdebug",
+    "repository_env": "VERILATOR_HOME",
+    "official_url": "https://github.com/verilator/verilator.git",
+    "official_branch": "master",
+    "version": "v5.050-109-gc3be3c805",
+    "revision": "c3be3c80501bec8d4c3b7f5256890332df62d410",
+    "tree": "8e247c8b90237517f84fbda98a594318b16ca998",
+    "patchset_version": "xdebug-design-db-v1",
+    "patchset_source_revision": "bf01d667c8b27f2f7cee456bb35a84e5372434df",
+    "patch": "patches/verilator/xdebug-design-db.patch",
+    "patch_sha256": "4f43028f2df3bdd349023fca122fd6a2edd23ff9cfdf824a6a60b038f6d14426",
     "xdd_header_sha256": "33afa1e6e173a1ecfe6ebe1fe5f44303f60368f328b0b52677b4544c0be6bba1"
   },
   "original_xdebug": {
     "runtime_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
     "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
-    "baseline_manifest_sha256": "5d2882cdc06bbdc8bc03ea1fb6d9bb888bc9de316d8936cbeb67188f26da53f0"
+    "baseline_manifest_sha256": "5d2882cdc06bbdc8bc03f6d9bb888bc9de316d8936cbeb67188f26da53f0"
   }
 }
