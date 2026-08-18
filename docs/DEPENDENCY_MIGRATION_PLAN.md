@@ -18,15 +18,15 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 
 ## 验收标准
 
-- [ ] `dependencies.lock.json` 是依赖版本的唯一配置源，记录官方 URL、可读版本、精确 revision/tree、patchset 与 ABI 哈希。
-- [ ] Wellen C API 位于本仓库，与 `wellenx_capi` 由本仓库 Rust workspace 一并构建。
-- [ ] Verilator XDD 修改以本仓库 patch/overlay 形式维护，可重复应用到锁定的官方 master 提交。
-- [ ] 只设置 `WELLEN_HOME`、`VERILATOR_HOME` 即可一次生成两套 Rust C API、patched Verilator 与 `xdebug-fst`。
-- [ ] 所有 C/C++ 编译均使用私有 GCC/G++ 13.3.1；CMake cache、构建清单和 sanitizer 运行库检查均可证明未使用系统 GCC。
-- [ ] HOME 仓库缺少锁定对象、patch 冲突、工具链错误或旧 CMake cache 使用其他编译器时 fail closed，不执行 fallback。
-- [ ] CTest、完整 pytest、14 个 `t_xdd_*` 回归以及 ASan、UBSan 验收通过。
-- [ ] 官方 HOME 仓库构建前后的 HEAD、索引与工作区状态保持不变。
-- [ ] 除非新 Verilator 的真实输出变化要求更新，否则不重建 fixture cache；必要变化独立提交并附差异说明。
+- [x] `dependencies.lock.json` 是依赖版本的唯一配置源，记录官方 URL、可读版本、精确 revision/tree、patchset 与 ABI 哈希。
+- [x] Wellen C API 位于本仓库，与 `wellenx_capi` 由本仓库 Rust workspace 一并构建。
+- [x] Verilator XDD 修改以本仓库 patch/overlay 形式维护，可重复应用到锁定的官方 master 提交。
+- [x] 只设置 `WELLEN_HOME`、`VERILATOR_HOME` 即可一次生成两套 Rust C API、patched Verilator 与 `xdebug-fst`。
+- [x] 所有 C/C++ 编译均使用私有 GCC/G++ 13.3.1；CMake cache、构建清单和 sanitizer 运行库检查均可证明未使用系统 GCC。
+- [x] HOME 仓库缺少锁定对象、patch 冲突、工具链错误或旧 CMake cache 使用其他编译器时 fail closed，不执行 fallback。
+- [x] CTest、完整 pytest、14 个 `t_xdd_*` 回归以及 ASan、UBSan 验收通过。
+- [x] 官方 HOME 仓库构建前后的 HEAD、索引与工作区状态保持不变。
+- [x] 代表性 fixture 重建仅产生时间戳或构建元数据差异，没有语义变化，因此未更新 fixture/cache。
 
 ## 锁定基线
 
@@ -50,7 +50,7 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 - [x] 建立仓库级 Rust workspace，使 `wellen_capi`、`wellenx_capi` 均依赖影子 Wellen 源码。
 - [x] 将 Verilator 功能分支相对锁定基线的 XDD 修改整理成有序 patch/overlay，并记录 patchset 哈希。
 - [x] 验证 patch 在新归档基线上可完整、重复地应用。
-- [ ] 独立提交并推送。
+- [x] 独立提交 `40ab065` 并推送。
 
 ### 阶段 2：版本锁与影子源码解析器
 
@@ -58,7 +58,7 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 - [x] 新增依赖准备工具：校验环境变量与 Git 对象、通过 `git archive` 解包、校验 tree、应用 patch、生成 stamp。
 - [x] 生成 `build/dependencies.resolved.json`；所有失败路径禁止 fetch、分支切换或版本 fallback。
 - [x] 测试任意 HOME checkout、脏工作区、对象缺失、patch 冲突和哈希不一致。
-- [ ] 独立提交并推送。
+- [x] 独立提交 `9d26162` 并推送。
 
 ### 阶段 3：私有工具链门禁与统一构建
 
@@ -68,7 +68,7 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 - [x] 发现旧 CMake cache 使用其他编译器时失败，不自动删除缓存。
 - [x] 生成 `build/toolchain.resolved.json`，记录工具链路径、版本与构建身份。
 - [x] 建立统一增量构建图，输出 Wellen C API、Wellen 扩展、patched Verilator 和 `xdebug-fst`。
-- [ ] 独立提交并推送。
+- [x] 独立提交 `eeaba68` 并推送。
 
 ### 阶段 4：环境变量、测试与文档迁移
 
@@ -76,16 +76,16 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 - [x] 测试引用影子源码及统一构建产物，不读取 HOME 当前工作区。
 - [x] 增加依赖、工具链、cache 编译器不一致等 fail-closed 测试。
 - [x] 更新开发文档及 fixture 重建脚本（仓库当前无 README）。
-- [ ] 独立提交并推送。
+- [x] 独立提交 `b40854b` 并推送。
 
 ### 阶段 5：Fixture 审计与完整验收
 
-- [ ] 先运行不重建 fixture 的单元测试、CTest、`t_xdd_*` 和完整 pytest。
-- [ ] 只对 `counter`、`interface_modport`、`matches`、`phase5` 做代表性重新生成和语义比较。
-- [ ] 只有确认 Verilator 输出真实变化时才更新 fixture/cache，并使用独立提交记录差异。
-- [ ] 分别完成普通、ASan、UBSan 回归；确认 sanitizer 运行库来自私有工具链。
-- [ ] 比较依赖 HOME 仓库构建前后状态，确认未发生任何修改。
-- [ ] 更新本文件的结果、完成 goal、推送最终分支，不创建 PR。
+- [x] 先运行不重建 fixture 的单元测试、CTest、`t_xdd_*` 和完整 pytest。
+- [x] 只对 `counter`、`interface_modport`、`matches`、`phase5` 做代表性重新生成和语义比较。
+- [x] 审计确认没有真实语义变化，恢复时间戳/构建元数据差异，不更新 fixture/cache。
+- [x] 分别完成普通、ASan、UBSan 回归；确认 sanitizer 运行库来自私有工具链。
+- [x] 比较依赖 HOME 仓库构建前后状态，确认未发生任何修改。
+- [x] 更新本文件的结果、完成 goal、推送最终分支，不创建 PR。
 
 ## 进度记录
 
@@ -97,6 +97,9 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 | 2026-08-18 | 阶段 2 | 进行中 | lock v2 与影子源码解析器完成；5 个解析器单测通过，真实 HOME 仓库解析成功且状态未改变。 |
 | 2026-08-18 | 阶段 3 | 完成 | `build-unified` 首次统一构建通过；Verilator configure、CMake cache 与 manifest 均确认私有 GCC/G++ 13.3.1，第二次增量构建 4.5 秒且未重建 Verilator。 |
 | 2026-08-18 | 阶段 4 | 完成 | 测试和 fixture 脚本已切换影子源码/统一产物；删除旧环境变量；新增 HOME、对象库、patch 冲突及系统 compiler cache 门禁，共 10 个定向测试通过。 |
+| 2026-08-18 | 阶段 5 | 完成 | 普通构建 CTest 7/7、完整 pytest 432/432、Rust C API 6/6、`t_xdd_*` 14/14 通过；ASan 与 UBSan 各自完成统一构建、CTest 7/7 和完整 pytest 432/432，`libasan.so.8`、`libubsan.so.1` 均从私有 GCC 13.3.1 `lib64` 加载，无 sanitizer 诊断。 |
+| 2026-08-18 | Fixture 审计 | 完成 | `counter` 忽略 25 字节日期字段后 FST 逐字节一致；`interface_modport` 与 `phase5` 的 FST 仅日期字段变化，前者 DesignDB 的全部 `xdd_*` 导出符号一致；`matches` 脚本归一化日期后无 Git 差异。所有审计产物均移出工作树，没有提交 fixture/cache。 |
+| 2026-08-18 | 构建闭环 | 完成 | 代表性 fixture 首次重建发现最小安装缺少 `verilator_includer`；统一构建现已将该官方运行时脚本纳入安装合同并用 build stamp `min-install-v2` 失效旧缓存，随后四组审计均通过。两个 HOME 仓库在所有构建和测试后仍保持原 HEAD、索引及干净工作区。 |
 
 ## 约束与失败策略
 

@@ -145,8 +145,8 @@ cmake -E copy_if_different "${CARGO_TARGET_DIR}/release/libwellenx_capi.so" "${B
 
 readonly DEPENDENCY_FINGERPRINT="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["verilator"]["fingerprint"])' "${BUILD_DIR}/dependencies.resolved.json")"
 readonly VERILATOR_STAMP="${BUILD_DIR}/tools/verilator/.xdebug-build-stamp"
-readonly VERILATOR_BUILD_ID="${DEPENDENCY_FINGERPRINT}:gcc-13.3.1"
-if [[ ! -f "${VERILATOR_STAMP}" || "$(<"${VERILATOR_STAMP}")" != "${VERILATOR_BUILD_ID}" || ! -x "${BUILD_DIR}/tools/verilator/bin/verilator" ]]; then
+readonly VERILATOR_BUILD_ID="${DEPENDENCY_FINGERPRINT}:gcc-13.3.1:min-install-v2"
+if [[ ! -f "${VERILATOR_STAMP}" || "$(<"${VERILATOR_STAMP}")" != "${VERILATOR_BUILD_ID}" || ! -x "${BUILD_DIR}/tools/verilator/bin/verilator" || ! -x "${BUILD_DIR}/tools/verilator/share/verilator/bin/verilator_includer" ]]; then
     (
         cd "${VERILATOR_SOURCE}"
         autoconf
@@ -156,7 +156,10 @@ if [[ ! -f "${VERILATOR_STAMP}" || "$(<"${VERILATOR_STAMP}")" != "${VERILATOR_BU
         make -C src -j"${JOBS}" opt
         make installdata
         install -d "${BUILD_DIR}/tools/verilator/bin"
+        install -d "${BUILD_DIR}/tools/verilator/share/verilator/bin"
         install -m 755 bin/verilator bin/verilator_bin "${BUILD_DIR}/tools/verilator/bin/"
+        install -m 755 bin/verilator_includer \
+            "${BUILD_DIR}/tools/verilator/share/verilator/bin/"
         perl -p -i -e 'use File::Spec;' \
             -e 's/my \$verilator_pkgdatadir_relpath = .*/my \$verilator_pkgdatadir_relpath = "..\/share\/verilator";/' \
             "${BUILD_DIR}/tools/verilator/bin/verilator"

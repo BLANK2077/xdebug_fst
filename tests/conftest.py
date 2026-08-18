@@ -97,8 +97,9 @@ def xfst_bin(pytestconfig: pytest.Config) -> Path:
     return Path(pytestconfig.getoption("--xfst-bin")).expanduser().resolve()
 
 
-def _base_env(xfst_bin: Path, test_home: Path | None = None) -> dict:
+def _base_env(test_home: Path | None = None, xfst_bin: Path | None = None) -> dict:
     env = dict(os.environ)
+    xfst_bin = xfst_bin or (REPO_ROOT / "build" / "xdebug-fst")
     library_paths = [str(xfst_bin.parent / "lib"), *_LD_EXTRA]
     for path in env.get("LD_LIBRARY_PATH", "").split(":"):
         if path and path not in library_paths:
@@ -116,14 +117,14 @@ def test_home(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 @pytest.fixture(scope="session")
 def cli_runner(xfst_bin: Path, repo_root: Path, test_home: Path) -> CliRunner:
-    return CliRunner(xfst_bin, cwd=repo_root, env=_base_env(xfst_bin, test_home))
+    return CliRunner(xfst_bin, cwd=repo_root, env=_base_env(test_home, xfst_bin))
 
 
 @pytest.fixture(scope="session")
 def loop_runner(xfst_bin: Path, repo_root: Path,
                 test_home: Path) -> StdioLoopRunner:
     runner = StdioLoopRunner(xfst_bin, cwd=repo_root,
-                             env=_base_env(xfst_bin, test_home))
+                             env=_base_env(test_home, xfst_bin))
     runner.start()
     try:
         yield runner
