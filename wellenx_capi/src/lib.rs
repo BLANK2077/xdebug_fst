@@ -176,15 +176,10 @@ pub extern "C" fn wellenx_signal_time_indices(
 mod tests {
     use super::*;
     use std::ffi::CString;
-    use std::path::PathBuf;
 
     fn fixture(name: &str) -> CString {
-        let repository = std::env::var("XDEBUG_WELLEN_REPO")
-            .expect("XDEBUG_WELLEN_REPO must point to the absolute Wellen repository");
-        let repository = PathBuf::from(repository);
-        assert!(repository.is_absolute(), "XDEBUG_WELLEN_REPO must be absolute");
-        let path = repository
-            .join("wellen/inputs")
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../wellen/inputs")
             .join(name);
         CString::new(path.to_string_lossy().as_bytes()).expect("fixture path contains no NUL")
     }

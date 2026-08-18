@@ -4,53 +4,16 @@
 
 set -euo pipefail
 
-: "${XDEBUG_VERILATOR_REPO:?set XDEBUG_VERILATOR_REPO to the absolute Verilator repository path}"
-: "${XDEBUG_GCC_TOOLCHAIN:?set XDEBUG_GCC_TOOLCHAIN to the absolute GCC toolchain path}"
-case "${XDEBUG_VERILATOR_REPO}" in
-    /*) ;;
-    *)
-        echo "XDEBUG_VERILATOR_REPO must be an absolute path" >&2
-        exit 2
-        ;;
-esac
-case "${XDEBUG_GCC_TOOLCHAIN}" in
-    /*) ;;
-    *)
-        echo "XDEBUG_GCC_TOOLCHAIN must be an absolute path" >&2
-        exit 2
-        ;;
-esac
-
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/fixture_build_env.sh"
 readonly REPO_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 readonly FIXTURE_DIR="${REPO_DIR}/testdata/fixtures/matches"
-readonly VERILATOR_BIN="${XDEBUG_VERILATOR_REPO}/bin/verilator"
-readonly GCC_BIN="${XDEBUG_GCC_TOOLCHAIN}/bin/gcc"
-readonly GXX_BIN="${XDEBUG_GCC_TOOLCHAIN}/bin/g++"
 readonly BUILD_DIR="$(mktemp -d /tmp/xdebug-matches-fixture.XXXXXX)"
 
 cleanup() {
     rm -rf -- "${BUILD_DIR}"
 }
 trap cleanup EXIT
-
-if [[ ! -x "${VERILATOR_BIN}" ]]; then
-    echo "Verilator executable is unavailable: ${VERILATOR_BIN}" >&2
-    exit 2
-fi
-if [[ ! -f "${XDEBUG_VERILATOR_REPO}/include/xdd_api.h" ]]; then
-    echo "Verilator DesignDB header is unavailable under XDEBUG_VERILATOR_REPO" >&2
-    exit 2
-fi
-if [[ ! -x "${GCC_BIN}" || ! -x "${GXX_BIN}" ]]; then
-    echo "GCC toolchain is unavailable under XDEBUG_GCC_TOOLCHAIN" >&2
-    exit 2
-fi
-
-export CC="${GCC_BIN}"
-export CXX="${GXX_BIN}"
-export PATH="${XDEBUG_GCC_TOOLCHAIN}/bin:${PATH}"
-export LD_LIBRARY_PATH="${XDEBUG_GCC_TOOLCHAIN}/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 
 "${VERILATOR_BIN}" \
     --cc --exe --build --trace-fst --design-db \
@@ -61,7 +24,7 @@ export LD_LIBRARY_PATH="${XDEBUG_GCC_TOOLCHAIN}/lib64${LD_LIBRARY_PATH:+:${LD_LI
     "${FIXTURE_DIR}/tb_matches.cpp"
 
 "${GXX_BIN}" -std=c++17 -Wall -Wextra -Werror -shared -fPIC \
-    -I"${XDEBUG_VERILATOR_REPO}/include" \
+    -I"${VERILATOR_INCLUDE}" \
     -o "${BUILD_DIR}/libVmatches_top__DesignDb.so" \
     "${BUILD_DIR}/obj_dir/Vmatches_top__DesignDb.cpp"
 

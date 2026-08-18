@@ -44,29 +44,13 @@ REPO_ROOT = TESTS_ROOT.parent
 FIXTURES = REPO_ROOT / "testdata" / "fixtures"
 
 
-def _required_repository_env(name: str) -> Path:
-    raw = os.environ.get(name)
-    if not raw:
-        raise RuntimeError(
-            f"{name} is required; configure it in .codex/config.toml and restart Codex")
-    path = Path(raw)
-    if not path.is_absolute():
-        raise RuntimeError(f"{name} must be an absolute path: {raw}")
-    if not path.is_dir():
-        raise RuntimeError(f"{name} repository is unavailable: {path}")
-    return path
-
-
-WELLEN_REPOSITORY = _required_repository_env("XDEBUG_WELLEN_REPO")
-
 if str(TESTS_ROOT) not in sys.path:
     sys.path.insert(0, str(TESTS_ROOT))
 
 # Wellen FFI library dirs needed at runtime
 _LD_EXTRA = [
-    str(REPO_ROOT / "build"),
-    str(WELLEN_REPOSITORY / "target" / "release"),
-    str(REPO_ROOT / "wellenx_capi" / "target" / "release"),
+    str(REPO_ROOT / "build" / "lib"),
+    str(REPO_ROOT.parent / ".toolchains" / "gcc-13" / "lib64"),
 ]
 
 
@@ -113,9 +97,9 @@ def xfst_bin(pytestconfig: pytest.Config) -> Path:
     return Path(pytestconfig.getoption("--xfst-bin")).expanduser().resolve()
 
 
-def _base_env(test_home: Path | None = None) -> dict:
+def _base_env(xfst_bin: Path, test_home: Path | None = None) -> dict:
     env = dict(os.environ)
-    library_paths = list(_LD_EXTRA)
+    library_paths = [str(xfst_bin.parent / "lib"), *_LD_EXTRA]
     for path in env.get("LD_LIBRARY_PATH", "").split(":"):
         if path and path not in library_paths:
             library_paths.append(path)
@@ -132,14 +116,14 @@ def test_home(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 @pytest.fixture(scope="session")
 def cli_runner(xfst_bin: Path, repo_root: Path, test_home: Path) -> CliRunner:
-    return CliRunner(xfst_bin, cwd=repo_root, env=_base_env(test_home))
+    return CliRunner(xfst_bin, cwd=repo_root, env=_base_env(xfst_bin, test_home))
 
 
 @pytest.fixture(scope="session")
 def loop_runner(xfst_bin: Path, repo_root: Path,
                 test_home: Path) -> StdioLoopRunner:
     runner = StdioLoopRunner(xfst_bin, cwd=repo_root,
-                             env=_base_env(test_home))
+                             env=_base_env(xfst_bin, test_home))
     runner.start()
     try:
         yield runner
@@ -174,14 +158,22 @@ def xprop_design_db() -> Path:
 
 
 @pytest.fixture(scope="session")
-def gcd_xorigin_fst() -> Path:
-    return WELLEN_REPOSITORY / "wellen" / "inputs" / "treadle" / "GCD.vcd.fst"
+def wellen_source(xfst_bin: Path) -> Path:
+    source = xfst_bin.parent / "_deps" / "wellen-src"
+    if not source.is_dir():
+        raise RuntimeError(f"prepared Wellen shadow source is unavailable: {source}")
+    return source
 
 
 @pytest.fixture(scope="session")
-def wellen_apb_fst() -> Path:
+def gcd_xorigin_fst(wellen_source: Path) -> Path:
+    return wellen_source / "wellen" / "inputs" / "treadle" / "GCD.vcd.fst"
+
+
+@pytest.fixture(scope="session")
+def wellen_apb_fst(wellen_source: Path) -> Path:
     return (
-        WELLEN_REPOSITORY / "wellen" / "inputs" / "vcs" /
+        wellen_source / "wellen" / "inputs" / "vcs" /
         "Apb_slave_uvm_new.vcd.fst"
     )
 
@@ -338,32 +330,32 @@ def phase5_design_db() -> Path:
 
 
 @pytest.fixture(scope="session")
-def wide_xz_fst() -> Path:
-    return WELLEN_REPOSITORY / "wellen" / "inputs" / \
+def wide_xz_fst(wellen_source: Path) -> Path:
+    return wellen_source / "wellen" / "inputs" / \
         "xilinx_isim" / "test2x2_regex22_string1.vcd.fst"
 
 
 @pytest.fixture(scope="session")
-def wellen_processor_fst() -> Path:
-    return WELLEN_REPOSITORY / "wellen" / "inputs" / "vcs" / \
+def wellen_processor_fst(wellen_source: Path) -> Path:
+    return wellen_source / "wellen" / "inputs" / "vcs" / \
         "processor.vcd.fst"
 
 
 @pytest.fixture(scope="session")
-def string_delta_fst() -> Path:
-    return WELLEN_REPOSITORY / "wellen" / "inputs" / "nvc" / \
+def string_delta_fst(wellen_source: Path) -> Path:
+    return wellen_source / "wellen" / "inputs" / "nvc" / \
         "shortstring.fst"
 
 
 @pytest.fixture(scope="session")
-def real_fst() -> Path:
-    return WELLEN_REPOSITORY / "wellen" / "inputs" / "verilator" / \
+def real_fst(wellen_source: Path) -> Path:
+    return wellen_source / "wellen" / "inputs" / "verilator" / \
         "many_sv_datatypes.fst"
 
 
 @pytest.fixture(scope="session")
-def event_fst() -> Path:
-    return WELLEN_REPOSITORY / "wellen" / "inputs" / "icarus" / \
+def event_fst(wellen_source: Path) -> Path:
+    return wellen_source / "wellen" / "inputs" / "icarus" / \
         "pull_67_event_example.fst"
 
 

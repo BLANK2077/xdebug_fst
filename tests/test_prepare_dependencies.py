@@ -4,7 +4,22 @@ import subprocess
 
 import pytest
 
-from tools.prepare_dependencies import PrepareError, apply_patch, normalize_remote, sha256
+from tools.prepare_dependencies import (
+    PrepareError,
+    apply_patch,
+    normalize_remote,
+    sha256,
+    validate_repository,
+)
+
+
+def git(repo, *args):
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=True,
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
 
 
 def test_normalize_remote_accepts_https_and_ssh():
@@ -73,3 +88,52 @@ def test_prepare_cli_requires_home_variables(repo_root, tmp_path):
     )
     assert result.returncode == 2
     assert "缺少环境变量 WELLEN_HOME" in result.stderr
+
+
+def test_repository_is_an_object_store_not_a_checkout(monkeypatch, tmp_path):
+    repository = tmp_path / "wellen"
+    repository.mkdir()
+    git(repository, "init")
+    git(repository, "config", "user.name", "xdebug test")
+    git(repository, "config", "user.email", "xdebug@example.invalid")
+    (repository / "locked.txt").write_text("locked\n")
+    git(repository, "add", "locked.txt")
+    git(repository, "commit", "-m", "locked")
+    revision = git(repository, "rev-parse", "HEAD")
+    tree = git(repository, "rev-parse", "HEAD^{tree}")
+    git(repository, "remote", "add", "upstream", "https://github.com/ekiwi/wellen.git")
+    git(repository, "checkout", "-b", "unrelated-checkout")
+    (repository / "untracked.txt").write_text("dirty\n")
+    monkeypatch.setenv("WELLEN_HOME", str(repository))
+
+    resolved = validate_repository(
+        "Wellen",
+        {
+            "repository_env": "WELLEN_HOME",
+            "official_url": "https://github.com/ekiwi/wellen.git",
+            "revision": revision,
+            "tree": tree,
+        },
+    )
+
+    assert resolved == repository.resolve()
+    assert (repository / "untracked.txt").is_file()
+
+
+def test_repository_missing_locked_object_does_not_fetch(monkeypatch, tmp_path):
+    repository = tmp_path / "verilator"
+    repository.mkdir()
+    git(repository, "init")
+    git(repository, "remote", "add", "origin", "https://github.com/verilator/verilator.git")
+    monkeypatch.setenv("VERILATOR_HOME", str(repository))
+
+    with pytest.raises(PrepareError, match="禁止自动 fetch"):
+        validate_repository(
+            "Verilator",
+            {
+                "repository_env": "VERILATOR_HOME",
+                "official_url": "https://github.com/verilator/verilator.git",
+                "revision": "1" * 40,
+                "tree": "2" * 40,
+            },
+        )

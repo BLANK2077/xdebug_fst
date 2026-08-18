@@ -57,7 +57,7 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 - [x] 升级 `dependencies.lock.json`，以 JSON 为唯一版本来源；手写 CMake lock 副本将在统一构建接入时删除。
 - [x] 新增依赖准备工具：校验环境变量与 Git 对象、通过 `git archive` 解包、校验 tree、应用 patch、生成 stamp。
 - [x] 生成 `build/dependencies.resolved.json`；所有失败路径禁止 fetch、分支切换或版本 fallback。
-- [ ] 测试任意 HOME checkout、脏工作区、对象缺失、patch 冲突和哈希不一致。
+- [x] 测试任意 HOME checkout、脏工作区、对象缺失、patch 冲突和哈希不一致。
 - [ ] 独立提交并推送。
 
 ### 阶段 3：私有工具链门禁与统一构建
@@ -72,10 +72,10 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 
 ### 阶段 4：环境变量、测试与文档迁移
 
-- [ ] 删除 `XDEBUG_WELLEN_REPO`、`XDEBUG_VERILATOR_REPO` 与私人分支约束，仅使用 `WELLEN_HOME`、`VERILATOR_HOME`。
-- [ ] 测试引用影子源码及统一构建产物，不读取 HOME 当前工作区。
-- [ ] 增加依赖、工具链、cache 编译器不一致等 fail-closed 测试。
-- [ ] 更新 README/开发文档及 fixture 重建脚本。
+- [x] 删除 `XDEBUG_WELLEN_REPO`、`XDEBUG_VERILATOR_REPO` 与私人分支约束，仅使用 `WELLEN_HOME`、`VERILATOR_HOME`。
+- [x] 测试引用影子源码及统一构建产物，不读取 HOME 当前工作区。
+- [x] 增加依赖、工具链、cache 编译器不一致等 fail-closed 测试。
+- [x] 更新开发文档及 fixture 重建脚本（仓库当前无 README）。
 - [ ] 独立提交并推送。
 
 ### 阶段 5：Fixture 审计与完整验收
@@ -96,6 +96,7 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 | 2026-08-18 | 阶段 1 | 完成 | 迁入 Wellen C API；生成 Verilator XDD patchset，并在官方锁定基线归档上验证可应用。 |
 | 2026-08-18 | 阶段 2 | 进行中 | lock v2 与影子源码解析器完成；5 个解析器单测通过，真实 HOME 仓库解析成功且状态未改变。 |
 | 2026-08-18 | 阶段 3 | 完成 | `build-unified` 首次统一构建通过；Verilator configure、CMake cache 与 manifest 均确认私有 GCC/G++ 13.3.1，第二次增量构建 4.5 秒且未重建 Verilator。 |
+| 2026-08-18 | 阶段 4 | 完成 | 测试和 fixture 脚本已切换影子源码/统一产物；删除旧环境变量；新增 HOME、对象库、patch 冲突及系统 compiler cache 门禁，共 10 个定向测试通过。 |
 
 ## 约束与失败策略
 

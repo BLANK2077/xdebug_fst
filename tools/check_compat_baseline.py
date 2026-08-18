@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import re
 import subprocess
 import sys
@@ -25,30 +24,6 @@ def sha256(path: Path) -> str:
 def load_json(path: Path) -> Any:
     with path.open("r", encoding="utf-8") as stream:
         return json.load(stream)
-
-
-def git_revision(repository: Path) -> str:
-    return subprocess.run(
-        ["git", "-C", str(repository), "rev-parse", "HEAD"],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-
-
-def dependency_repository(repo_root: Path, value: str) -> Path:
-    if value.startswith("env:"):
-        variable = value.removeprefix("env:")
-        if not re.fullmatch(r"[A-Z][A-Z0-9_]*", variable):
-            raise ValueError(f"invalid repository environment reference: {value}")
-        raw = os.environ.get(variable)
-        if not raw:
-            raise ValueError(f"required repository environment variable is unset: {variable}")
-        repository = Path(raw)
-        if not repository.is_absolute():
-            raise ValueError(f"repository environment variable must be absolute: {variable}")
-        return repository.resolve()
-    raise ValueError(f"repository lock must use an env: reference: {value}")
 
 
 def verify_frozen_files(repo_root: Path) -> list[str]:
@@ -148,58 +123,24 @@ def verify_frozen_files(repo_root: Path) -> list[str]:
     return errors
 
 
-def parse_cmake_lock(path: Path) -> dict[str, str]:
-    values: dict[str, str] = {}
-    contents = path.read_text(encoding="utf-8")
-    for name, value in re.findall(r'set\((XDEBUG_[A-Z0-9_]+)\s+"([0-9a-f]+)"\)', contents):
-        values[name] = value
-    return values
-
-
 def verify_dependencies(repo_root: Path) -> list[str]:
     errors: list[str] = []
     lock = load_json(repo_root / "dependencies.lock.json")
-    cmake_lock = parse_cmake_lock(repo_root / "cmake/DependenciesLock.cmake")
-    expected_cmake = {
-        "XDEBUG_WELLEN_REVISION": lock["wellen"]["revision"],
-        "XDEBUG_VERILATOR_REVISION": lock["verilator"]["revision"],
-        "XDEBUG_WELLEN_CAPI_HEADER_SHA256": lock["wellen"]["capi_header_sha256"],
-        "XDEBUG_WELLENX_CAPI_HEADER_SHA256": lock["wellenx_capi"]["header_sha256"],
-        "XDEBUG_XDD_HEADER_SHA256": lock["verilator"]["xdd_header_sha256"],
-    }
-    if cmake_lock != expected_cmake:
-        errors.append("cmake/DependenciesLock.cmake differs from dependencies.lock.json")
-
-    repositories: dict[str, Path] = {}
-    for name in ("wellen", "verilator"):
-        try:
-            repository = dependency_repository(repo_root, lock[name]["repository"])
-            repositories[name] = repository
-            actual_revision = git_revision(repository)
-        except (OSError, ValueError, subprocess.CalledProcessError) as exc:
-            errors.append(f"cannot read {name} revision: {exc}")
-            continue
-        if actual_revision != lock[name]["revision"]:
-            errors.append(
-                f"{name} revision drift: expected {lock[name]['revision']}, found {actual_revision}"
-            )
+    if lock.get("lock_version") != 2:
+        errors.append("dependencies.lock.json lock_version must be 2")
 
     hash_checks = [
+        (repo_root / "wellen_capi/include/wellen_capi.h",
+         lock["wellen"]["capi_header_sha256"], "Wellen C API header"),
         (repo_root / "wellenx_capi/include/wellenx_capi.h",
          lock["wellenx_capi"]["header_sha256"], "wellenx C API header"),
-        (repo_root / "wellenx_capi/src/lib.rs",
-         lock["wellenx_capi"]["source_sha256"], "wellenx source"),
-        (repo_root / "wellenx_capi/Cargo.lock",
-         lock["wellenx_capi"]["cargo_lock_sha256"], "wellenx Cargo lock"),
+        (repo_root / lock["rust_workspace"]["cargo_lock"],
+         lock["rust_workspace"]["cargo_lock_sha256"], "Rust workspace Cargo lock"),
+        (repo_root / lock["wellen"]["workspace_patch"],
+         lock["wellen"]["workspace_patch_sha256"], "Wellen workspace patch"),
+        (repo_root / lock["verilator"]["patch"],
+         lock["verilator"]["patch_sha256"], "Verilator XDD patchset"),
     ]
-    if "wellen" in repositories:
-        hash_checks.append(
-            (repositories["wellen"] / "wellen_capi/include/wellen_capi.h",
-             lock["wellen"]["capi_header_sha256"], "Wellen C API header"))
-    if "verilator" in repositories:
-        hash_checks.append(
-            (repositories["verilator"] / "include/xdd_api.h",
-             lock["verilator"]["xdd_header_sha256"], "Verilator XDD header"))
     for path, expected, label in hash_checks:
         if not path.is_file():
             errors.append(f"{label} is missing: {path}")

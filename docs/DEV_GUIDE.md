@@ -3,6 +3,21 @@
 > 面向并行子 agent 的接口速查。所有 action 均为 C++17，位于本仓库
 > `src/engine/actions/` 下。**禁止修改 `${XDEBUG_ORIGINAL_ROOT}` 任何文件**（只读参考）。
 
+## 构建环境
+
+```bash
+WELLEN_HOME=/path/to/official/wellen \
+VERILATOR_HOME=/path/to/official/verilator \
+./tools/build.sh
+```
+
+两个 HOME 只需包含 `dependencies.lock.json` 锁定的 Git 对象，当前 checkout 和工作区
+状态不参与构建。脚本在 `build/_deps` 归档影子源码并应用本仓库 patch，不修改依赖
+仓库，也不执行 fetch 或版本 fallback。
+
+C/C++ 编译固定使用同级 `xdebug_oc/.toolchains/gcc-13` 下的 GCC/G++ 13.3.1。
+工具链缺失、版本不符或 CMake cache 使用其他编译器时直接失败，不使用系统 GCC。
+
 ## 1. Handler 基本模式
 
 每个文件实现一个或多个 handler，导出 `make_<name>_handler()` 工厂函数：
