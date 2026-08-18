@@ -1,0 +1,12 @@
+diff --git a/Cargo.toml b/Cargo.toml
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -5,7 +5,7 @@
+ 
+ [workspace]
+ resolver = "2"
+-members = ["wellen", "pywellen"]
++members = ["wellen", "pywellen", "wellen_capi", "wellenx_capi"]
+ default-members = ["wellen"]
+ 
+ [workspace.package]

@@ -16,4 +16,4 @@ name = "wellenx_capi"
 crate-type = ["cdylib"]
 
 [dependencies]
-wellen = { path = "../../wellen/wellen" }
+wellen = { workspace = true }

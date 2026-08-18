@@ -1,0 +1,15 @@
+[package]
+name = "wellen-capi"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "C FFI bindings for the Wellen waveform library"
+
+[lib]
+name = "wellen_capi"
+crate-type = ["cdylib"]
+
+[dependencies]
+wellen = { workspace = true }

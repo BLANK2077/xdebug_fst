@@ -42,14 +42,14 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 - [x] 在任何迁移修改前推送当前分支远端。
 - [x] 将完整任务书、阶段状态和验收标准写入本文件。
 - [x] 建立 goal，抽象迁移目标并写明验收要求。
-- [ ] 提交并推送本计划文档。
+- [x] 提交并推送本计划文档。
 
 ### 阶段 1：迁入依赖侧修改
 
-- [ ] 从 Wellen 功能分支提取生产需要的 `wellen_capi`，迁入本仓库；不迁入 query/example 实验工具。
-- [ ] 建立仓库级 Rust workspace，使 `wellen_capi`、`wellenx_capi` 均依赖影子 Wellen 源码。
-- [ ] 将 Verilator 功能分支相对锁定基线的 XDD 修改整理成有序 patch/overlay，并记录 patchset 哈希。
-- [ ] 验证 patch 在新归档基线上可完整、重复地应用。
+- [x] 从 Wellen 功能分支提取生产需要的 `wellen_capi`，迁入本仓库；不迁入 query/example 实验工具。
+- [x] 建立仓库级 Rust workspace，使 `wellen_capi`、`wellenx_capi` 均依赖影子 Wellen 源码。
+- [x] 将 Verilator 功能分支相对锁定基线的 XDD 修改整理成有序 patch/overlay，并记录 patchset 哈希。
+- [x] 验证 patch 在新归档基线上可完整、重复地应用。
 - [ ] 独立提交并推送。
 
 ### 阶段 2：版本锁与影子源码解析器
@@ -92,6 +92,8 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 | 日期 | 阶段 | 状态 | 记录 |
 | --- | --- | --- | --- |
 | 2026-08-18 | 阶段 0 | 进行中 | 当前分支 `fix/per-session-registry-flock` 已在迁移修改前推送至 origin；计划文档与迁移 goal 已建立。 |
+| 2026-08-18 | 阶段 0 | 完成 | 计划提交 `8abdf7b` 已推送，迁移 goal 已建立。 |
+| 2026-08-18 | 阶段 1 | 完成 | 迁入 Wellen C API；生成 Verilator XDD patchset，并在官方锁定基线归档上验证可应用。 |
 
 ## 约束与失败策略
 
