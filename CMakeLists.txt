@@ -4,33 +4,52 @@ project(xdebug-fst VERSION 0.1.0 LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include(${CMAKE_SOURCE_DIR}/cmake/DependenciesLock.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/VerifyDependencies.cmake)
+set(XDEBUG_DEPENDENCY_ROOT "${CMAKE_BINARY_DIR}/_deps" CACHE PATH
+    "Prepared dependency shadow source root")
+set(XDEBUG_TOOLCHAIN_ROOT "" CACHE PATH "Required xdebug private GCC toolchain")
+set(WELLEN_REPOSITORY_DIR "${XDEBUG_DEPENDENCY_ROOT}/wellen-src")
+set(VERILATOR_REPOSITORY_DIR "${XDEBUG_DEPENDENCY_ROOT}/verilator-src")
+set(WELLEN_CAPI_INCLUDE "${WELLEN_REPOSITORY_DIR}/wellen_capi/include")
+set(WELLENX_CAPI_INCLUDE "${WELLEN_REPOSITORY_DIR}/wellenx_capi/include")
+set(WELLEN_CAPI_LIB_DIR "${CMAKE_BINARY_DIR}/lib")
+set(WELLENX_CAPI_LIB_DIR "${CMAKE_BINARY_DIR}/lib")
+set(WELLEN_CAPI_LIBRARY "${WELLEN_CAPI_LIB_DIR}/libwellen_capi.so")
+set(WELLENX_CAPI_LIBRARY "${WELLENX_CAPI_LIB_DIR}/libwellenx_capi.so")
 
-foreach(REPOSITORY_ENV IN ITEMS XDEBUG_WELLEN_REPO XDEBUG_VERILATOR_REPO)
-    if(NOT DEFINED ENV{${REPOSITORY_ENV}} OR "$ENV{${REPOSITORY_ENV}}" STREQUAL "")
+foreach(REQUIRED_PATH IN ITEMS
+        "${WELLEN_CAPI_INCLUDE}/wellen_capi.h"
+        "${WELLENX_CAPI_INCLUDE}/wellenx_capi.h"
+        "${VERILATOR_REPOSITORY_DIR}/include/xdd_api.h"
+        "${WELLEN_CAPI_LIBRARY}"
+        "${WELLENX_CAPI_LIBRARY}")
+    if(NOT EXISTS "${REQUIRED_PATH}")
         message(FATAL_ERROR
-            "${REPOSITORY_ENV} is required. Configure it as an absolute repository "
-            "path in .codex/config.toml and restart Codex.")
-    endif()
-    if(NOT IS_ABSOLUTE "$ENV{${REPOSITORY_ENV}}")
-        message(FATAL_ERROR "${REPOSITORY_ENV} must be an absolute path")
+            "Missing prepared dependency artifact: ${REQUIRED_PATH}. "
+            "Configure through tools/build.sh; dependency fallback is disabled.")
     endif()
 endforeach()
 
-# ── wellen_capi (core FFI, Phase 1 artifact in wellen workspace) ──
-set(WELLEN_REPOSITORY_DIR "$ENV{XDEBUG_WELLEN_REPO}")
-set(WELLEN_CAPI_DIR "${WELLEN_REPOSITORY_DIR}/wellen_capi")
-set(WELLEN_CAPI_INCLUDE "${WELLEN_CAPI_DIR}/include")
-set(WELLEN_CAPI_LIB_DIR "${WELLEN_REPOSITORY_DIR}/target/release")
+if(NOT IS_ABSOLUTE "${XDEBUG_TOOLCHAIN_ROOT}" OR
+   NOT EXISTS "${XDEBUG_TOOLCHAIN_ROOT}/bin/gcc" OR
+   NOT EXISTS "${XDEBUG_TOOLCHAIN_ROOT}/bin/g++")
+    message(FATAL_ERROR "XDEBUG_TOOLCHAIN_ROOT must identify the private GCC toolchain")
+endif()
+get_filename_component(XDEBUG_EXPECTED_CC "${XDEBUG_TOOLCHAIN_ROOT}/bin/gcc" REALPATH)
+get_filename_component(XDEBUG_EXPECTED_CXX "${XDEBUG_TOOLCHAIN_ROOT}/bin/g++" REALPATH)
+get_filename_component(XDEBUG_ACTUAL_CC "${CMAKE_C_COMPILER}" REALPATH)
+get_filename_component(XDEBUG_ACTUAL_CXX "${CMAKE_CXX_COMPILER}" REALPATH)
+if(NOT XDEBUG_ACTUAL_CC STREQUAL XDEBUG_EXPECTED_CC OR
+   NOT XDEBUG_ACTUAL_CXX STREQUAL XDEBUG_EXPECTED_CXX)
+    message(FATAL_ERROR
+        "System compiler fallback is forbidden. Expected ${XDEBUG_EXPECTED_CC} and "
+        "${XDEBUG_EXPECTED_CXX}; got ${XDEBUG_ACTUAL_CC} and ${XDEBUG_ACTUAL_CXX}")
+endif()
+execute_process(COMMAND "${XDEBUG_EXPECTED_CC}" -dumpfullversion
+    OUTPUT_VARIABLE XDEBUG_GCC_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(NOT XDEBUG_GCC_VERSION STREQUAL "13.3.1")
+    message(FATAL_ERROR "Private GCC version must be 13.3.1, got ${XDEBUG_GCC_VERSION}")
+endif()
 
-# ── wellenx_capi (minimal extension FFI, built inside this repo) ──
-set(WELLENX_CAPI_INCLUDE "${CMAKE_SOURCE_DIR}/wellenx_capi/include")
-set(WELLENX_CAPI_LIB_DIR "${CMAKE_SOURCE_DIR}/wellenx_capi/target/release" CACHE PATH "wellenx_capi build dir")
-
-set(VERILATOR_REPOSITORY_DIR "$ENV{XDEBUG_VERILATOR_REPO}")
-option(XDEBUG_VERIFY_DEPENDENCY_REVISIONS
-    "Require the exact Wellen and Verilator revisions from the compatibility lock" ON)
 option(XDEBUG_ENABLE_MCP_INTEGRATION_TESTS
     "Run integration tests against the adjacent xverif MCP loop wrapper" OFF)
 option(XDEBUG_ENABLE_ASAN
@@ -63,38 +82,6 @@ if(XDEBUG_ENABLE_ASAN OR XDEBUG_ENABLE_UBSAN)
         add_link_options(-fsanitize=undefined -fno-sanitize-recover=undefined)
         message(STATUS "xdebug-fst UndefinedBehaviorSanitizer gate enabled")
     endif()
-endif()
-
-if(XDEBUG_VERIFY_DEPENDENCY_REVISIONS)
-    xdebug_require_git_revision("Wellen" "${WELLEN_REPOSITORY_DIR}" "${XDEBUG_WELLEN_REVISION}")
-    xdebug_require_git_revision("Verilator" "${VERILATOR_REPOSITORY_DIR}" "${XDEBUG_VERILATOR_REVISION}")
-endif()
-
-xdebug_require_file_hash("Wellen C ABI header"
-    "${WELLEN_CAPI_INCLUDE}/wellen_capi.h" "${XDEBUG_WELLEN_CAPI_HEADER_SHA256}")
-xdebug_require_file_hash("Verilator DesignDB ABI header"
-    "${VERILATOR_REPOSITORY_DIR}/include/xdd_api.h" "${XDEBUG_XDD_HEADER_SHA256}")
-xdebug_require_file_hash("wellenx C ABI header"
-    "${WELLENX_CAPI_INCLUDE}/wellenx_capi.h" "${XDEBUG_WELLENX_CAPI_HEADER_SHA256}")
-
-find_library(WELLEN_CAPI_LIBRARY
-    NAMES wellen_capi
-    PATHS "${WELLEN_CAPI_LIB_DIR}"
-    NO_DEFAULT_PATH)
-if(NOT WELLEN_CAPI_LIBRARY)
-    message(FATAL_ERROR
-        "Missing release wellen_capi library in ${WELLEN_CAPI_LIB_DIR}. "
-        "Build it with: cargo build --release -p wellen-capi")
-endif()
-
-find_library(WELLENX_CAPI_LIBRARY
-    NAMES wellenx_capi
-    PATHS "${WELLENX_CAPI_LIB_DIR}"
-    NO_DEFAULT_PATH)
-if(NOT WELLENX_CAPI_LIBRARY)
-    message(FATAL_ERROR
-        "Missing release wellenx_capi library in ${WELLENX_CAPI_LIB_DIR}. "
-        "Build it with: cargo build --release --manifest-path wellenx_capi/Cargo.toml")
 endif()
 
 # ── Sources (glob: new action files are picked up automatically) ──
@@ -136,7 +123,7 @@ target_link_libraries(xdebug-fst PRIVATE
 )
 
 set_target_properties(xdebug-fst PROPERTIES
-    BUILD_RPATH "${WELLEN_CAPI_LIB_DIR};${WELLENX_CAPI_LIB_DIR}"
+    BUILD_RPATH "${WELLEN_CAPI_LIB_DIR};${WELLENX_CAPI_LIB_DIR};${XDEBUG_TOOLCHAIN_ROOT}/lib64"
     INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # ── Install ──
@@ -478,7 +465,7 @@ if(BUILD_TESTING)
         "${WELLENX_CAPI_LIBRARY}"
     )
     set_target_properties(test-wellen-fst-backend PROPERTIES
-        BUILD_RPATH "${WELLEN_CAPI_LIB_DIR};${WELLENX_CAPI_LIB_DIR}")
+        BUILD_RPATH "${WELLEN_CAPI_LIB_DIR};${WELLENX_CAPI_LIB_DIR};${XDEBUG_TOOLCHAIN_ROOT}/lib64")
     add_test(
         NAME wellen-fst-backend
         COMMAND test-wellen-fst-backend

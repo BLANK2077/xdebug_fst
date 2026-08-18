@@ -62,12 +62,12 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 
 ### 阶段 3：私有工具链门禁与统一构建
 
-- [ ] 新增 `tools/build.sh`，从 `${REPO_ROOT}/../.toolchains/gcc-13` 解析工具链。
-- [ ] 强制绝对 `CC/CXX`，验证真实路径及 GCC/G++ 13.3.1；已有用户 `CC/CXX` 不得覆盖。
-- [ ] CMake、Verilator configure/make、Cargo native build script 使用同一工具链；构建和测试优先解析私有 `lib64`。
-- [ ] 发现旧 CMake cache 使用其他编译器时失败，不自动删除缓存。
-- [ ] 生成 `build/toolchain.resolved.json`，记录工具链路径、版本与构建身份。
-- [ ] 建立统一增量构建图，输出 Wellen C API、Wellen 扩展、patched Verilator 和 `xdebug-fst`。
+- [x] 新增 `tools/build.sh`，从 `${REPO_ROOT}/../.toolchains/gcc-13` 解析工具链。
+- [x] 强制绝对 `CC/CXX`，验证真实路径及 GCC/G++ 13.3.1；已有用户 `CC/CXX` 不得覆盖。
+- [x] CMake、Verilator configure/make、Cargo native build script 使用同一工具链；构建和测试优先解析私有 `lib64`。
+- [x] 发现旧 CMake cache 使用其他编译器时失败，不自动删除缓存。
+- [x] 生成 `build/toolchain.resolved.json`，记录工具链路径、版本与构建身份。
+- [x] 建立统一增量构建图，输出 Wellen C API、Wellen 扩展、patched Verilator 和 `xdebug-fst`。
 - [ ] 独立提交并推送。
 
 ### 阶段 4：环境变量、测试与文档迁移
@@ -95,6 +95,7 @@ C/C++ 编译器固定为仓库同级 `xdebug_oc/.toolchains/gcc-13/bin/gcc` 和 
 | 2026-08-18 | 阶段 0 | 完成 | 计划提交 `8abdf7b` 已推送，迁移 goal 已建立。 |
 | 2026-08-18 | 阶段 1 | 完成 | 迁入 Wellen C API；生成 Verilator XDD patchset，并在官方锁定基线归档上验证可应用。 |
 | 2026-08-18 | 阶段 2 | 进行中 | lock v2 与影子源码解析器完成；5 个解析器单测通过，真实 HOME 仓库解析成功且状态未改变。 |
+| 2026-08-18 | 阶段 3 | 完成 | `build-unified` 首次统一构建通过；Verilator configure、CMake cache 与 manifest 均确认私有 GCC/G++ 13.3.1，第二次增量构建 4.5 秒且未重建 Verilator。 |
 
 ## 约束与失败策略
 

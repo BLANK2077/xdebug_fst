@@ -103,17 +103,26 @@ def apply_patch(source: Path, patch: Path) -> None:
     run(["patch", "--batch", "--forward", "-p1", "-i", str(patch)], cwd=source)
 
 
-def fingerprint(lock: dict, repo_root: Path, wellen_home: Path, verilator_home: Path) -> str:
-    payload = {
-        "lock": lock,
+def fingerprints(lock: dict, repo_root: Path, wellen_home: Path, verilator_home: Path) -> dict:
+    wellen_payload = {
+        "lock": lock["wellen"],
+        "rust_workspace": lock["rust_workspace"],
         "wellen_capi": sha256(repo_root / "wellen_capi/src/lib.rs"),
         "wellenx_capi": sha256(repo_root / "wellenx_capi/src/lib.rs"),
         "wellenx_manifest": sha256(repo_root / "wellenx_capi/Cargo.toml"),
         "cargo_lock": sha256(repo_root / lock["rust_workspace"]["cargo_lock"]),
         "wellen_home": str(wellen_home),
+    }
+    verilator_payload = {
+        "lock": lock["verilator"],
         "verilator_home": str(verilator_home),
     }
-    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+    components = {
+        "wellen": hashlib.sha256(json.dumps(wellen_payload, sort_keys=True).encode()).hexdigest(),
+        "verilator": hashlib.sha256(json.dumps(verilator_payload, sort_keys=True).encode()).hexdigest(),
+    }
+    components["all"] = hashlib.sha256(json.dumps(components, sort_keys=True).encode()).hexdigest()
+    return components
 
 
 def prepare(repo_root: Path, build_dir: Path) -> dict:
@@ -139,34 +148,47 @@ def prepare(repo_root: Path, build_dir: Path) -> dict:
 
     deps_dir = build_dir / "_deps"
     stamp_path = deps_dir / ".xdebug-dependencies.json"
-    wanted = fingerprint(lock, repo_root, wellen_home, verilator_home)
-    if stamp_path.is_file():
-        previous = json.loads(stamp_path.read_text())
-        if previous.get("fingerprint") == wanted:
-            return previous
+    wanted = fingerprints(lock, repo_root, wellen_home, verilator_home)
+    previous = json.loads(stamp_path.read_text()) if stamp_path.is_file() else {}
+    if previous.get("fingerprint") == wanted["all"]:
+        return previous
+    need_wellen = (
+        previous.get("wellen", {}).get("fingerprint") != wanted["wellen"]
+        or not (deps_dir / "wellen-src").is_dir()
+    )
+    need_verilator = (
+        previous.get("verilator", {}).get("fingerprint") != wanted["verilator"]
+        or not (deps_dir / "verilator-src").is_dir()
+    )
 
     staging = deps_dir / ".staging"
     if staging.exists():
         shutil.rmtree(staging)
     staging.mkdir(parents=True)
     try:
-        wellen_source = staging / "wellen-src"
-        verilator_source = staging / "verilator-src"
-        archive(wellen_home, wellen_cfg["revision"], wellen_source)
-        archive(verilator_home, verilator_cfg["revision"], verilator_source)
-        apply_patch(wellen_source, wellen_patch)
-        shutil.copytree(repo_root / "wellen_capi", wellen_source / "wellen_capi")
-        shutil.copytree(repo_root / "wellenx_capi", wellen_source / "wellenx_capi")
-        shutil.copy2(cargo_lock, wellen_source / "Cargo.lock")
-        apply_patch(verilator_source, verilator_patch)
-
-        if sha256(wellen_source / "wellen_capi/include/wellen_capi.h") != wellen_cfg["capi_header_sha256"]:
-            raise PrepareError("影子 Wellen C ABI header 哈希不一致")
-        if sha256(verilator_source / "include/xdd_api.h") != verilator_cfg["xdd_header_sha256"]:
-            raise PrepareError("影子 Verilator XDD header 哈希不一致")
+        if need_wellen:
+            wellen_source = staging / "wellen-src"
+            archive(wellen_home, wellen_cfg["revision"], wellen_source)
+            apply_patch(wellen_source, wellen_patch)
+            shutil.copytree(repo_root / "wellen_capi", wellen_source / "wellen_capi")
+            shutil.copytree(repo_root / "wellenx_capi", wellen_source / "wellenx_capi")
+            shutil.copy2(cargo_lock, wellen_source / "Cargo.lock")
+            if sha256(wellen_source / "wellen_capi/include/wellen_capi.h") != wellen_cfg["capi_header_sha256"]:
+                raise PrepareError("影子 Wellen C ABI header 哈希不一致")
+        if need_verilator:
+            verilator_source = staging / "verilator-src"
+            archive(verilator_home, verilator_cfg["revision"], verilator_source)
+            apply_patch(verilator_source, verilator_patch)
+            if sha256(verilator_source / "include/xdd_api.h") != verilator_cfg["xdd_header_sha256"]:
+                raise PrepareError("影子 Verilator XDD header 哈希不一致")
 
         deps_dir.mkdir(parents=True, exist_ok=True)
-        for name in ("wellen-src", "verilator-src"):
+        changed = []
+        if need_wellen:
+            changed.append("wellen-src")
+        if need_verilator:
+            changed.append("verilator-src")
+        for name in changed:
             target = deps_dir / name
             if target.exists():
                 shutil.rmtree(target)
@@ -176,10 +198,11 @@ def prepare(repo_root: Path, build_dir: Path) -> dict:
             shutil.rmtree(staging)
 
     resolved = {
-        "fingerprint": wanted,
+        "fingerprint": wanted["all"],
         "bundle_version": lock["bundle_version"],
         "wellen": {
             "home": str(wellen_home),
+            "fingerprint": wanted["wellen"],
             "revision": wellen_cfg["revision"],
             "tree": wellen_cfg["tree"],
             "version": wellen_cfg["version"],
@@ -187,6 +210,7 @@ def prepare(repo_root: Path, build_dir: Path) -> dict:
         },
         "verilator": {
             "home": str(verilator_home),
+            "fingerprint": wanted["verilator"],
             "revision": verilator_cfg["revision"],
             "tree": verilator_cfg["tree"],
             "patch_sha256": verilator_cfg["patch_sha256"],
