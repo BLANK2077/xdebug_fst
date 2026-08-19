@@ -25,6 +25,7 @@ from large_rtl_trace_generator import generate
 
 
 DEFAULT_SCALES = (1024, 2048, 4096, 8192, 16384, 32768, 65536)
+DEFAULT_DESIGN_DB_FORMAT = "binary-v1"
 TIME_FORMAT = "wall_seconds=%e\nuser_seconds=%U\nsys_seconds=%S\nmax_rss_kib=%M\nexit_code=%x"
 
 
@@ -447,6 +448,10 @@ def build_one(
             "schema_version": "xdebug.design-db-bundle.v1",
             "library": db_so.name,
         }
+        (obj_dir / "xdebug-design-db.json").write_text(
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     else:
         if not db_binary.is_file() or db_binary.stat().st_size == 0:
             raise BenchmarkError(
@@ -456,14 +461,22 @@ def build_one(
             "max_rss_kib": 0, "exit_code": 0,
             "measurement": "integrated_into_verilate",
         }
-        manifest = {
+        expected_manifest = {
             "schema_version": "xdebug.design-db-bundle.v2",
             "format": "binary-v1",
             "database": db_binary.name,
         }
-    (obj_dir / "xdebug-design-db.json").write_text(
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+        manifest_path = obj_dir / "xdebug-design-db.json"
+        try:
+            producer_manifest = json.loads(
+                manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise BenchmarkError(
+                f"scale {scale} lacks a readable producer manifest: {exc}") from exc
+        if producer_manifest != expected_manifest:
+            raise BenchmarkError(
+                f"scale {scale} received an invalid producer manifest: "
+                f"{producer_manifest!r}")
     stages["simulate"] = command.run(
         "simulate", [str(obj_dir / "Vlarge_trace_top")], scale_dir, env
     )
@@ -539,7 +552,7 @@ def main() -> int:
     parser.add_argument("--stage-timeout", type=int, default=7200)
     parser.add_argument(
         "--design-db-format", choices=("xdd-so", "binary-v1"),
-        default="xdd-so",
+        default=DEFAULT_DESIGN_DB_FORMAT,
     )
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[1]

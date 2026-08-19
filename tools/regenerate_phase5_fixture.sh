@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Regenerate the phase-5 raw FST and DesignDB fixture.
+# Regenerate the phase-5 raw FST and legacy .so DesignDB compatibility fixture.
+# New designs use --design-db-binary; this script intentionally preserves the
+# xdd-so fixture needed to test the compatibility reader.
 # BSD-3-Clause License
 
 set -euo pipefail

@@ -71,5 +71,7 @@ def test_query_index_metrics_requires_structured_engine_record(tmp_path: Path) -
 
 
 def test_binary_manifest_uses_explicit_non_fallback_schema() -> None:
-    assert "binary-v1" in SCRIPT.read_text(encoding="utf-8")
-    assert "xdebug.design-db-bundle.v2" in SCRIPT.read_text(encoding="utf-8")
+    assert BENCHMARK.DEFAULT_DESIGN_DB_FORMAT == "binary-v1"
+    source = SCRIPT.read_text(encoding="utf-8")
+    assert "xdebug.design-db-bundle.v2" in source
+    assert "producer_manifest != expected_manifest" in source
