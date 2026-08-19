@@ -91,9 +91,14 @@ bool canonical_existing_path(const std::string& input, bool directory,
     return true;
 }
 
+struct DesignResource {
+    std::string path;
+    std::string format;
+};
+
 bool resolve_design_bundle(const std::string& bundle_input,
                            std::string& canonical_bundle,
-                           std::string& library, std::string& error) {
+                           DesignResource& resource, std::string& error) {
     if (!canonical_existing_path(bundle_input, true, canonical_bundle, error))
         return false;
     const fs::path manifest_path =
@@ -112,18 +117,31 @@ bool resolve_design_bundle(const std::string& bundle_input,
                 exception.what();
         return false;
     }
-    if (!manifest.is_object() || manifest.size() != 2 ||
-        manifest.value("schema_version", std::string()) !=
-            "xdebug.design-db-bundle.v1" ||
-        !manifest.contains("library") || !manifest["library"].is_string() ||
-        manifest["library"].get<std::string>().empty()) {
-        error = "DesignDB bundle manifest must contain exactly schema_version="
-                "xdebug.design-db-bundle.v1 and a nonempty library";
+    std::string artifact;
+    std::string required_extension;
+    const std::string schema = manifest.value("schema_version", std::string());
+    if (schema == "xdebug.design-db-bundle.v1" && manifest.is_object() &&
+        manifest.size() == 2 && manifest.contains("library") &&
+        manifest["library"].is_string() &&
+        !manifest["library"].get<std::string>().empty()) {
+        resource.format = "xdd-so";
+        artifact = manifest["library"].get<std::string>();
+        required_extension = ".so";
+    } else if (schema == "xdebug.design-db-bundle.v2" && manifest.is_object() &&
+               manifest.size() == 3 && manifest.value("format", std::string()) ==
+                   "binary-v1" && manifest.contains("database") &&
+               manifest["database"].is_string() &&
+               !manifest["database"].get<std::string>().empty()) {
+        resource.format = "binary-v1";
+        artifact = manifest["database"].get<std::string>();
+        required_extension = ".xddb";
+    } else {
+        error = "DesignDB bundle manifest must be strict v1 xdd-so or v2 binary-v1";
         return false;
     }
-    const fs::path relative(manifest["library"].get<std::string>());
+    const fs::path relative(artifact);
     if (relative.is_absolute()) {
-        error = "DesignDB bundle library must be relative to the bundle";
+        error = "DesignDB bundle artifact must be relative to the bundle";
         return false;
     }
     std::error_code ec;
@@ -131,12 +149,12 @@ bool resolve_design_bundle(const std::string& bundle_input,
     const fs::path root = fs::canonical(canonical_bundle, ec);
     const std::string root_prefix = root.string() + "/";
     if (ec || !fs::is_regular_file(resolved, ec) ||
-        resolved.extension() != ".so" ||
+        resolved.extension() != required_extension ||
         resolved.string().rfind(root_prefix, 0) != 0) {
-        error = "DesignDB bundle library must resolve to one in-bundle .so";
+        error = "DesignDB bundle artifact must resolve to an in-bundle file of the declared format";
         return false;
     }
-    library = resolved.string();
+    resource.path = resolved.string();
     return true;
 }
 
@@ -620,7 +638,7 @@ std::string self_executable() {
 }
 
 pid_t spawn_uds_engine(const SessionInfo& session,
-                       const std::string& design_library) {
+                       const DesignResource& design_resource) {
     const std::string executable = self_executable();
     if (executable.empty()) return -1;
     const pid_t child = fork();
@@ -647,9 +665,11 @@ pid_t spawn_uds_engine(const SessionInfo& session,
         arguments.push_back("-fst");
         arguments.push_back(session.fsdb_file);
     }
-    if (!design_library.empty()) {
+    if (!design_resource.path.empty()) {
         arguments.push_back("-dbdir");
-        arguments.push_back(design_library);
+        arguments.push_back(design_resource.path);
+        arguments.push_back("--design-db-format");
+        arguments.push_back(design_resource.format);
     }
     std::vector<char*> argv;
     for (std::string& argument : arguments) argv.push_back(argument.data());
@@ -696,10 +716,10 @@ Json open_session(const Json& request) {
             xdebug_core::sha256_text(ownership_token);
     }
 
-    std::string design_library;
+    DesignResource design_resource;
     if (target.contains("daidir")) {
         if (!resolve_design_bundle(target["daidir"].get<std::string>(),
-                                   session.dbdir_path, design_library, error) ||
+                                   session.dbdir_path, design_resource, error) ||
             !populate_fingerprint(session.dbdir_path, true, session)) {
             return failure("DESIGN_BUNDLE_INVALID", error);
         }
@@ -745,7 +765,7 @@ Json open_session(const Json& request) {
                        "failed to commit the session generation marker");
     }
 
-    const pid_t child = spawn_uds_engine(session, design_library);
+    const pid_t child = spawn_uds_engine(session, design_resource);
     if (child <= 0) {
         cleanup_generation(registry, session);
         return failure("SESSION_START_FAILED", "failed to fork the engine process");

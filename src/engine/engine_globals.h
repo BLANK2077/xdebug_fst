@@ -4,6 +4,7 @@
 
 #include "backend/waveform_backend.h"
 #include "backend/design_backend.h"
+#include "backend/design_query_index.h"
 
 #include <memory>
 #include <string>
@@ -15,11 +16,13 @@ struct EngineGlobals {
     // Backend instances
     std::unique_ptr<IWaveformBackend> waveform;
     std::unique_ptr<IDesignBackend>   design;
+    std::unique_ptr<DesignQueryIndex> design_index;
 
     // Session info
     std::string session_id;
     std::string waveform_path;   // .fst file path
-    std::string design_path;     // .so file path
+    std::string design_path;     // resolved DesignDB artifact path
+    std::string design_format = "xdd-so";
 
     // Flags
     bool has_waveform = false;

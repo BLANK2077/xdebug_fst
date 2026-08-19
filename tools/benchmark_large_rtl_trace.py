@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import selectors
 import statistics
 import subprocess
@@ -93,6 +94,22 @@ def rss_kib(pid: int) -> int | None:
     except (FileNotFoundError, ProcessLookupError, ValueError):
         return None
     return None
+
+
+def query_index_metrics(path: Path) -> dict[str, float | int]:
+    match = re.search(
+        r"design query index: build_ms=([0-9.]+) estimated_bytes=([0-9]+) "
+        r"signals_scanned=([0-9]+) port_records_scanned=([0-9]+)",
+        path.read_text(encoding="utf-8", errors="replace"),
+    )
+    if not match:
+        raise BenchmarkError("engine log lacks design query index metrics")
+    return {
+        "build_ms": float(match.group(1)),
+        "estimated_bytes": int(match.group(2)),
+        "signals_scanned": int(match.group(3)),
+        "port_records_scanned": int(match.group(4)),
+    }
 
 
 class TimedCommand:
@@ -256,6 +273,8 @@ def benchmark_actions(
     env: dict[str, str],
     metadata: dict[str, Any],
     repetitions: int,
+    design_bundle: Path | None = None,
+    stderr_log: Path | None = None,
 ) -> dict[str, Any]:
     short_home_root = Path("/tmp") / "xfst-large-rtl-home"
     short_home_root.mkdir(exist_ok=True)
@@ -263,13 +282,15 @@ def benchmark_actions(
     home_dir.mkdir()
     action_env = dict(env)
     action_env["HOME"] = str(home_dir)
-    client = StdioClient(xfst, scale_dir, action_env, scale_dir / "xdebug.stderr.log")
+    client = StdioClient(
+        xfst, scale_dir, action_env, stderr_log or (scale_dir / "xdebug.stderr.log"))
     try:
         ready = client.start()
         frontend_rss_before = rss_kib(int(ready["pid"]))
         opened, open_ms = client.request(
             "session.open",
-            target={"fsdb": str(scale_dir / "waves.fst"), "daidir": str(scale_dir / "obj_dir")},
+            target={"fsdb": str(scale_dir / "waves.fst"),
+                    "daidir": str(design_bundle or (scale_dir / "obj_dir"))},
             args={"name": f"large_rtl_{metadata['target_rtl_lines']}"},
             timeout=600.0,
         )
@@ -311,12 +332,18 @@ def benchmark_actions(
             actions[action] = {"latency": latency_summary(samples), "contract": contract}
         closed, close_ms = client.request("session.close", args={}, timeout=60.0)
         response_contract("session.close", closed)
+        index_logs = list((home_dir / ".xdebug" / "engine" / "sessions").glob(
+            "*/debug.log"))
+        if len(index_logs) != 1:
+            raise BenchmarkError(
+                f"expected one managed engine debug log, found {len(index_logs)}")
         return {
             "session_open_ms": round(open_ms, 3),
             "session_close_ms": round(close_ms, 3),
             "frontend_rss_before_open_kib": frontend_rss_before,
             "server_rss_after_open_kib": server_rss,
             "open_contract": open_contract,
+            "query_index": query_index_metrics(index_logs[0]),
             "actions": actions,
         }
     finally:
@@ -368,6 +395,7 @@ def build_one(
     jobs: int,
     repetitions: int,
     timeout: int,
+    design_db_format: str,
 ) -> dict[str, Any]:
     scale_dir = output / f"rtl-{scale}"
     if scale_dir.exists() and any(scale_dir.iterdir()):
@@ -381,9 +409,12 @@ def build_one(
     cxx = repo.parent / ".toolchains" / "gcc-13" / "bin" / "g++"
     obj_dir = scale_dir / "obj_dir"
     stages: dict[str, Any] = {}
+    design_db_flag = (
+        "--design-db-binary" if design_db_format == "binary-v1"
+        else "--design-db")
     stages["verilate"] = command.run(
         "verilate",
-        [str(verilator), "--cc", "--exe", "--trace-fst", "--design-db",
+        [str(verilator), "--cc", "--exe", "--trace-fst", design_db_flag,
          "--top-module", "large_trace_top", "--Mdir", "obj_dir",
          "large_trace.sv", "tb_large_trace.cpp", "-CFLAGS", "-fPIC"],
         scale_dir,
@@ -397,23 +428,39 @@ def build_one(
     )
     db_cpp = obj_dir / "Vlarge_trace_top__DesignDb.cpp"
     db_so = obj_dir / "libVlarge_trace_top__DesignDb.so"
+    db_binary = obj_dir / "Vlarge_trace_top__DesignDb.xddb"
     prefix_flags = [
         f"-ffile-prefix-map={scale_dir}=.",
         f"-fdebug-prefix-map={scale_dir}=.",
         f"-fmacro-prefix-map={scale_dir}=.",
     ]
-    stages["design_db_build"] = command.run(
-        "design-db-build",
-        [str(cxx), "-std=c++17", "-O2", "-shared", "-fPIC", *prefix_flags,
-         f"-I{build / '_deps' / 'verilator-src' / 'include'}",
-         "-o", str(db_so), str(db_cpp)],
-        scale_dir,
-        env,
-    )
-    manifest = {
-        "schema_version": "xdebug.design-db-bundle.v1",
-        "library": db_so.name,
-    }
+    if design_db_format == "xdd-so":
+        stages["design_db_build"] = command.run(
+            "design-db-build",
+            [str(cxx), "-std=c++17", "-O2", "-shared", "-fPIC", *prefix_flags,
+             f"-I{build / '_deps' / 'verilator-src' / 'include'}",
+             "-o", str(db_so), str(db_cpp)],
+            scale_dir,
+            env,
+        )
+        manifest = {
+            "schema_version": "xdebug.design-db-bundle.v1",
+            "library": db_so.name,
+        }
+    else:
+        if not db_binary.is_file() or db_binary.stat().st_size == 0:
+            raise BenchmarkError(
+                f"scale {scale} did not receive direct binary DesignDB output")
+        stages["design_db_build"] = {
+            "wall_seconds": 0.0, "user_seconds": 0.0, "sys_seconds": 0.0,
+            "max_rss_kib": 0, "exit_code": 0,
+            "measurement": "integrated_into_verilate",
+        }
+        manifest = {
+            "schema_version": "xdebug.design-db-bundle.v2",
+            "format": "binary-v1",
+            "database": db_binary.name,
+        }
     (obj_dir / "xdebug-design-db.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
@@ -423,23 +470,32 @@ def build_one(
     fst = scale_dir / "waves.fst"
     artifacts = {
         "rtl_bytes": (scale_dir / "large_trace.sv").stat().st_size,
-        "design_db_cpp_bytes": db_cpp.stat().st_size,
-        "design_db_so_bytes": db_so.stat().st_size,
+        "design_db_cpp_bytes": db_cpp.stat().st_size if db_cpp.exists() else 0,
+        "design_db_so_bytes": db_so.stat().st_size if db_so.exists() else 0,
+        "design_db_binary_bytes": (
+            db_binary.stat().st_size if db_binary.exists() else 0),
         "simulator_bytes": (obj_dir / "Vlarge_trace_top").stat().st_size,
         "fst_bytes": fst.stat().st_size,
         "rtl_sha256": sha256(scale_dir / "large_trace.sv"),
-        "design_db_so_sha256": sha256(db_so),
+        "design_db_so_sha256": sha256(db_so) if db_so.exists() else None,
+        "design_db_binary_sha256": (
+            sha256(db_binary) if db_binary.exists() else None),
         "fst_sha256": sha256(fst),
     }
-    if any(artifacts[key] <= 0 for key in (
-        "rtl_bytes", "design_db_cpp_bytes", "design_db_so_bytes", "simulator_bytes", "fst_bytes"
-    )):
+    selected_db_size = artifacts[
+        "design_db_so_bytes" if design_db_format == "xdd-so"
+        else "design_db_binary_bytes"]
+    required_artifacts = ["rtl_bytes", "simulator_bytes", "fst_bytes"]
+    if design_db_format == "xdd-so":
+        required_artifacts.append("design_db_cpp_bytes")
+    if any(artifacts[key] <= 0 for key in required_artifacts) or selected_db_size <= 0:
         raise BenchmarkError(f"scale {scale} produced an empty artifact")
     actions = benchmark_actions(
-        scale_dir, build / "xdebug-fst", env, metadata, repetitions
+        scale_dir, build / "xdebug-fst", env, metadata, repetitions,
     )
     return {
         "scale": scale,
+        "design_db_format": design_db_format,
         "generation_ms": round(generate_ms, 3),
         "metadata": metadata,
         "stages": stages,
@@ -481,6 +537,10 @@ def main() -> int:
     parser.add_argument("--jobs", type=int, default=max(1, min(8, os.cpu_count() or 1)))
     parser.add_argument("--repetitions", type=int, default=5)
     parser.add_argument("--stage-timeout", type=int, default=7200)
+    parser.add_argument(
+        "--design-db-format", choices=("xdd-so", "binary-v1"),
+        default="xdd-so",
+    )
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[1]
     build = (args.build_dir or (repo / "build")).resolve()
@@ -500,6 +560,7 @@ def main() -> int:
         "scales": list(parse_scales(args.scales)),
         "jobs": args.jobs,
         "action_repetitions": args.repetitions,
+        "design_db_format": args.design_db_format,
         "results": [],
     }
     result_path = output / "benchmark-results.json"
@@ -509,7 +570,7 @@ def main() -> int:
             result["results"].append(
                 build_one(
                     scale, output, repo, build, env, args.jobs,
-                    args.repetitions, args.stage_timeout,
+                    args.repetitions, args.stage_timeout, args.design_db_format,
                 )
             )
             result_path.write_text(

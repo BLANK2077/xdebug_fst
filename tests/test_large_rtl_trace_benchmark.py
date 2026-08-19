@@ -50,3 +50,26 @@ def test_latency_summary_keeps_first_and_distribution() -> None:
         "min_ms": 1.0,
         "max_ms": 5.0,
     }
+
+
+def test_query_index_metrics_requires_structured_engine_record(tmp_path: Path) -> None:
+    log = tmp_path / "engine.log"
+    log.write_text(
+        "[engine] design query index: build_ms=12.375 estimated_bytes=4096 "
+        "signals_scanned=887 port_records_scanned=650\n",
+        encoding="utf-8",
+    )
+    assert BENCHMARK.query_index_metrics(log) == {
+        "build_ms": 12.375,
+        "estimated_bytes": 4096,
+        "signals_scanned": 887,
+        "port_records_scanned": 650,
+    }
+    log.write_text("[engine] no metrics\n", encoding="utf-8")
+    with pytest.raises(BENCHMARK.BenchmarkError, match="lacks"):
+        BENCHMARK.query_index_metrics(log)
+
+
+def test_binary_manifest_uses_explicit_non_fallback_schema() -> None:
+    assert "binary-v1" in SCRIPT.read_text(encoding="utf-8")
+    assert "xdebug.design-db-bundle.v2" in SCRIPT.read_text(encoding="utf-8")

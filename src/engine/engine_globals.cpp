@@ -2,9 +2,11 @@
 // BSD-3-Clause License
 
 #include "engine_globals.h"
+#include "backend/binary_design_backend.h"
 #include "backend/wellen_fst_backend.h"
 #include "backend/xdd_design_backend.h"
 
+#include <chrono>
 #include <cstring>
 #include <cstdio>
 
@@ -27,6 +29,8 @@ bool init_engine_globals(int argc, char** argv) {
             g.waveform_path = argv[++i];
         } else if (std::strcmp(argv[i], "-dbdir") == 0 && i + 1 < argc) {
             g.design_path = argv[++i];
+        } else if (std::strcmp(argv[i], "--design-db-format") == 0 && i + 1 < argc) {
+            g.design_format = argv[++i];
         } else if (std::strcmp(argv[i], "--session-id") == 0 && i + 1 < argc) {
             g.session_id = argv[++i];
         } else if (i == 1 && argv[i][0] != '-') {
@@ -51,11 +55,31 @@ bool init_engine_globals(int argc, char** argv) {
 
     // Open design backend if specified
     if (!g.design_path.empty()) {
-        g.design = std::make_unique<XddDesignBackend>();
+        if (g.design_format == "xdd-so") {
+            g.design = std::make_unique<XddDesignBackend>();
+        } else if (g.design_format == "binary-v1") {
+            g.design = std::make_unique<BinaryDesignBackend>();
+        } else {
+            fprintf(stderr, "[engine] ERROR: unsupported design db format: %s\n",
+                    g.design_format.c_str());
+            return false;
+        }
         if (g.design->open(g.design_path)) {
             g.has_design = true;
+            const auto index_started = std::chrono::steady_clock::now();
+            g.design_index = std::make_unique<DesignQueryIndex>(*g.design);
+            const double index_ms = std::chrono::duration<double, std::milli>(
+                std::chrono::steady_clock::now() - index_started).count();
             fprintf(stderr, "[engine] opened design db: %s (%d signals)\n",
                     g.design_path.c_str(), g.design->signal_count());
+            fprintf(stderr,
+                    "[engine] design query index: build_ms=%.3f estimated_bytes=%zu "
+                    "signals_scanned=%llu port_records_scanned=%llu\n",
+                    index_ms, g.design_index->estimated_bytes(),
+                    static_cast<unsigned long long>(
+                        g.design_index->signals_scanned()),
+                    static_cast<unsigned long long>(
+                        g.design_index->port_records_scanned()));
         } else {
             fprintf(stderr, "[engine] ERROR: failed to open design db: %s\n",
                     g.design_path.c_str());

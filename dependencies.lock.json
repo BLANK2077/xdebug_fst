@@ -29,10 +29,10 @@
     "version": "v5.050-109-gc3be3c805",
     "revision": "c3be3c80501bec8d4c3b7f5256890332df62d410",
     "tree": "8e247c8b90237517f84fbda98a594318b16ca998",
-    "patchset_version": "xdebug-design-db-v1",
+    "patchset_version": "xdebug-design-db-v2-binary",
     "patchset_source_revision": "bf01d667c8b27f2f7cee456bb35a84e5372434df",
     "patch": "patches/verilator/xdebug-design-db.patch",
-    "patch_sha256": "4f43028f2df3bdd349023fca122fd6a2edd23ff9cfdf824a6a60b038f6d14426",
+    "patch_sha256": "226de48a441d2b7983dee74da385a91b5af3f45a22d5a6d8e4e15c7afa30f64a",
     "xdd_header_sha256": "33afa1e6e173a1ecfe6ebe1fe5f44303f60368f328b0b52677b4544c0be6bba1"
   },
   "original_xdebug": {

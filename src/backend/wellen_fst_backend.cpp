@@ -717,19 +717,9 @@ uint32_t WellenFstBackend::find_signal(const std::string& path) const {
     if (it != signal_index_.end()) return it->second;
     const uint32_t selected = create_packed_selection(key);
     if (selected != kInvalidSignalRef) return selected;
-    // Fallback: brute force over all vars
-    uint32_t n = wellen_scope_count(db_);
-    for (uint32_t si = 0; si < n; ++si) {
-        uint32_t sr = wellen_scope_at(db_, si);
-        if (sr == 0) continue;
-        uint32_t nv = wellen_scope_var_count(db_, sr);
-        for (uint32_t vi = 0; vi < nv; ++vi) {
-            uint32_t vr = wellen_scope_var_at(db_, sr, vi);
-            if (vr == 0) continue;
-            const char* full = wellen_var_full_name(db_, vr);
-            if (full && normalize_path(full) == key) return wellen_var_signal_ref(db_, vr);
-        }
-    }
+    // build_signal_index() traverses every variable.  A miss after the exact
+    // and packed-selection indexes is definitive; rescanning the hierarchy
+    // makes every absent DesignDB-only temporary O(number of waveform vars).
     return kInvalidSignalRef;
 }
 

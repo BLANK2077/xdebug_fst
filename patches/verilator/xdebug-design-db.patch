@@ -277,7 +277,7 @@ new file mode 100644
 index 0000000000000000000000000000000000000000..97088bcaa0e62cb4fed88e729929f17dbd888cd2
 --- /dev/null
 +++ b/src/V3EmitDesignDb.cpp
-@@ -0,0 +1,1168 @@
+@@ -0,0 +1,1354 @@
 +// -*- mode: C++; c-file-style: "cc-mode" -*-
 +//*************************************************************************
 +// DESCRIPTION: Verilator: Emit design database for xdebug trace queries
@@ -1069,6 +1069,188 @@ index 0000000000000000000000000000000000000000..97088bcaa0e62cb4fed88e729929f17d
 +// =========================================================================
 +// Phase 3: Generate C++ output file
 +
++void appendU32(std::vector<uint8_t>& out, uint32_t value) {
++    for (int byte = 0; byte < 4; ++byte) out.push_back((value >> (byte * 8)) & 0xff);
++}
++
++void appendU64(std::vector<uint8_t>& out, uint64_t value) {
++    for (int byte = 0; byte < 8; ++byte) out.push_back((value >> (byte * 8)) & 0xff);
++}
++
++void appendI32(std::vector<uint8_t>& out, int value) {
++    appendU32(out, static_cast<uint32_t>(value));
++}
++
++uint32_t internString(const std::string& value, std::map<std::string, uint32_t>& offsets,
++                      std::vector<uint8_t>& strings) {
++    const auto found = offsets.find(value);
++    if (found != offsets.end()) return found->second;
++    const uint32_t offset = static_cast<uint32_t>(strings.size());
++    offsets.emplace(value, offset);
++    strings.insert(strings.end(), value.begin(), value.end());
++    strings.push_back(0);
++    return offset;
++}
++
++template <typename Record>
++std::vector<const Record*> groupRecords(int count, const std::vector<Record>& records,
++                                        std::vector<uint64_t>& starts) {
++    std::vector<uint64_t> sizes(count, 0);
++    for (const auto& record : records) {
++        if (record.targetIdx >= 0 && record.targetIdx < count) ++sizes[record.targetIdx];
++    }
++    starts.resize(count + 1, 0);
++    for (int index = 0; index < count; ++index) starts[index + 1] = starts[index] + sizes[index];
++    std::vector<const Record*> ordered(starts[count]);
++    std::vector<uint64_t> fill = starts;
++    for (const auto& record : records) {
++        if (record.targetIdx >= 0 && record.targetIdx < count)
++            ordered[fill[record.targetIdx]++] = &record;
++    }
++    return ordered;
++}
++
++template <>
++std::vector<const PortConnectionInfo*> groupRecords(
++    int count, const std::vector<PortConnectionInfo>& records,
++    std::vector<uint64_t>& starts) {
++    std::vector<uint64_t> sizes(count, 0);
++    for (const auto& record : records) {
++        if (record.portIdx >= 0 && record.portIdx < count) ++sizes[record.portIdx];
++    }
++    starts.resize(count + 1, 0);
++    for (int index = 0; index < count; ++index) starts[index + 1] = starts[index] + sizes[index];
++    std::vector<const PortConnectionInfo*> ordered(starts[count]);
++    std::vector<uint64_t> fill = starts;
++    for (const auto& record : records) {
++        if (record.portIdx >= 0 && record.portIdx < count)
++            ordered[fill[record.portIdx]++] = &record;
++    }
++    return ordered;
++}
++
++void emitBinary(const std::vector<SignalInfo>& signals,
++                const std::vector<DriverInfo>& drivers,
++                const std::vector<LoadInfo>& loads,
++                const std::vector<PortConnectionInfo>& connections) {
++    constexpr uint32_t headerSize = 176;
++    const int count = static_cast<int>(signals.size());
++    std::map<std::string, uint32_t> stringOffsets{{"", 0}};
++    std::vector<uint8_t> strings{0};
++    std::vector<uint8_t> signalData;
++    std::vector<std::pair<std::string, int>> names;
++    names.reserve(signals.size());
++    for (int index = 0; index < count; ++index) {
++        const auto& signal = signals[index];
++        appendU32(signalData, internString(signal.name, stringOffsets, strings));
++        appendU32(signalData, internString(signal.type, stringOffsets, strings));
++        appendU32(signalData, internString(signal.file, stringOffsets, strings));
++        appendI32(signalData, signal.width);
++        appendI32(signalData, signal.line);
++        appendI32(signalData, signal.direction);
++        names.emplace_back(signal.name, index);
++    }
++    std::sort(names.begin(), names.end());
++    std::vector<uint8_t> nameData;
++    for (const auto& name : names) {
++        appendU32(nameData, internString(name.first, stringOffsets, strings));
++        appendI32(nameData, name.second);
++    }
++
++    std::vector<uint64_t> driverStarts;
++    const auto orderedDrivers = groupRecords(count, drivers, driverStarts);
++    std::vector<uint8_t> driverData;
++    for (const DriverInfo* const driverp : orderedDrivers) {
++        const DriverInfo& driver = *driverp;
++        appendI32(driverData, driver.targetIdx);
++        appendI32(driverData, driver.srcIdx);
++        appendU32(driverData, internString(driver.kind, stringOffsets, strings));
++        appendU32(driverData, internString(driver.role, stringOffsets, strings));
++        appendU32(driverData, internString(driver.predicate, stringOffsets, strings));
++        appendU32(driverData, internString(driver.file, stringOffsets, strings));
++        appendI32(driverData, driver.line);
++    }
++    std::vector<uint8_t> driverStartData;
++    for (uint64_t start : driverStarts) appendU64(driverStartData, start);
++
++    std::vector<uint64_t> loadStarts;
++    const auto orderedLoads = groupRecords(count, loads, loadStarts);
++    std::vector<uint8_t> loadData;
++    for (const LoadInfo* const loadp : orderedLoads) {
++        const LoadInfo& load = *loadp;
++        appendI32(loadData, load.targetIdx);
++        appendI32(loadData, load.consumerIdx);
++        appendU32(loadData, internString(load.kind, stringOffsets, strings));
++        appendU32(loadData, internString(load.file, stringOffsets, strings));
++        appendI32(loadData, load.line);
++    }
++    std::vector<uint8_t> loadStartData;
++    for (uint64_t start : loadStarts) appendU64(loadStartData, start);
++
++    std::vector<uint64_t> connectionStarts;
++    const auto orderedConnections = groupRecords(count, connections, connectionStarts);
++    std::vector<uint8_t> connectionData;
++    for (const PortConnectionInfo* const connectionp : orderedConnections) {
++        const PortConnectionInfo& connection = *connectionp;
++        appendI32(connectionData, connection.portIdx);
++        appendI32(connectionData, connection.connectedIdx);
++        appendU32(connectionData, internString(connection.kind, stringOffsets, strings));
++    }
++    std::vector<uint8_t> connectionStartData;
++    for (uint64_t start : connectionStarts) appendU64(connectionStartData, start);
++
++    struct SectionData final {
++        const std::vector<uint8_t>* bytes;
++        uint64_t count;
++        uint64_t offset = 0;
++    };
++    std::vector<SectionData> sections{
++        {&signalData, signals.size()}, {&nameData, names.size()},
++        {&driverData, orderedDrivers.size()}, {&driverStartData, driverStarts.size()},
++        {&loadData, orderedLoads.size()}, {&loadStartData, loadStarts.size()},
++        {&connectionData, orderedConnections.size()},
++        {&connectionStartData, connectionStarts.size()}, {&strings, strings.size()}};
++    uint64_t offset = headerSize;
++    for (auto& section : sections) {
++        offset = (offset + 7) & ~uint64_t{7};
++        section.offset = offset;
++        offset += section.bytes->size();
++    }
++    std::vector<uint8_t> header;
++    header.reserve(headerSize);
++    header.insert(header.end(), {'X', 'D', 'D', 'B', 'I', 'N', '1', 0});
++    appendU32(header, 1);
++    appendU32(header, 0);
++    appendU32(header, 0x01020304);
++    appendU32(header, headerSize);
++    appendU64(header, offset);
++    for (const auto& section : sections) {
++        appendU64(header, section.offset);
++        appendU64(header, section.count);
++    }
++    const std::string path
++        = v3Global.opt.makeDir() + "/" + v3Global.opt.prefix() + "__DesignDb.xddb";
++    V3Os::createDir(v3Global.opt.makeDir());
++    std::ofstream stream(path, std::ios::binary);
++    if (!stream) {
++        v3Global.rootp()->v3error("Cannot write binary design database file: " + path);
++        return;
++    }
++    stream.write(reinterpret_cast<const char*>(header.data()),
++                 static_cast<std::streamsize>(header.size()));
++    uint64_t written = header.size();
++    const char zeros[8] = {};
++    for (const auto& section : sections) {
++        const uint64_t padding = section.offset - written;
++        stream.write(zeros, static_cast<std::streamsize>(padding));
++        stream.write(reinterpret_cast<const char*>(section.bytes->data()),
++                     static_cast<std::streamsize>(section.bytes->size()));
++        written = section.offset + section.bytes->size();
++    }
++    if (!stream.good())
++        v3Global.rootp()->v3error("Cannot write binary design database file: " + path);
++}
++
 +void emitCpp(const std::vector<SignalInfo>& signals,
 +             const std::vector<DriverInfo>& drivers,
 +             const std::vector<LoadInfo>& loads,
@@ -1352,7 +1534,11 @@ index 0000000000000000000000000000000000000000..97088bcaa0e62cb4fed88e729929f17d
 +    UINFO(2, "emitDesignDb: " << signals.size() << " signals, "
 +          << drivers.size() << " drivers, " << loads.size() << " loads\n");
 +
-+    emitCpp(signals, drivers, loads, connections);
++    if (v3Global.opt.designDbBinary()) {
++        emitBinary(signals, drivers, loads, connections);
++    } else {
++        emitCpp(signals, drivers, loads, connections);
++    }
 +}
 +
 +void V3EmitDesignDb::captureInterfacePortMembers(AstNetlist* nodep) {
@@ -1672,11 +1858,14 @@ diff --git a/src/V3Options.cpp b/src/V3Options.cpp
 index 102906673a48f11fb6795ae015c78399e73d0c49..4646701502b7af04a48b0efe497c911e73f27c2b 100644
 --- a/src/V3Options.cpp
 +++ b/src/V3Options.cpp
-@@ -1414,6 +1414,7 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc,
+@@ -1414,6 +1414,10 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc,
      DECL_OPTION("-decoration", CbCall, [this, fl]() { decorations(fl, "medium"); });
      DECL_OPTION("-decorations", CbVal, [this, fl](const char* optp) { decorations(fl, optp); });
      DECL_OPTION("-no-decoration", CbCall, [this, fl]() { decorations(fl, "none"); });
 +    DECL_OPTION("-design-db", OnOff, &m_designDb);
++    DECL_OPTION("-design-db-binary", CbCall, [this]() {
++        m_designDb = true; m_designDbBinary = true;
++    });
      DECL_OPTION("-diagnostics-sarif", OnOff, &m_diagnosticsSarif);
      DECL_OPTION("-diagnostics-sarif-output", CbVal, [this](const char* optp) {
          m_diagnosticsSarifOutput = optp;
@@ -1684,19 +1873,21 @@ diff --git a/src/V3Options.h b/src/V3Options.h
 index dfe8087ae946b72c4014983a0463297775a49e33..0f284c113319cbd1b66de50f17183a74ab067f00 100644
 --- a/src/V3Options.h
 +++ b/src/V3Options.h
-@@ -257,6 +257,7 @@ private:
+@@ -257,6 +257,8 @@ private:
      bool m_fourstate = false;       // main switch: --fourstate
      bool m_hierarchical = false;    // main switch: --hierarchical
      bool m_ignc = false;            // main switch: --ignc
 +    bool m_designDb = false;        // main switch: --design-db
++    bool m_designDbBinary = false;  // main switch: --design-db-binary
      bool m_jsonOnly = false;        // main switch: --json-only
      bool m_lintOnly = false;        // main switch: --lint-only
      bool m_gmake = false;           // main switch: --make gmake
-@@ -583,6 +584,7 @@ public:
+@@ -583,6 +584,8 @@ public:
      bool traceUnderscore() const { return m_traceUnderscore; }
      bool main() const { return m_main; }
      bool outFormatOk() const { return m_outFormatOk; }
 +    bool designDb() const { return m_designDb; }
++    bool designDbBinary() const { return m_designDbBinary; }
      bool jsonOnly() const { return m_jsonOnly; }
      bool keepTempFiles() const { return (V3Error::debugDefault() != 0); }
      bool pedantic() const { return m_pedantic; }

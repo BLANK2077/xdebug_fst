@@ -272,20 +272,9 @@ bool is_scope_ancestor(const std::string& ancestor,
 
 std::vector<int> ports_connected_to(IDesignBackend& design,int connected,
                                     int direction) {
-    std::vector<int> ports;
-    for (int index=0;index<design.signal_count();++index) {
-        if (design.signal_direction(index)!=direction) continue;
-        std::vector<IDesignBackend::PortConnection> connections;
-        design.port_connections(index,connections);
-        const bool matches=std::any_of(connections.begin(),connections.end(),
-            [&](const auto& connection) {
-                const int other=connection.port_signal==index
-                    ?connection.connected_signal:connection.port_signal;
-                return other==connected;
-            });
-        if (matches) ports.push_back(index);
-    }
-    return ports;
+    (void)design;
+    const auto& index=*engine_globals().design_index;
+    return index.ports_connected_to(connected,direction);
 }
 
 void annotate_output_instance_identities(
@@ -299,11 +288,9 @@ void annotate_output_instance_identities(
         const std::string instance_scope=signal_scope(
             signal_name(design,output_port));
         if (instance_scope.empty()) continue;
-        for (int input_port=0;input_port<design.signal_count();++input_port) {
-            if (design.signal_direction(input_port)!=1||
-                signal_scope(signal_name(design,input_port))!=instance_scope) {
-                continue;
-            }
+        const auto& input_ports=
+            engine_globals().design_index->ports_in_scope(instance_scope,1);
+        for (int input_port : input_ports) {
             std::vector<IDesignBackend::PortConnection> connections;
             design.port_connections(input_port,connections);
             for (const auto& connection : connections) {
@@ -508,24 +495,13 @@ std::string predicate_waveform_signal(const std::string& signal,
     if (index<0) return {};
     const int width=design.signal_width(index);
     std::set<std::string> candidates;
-    for (int owner=0;owner<design.signal_count();++owner) {
-        std::vector<IDesignBackend::PortConnection> connections;
-        design.port_connections(owner,connections);
-        for (const auto& connection : connections) {
-            int other=-1;
-            if (connection.port_signal==index)
-                other=connection.connected_signal;
-            else if (connection.connected_signal==index)
-                other=connection.port_signal;
-            if (other<0||other==index||design.signal_width(other)!=width)
-                continue;
-            const std::string candidate=signal_name(design,other);
-            if (candidate.empty()||waveform.find_signal(candidate)==
-                    IWaveformBackend::kInvalidSignalRef) {
-                continue;
-            }
-            candidates.insert(candidate);
-        }
+    const auto& connected=engine_globals().design_index->connected_signals(index);
+    for (int other : connected) {
+        if (other==index||design.signal_width(other)!=width) continue;
+        const std::string candidate=signal_name(design,other);
+        if (candidate.empty()||waveform.find_signal(candidate)==
+                IWaveformBackend::kInvalidSignalRef) continue;
+        candidates.insert(candidate);
     }
     return candidates.size()==1?*candidates.begin():std::string();
 }
@@ -765,19 +741,8 @@ void bind_expression_signal(ExprNode* node,const std::string& signal,
 
 bool last_materialized_selector(IDesignBackend& design,const std::string& base,
                                 int64_t& last) {
-    bool found=false;
-    for (int index=0;index<design.signal_count();++index) {
-        const std::string candidate=signal_name(design,index);
-        std::string candidate_base;
-        int64_t selector=0;
-        if (!final_numeric_selector(candidate,candidate_base,selector)||
-            candidate_base!=base) {
-            continue;
-        }
-        if (!found||selector>last) last=selector;
-        found=true;
-    }
-    return found;
+    (void)design;
+    return engine_globals().design_index->last_materialized_selector(base,last);
 }
 
 bool bind_target_loop_indices(
