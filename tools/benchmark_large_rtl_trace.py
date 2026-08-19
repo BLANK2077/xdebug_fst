@@ -257,8 +257,10 @@ def benchmark_actions(
     metadata: dict[str, Any],
     repetitions: int,
 ) -> dict[str, Any]:
-    home_dir = scale_dir / "session-home"
-    home_dir.mkdir(exist_ok=True)
+    short_home_root = Path("/tmp") / "xfst-large-rtl-home"
+    short_home_root.mkdir(exist_ok=True)
+    home_dir = short_home_root / f"run-{os.getpid()}-{metadata['target_rtl_lines']}"
+    home_dir.mkdir()
     action_env = dict(env)
     action_env["HOME"] = str(home_dir)
     client = StdioClient(xfst, scale_dir, action_env, scale_dir / "xdebug.stderr.log")
