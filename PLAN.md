@@ -424,7 +424,7 @@ FST 版本替换：
 
 ## Phase 4: xverif MCP 兼容性验证
 
-**不修改 `${XDEBUG_ORIGINAL_ROOT}` 的任何文件。** 
+**不修改 `${XDEBUG_ORIGINAL_ROOT}` 的任何文件。**
 
 xverif MCP server 通过以下机制启动 xdebug：
 

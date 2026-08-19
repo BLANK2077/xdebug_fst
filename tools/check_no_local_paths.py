@@ -18,6 +18,7 @@ FORBIDDEN_CONTENT = (
         "Windows home directory",
     ),
     (re.compile(re.escape(b"~/" + b"xdebug_oc")), "legacy tilde workspace"),
+    (re.compile(re.escape(b"~/" + b"work/xverif")), "legacy original workspace"),
 )
 
 
