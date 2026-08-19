@@ -7,11 +7,11 @@ from tools.check_p1_protocol_parity import parse_args as parse_protocol_args
 from tools.check_resource_applicability import parse_args as parse_resource_args
 
 
-def test_original_root_environment_is_shared_by_compat_tools(monkeypatch):
+def test_original_root_environment_is_shared_by_required_original_tools(monkeypatch):
     original_root = "/workspace/original-xverif"
     monkeypatch.setenv("XDEBUG_ORIGINAL_ROOT", original_root)
 
-    assert parse_compat_args([]).original_root == Path(original_root)
+    assert parse_compat_args([]).original_root is None
     assert parse_protocol_args([]).original_root == Path(original_root)
     resource = parse_resource_args(["--repo-root", "/workspace/xdebug-fst"])
     assert resource.original_root == Path(original_root)

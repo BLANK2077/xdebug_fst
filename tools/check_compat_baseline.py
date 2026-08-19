@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import re
 import subprocess
 import sys
@@ -206,7 +205,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--original-root",
         type=Path,
-        default=os.environ.get("XDEBUG_ORIGINAL_ROOT"),
         help="also compare against a read-only original xverif checkout",
     )
     return parser.parse_args(argv)

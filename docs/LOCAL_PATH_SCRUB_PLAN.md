@@ -19,8 +19,10 @@
 | `XFST_CONDA_ENV` | pytest runner Python | 仅写入被忽略的本机 Codex 配置 |
 | `XDEBUG_ORIGINAL_ROOT` | 只读原版 xverif checkout | 仅写入被忽略的本机 Codex 配置 |
 
-`--original-root` 显式参数优先于 `XDEBUG_ORIGINAL_ROOT`。需要原版 checkout 的
-工具在二者均缺失时必须 fail closed。`XFST_CONDA_ENV` 缺失时使用当前
+需要原版 checkout 的 P1/资源工具中，`--original-root` 显式参数优先于
+`XDEBUG_ORIGINAL_ROOT`，二者均缺失时必须 fail closed。冻结兼容基线工具保持
+默认静态校验，仅在显式传入 `--original-root "$XDEBUG_ORIGINAL_ROOT"` 时对比现场原版。
+`XFST_CONDA_ENV` 缺失时使用当前
 `sys.executable`，不得提供开发者本机默认路径。
 
 ## 验收标准
@@ -53,7 +55,7 @@
 - [x] `.gitignore` 忽略整个 `.codex/`，从当前索引移除配置但保留本机文件。
 - [x] 本机配置写入四个环境变量。
 - [x] pytest runner 删除本机 Python 默认值。
-- [x] 原版兼容工具支持 `XDEBUG_ORIGINAL_ROOT` 与显式参数优先级。
+- [x] 必需原版输入的工具支持 `XDEBUG_ORIGINAL_ROOT` 与显式参数优先级，静态基线语义保持不变。
 - [x] 增加环境合同单元测试并独立中文提交；不推送。
 
 ### 阶段 2：生成物与 Fixture 路径清理
@@ -108,6 +110,6 @@
 | --- | --- | --- | --- |
 | 2026-08-19 | 阶段 0 | 进行中 | 任务书已建立；尚未修改运行代码、fixture 或远端 refs。 |
 | 2026-08-19 | 阶段 0 | 完成 | Goal 已建立；远端三个分支和八个标签已记录；完整恢复 bundle 为仓库外 `xdebug_fst-pre-path-scrub-20260819.bundle`，`git bundle verify` 确认历史完整。远端 feature tip 为 `48f07b4`，本地另有 10 个未推送提交，改写时分别保留且不把这 10 个提交发布到远端。 |
-| 2026-08-19 | 阶段 1 | 完成 | `.codex/` 已退出索引并被忽略，本机配置保留四项变量；pytest 默认使用 `sys.executable`；三个兼容工具统一支持 `XDEBUG_ORIGINAL_ROOT`，显式参数优先。环境合同、兼容基线与构建合同定向测试 9/9 通过。 |
+| 2026-08-19 | 阶段 1 | 完成 | `.codex/` 已退出索引并被忽略，本机配置保留四项变量；pytest 默认使用 `sys.executable`；P1/资源工具支持 `XDEBUG_ORIGINAL_ROOT` 且显式参数优先，冻结基线保持默认静态校验。环境合同、兼容基线与构建合同定向测试 9/9 通过。 |
 | 2026-08-19 | 阶段 2 | 完成 | 删除旧 fixture 总脚本及 20 个无消费者的 Makefile、verFiles 元数据和仿真程序；四个受支持重建脚本加入 prefix-map。matches FST 与旧文件逐字节一致，DesignDB 全部动态导出一致且不再含本机路径，相关行为测试 4/4、fixture 哈希校验通过。 |
 | 2026-08-19 | 阶段 3 | 完成 | 冻结元数据改用 `env:XDEBUG_ORIGINAL_ROOT`，11 个当前文本文件中的开发者路径已替换为环境变量或仓库占位符；新增 Git 索引级文本/二进制和 `.codex/` 门禁。当前路径审计通过，门禁及环境合同定向测试 8/8 通过。 |
