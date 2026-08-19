@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 
 
 def producer_environment(repo_root: Path) -> dict[str, str]:
@@ -84,6 +85,29 @@ def test_patched_verilator_publishes_atomic_binary_bundle_and_keeps_legacy(
     assert (legacy_dir / "Vlegacy__DesignDb.cpp").is_file()
     assert not list(legacy_dir.glob("*__DesignDb.xddb"))
     assert not (legacy_dir / "xdebug-design-db.json").exists()
+
+    legacy_library = legacy_dir / "libVlegacy__DesignDb.so"
+    compiled = subprocess.run(
+        [environment["CXX"], "-std=c++17", "-O2", "-shared", "-fPIC",
+         f"-I{xfst_bin.parent / '_deps' / 'verilator-src' / 'include'}",
+         "-o", str(legacy_library),
+         str(legacy_dir / "Vlegacy__DesignDb.cpp")],
+        cwd=rtl.parent, env=environment, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        timeout=30, check=False,
+    )
+    assert compiled.returncode == 0, compiled.stderr
+    parity = subprocess.run(
+        [sys.executable, str(repo_root / "tools" / "check_design_db_parity.py"),
+         str(legacy_library), str(database)],
+        cwd=repo_root, env=environment, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        timeout=30, check=False,
+    )
+    assert parity.returncode == 0, parity.stdout + parity.stderr
+    summary = json.loads(parity.stdout)
+    assert summary["signals"] > 0
+    assert summary["drivers"] > 0
 
 
 def test_patched_verilator_does_not_publish_partial_binary_bundle(
