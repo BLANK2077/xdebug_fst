@@ -274,10 +274,10 @@ index 146f81a89600208176f416bf5dab32ea9d56020d..c60f622c63e2039a0693412cfb3dff04
                          // TODO: 4-state will need to fix this
 diff --git a/src/V3EmitDesignDb.cpp b/src/V3EmitDesignDb.cpp
 new file mode 100644
-index 0000000000000000000000000000000000000000..97088bcaa0e62cb4fed88e729929f17dbd888cd2
+index 0000000000000000000000000000000000000000..8e396242deca7b2d8064dfb06b78b1dee54c753b
 --- /dev/null
 +++ b/src/V3EmitDesignDb.cpp
-@@ -0,0 +1,1354 @@
+@@ -0,0 +1,1420 @@
 +// -*- mode: C++; c-file-style: "cc-mode" -*-
 +//*************************************************************************
 +// DESCRIPTION: Verilator: Emit design database for xdebug trace queries
@@ -295,6 +295,8 @@ index 0000000000000000000000000000000000000000..97088bcaa0e62cb4fed88e729929f17d
 +#include "V3Stats.h"
 +
 +#include <algorithm>
++#include <cerrno>
++#include <cstdio>
 +#include <fstream>
 +#include <map>
 +#include <set>
@@ -1228,12 +1230,19 @@ index 0000000000000000000000000000000000000000..97088bcaa0e62cb4fed88e729929f17d
 +        appendU64(header, section.offset);
 +        appendU64(header, section.count);
 +    }
-+    const std::string path
-+        = v3Global.opt.makeDir() + "/" + v3Global.opt.prefix() + "__DesignDb.xddb";
++    const std::string filename = v3Global.opt.prefix() + "__DesignDb.xddb";
++    const std::string path = v3Global.opt.makeDir() + "/" + filename;
++    const std::string temporaryPath = path + ".tmp";
++    const std::string manifestPath
++        = v3Global.opt.makeDir() + "/xdebug-design-db.json";
++    const std::string temporaryManifestPath = manifestPath + ".tmp";
 +    V3Os::createDir(v3Global.opt.makeDir());
-+    std::ofstream stream(path, std::ios::binary);
++    std::remove(temporaryPath.c_str());
++    std::remove(temporaryManifestPath.c_str());
++    std::ofstream stream(temporaryPath, std::ios::binary | std::ios::trunc);
 +    if (!stream) {
-+        v3Global.rootp()->v3error("Cannot write binary design database file: " + path);
++        v3Global.rootp()->v3error("Cannot write binary design database temporary file: "
++                                  + temporaryPath);
 +        return;
 +    }
 +    stream.write(reinterpret_cast<const char*>(header.data()),
@@ -1247,8 +1256,65 @@ index 0000000000000000000000000000000000000000..97088bcaa0e62cb4fed88e729929f17d
 +                     static_cast<std::streamsize>(section.bytes->size()));
 +        written = section.offset + section.bytes->size();
 +    }
-+    if (!stream.good())
-+        v3Global.rootp()->v3error("Cannot write binary design database file: " + path);
++    stream.flush();
++    const bool databaseWritten = stream.good();
++    stream.close();
++    if (!databaseWritten || stream.fail()) {
++        std::remove(temporaryPath.c_str());
++        v3Global.rootp()->v3error("Cannot complete binary design database file: " + path);
++        return;
++    }
++
++    std::ofstream manifest(temporaryManifestPath, std::ios::out | std::ios::trunc);
++    if (!manifest) {
++        std::remove(temporaryPath.c_str());
++        v3Global.rootp()->v3error("Cannot write DesignDB bundle manifest temporary file: "
++                                  + temporaryManifestPath);
++        return;
++    }
++    manifest << "{\n"
++             << "  \"schema_version\": \"xdebug.design-db-bundle.v2\",\n"
++             << "  \"format\": \"binary-v1\",\n"
++             << "  \"database\": \"" << filename << "\"\n"
++             << "}\n";
++    manifest.flush();
++    const bool manifestWritten = manifest.good();
++    manifest.close();
++    if (!manifestWritten || manifest.fail()) {
++        std::remove(temporaryPath.c_str());
++        std::remove(temporaryManifestPath.c_str());
++        v3Global.rootp()->v3error("Cannot complete DesignDB bundle manifest file: "
++                                  + manifestPath);
++        return;
++    }
++
++    // The manifest is the bundle's visibility/commit point. Remove an older
++    // manifest first so readers fail closed while the database is replaced.
++    if (std::remove(manifestPath.c_str()) != 0 && errno != ENOENT) {
++        std::remove(temporaryPath.c_str());
++        std::remove(temporaryManifestPath.c_str());
++        v3Global.rootp()->v3error("Cannot retire previous DesignDB bundle manifest: "
++                                  + manifestPath);
++        return;
++    }
++    if (std::remove(path.c_str()) != 0 && errno != ENOENT) {
++        std::remove(temporaryPath.c_str());
++        std::remove(temporaryManifestPath.c_str());
++        v3Global.rootp()->v3error("Cannot retire previous binary design database: "
++                                  + path);
++        return;
++    }
++    if (std::rename(temporaryPath.c_str(), path.c_str()) != 0) {
++        std::remove(temporaryPath.c_str());
++        std::remove(temporaryManifestPath.c_str());
++        v3Global.rootp()->v3error("Cannot publish binary design database file: " + path);
++        return;
++    }
++    if (std::rename(temporaryManifestPath.c_str(), manifestPath.c_str()) != 0) {
++        std::remove(temporaryManifestPath.c_str());
++        v3Global.rootp()->v3error("Cannot publish DesignDB bundle manifest file: "
++                                  + manifestPath);
++    }
 +}
 +
 +void emitCpp(const std::vector<SignalInfo>& signals,
@@ -1855,7 +1921,7 @@ index 3e35658425c160b487d2d53a3e9bc71c3315402b..d78d36f1e91687d59f5f0ec876e75c53
      void visit(AstBasicDType* nodep) override {
          // Check for void type used in tagged unions
 diff --git a/src/V3Options.cpp b/src/V3Options.cpp
-index 102906673a48f11fb6795ae015c78399e73d0c49..4646701502b7af04a48b0efe497c911e73f27c2b 100644
+index 102906673a48f11fb6795ae015c78399e73d0c49..526f570b4639bc187940347c48e97581c47c2b5b 100644
 --- a/src/V3Options.cpp
 +++ b/src/V3Options.cpp
 @@ -1414,6 +1414,10 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc,
@@ -1870,7 +1936,7 @@ index 102906673a48f11fb6795ae015c78399e73d0c49..4646701502b7af04a48b0efe497c911e
      DECL_OPTION("-diagnostics-sarif-output", CbVal, [this](const char* optp) {
          m_diagnosticsSarifOutput = optp;
 diff --git a/src/V3Options.h b/src/V3Options.h
-index dfe8087ae946b72c4014983a0463297775a49e33..0f284c113319cbd1b66de50f17183a74ab067f00 100644
+index dfe8087ae946b72c4014983a0463297775a49e33..a3a54ca152fc3c88d74dc50d4689f158c54ef474 100644
 --- a/src/V3Options.h
 +++ b/src/V3Options.h
 @@ -257,6 +257,8 @@ private:
@@ -1882,7 +1948,7 @@ index dfe8087ae946b72c4014983a0463297775a49e33..0f284c113319cbd1b66de50f17183a74
      bool m_jsonOnly = false;        // main switch: --json-only
      bool m_lintOnly = false;        // main switch: --lint-only
      bool m_gmake = false;           // main switch: --make gmake
-@@ -583,6 +584,8 @@ public:
+@@ -583,6 +585,8 @@ public:
      bool traceUnderscore() const { return m_traceUnderscore; }
      bool main() const { return m_main; }
      bool outFormatOk() const { return m_outFormatOk; }
@@ -2738,6 +2804,48 @@ index 4b51273feee83e80d033cea0daabe6475d025bb2..0ff1aa4ea3865cdd4eaa9573914592cc
  %Error-UNSUPPORTED: t/t_tagged.v:28:5: Unsupported: case matches (for tagged union)
     28 |     case (u) matches
        |     ^~~~
+diff --git a/test_regress/t/t_xdd_binary_bundle.py b/test_regress/t/t_xdd_binary_bundle.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..afd81a7d4d77f6c1f970c8bfba969a1c6c426904
+--- /dev/null
++++ b/test_regress/t/t_xdd_binary_bundle.py
+@@ -0,0 +1,36 @@
++#!/usr/bin/env python3
++# DESCRIPTION: Verilator: Test atomic --design-db-binary bundle output
++#
++# SPDX-FileCopyrightText: 2026 Wilson Snyder
++# SPDX-License-Identifier: LGPL-3.0-only OR Artistic-2.0
++
++import json
++from pathlib import Path
++
++import vltest_bootstrap
++
++test.scenarios("vlt")
++
++prefix = "Vbinary_bundle"
++test.compile(
++    top_filename="t/t_xdd_simple.v",
++    v_flags=["--design-db-binary", "--prefix", prefix],
++    make_main=False,
++    make_top_shell=False,
++    verilator_make_gmake=False,
++)
++
++obj_dir = Path(test.obj_dir)
++database = obj_dir / f"{prefix}__DesignDb.xddb"
++manifest_path = obj_dir / "xdebug-design-db.json"
++assert database.is_file(), f"binary DesignDB not generated: {database}"
++assert manifest_path.is_file(), f"DesignDB manifest not generated: {manifest_path}"
++assert json.loads(manifest_path.read_text(encoding="utf-8")) == {
++    "schema_version": "xdebug.design-db-bundle.v2",
++    "format": "binary-v1",
++    "database": f"{prefix}__DesignDb.xddb",
++}
++assert not list(obj_dir.glob("*__DesignDb.cpp"))
++assert not list(obj_dir.glob("*.tmp"))
++
++test.passes()
 diff --git a/test_regress/t/t_xdd_case_matches_default_only.py b/test_regress/t/t_xdd_case_matches_default_only.py
 new file mode 100644
 index 0000000000000000000000000000000000000000..0807a5afe7b620874321bfde92d9430f16b01bcc
@@ -3895,10 +4003,10 @@ index 0000000000000000000000000000000000000000..8b755c167f5671ceff7cc46759cd620f
 +endmodule
 diff --git a/test_regress/t/t_xdd_trace.py b/test_regress/t/t_xdd_trace.py
 new file mode 100644
-index 0000000000000000000000000000000000000000..2e0eb02875f04a95a90a177d7c18e0ff0e9d5046
+index 0000000000000000000000000000000000000000..3988a99410b3f0e95fd78baff32e3633ffd97f86
 --- /dev/null
 +++ b/test_regress/t/t_xdd_trace.py
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,25 @@
 +#!/usr/bin/env python3
 +# DESCRIPTION: Verilator: Test --design-db trace.driver and trace.load
 +#
@@ -3909,6 +4017,7 @@ index 0000000000000000000000000000000000000000..2e0eb02875f04a95a90a177d7c18e0ff
 +# SPDX-License-Identifier: LGPL-3.0-only OR Artistic-2.0
 +
 +import vltest_bootstrap
++from pathlib import Path
 +
 +test.scenarios('vlt')
 +
@@ -3919,6 +4028,8 @@ index 0000000000000000000000000000000000000000..2e0eb02875f04a95a90a177d7c18e0ff
 +test.file_grep(
 +    test.glob_one(test.obj_dir + "/*__DesignDb.cpp"),
 +    r"static const XddSignalInfo kSignals")
++assert not list(Path(test.obj_dir).glob("*__DesignDb.xddb"))
++assert not (Path(test.obj_dir) / "xdebug-design-db.json").exists()
 +
 +test.passes()
 diff --git a/test_regress/t/t_xdd_trace.v b/test_regress/t/t_xdd_trace.v

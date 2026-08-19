@@ -100,9 +100,9 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
 
 ### 阶段 1：原子 producer bundle
 
-- [ ] 修改 Verilator patch，让 binary 模式原子生成 `.xddb` 与严格 manifest。
-- [ ] 补齐 prefix/Mdir、互斥产物、重复构建及写入失败回归。
-- [ ] 更新 patch hash/版本和依赖锁，使用私有 GCC/G++ 重建 patched Verilator。
+- [x] 修改 Verilator patch，让 binary 模式原子生成 `.xddb` 与严格 manifest。
+- [x] 补齐 prefix/Mdir、互斥产物、重复构建及写入失败回归。
+- [x] 更新 patch hash/版本和依赖锁，使用私有 GCC/G++ 重建 patched Verilator。
 
 计划提交：`构建：让 Verilator 原子生成 binary-v1 bundle`
 
@@ -174,3 +174,8 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
   `34f40595c4330bcac364397679cdc3d5ae6b5c0c`、Verilator patch SHA-256
   `226de48a441d2b7983dee74da385a91b5af3f45a22d5a6d8e4e15c7afa30f64a` 和
   GCC/G++ 13.3.1；patch 与 lock 一致，`testdata/` 无 diff。
+- 2026-08-19：完成 producer 正式化。`--design-db-binary` 先完整写入临时 `.xddb` 和
+  manifest，撤销旧 manifest 后替换数据库，最后以 manifest rename 作为 bundle 可见提交点；
+  正常、重复、自定义 prefix/Mdir、legacy 互斥和阻塞 manifest 失败场景均通过。patchset 升级为
+  `xdebug-design-db-v3-production-bundle`，在锁定官方 revision 上由私有 GCC/G++ 13.3.1
+  完成统一冷构建；未修改 tracked fixture cache。
