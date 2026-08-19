@@ -103,6 +103,8 @@ void WellenFstBackend::close() {
     time_scale_ = {};
     name_cache_.clear();
     signal_index_.clear();
+    signal_index_built_ = false;
+    signal_index_build_count_ = 0;
     declared_ranges_.clear();
     packed_selection_index_.clear();
     packed_selections_.clear();
@@ -643,7 +645,8 @@ std::string WellenFstBackend::normalize_path(const std::string& path) {
 }
 
 void WellenFstBackend::build_signal_index() const {
-    if (!signal_index_.empty() || !db_) return;
+    if (signal_index_built_ || !db_) return;
+    ++signal_index_build_count_;
     std::unordered_map<std::string, uint32_t> local_candidates;
     std::unordered_map<std::string, DeclaredRange> local_range_candidates;
     std::unordered_set<std::string> ambiguous_locals;
@@ -707,6 +710,7 @@ void WellenFstBackend::build_signal_index() const {
             }
         }
     }
+    signal_index_built_ = true;
 }
 
 uint32_t WellenFstBackend::find_signal(const std::string& path) const {

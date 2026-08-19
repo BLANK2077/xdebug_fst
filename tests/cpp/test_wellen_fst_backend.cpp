@@ -63,6 +63,12 @@ int main(int argc, char** argv) {
             "all full alias paths resolve to the shared signal");
     require(backend.find_signal("missing") == 0,
             "missing signals return the unified sentinel");
+    require(backend.signal_index_build_count() == 1,
+            "first lookup builds exactly one complete hierarchy index");
+    require(backend.find_signal("another_missing_signal") == 0 &&
+                backend.find_signal("missing") == 0 &&
+                backend.signal_index_build_count() == 1,
+            "definitive misses never rescan the waveform hierarchy");
 
     xdebug_fst::WaveformTimeScale scale;
     require(backend.time_scale(scale) && scale.factor == 1 &&

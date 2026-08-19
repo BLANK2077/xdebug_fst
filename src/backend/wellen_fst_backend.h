@@ -104,6 +104,13 @@ public:
                   std::string& out_value, uint32_t* out_width,
                   bool* out_time_match, uint32_t* out_time_idx) const;
 
+    /// Diagnostics used to enforce the definitive-miss contract: one open
+    /// generation may traverse the waveform hierarchy at most once to build
+    /// the complete name index.
+    uint64_t signal_index_build_count() const {
+        return signal_index_build_count_;
+    }
+
 private:
     struct DeclaredRange {
         int64_t msb = 0;
@@ -139,6 +146,8 @@ private:
 
     // Name → signal_ref lookup index (built lazily on first find)
     mutable std::unordered_map<std::string, uint32_t> signal_index_;
+    mutable bool signal_index_built_ = false;
+    mutable uint64_t signal_index_build_count_ = 0;
     mutable std::unordered_map<std::string, DeclaredRange> declared_ranges_;
     mutable std::unordered_map<std::string, uint32_t> packed_selection_index_;
     mutable std::vector<PackedSelection> packed_selections_;

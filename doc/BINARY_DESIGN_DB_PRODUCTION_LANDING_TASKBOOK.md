@@ -117,10 +117,10 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
 
 ### 阶段 3：正式端到端门禁
 
-- [ ] 建立不依赖 fixture cache 的小型 RTL 冷构建测试。
-- [ ] 证明单次 Verilator invocation 生成 simulator、FST 与可直接打开的 binary bundle。
-- [ ] 执行六类 Action，并证明无 converter、无 DesignDB C++/SO、实际 backend 为 mmap binary。
-- [ ] 保留 `.so` compatibility 和完整 parity 回归。
+- [x] 建立不依赖 fixture cache 的小型 RTL 冷构建测试。
+- [x] 证明单次 Verilator invocation 生成 simulator、FST 与可直接打开的 binary bundle。
+- [x] 执行六类 Action，并证明无 converter、无 DesignDB C++/SO、实际 backend 为 mmap binary。
+- [x] 保留 `.so` compatibility 和完整 parity 回归。
 
 计划提交：`测试：增加 binary-v1 默认生产路径端到端门禁`
 
@@ -187,3 +187,8 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
   `binary-v1`，waveform-only 必须为空；旧 waveform record 可兼容读取，旧 design record 因
   缺少无歧义格式而明确要求重开。binary session 的 state、重新枚举和 engine debug log 均通过，
   frozen compat baseline 自洽检查通过。
+- 2026-08-19：完成默认生产路径冷构建门禁。临时 RTL 由单次 patched Verilator
+  `--binary --timing --trace-fst --design-db-binary` 构建，仿真生成原始 FST，producer 目录
+  不含 `__DesignDb.cpp` 或 `.so`；session 直接消费该目录，`/proc/<pid>/maps` 证明 mmap
+  `.xddb`，六类 Action 全部成功。Wellen 增加完整名称索引构建计数，连续缺失查询保持一次扫描；
+  binary/SO Action parity 与 legacy 兼容测试继续通过，tracked fixture cache 未改动。
