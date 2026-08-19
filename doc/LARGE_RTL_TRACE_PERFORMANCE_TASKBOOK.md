@@ -127,16 +127,16 @@ doc/LARGE_RTL_TRACE_PERFORMANCE_TASKBOOK.md
 - [x] 定位并阅读 xverif 大规模 RTL 生成器。
 - [x] 确认当前 patched Verilator 与私有 GCC/G++ 13.3.1 可用。
 - [x] 写入本任务书。
-- [ ] 建立 goal 与验收标准。
+- [x] 建立 goal 与验收标准。
 
 计划提交：`文档：建立大规模 RTL Trace 性能测试任务书`
 
 ### 阶段 1：生成器与合同测试
 
-- [ ] 实现按精确目标行数生成的复杂 SystemVerilog。
-- [ ] 输出稳定 metadata 与查询锚点。
-- [ ] 增加 1K/2K 快速合同测试，检查精确行数、确定性和全部语法特征。
-- [ ] 验证所有规模生成结果不包含本机绝对路径。
+- [x] 实现按精确目标行数生成的复杂 SystemVerilog。
+- [x] 输出稳定 metadata 与查询锚点。
+- [x] 增加 1K/2K 快速合同测试，检查精确行数、确定性和全部语法特征。
+- [x] 验证生成源码不包含本机绝对路径；全规模输出将在阶段 3 再统一门禁。
 
 计划提交：`测试：增加确定性大规模复杂 RTL 生成器`
 
@@ -194,3 +194,6 @@ doc/LARGE_RTL_TRACE_PERFORMANCE_TASKBOOK.md
 ## 九、进度记录
 
 - 2026-08-19：完成 xverif 生成器调研、工具链核验和任务书初稿；尚未生成或构建任何大型 RTL。
+- 2026-08-19：阶段 1 完成。生成器快速合同 4/4 通过；1K RTL 使用统一 patched Verilator、
+  私有 GCC/G++ 13.3.1 完成真实 `--trace-fst --design-db` 编译冒烟，生成仿真 executable 和
+  DesignDB C++，未重建 fixture cache。

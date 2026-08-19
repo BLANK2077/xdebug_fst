@@ -7,6 +7,7 @@ wellenx_capi/target/
 __pycache__/
 .pytest_cache/
 .xverif-*/
+.xdebug-benchmark/
 .codex/
 testdata/fixtures/*/obj_dir/*.mk
 testdata/fixtures/*/obj_dir/*__verFiles.dat
