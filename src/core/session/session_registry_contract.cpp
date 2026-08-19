@@ -16,6 +16,7 @@ const std::set<std::string>& record_fields() {
         "transport", "socket_path", "file_dir", "host",
         "bind_host", "port", "server_host", "auth_token",
         "ownership_token_hash", "dbdir_path",
+        "design_db_format",
         "fsdb_file", "server_pid", "created_at", "last_active",
         "dbdir_mtime", "dbdir_size", "dbdir_dev", "dbdir_inode",
         "fsdb_mtime", "fsdb_size", "fsdb_dev", "fsdb_inode"
@@ -95,6 +96,18 @@ bool validate_resource_invariants(
     std::string& error) {
     if (session.dbdir_path.empty() && session.fsdb_file.empty())
         return fail(error, "session requires dbdir_path or fsdb_file");
+    if (session.dbdir_path.empty() && !session.design_db_format.empty()) {
+        return fail(
+            error,
+            "session without dbdir_path must not carry design_db_format");
+    }
+    if (!session.dbdir_path.empty() &&
+        session.design_db_format != "xdd-so" &&
+        session.design_db_format != "binary-v1") {
+        return fail(
+            error,
+            "design session requires design_db_format xdd-so or binary-v1");
+    }
     if (session.dbdir_path.empty() &&
         !resource_fingerprint_is_zero(
             session.dbdir_mtime,
@@ -215,6 +228,7 @@ SessionRegistryJson session_registry_record_to_json(
         {"auth_token", session.auth_token},
         {"ownership_token_hash", session.ownership_token_hash},
         {"dbdir_path", session.dbdir_path},
+        {"design_db_format", session.design_db_format},
         {"fsdb_file", session.fsdb_file},
         {"server_pid", session.server_pid},
         {"created_at", static_cast<long long>(session.created_at)},
@@ -236,9 +250,13 @@ bool session_registry_record_from_json(
     std::string& error) {
     if (!value.is_object())
         return fail(error, "session record must be an object");
-    if (value.size() != record_fields().size())
-        return fail(error, "session record fields do not match schema version 2");
+    const bool legacy_without_format =
+        value.size() + 1 == record_fields().size() &&
+        !value.contains("design_db_format");
+    if (value.size() != record_fields().size() && !legacy_without_format)
+        return fail(error, "session record fields do not match schema version 3");
     for (const auto& field : record_fields()) {
+        if (legacy_without_format && field == "design_db_format") continue;
         if (!value.contains(field))
             return fail(error, "session record is missing field: " + field);
     }
@@ -247,7 +265,9 @@ bool session_registry_record_from_json(
              "transport", "socket_path", "file_dir", "host",
              "bind_host", "server_host", "auth_token",
              "ownership_token_hash", "dbdir_path",
-             "fsdb_file"}) {
+             "fsdb_file", "design_db_format"}) {
+        if (legacy_without_format &&
+            std::string(field) == "design_db_format") continue;
         if (!value[field].is_string())
             return fail(error, std::string("session field must be string: ") + field);
     }
@@ -266,6 +286,9 @@ bool session_registry_record_from_json(
         session.ownership_token_hash =
             value["ownership_token_hash"].get<std::string>();
         session.dbdir_path = value["dbdir_path"].get<std::string>();
+        session.design_db_format = legacy_without_format
+            ? std::string()
+            : value["design_db_format"].get<std::string>();
         session.fsdb_file = value["fsdb_file"].get<std::string>();
     } catch (const std::exception& exc) {
         return fail(error, std::string("session field is out of range: ") + exc.what());
@@ -313,6 +336,11 @@ bool session_registry_record_from_json(
         return fail(
             error,
             "ownership_token_hash must be empty or 64 lowercase hexadecimal characters");
+    }
+    if (legacy_without_format && !session.dbdir_path.empty()) {
+        return fail(
+            error,
+            "legacy design session lacks design_db_format and must be reopened");
     }
     if (!validate_lifecycle_invariants(session, error)) return false;
     if (!validate_resource_invariants(session, error)) return false;

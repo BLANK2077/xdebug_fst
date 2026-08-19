@@ -55,6 +55,9 @@ struct SessionInfo {
 
     // Design resource fields
     std::string dbdir_path;
+    // Empty for waveform-only sessions; otherwise the strict manifest-selected
+    // backend format ("xdd-so" or "binary-v1").
+    std::string design_db_format;
     long dbdir_mtime = 0;
     long long dbdir_size = 0;
     unsigned long long dbdir_dev = 0;

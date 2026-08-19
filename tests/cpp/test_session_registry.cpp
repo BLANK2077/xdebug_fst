@@ -151,6 +151,36 @@ int main() {
     const std::string other_generation(64, 'b');
     SessionRegistry registry;
     SessionInfo opening = opening_session(generation);
+
+    SessionInfo combined_contract = opening;
+    combined_contract.dbdir_path = "/tmp/design-bundle";
+    combined_contract.design_db_format = "binary-v1";
+    nlohmann::json combined_record =
+        xdebug_core::session_registry_record_to_json(combined_contract);
+    std::string contract_error;
+    SessionInfo combined_roundtrip;
+    require(xdebug_core::session_registry_record_from_json(
+                combined_record, combined_roundtrip, contract_error) &&
+                combined_roundtrip.design_db_format == "binary-v1",
+            "design_db_format registry roundtrip failed: " + contract_error);
+    nlohmann::json legacy_design_record = combined_record;
+    legacy_design_record.erase("design_db_format");
+    require(!xdebug_core::session_registry_record_from_json(
+                legacy_design_record, combined_roundtrip, contract_error) &&
+                contract_error.find("must be reopened") != std::string::npos,
+            "legacy design record without format was not rejected explicitly");
+    nlohmann::json legacy_waveform_record =
+        xdebug_core::session_registry_record_to_json(opening);
+    legacy_waveform_record.erase("design_db_format");
+    require(xdebug_core::session_registry_record_from_json(
+                legacy_waveform_record, combined_roundtrip, contract_error) &&
+                combined_roundtrip.design_db_format.empty(),
+            "legacy waveform record without format was not preserved");
+    combined_record["design_db_format"] = "guessed";
+    require(!xdebug_core::session_registry_record_from_json(
+                combined_record, combined_roundtrip, contract_error),
+            "registry accepted an unsupported design_db_format");
+
     require(registry.reserve_opening(opening).ok(), "opening reservation failed");
     require(registry.reserve_opening(opening).status == SessionRegistryStatus::Conflict,
             "duplicate session name was not rejected");

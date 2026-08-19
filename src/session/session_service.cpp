@@ -723,6 +723,7 @@ Json open_session(const Json& request) {
             !populate_fingerprint(session.dbdir_path, true, session)) {
             return failure("DESIGN_BUNDLE_INVALID", error);
         }
+        session.design_db_format = design_resource.format;
     }
     if (target.contains("fsdb")) {
         if (!canonical_existing_path(target["fsdb"].get<std::string>(), false,

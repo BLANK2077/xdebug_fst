@@ -47,7 +47,7 @@ def test_binary_converter_is_deterministic_and_compact(
 
 def test_binary_backend_matches_xdd_so_action_responses(
         loop_runner, repo_root: Path, gcd_xorigin_fst: Path,
-        gcd_xorigin_design_db: Path, tmp_path: Path) -> None:
+        gcd_xorigin_design_db: Path, test_home: Path, tmp_path: Path) -> None:
     cases = [
         ("signal.resolve", {"signal": "GCD.io_z"}),
         ("value.at", {"signal": "GCD.io_z", "time": "0ps"}),
@@ -70,6 +70,19 @@ def test_binary_backend_matches_xdd_so_action_responses(
     binary_bundle = tmp_path / "binary"
     convert(repo_root, gcd_xorigin_design_db, binary_bundle)
     open_session(loop_runner, gcd_xorigin_fst, binary_bundle)
+    states = [
+        (path, json.loads(path.read_text(encoding="utf-8")))
+        for path in test_home.rglob("state.json")
+    ]
+    state_path, state = next(
+        item for item in states if item[1].get("session_id") == "test")
+    assert state["design_db_format"] == "binary-v1"
+    assert "opened design db: format=binary-v1" in \
+        (state_path.parent / "debug.log").read_text(encoding="utf-8")
+    listed = loop_runner.request("session.list", args={})
+    assert listed.get("ok"), listed
+    assert any(item["session_id"] == "test"
+               for item in listed["data"]["sessions"])
     for action, args in cases:
         candidate = loop_runner.request(action, args=args)
         assert candidate.get("ok"), candidate

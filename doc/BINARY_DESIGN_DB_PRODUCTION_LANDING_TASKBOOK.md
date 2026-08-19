@@ -47,8 +47,9 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
   `DesignQueryIndex`，不复制 Action 语义。
 - Wellen `build_signal_index()` 完成后，exact/local/packed-selection miss 直接返回不存在；
   不允许恢复 hierarchy 全量重扫。
-- `session.open/get/list` 的公共 session evidence 显式返回 `design_db_format`；registry 持久化
-  同一字段，使重启后查询不会丢失或猜测实际 backend。
+- registry state 持久化 `design_db_format`，engine `debug.log` 显式记录实际格式；重启后查询
+  不会丢失或猜测 backend。冻结的 xdebug.v1 公共 session response schema 保持不变，避免把
+  本地 backend 实现细节加入兼容协议。
 
 ### 3.3 用户入口合同
 
@@ -70,13 +71,13 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
 
 ### 4.2 xdebug-fst 合同与集成
 
-- 增加 SessionInfo 序列化/反序列化、registry 和 public response 的
-  `design_db_format` 测试；旧 registry 记录缺字段时只能按明确兼容规则处理，不能猜 artifact。
+- 增加 SessionInfo 序列化/反序列化、registry state 和 engine log 的 `design_db_format` 测试；
+  旧 registry 记录缺字段时只能按明确兼容规则处理，不能猜 artifact。
 - 增加临时小型 RTL 冷构建集成：调用统一构建产出的 patched Verilator，一次 invocation
   生成 simulator + FST + binary bundle，再由 xdebug-fst `session.open` 并执行
   `signal.resolve`、`value.at`、`trace.driver`、`trace.active_driver`、
   `trace.active_driver_chain`、`signal.changes`。
-- 集成测试断言 session evidence 为 `binary-v1`、六类响应完整且进程实际 mmap `.xddb`；
+- 集成测试断言持久化与日志 evidence 为 `binary-v1`、六类响应完整且进程实际 mmap `.xddb`；
   不调用 converter，不编译 `__DesignDb.cpp`，不读取 `.so`。
 - legacy `.so` fixture 继续跑全量测试，确保兼容路径没有被默认路线改坏。
 
@@ -108,9 +109,9 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
 
 ### 阶段 2：格式证据与 session 持久化
 
-- [ ] 为 SessionInfo、registry 和公共 session JSON 增加 `design_db_format`。
-- [ ] 明确旧 registry 记录的兼容读取规则及新记录的严格校验。
-- [ ] 覆盖 open/get/list、重启恢复和非法格式测试。
+- [x] 为 SessionInfo、registry state 和 engine log 增加 `design_db_format`。
+- [x] 明确旧 registry 记录的兼容读取规则及新记录的严格校验。
+- [x] 覆盖写入/读取、重启恢复和非法格式测试，保持冻结公共 schema 不变。
 
 计划提交：`功能：持久化并公开 DesignDB backend 格式`
 
@@ -140,8 +141,8 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
    和写入失败都有自动测试。
 3. xdebug-fst 严格按 manifest 使用 mmap binary；无扩展名猜测、`.so` fallback 或 converter
    隐式参与。
-4. session open/get/list 与 registry 重启恢复均持久化、返回 `design_db_format=binary-v1`；非法或
-   矛盾格式失败关闭。
+4. registry 重启恢复持久化 `design_db_format=binary-v1`，engine log 报告相同实际格式；非法或
+   矛盾格式失败关闭，冻结 xdebug.v1 公共 response schema 无 diff。
 5. `DesignQueryIndex` 对 binary/legacy 共用并在 design session 中必建；Wellen 完整索引 miss
    不再 hierarchy 重扫，均有防回退测试。
 6. 从临时 RTL 冷构建到六类 Action 的标准端到端测试通过，并证明没有 `__DesignDb.cpp/.so`；
@@ -179,3 +180,10 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
   正常、重复、自定义 prefix/Mdir、legacy 互斥和阻塞 manifest 失败场景均通过。patchset 升级为
   `xdebug-design-db-v3-production-bundle`，在锁定官方 revision 上由私有 GCC/G++ 13.3.1
   完成统一冷构建；未修改 tracked fixture cache。
+- 2026-08-19：session 格式证据初版曾直接扩展公共 session JSON，运行时 schema 门禁立即拒绝；
+  复核后确认该字段属于本地 backend 实现细节，计划调整为 registry state + engine log 证据，
+  已恢复全部 frozen xdebug.v1 schema，未以放宽 `additionalProperties` 绕过兼容合同。
+- 2026-08-19：完成 session 格式持久化。design session state 必须显式为 `xdd-so` 或
+  `binary-v1`，waveform-only 必须为空；旧 waveform record 可兼容读取，旧 design record 因
+  缺少无歧义格式而明确要求重开。binary session 的 state、重新枚举和 engine debug log 均通过，
+  frozen compat baseline 自洽检查通过。

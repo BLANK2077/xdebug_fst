@@ -70,8 +70,10 @@ bool init_engine_globals(int argc, char** argv) {
             g.design_index = std::make_unique<DesignQueryIndex>(*g.design);
             const double index_ms = std::chrono::duration<double, std::milli>(
                 std::chrono::steady_clock::now() - index_started).count();
-            fprintf(stderr, "[engine] opened design db: %s (%d signals)\n",
-                    g.design_path.c_str(), g.design->signal_count());
+            fprintf(stderr,
+                    "[engine] opened design db: format=%s path=%s (%d signals)\n",
+                    g.design_format.c_str(), g.design_path.c_str(),
+                    g.design->signal_count());
             fprintf(stderr,
                     "[engine] design query index: build_ms=%.3f estimated_bytes=%zu "
                     "signals_scanned=%llu port_records_scanned=%llu\n",
