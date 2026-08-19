@@ -14,6 +14,32 @@
 
 本文描述的是整体目标架构，同时明确标注已落地能力与后续阶段目标，避免把当前的协议、会话兼容误认为全部 73 个分析 action 已达到能力覆盖要求。
 
+> **当前生产路径（2026-08-19）**：新设计以 `--design-db-binary` 为唯一默认入口。
+> patched Verilator 在一次 invocation 中生成仿真模型和 binary-v1 DesignDB bundle，仿真时
+> 直接生成原始 FST；xdebug-fst 读取严格 v2 manifest、只读 mmap `.xddb`，然后建立 session
+> 查询索引。本文后续出现的 `--design-db`、`__DesignDb.cpp`、`.so` 与 `dlopen` 描述用于说明
+> 历史演进或 legacy compatibility，不再是新设计生产流程。正式合同与验收见
+> [`BINARY_DESIGN_DB_PRODUCTION_LANDING_TASKBOOK.md`](BINARY_DESIGN_DB_PRODUCTION_LANDING_TASKBOOK.md)
+> 和 [`BINARY_DESIGN_DB_PRODUCTION_LANDING_REPORT.md`](BINARY_DESIGN_DB_PRODUCTION_LANDING_REPORT.md)。
+
+当前数据流为：
+
+```text
+RTL ── patched Verilator（一次 invocation）
+ │        ├─ simulator ──运行──► 原始 FST ──► Wellen 按需读取
+ │        └─ .xddb.tmp ──rename──► .xddb
+ │             └─ manifest.tmp ──最后 rename──► 严格 v2 bundle
+ │
+ └────────────────────────────────────────────► xdebug-fst session
+                                                  ├─ mmap binary-v1
+                                                  ├─ 建立 DesignQueryIndex
+                                                  └─ action 合并静态/动态事实
+```
+
+manifest 是 bundle 的唯一提交点。缺失、字段多余、格式矛盾、路径逃逸或数据库不完整都会在
+session start 前失败；不会扫描目录猜测 artifact，也不会回退到 `.so`。registry 私有状态和
+engine debug log 持久化实际 backend 格式，冻结的 xdebug.v1 公共 response 不增加实现字段。
+
 自 2026-08-13 起，最终验收采用“能力一致、信息语义一致”：同一能力必须可用，影响用户判断
 的关键事实和结论必须等价，但不要求字段顺序、展示措辞、无序结果排列、建议文字或冗余诊断
 元数据与原版完全相同。本文后续“差分”均按能力和关键信息语义理解，不再以整份 JSON 相等
@@ -84,7 +110,7 @@ xdebug-fst 因而采用两个事实源：
 
 最终的 combined action 由 xdebug-fst 在统一 engine 中把两类事实按规范化信号名和观察时间连接起来，而不是要求任一后端承担它不拥有的事实。
 
-## 三、整体架构
+## 三、整体架构（legacy `.so` 兼容视图）
 
 ```text
                    Verilator 编译/展开 HDL
@@ -113,6 +139,9 @@ xdebug-fst 因而采用两个事实源：
                                                 ▼
                                       xdebug.v1 JSON / XOUT
 ```
+
+上图保留用于解释 `xdd-so` reader。新设计请以文首 binary-v1 数据流为准；两个 reader 在
+进入 action 层前都实现同一 `IDesignBackend`，并共用同一个 `DesignQueryIndex`。
 
 目标公开请求合同沿用原版字段：
 

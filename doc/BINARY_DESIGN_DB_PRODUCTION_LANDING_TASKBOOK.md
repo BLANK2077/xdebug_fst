@@ -113,7 +113,7 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
 - [x] 明确旧 registry 记录的兼容读取规则及新记录的严格校验。
 - [x] 覆盖写入/读取、重启恢复和非法格式测试，保持冻结公共 schema 不变。
 
-计划提交：`功能：持久化并公开 DesignDB backend 格式`
+计划提交：`功能：持久化 DesignDB backend 格式证据`
 
 ### 阶段 3：正式端到端门禁
 
@@ -126,10 +126,10 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
 
 ### 阶段 4：默认文档、全量验收与收尾
 
-- [ ] 更新开发指南、架构文档和 fixture 再生成说明，以 binary-v1 为新设计默认路径。
-- [ ] 运行统一构建、CTest、全量 pytest、Verilator 回归和直接 producer/backend parity。
-- [ ] 检查 testdata diff、绝对路径、`.codex`、patch/lock 和工作树卫生。
-- [ ] 更新本任务书进度与正式落地报告。
+- [x] 更新开发指南、架构文档和 fixture 再生成说明，以 binary-v1 为新设计默认路径。
+- [x] 运行统一构建、CTest、全量 pytest、Verilator 回归和直接 producer/backend parity。
+- [x] 检查 testdata diff、绝对路径、`.codex`、patch/lock 和工作树卫生。
+- [x] 更新本任务书进度与正式落地报告。
 
 计划提交：`文档：发布 binary-v1 DesignDB 正式生产路径`
 
@@ -192,3 +192,10 @@ manifest 选择 mmap reader，在 session open 时建立后端无关查询索引
   不含 `__DesignDb.cpp` 或 `.so`；session 直接消费该目录，`/proc/<pid>/maps` 证明 mmap
   `.xddb`，六类 Action 全部成功。Wellen 增加完整名称索引构建计数，连续缺失查询保持一次扫描；
   binary/SO Action parity 与 legacy 兼容测试继续通过，tracked fixture cache 未改动。
+- 2026-08-19：完成正式收口。大规模 RTL 基准默认值切换为 `binary-v1`，只校验 producer
+  manifest 而不再替它写 manifest；四组 tracked fixture 再生成脚本明确限定为 legacy `.so`
+  reader 兼容用途。direct producer parity 门禁对同一 RTL 的 binary 与 legacy emitter 输出逐字段
+  比较通过。统一构建、CTest 7/7、完整 pytest 460/460、Verilator `t_xdd*` 15/15 全部通过；
+  patch SHA 与 lock 一致，路径门禁通过，`.codex` 未被索引，tracked fixture cache 和两个官方
+  HOME 仓库均无 diff。正式结果见
+  [`BINARY_DESIGN_DB_PRODUCTION_LANDING_REPORT.md`](BINARY_DESIGN_DB_PRODUCTION_LANDING_REPORT.md)。

@@ -18,6 +18,26 @@ VERILATOR_HOME=/path/to/official/verilator \
 C/C++ 编译固定使用同级 `xdebug_oc/.toolchains/gcc-13` 下的 GCC/G++ 13.3.1。
 工具链缺失、版本不符或 CMake cache 使用其他编译器时直接失败，不使用系统 GCC。
 
+### 新设计的 binary-v1 生产入口
+
+统一构建完成后，新设计只需一次 Verilator invocation：
+
+```bash
+build/tools/verilator/bin/verilator \
+  --binary --timing --trace-fst --design-db-binary \
+  --top-module top --prefix Vtop --Mdir obj_dir rtl/top.sv
+./obj_dir/Vtop
+```
+
+同一个 `obj_dir` 会包含仿真程序、`Vtop__DesignDb.xddb` 和
+`xdebug-design-db.json`。RTL 中正常调用 `$dumpfile`/`$dumpvars` 后，仿真程序直接写原始
+FST；`obj_dir` 可以原样作为 `target.daidir`。不需要第二次 Verilator、DesignDB C++/SO
+编译、converter 或手写 manifest。
+
+`--design-db-binary` 先完成并发布 `.xddb`，最后以 manifest rename 作为 bundle 可见提交
+点。xdebug-fst 严格按 v2 manifest 选择 mmap reader，不会失败后改开 `.so`。
+`--design-db` 仅保留给 legacy xdd-so 兼容夹具和显式对比测试。
+
 ## 1. Handler 基本模式
 
 每个文件实现一个或多个 handler，导出 `make_<name>_handler()` 工厂函数：
@@ -124,7 +144,8 @@ class IWaveformBackend {
 
 ```cpp
 class IDesignBackend {
-    virtual bool open(const std::string& so_path) = 0;  // dlopen DesignDB .so
+    // binary-v1 使用只读 mmap；legacy xdd-so 使用 dlopen。
+    virtual bool open(const std::string& artifact_path) = 0;
     virtual void close() = 0;
     virtual int signal_count() const = 0;
     virtual int resolve(const char* name) const = 0;      // 索引或 -1
@@ -229,6 +250,11 @@ LD_LIBRARY_PATH=build:../wellen/target/release:wellenx_capi/target/release \
   ./build/xdebug-fst --stdio-loop --json < req.jsonl
 ```
 
-测试 fixture：
+测试 fixture（legacy `.so` 兼容回归，不代表新设计生产入口）：
 - FST: `testdata/fixtures/counter/waves.fst`（信号名 `TOP.counter_top.*`、`TOP.*`）
 - DesignDB: `testdata/fixtures/counter/obj_dir/libVcounter_top__DesignDb.so`
+
+`tools/regenerate_*fixture.sh` 有意继续生成 `.so`，用于守护旧 bundle reader；不要把这些
+脚本复制为新设计构建流程。binary-v1 主路径由
+`tests/test_binary_design_db_production_e2e.py` 使用临时 RTL 冷构建验证，不修改 tracked
+fixture cache。
