@@ -15,15 +15,21 @@ cleanup() {
 }
 trap cleanup EXIT
 
-"${VERILATOR_BIN}" \
-    --cc --exe --build --trace-fst --design-db \
-    --top-module matches_top \
-    --Mdir "${BUILD_DIR}/obj_dir" \
-    -o sim_matches_top \
-    "${FIXTURE_DIR}/matches_top.sv" \
-    "${FIXTURE_DIR}/tb_matches.cpp"
+(
+    cd -- "${FIXTURE_DIR}"
+    "${VERILATOR_BIN}" \
+        --cc --exe --build --trace-fst --design-db \
+        --top-module matches_top \
+        --Mdir "${BUILD_DIR}/obj_dir" \
+        -o sim_matches_top \
+        matches_top.sv tb_matches.cpp
+)
 
 "${GXX_BIN}" -std=c++17 -Wall -Wextra -Werror -shared -fPIC \
+    "${XDEBUG_FIXTURE_PREFIX_MAP_FLAGS[@]}" \
+    "-ffile-prefix-map=${BUILD_DIR}=.build" \
+    "-fdebug-prefix-map=${BUILD_DIR}=.build" \
+    "-fmacro-prefix-map=${BUILD_DIR}=.build" \
     -I"${VERILATOR_INCLUDE}" \
     -o "${BUILD_DIR}/libVmatches_top__DesignDb.so" \
     "${BUILD_DIR}/obj_dir/Vmatches_top__DesignDb.cpp"

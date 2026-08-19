@@ -19,6 +19,7 @@ cd -- "${FIXTURE_DIR}"
     -CFLAGS -fPIC
 
 "${GXX_BIN}" -std=c++17 -Wall -Wextra -Werror -shared -fPIC \
+    "${XDEBUG_FIXTURE_PREFIX_MAP_FLAGS[@]}" \
     -I"${VERILATOR_INCLUDE}" \
     -o obj_dir/libVphase5_dut__DesignDb.so \
     obj_dir/Vphase5_dut__DesignDb.cpp

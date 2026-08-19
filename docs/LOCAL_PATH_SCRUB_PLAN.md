@@ -58,10 +58,10 @@
 
 ### 阶段 2：生成物与 Fixture 路径清理
 
-- [ ] 删除已被统一 fixture 工具取代的 `.build_fixtures.sh`。
-- [ ] 取消跟踪并忽略非运行必需的生成元数据和仿真程序。
-- [ ] 以相对源码路径和 prefix-map 重建 matches DesignDB。
-- [ ] 审计 FST、DesignDB 导出及相关行为，必要 fixture 变化独立提交；不推送。
+- [x] 删除已被统一 fixture 工具取代的 `.build_fixtures.sh`。
+- [x] 取消跟踪并忽略非运行必需的生成元数据和仿真程序。
+- [x] 以相对源码路径和 prefix-map 重建 matches DesignDB。
+- [x] 审计 FST、DesignDB 导出及相关行为，必要 fixture 变化独立提交；不推送。
 
 ### 阶段 3：元数据、文档与防回归门禁
 
@@ -109,3 +109,4 @@
 | 2026-08-19 | 阶段 0 | 进行中 | 任务书已建立；尚未修改运行代码、fixture 或远端 refs。 |
 | 2026-08-19 | 阶段 0 | 完成 | Goal 已建立；远端三个分支和八个标签已记录；完整恢复 bundle 为仓库外 `xdebug_fst-pre-path-scrub-20260819.bundle`，`git bundle verify` 确认历史完整。远端 feature tip 为 `48f07b4`，本地另有 10 个未推送提交，改写时分别保留且不把这 10 个提交发布到远端。 |
 | 2026-08-19 | 阶段 1 | 完成 | `.codex/` 已退出索引并被忽略，本机配置保留四项变量；pytest 默认使用 `sys.executable`；三个兼容工具统一支持 `XDEBUG_ORIGINAL_ROOT`，显式参数优先。环境合同、兼容基线与构建合同定向测试 9/9 通过。 |
+| 2026-08-19 | 阶段 2 | 完成 | 删除旧 fixture 总脚本及 20 个无消费者的 Makefile、verFiles 元数据和仿真程序；四个受支持重建脚本加入 prefix-map。matches FST 与旧文件逐字节一致，DesignDB 全部动态导出一致且不再含本机路径，相关行为测试 4/4、fixture 哈希校验通过。 |

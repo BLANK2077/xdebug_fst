@@ -10,6 +10,11 @@ readonly VERILATOR_BIN="${XDEBUG_FIXTURE_BUILD_DIR}/tools/verilator/bin/verilato
 readonly VERILATOR_INCLUDE="${XDEBUG_FIXTURE_BUILD_DIR}/_deps/verilator-src/include"
 readonly GCC_BIN="${XDEBUG_FIXTURE_TOOLCHAIN}/bin/gcc"
 readonly GXX_BIN="${XDEBUG_FIXTURE_TOOLCHAIN}/bin/g++"
+readonly -a XDEBUG_FIXTURE_PREFIX_MAP_FLAGS=(
+    "-ffile-prefix-map=${XDEBUG_REPO_ROOT}=."
+    "-fdebug-prefix-map=${XDEBUG_REPO_ROOT}=."
+    "-fmacro-prefix-map=${XDEBUG_REPO_ROOT}=."
+)
 
 [[ "${XDEBUG_FIXTURE_BUILD_DIR}" = /* ]] || {
     echo "XDEBUG_BUILD_DIR 必须是绝对路径" >&2

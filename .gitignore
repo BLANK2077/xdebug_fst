@@ -8,6 +8,9 @@ __pycache__/
 .pytest_cache/
 .xverif-*/
 .codex/
+testdata/fixtures/*/obj_dir/*.mk
+testdata/fixtures/*/obj_dir/*__verFiles.dat
+testdata/fixtures/*/obj_dir/sim_*
 testdata/fixtures/matches/obj_dir/*
 !testdata/fixtures/matches/obj_dir/libVmatches_top__DesignDb.so
 !testdata/fixtures/matches/obj_dir/xdebug-design-db.json

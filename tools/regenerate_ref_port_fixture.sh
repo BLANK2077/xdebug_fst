@@ -18,6 +18,7 @@ cd -- "${FIXTURE_DIR}"
     -CFLAGS -fPIC
 
 "${GXX_BIN}" -std=c++17 -Wall -Wextra -Werror -shared -fPIC \
+    "${XDEBUG_FIXTURE_PREFIX_MAP_FLAGS[@]}" \
     -I"${VERILATOR_INCLUDE}" \
     -o obj_dir/libVref_port_top__DesignDb.so \
     obj_dir/Vref_port_top__DesignDb.cpp
