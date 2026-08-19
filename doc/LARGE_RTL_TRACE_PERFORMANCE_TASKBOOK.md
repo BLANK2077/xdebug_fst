@@ -142,11 +142,11 @@ doc/LARGE_RTL_TRACE_PERFORMANCE_TASKBOOK.md
 
 ### 阶段 2：构建和测量 runner
 
-- [ ] 强制解析统一构建产物与私有 GCC/G++，禁止系统 fallback。
-- [ ] 分阶段采集 GNU time 指标和产物大小/hash。
-- [ ] 创建 DesignDB manifest，运行仿真并校验 FST/DesignDB。
-- [ ] 驱动 xdebug-fst session 和代表性 Action，采集冷热延迟。
-- [ ] 增加 dry-run、单规模和规模列表参数，便于定向复现。
+- [x] 强制解析统一构建产物与私有 GCC/G++，禁止系统 fallback。
+- [x] 分阶段采集 GNU time 指标和产物大小/hash。
+- [x] 创建 DesignDB manifest，运行仿真并校验 FST/DesignDB。
+- [x] 驱动 xdebug-fst session 和代表性 Action，采集冷热延迟。
+- [x] 增加单规模和规模列表参数，便于定向复现；不增加跳过真实构建的 dry-run。
 
 计划提交：`测试：增加大规模 RTL Trace 分阶段性能基准`
 
@@ -197,3 +197,6 @@ doc/LARGE_RTL_TRACE_PERFORMANCE_TASKBOOK.md
 - 2026-08-19：阶段 1 完成。生成器快速合同 4/4 通过；1K RTL 使用统一 patched Verilator、
   私有 GCC/G++ 13.3.1 完成真实 `--trace-fst --design-db` 编译冒烟，生成仿真 executable 和
   DesignDB C++，未重建 fixture cache。
+- 2026-08-19：阶段 2 完成。runner 快速合同累计 7/7 通过；1K 端到端基准完成 Verilator
+  前端、仿真模型构建、DesignDB `.so`、FST、managed session 和六项 Action。首次试跑暴露并
+  修复 session 名称 schema 与展开后顶层路径锚点错误；最终全部响应成功且分析完整。
