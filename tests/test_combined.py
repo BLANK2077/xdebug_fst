@@ -502,8 +502,7 @@ def test_trace_active_driver_reports_force_as_resolved_driver(
     assert rsp["summary"]["total_count"] == 1
     assert len(rsp["data"]["paths"]) == 1
     path = rsp["data"]["paths"][0]
-    assert path["file"].endswith(
-        "testdata/fixtures/matches/matches_top.sv")
+    assert path["file"] == "matches_top.sv"
     assert path["line"] == 58
     assert [row["line"] for row in path["source_context"]
             if row["active"]] == [58]
