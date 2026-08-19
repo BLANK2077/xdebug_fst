@@ -163,53 +163,53 @@ profile 工具不可用时不私自换方法；先记录原因并向用户申请
 - [x] 确认当前 C++ ABI 已有 name index 和按 signal 分组的关系表。
 - [x] 确认 consumer 存在按 `signal_count()` 扫描的反向端口和 selector 查询。
 - [x] 写入本任务书。
-- [ ] 建立 goal，明确验收标准。
-- [ ] 校验旧基线 hash、工具 revision、私有 GCC/G++ 与 fixture cache 状态。
+- [x] 建立 goal，明确验收标准。
+- [x] 校验旧基线 hash、工具 revision、私有 GCC/G++ 与 fixture cache 状态。
 
 计划提交：`文档：建立 Trace 多实现性能探索任务书`
 
 ### 阶段 1：可观测性与统一比较框架
 
-- [ ] 增加后端 parity 检查与统一 variant 描述。
-- [ ] 增加构建、session、查询和内部热点的结构化测量。
-- [ ] 对当前 64K 路径完成 profile，形成优化前归因。
-- [ ] 测量 A 路线 `-O0/-O2/-Os`，筛选低成本编译策略。
+- [x] 增加后端 parity 检查与统一 variant 描述。
+- [x] 增加构建、session、查询和内部热点的结构化测量。
+- [x] 对当前 64K 路径完成 profile，形成优化前归因。
+- [x] 测量 A 路线 `-O0/-O2/-Os`，筛选低成本编译策略。
 
 计划提交：`测试：增加 Trace 实现统一对比与热点测量`
 
 ### 阶段 2：紧凑二进制格式与 mmap 后端
 
-- [ ] 实现版本化二进制读写和严格校验。
-- [ ] 增加 `IDesignBackend` mmap 实现及显式 bundle schema。
-- [ ] 增加格式损坏、越界、版本不兼容和 A/B parity 测试。
-- [ ] 用 1K/2K 完成端到端原型验收。
+- [x] 实现版本化二进制读写和严格校验。
+- [x] 增加 `IDesignBackend` mmap 实现及显式 bundle schema。
+- [x] 增加格式损坏、越界、版本不兼容和 A/B parity 测试。
+- [x] 用 1K/2K 完成端到端原型验收。
 
 计划提交：`功能：增加紧凑二进制 DesignDB mmap 后端`
 
 ### 阶段 3：Verilator 直接生成二进制
 
-- [ ] 修改本仓库 Verilator patch，在单次前端展开中直接输出 binary v1。
-- [ ] 使用锁定官方 revision 与私有 GCC/G++ 重建独立 Verilator 实验构建。
-- [ ] 验证仿真模型与 FST 不因 DesignDB 编码变化而改变。
-- [ ] 测量 8K/16K/32K 初筛数据。
+- [x] 修改本仓库 Verilator patch，在单次前端展开中直接输出 binary v1。
+- [x] 使用锁定官方 revision 与私有 GCC/G++ 重建独立 Verilator 实验构建。
+- [x] 验证仿真模型与 FST 不因 DesignDB 编码变化而改变。
+- [x] 测量 8K/16K/32K 初筛数据。
 
 计划提交：`构建：让 patched Verilator 直接生成二进制 DesignDB`
 
 ### 阶段 4：运行时索引优化
 
-- [ ] 以 profile 为依据实现反向端口、scope 和 selector 索引。
-- [ ] A/B 后端共用同一查询语义与索引实现。
-- [ ] 验证所有 active-driver/chain fixture 行为不变。
-- [ ] 测量索引构建成本、RSS 增量和稳态 Action 收益。
+- [x] 以 profile 为依据实现反向端口、scope 和 selector 索引。
+- [x] A/B 后端共用同一查询语义与索引实现。
+- [x] 验证所有 active-driver/chain fixture 行为不变。
+- [x] 测量索引构建成本、RSS 增量和稳态 Action 收益。
 
 计划提交：`性能：增加 DesignDB Trace 运行时反向索引`
 
 ### 阶段 5：完整矩阵、报告与验收
 
-- [ ] 对可行单项与组合优胜方案运行 1K～64K 完整矩阵。
-- [ ] 输出构建、产物、session、查询的绝对值和相对基线倍率。
-- [ ] 给出推荐方案、适用规模、剩余瓶颈和不采用路线的原因。
-- [ ] 运行相关 C++/Python 测试与全量 pytest，检查 fixture cache 和绝对路径门禁。
+- [x] 对可行单项与组合优胜方案运行 1K～64K 完整矩阵。
+- [x] 输出构建、产物、session、查询的绝对值和相对基线倍率。
+- [x] 给出推荐方案、适用规模、剩余瓶颈和不采用路线的原因。
+- [x] 运行相关 C++/Python 测试与全量 pytest，检查 fixture cache 和绝对路径门禁。
 
 计划提交：`文档：记录 Trace 多实现性能对比与推荐结论`
 
@@ -240,3 +240,13 @@ profile 工具不可用时不私自换方法；先记录原因并向用户申请
 - 2026-08-19：完成现有 ABI 与 consumer 静态检查。确认生成 `.so` 已具备二分 name resolve 和
   分组关系表，但 active trace 的反向 port、scope 和 selector 查询仍存在设计规模线性扫描；完成
   任务书，尚未重建 Verilator、fixture cache 或任何大规模 RTL。
+- 2026-08-19：建立 goal 并冻结旧矩阵、官方依赖 revision、patch hash、私有 GCC/G++ 与
+  fixture 状态；完成统一 benchmark、64K profile 和 `-O0/-O2/-Os` 对照。
+- 2026-08-19：完成 `binary-v1` 格式、严格 mmap reader、转换/parity 工具及损坏文件测试；
+  patched Verilator 支持在一次前端中直接流式生成 `.xddb`，七档输出与优化前 emitter 逐字节一致。
+- 2026-08-19：完成后端无关查询索引和 Wellen definitive-miss 优化。64K active-driver chain
+  中位延迟从 5,338.420 ms 降至最终 40.907 ms；二进制 session RSS 从 `.so` 基线的
+  348,428 KiB 降至 102,024 KiB。
+- 2026-08-19：完成 1K～64K 七档最终矩阵与报告；六类代表 Action 的 `.so`/binary
+  `summary/data/limitations` 自动一致性测试、全量 pytest、CTest 7/7 和 Verilator 14 个
+  `t_xdd*` 回归全部通过。`testdata/` 无 diff，未重建 fixture cache。
