@@ -63,7 +63,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
     group.addoption(
         "--xfst-env",
-        default=os.environ.get("XFST_CONDA_ENV", "${XFST_CONDA_ENV}"),
+        default=os.environ.get("XFST_CONDA_ENV", sys.executable),
         help="conda python used to run pytest (informational)",
     )
 

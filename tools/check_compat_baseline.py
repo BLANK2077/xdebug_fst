@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -197,7 +198,7 @@ def verify(repo_root: Path, original_root: Path | None = None) -> list[str]:
     return errors
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--repo-root", type=Path, default=Path(__file__).resolve().parents[1]
@@ -205,9 +206,14 @@ def main() -> int:
     parser.add_argument(
         "--original-root",
         type=Path,
+        default=os.environ.get("XDEBUG_ORIGINAL_ROOT"),
         help="also compare against a read-only original xverif checkout",
     )
-    args = parser.parse_args()
+    return parser.parse_args(argv)
+
+
+def main() -> int:
+    args = parse_args()
     errors = verify(args.repo_root.resolve(), args.original_root.resolve() if args.original_root else None)
     if errors:
         for error in errors:

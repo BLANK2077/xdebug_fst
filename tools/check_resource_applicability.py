@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -57,11 +58,16 @@ def invoke(
     return completed.returncode, response
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, required=True)
-    parser.add_argument("--original-root", type=Path, required=True)
-    return parser.parse_args()
+    parser.add_argument(
+        "--original-root",
+        type=Path,
+        default=os.environ.get("XDEBUG_ORIGINAL_ROOT"),
+        required="XDEBUG_ORIGINAL_ROOT" not in os.environ,
+    )
+    return parser.parse_args(argv)
 
 
 def main() -> int:

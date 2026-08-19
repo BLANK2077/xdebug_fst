@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -79,13 +80,22 @@ def first_difference(expected: Any, actual: Any, path: str = "$") -> str | None:
     return None if expected == actual else f"{path}: {expected!r} != {actual!r}"
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--repo-root", type=Path, default=Path(__file__).resolve().parents[1]
     )
-    parser.add_argument("--original-root", type=Path, required=True)
-    args = parser.parse_args()
+    parser.add_argument(
+        "--original-root",
+        type=Path,
+        default=os.environ.get("XDEBUG_ORIGINAL_ROOT"),
+        required="XDEBUG_ORIGINAL_ROOT" not in os.environ,
+    )
+    return parser.parse_args(argv)
+
+
+def main() -> int:
+    args = parse_args()
     repo_root = args.repo_root.resolve()
     original_root = args.original_root.resolve()
     candidate = LoopClient(repo_root / "build/xdebug-fst", repo_root)
