@@ -146,7 +146,7 @@ ${REPO_ROOT}/../                          ← xdebug 开源化 monorepo
 
 ### 3.1 Wellen 概述
 
-**Wellen** (`${REPO_ROOT}/../wellen/`) 是一个 Rust 波形文件解析库（BSD-3），由 Cornell 大学 Kevin Laeufer 维护。支持 VCD、FST、GHW 三种格式。
+**Wellen** (`${WELLEN_HOME}/`) 是一个 Rust 波形文件解析库（BSD-3），由 Cornell 大学 Kevin Laeufer 维护。支持 VCD、FST、GHW 三种格式。
 
 **核心数据模型：**
 
@@ -206,7 +206,7 @@ wave.unload_signals(&refs);
 
 ### 3.2 实验 1：时钟沿检测 (`clock_edge_experiment.rs`)
 
-**位置**: `${REPO_ROOT}/../wellen/wellen/examples/clock_edge_experiment.rs`
+**位置**: `${WELLEN_HOME}/wellen/examples/clock_edge_experiment.rs`
 
 **目的**: 验证 Wellen 能否区分信号是否在时钟沿的精确时刻变化。
 
@@ -233,7 +233,7 @@ wave.unload_signals(&refs);
 
 ### 3.3 实验 2：全局同步性分析 (`clock_coincidence.rs`)
 
-**位置**: `${REPO_ROOT}/../wellen/wellen/examples/clock_coincidence.rs`
+**位置**: `${WELLEN_HOME}/wellen/examples/clock_coincidence.rs`
 
 **目的**: 证明 Wellen 能检测到多个信号在同一时刻同步变化——这是验证 `trace_active_driver` 所需的核心能力。
 
@@ -328,7 +328,7 @@ Signal {
 
 ### 4.1 分支信息
 
-- **仓库**: `${REPO_ROOT}/../verilator`
+- **仓库**: `${VERILATOR_HOME}`
 - **分支**: `feature/design-db-for-xdebug`
 - **基线**: Verilator master (v5.x)
 - **修改文件**:
@@ -575,8 +575,8 @@ xdebug 共约 60+ 个 action handler，分 5 大类:
 
 ```bash
 # 构建（Rust 扩展 + C++ 引擎）
-cd ${REPO_ROOT}/../xdebug_fst/wellenx_capi && cargo build --release
-cd ${REPO_ROOT}/../xdebug_fst && cmake -S . -B build && cmake --build build -j4
+cd ${REPO_ROOT}/wellenx_capi && cargo build --release
+cd ${REPO_ROOT} && cmake -S . -B build && cmake --build build -j4
 
 # 运行
 LD_LIBRARY_PATH=build:../wellen/target/release:wellenx_capi/target/release \

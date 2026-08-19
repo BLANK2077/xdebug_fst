@@ -351,7 +351,7 @@ fallback。
 
 所有后续 C/C++ 工作固定使用 `XDEBUG_GCC_TOOLCHAIN` 指向的 GCC/G++ 13.3.1，仓库通过
 `XDEBUG_VERILATOR_REPO`、`XDEBUG_WELLEN_REPO` 定位；缺失依赖安装到对应仓库或
-`/workspace/work/xdebug_oc` 私有目录。本批的 13/13 Verilator XDD、75/75 combined、
+`${REPO_ROOT}/..` 私有目录。本批的 13/13 Verilator XDD、75/75 combined、
 397/397 pytest 和 9/9 CTest 是持续回归门禁，不是 Goal 完成声明。P6 剩余复杂语义与最终
 73-action 原版归一化差分未全部关闭前，Goal 必须保持 active。
 

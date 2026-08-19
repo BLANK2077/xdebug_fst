@@ -2,7 +2,7 @@
   "baseline_version": 1,
   "captured_at": "2026-08-09T20:38:10+08:00",
   "source": {
-    "repository": "${XDEBUG_ORIGINAL_ROOT}",
+    "repository": "env:XDEBUG_ORIGINAL_ROOT",
     "repository_head": "8289d8b9fb5407e58593ee9a67835b38430c8a58",
     "runtime_git_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
     "runtime_commit_subject": "报告：固化最终 73 个 action 的真实 XOUT 输出",

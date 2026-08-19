@@ -1463,7 +1463,7 @@ TCP/fileport 和 fallback。该维度关闭不代表 Goal 完成；P6 剩余复�
 7. 所有后续 C/C++ 构建和测试使用 `XDEBUG_GCC_TOOLCHAIN` 指向的
    `${REPO_ROOT}/../.toolchains/gcc-13`（GCC/G++ 13.3.1）；仓库路径只通过
    `XDEBUG_VERILATOR_REPO` 与 `XDEBUG_WELLEN_REPO` 索引。缺失依赖安装到对应仓库或
-   `/workspace/work/xdebug_oc` 私有目录，不污染系统环境。
+   `${REPO_ROOT}/..` 私有目录，不污染系统环境。
 8. 当前闭环门禁为 Verilator XDD 13/13、xdebug combined 75/75、pytest 397/397、CTest 9/9
    和依赖基线检查。该批次完成不等于 P6 或 Goal 完成；tagged/binding matches、更多
    NBA/常量、复杂端口/接口/ref、多驱动调度边界与最终 73-action 原版归一化差分仍需继续。

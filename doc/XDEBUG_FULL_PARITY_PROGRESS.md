@@ -33,7 +33,7 @@
 - 修改前红测提交为 Verilator `6f39e2ff4` 与 `12da1e1f6`；最小实现提交为 `1052c6c85` 与 `6f3d24534`。改动只位于 DesignDB emitter，发布动态 LHS 的 `target_loop_index`，以及 RHS 数组选择的 `rhs_loop_selected`、`rhs_loop_index` 结构角色。
 - 没有增加或修改 XDD C ABI 函数、header、ABI version、capability、普通 Verilator AST/调度/仿真路径；`xdd_api.h` SHA 保持不变。xdebug-fst 精确锁定完整 revision `6f3d245342c07c0835b3caa4d53574a72ab2e33d`。
 - 使用 xdebug_oc 私有 GCC 13.3.1 构建，并以 Verilator 仓库本地 Python 3.12 环境真实执行全部 12 个 `t_xdd*.py`：simple、full、UART、metadata、ops、trace、p3、p4、interface/modport、self-RHS、matches-default-only、unpacked-array 均通过。
-- Verilator 格式工具缺少的 `distro==1.9.0` 安装在 `${VERILATOR_HOME}/.tools/format-venv`，由该仓库 `.git/info/exclude` 排除；未污染系统 Python，也没有形成源码提交。以后同类缺失依赖继续安装到对应仓库或 `/workspace/work/xdebug_oc` 的私有工具目录。
+- Verilator 格式工具缺少的 `distro==1.9.0` 安装在 `${VERILATOR_HOME}/.tools/format-venv`，由该仓库 `.git/info/exclude` 排除；未污染系统 Python，也没有形成源码提交。以后同类缺失依赖继续安装到对应仓库或 `${REPO_ROOT}/..` 的私有工具目录。
 
 ### xdebug-fst 消费语义与测试
 

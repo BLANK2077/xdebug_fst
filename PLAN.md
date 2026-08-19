@@ -12,7 +12,7 @@
 
 1. **不修改 `${XDEBUG_ORIGINAL_ROOT}` 的任何文件。** xverif MCP server 原封不动。
 2. **`xdebug-fst` 是 xdebug 的二进制级兼容替换**——相同 CLI 接口、相同 JSON 协议、相同 session 生命周期。
-3. **通过环境变量切换**: `XDEBUG_BIN=${REPO_ROOT}/../xdebug_fst/build/xdebug-fst` 即可从 FSDB 后端切换到 FST 后端。
+3. **通过环境变量切换**: `XDEBUG_BIN=${REPO_ROOT}/build/xdebug-fst` 即可从 FSDB 后端切换到 FST 后端。
 
 ### 兼容性要求
 
@@ -69,7 +69,7 @@ MCP server 完全不需要修改。切换方式：
 XDEBUG_BIN=${XDEBUG_ORIGINAL_ROOT}/tools/xdebug
 
 # FST 模式 (新增)
-XDEBUG_BIN=${REPO_ROOT}/../xdebug_fst/build/xdebug-fst
+XDEBUG_BIN=${REPO_ROOT}/build/xdebug-fst
 ```
 
 ## 工作目录
@@ -88,8 +88,8 @@ ${REPO_ROOT}/../
 
 ## Phase 1: wellen-capi — Rust C FFI 层
 
-**仓库位置**: `${REPO_ROOT}/../wellen/wellen_capi/`（wellen workspace 内新增 crate）
-**产物输出**: `libwellen_capi.so`, `wellen_capi.h` → 被 `${REPO_ROOT}/../xdebug_fst/` 引用
+**仓库位置**: `${WELLEN_HOME}/wellen_capi/`（wellen workspace 内新增 crate）
+**产物输出**: `libwellen_capi.so`, `wellen_capi.h` → 被 `${REPO_ROOT}/` 引用
 
 **目标**: 约 500 行 Rust，暴露 ~16 个 `extern "C"` 函数。
 
@@ -166,7 +166,7 @@ wellen_capi/include/wellen_capi.h             (BSD-3)
 
 ## Phase 2: xdebug-fst — C++ 波形引擎
 
-**仓库位置**: `${REPO_ROOT}/../xdebug_fst/`（新建目录）
+**仓库位置**: `${REPO_ROOT}/`（新建目录）
 
 **目标**: 约 5000-8000 行 C++，实现与 xdebug 等价的波形 action 全集。
 
@@ -407,8 +407,8 @@ FST 版本替换：
 
 ## Phase 3: Verilator --design-db 扩展
 
-**仓库位置**: `${REPO_ROOT}/../verilator` 的 `feature/design-db-for-xdebug` 分支
-**测试 fixture 输出**: 生成的 `libVtop__DesignDb.so` + `waves.fst` → 放在 `${REPO_ROOT}/../xdebug_fst/testdata/`
+**仓库位置**: `${VERILATOR_HOME}` 的 `feature/design-db-for-xdebug` 分支
+**测试 fixture 输出**: 生成的 `libVtop__DesignDb.so` + `waves.fst` → 放在 `${REPO_ROOT}/testdata/`
 
 ### 需要补充的功能
 
@@ -464,15 +464,15 @@ xdebug-fst 需要支持完全相同的协议：
 
 ```bash
 # 方式 1: 环境变量
-export XDEBUG_BIN=${REPO_ROOT}/../xdebug_fst/build/xdebug-fst
+export XDEBUG_BIN=${REPO_ROOT}/build/xdebug-fst
 
 # 方式 2: MCP adapter 构造时传参
 debug = XverifDebugAdapter(runtime=runtime.with_overrides(
-    xdebug_bin="${REPO_ROOT}/../xdebug_fst/build/xdebug-fst"
+    xdebug_bin="${REPO_ROOT}/build/xdebug-fst"
 ))
 
 # 方式 3: pytest --xdebug-bin
-pytest --xdebug-bin=${REPO_ROOT}/../xdebug_fst/build/xdebug-fst
+pytest --xdebug-bin=${REPO_ROOT}/build/xdebug-fst
 ```
 
 ### 4.4 验证清单
@@ -488,7 +488,7 @@ pytest --xdebug-bin=${REPO_ROOT}/../xdebug_fst/build/xdebug-fst
 
 ## Phase 5: 测试 Fixture 全开源化
 
-**工作目录**: `${REPO_ROOT}/../xdebug_fst/testdata/` — 所有 fixture 在此构建
+**工作目录**: `${REPO_ROOT}/testdata/` — 所有 fixture 在此构建
 
 **目标**: 所有测试波形用 **Verilator + FST** 生成，无 Synopsys 依赖。APB/AXI VIP 替换为开源 BFM。
 
