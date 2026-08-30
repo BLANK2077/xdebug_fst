@@ -1,0 +1,2386 @@
+{
+  "catalog": {
+    "row_count": 10,
+    "schema_version": "xdebug-active-trace-cases.v1",
+    "sha256": "f4e61f065e1c1c4412f3c823c336d8962da559274e8c7f71387919d38e6bfb3c"
+  },
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "group": "phase5",
+  "locked_runtime": {
+    "action_count": 73,
+    "binary_sha256": "0f54515fa1c7e80634cdba1e9455ed7cdc1acae26144c7c5a39200853becf46d",
+    "build_id": "8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "cache_reused": true,
+    "fixture_rebuilt": false,
+    "fixture_version": "2ee4a76b564e9c59197f85abde73928afc903d82fcf77224ccf1b99b3d160442-prepare-tydl8ogq",
+    "npi_version": "X-2025.06-SP1",
+    "runtime_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
+    "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "source_access": "read_only",
+    "wrapper_sha256": "c9569332281ccad39099e06d547075d33b35f9b50699e4d148203ad5645978e7"
+  },
+  "rows": [
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "ambiguous"
+      },
+      "catalog_index": 1,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.dout[2]",
+        "time": "10ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "10ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_rhs_sources",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 6,
+            "rhs_signal_count": 6,
+            "signal": "top.u_dut.dout[2]",
+            "statement_count": 1,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.dout[ln] = (en1 & ((ctrl_sel | ctrl_mode) ? src_a : fn_op(src_b, src_c, ctrl_sel)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 37,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "10ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "10ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": true,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "10ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha0",
+                      "value_time": "10ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_a"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "10ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb0",
+                      "value_time": "0ns"
+                    },
+                    "changed": true,
+                    "signal": "top.u_dut.src_b"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "10ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_c"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": [
+            {
+              "active_time": "10ns",
+              "chain_id": "c0",
+              "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+              "index": 0,
+              "line": 37,
+              "relation": "root",
+              "signal": "top.u_dut.dout[2]",
+              "signal_path": [
+                "top.u_dut.dout[2]"
+              ],
+              "source_context": [
+                {
+                  "active": false,
+                  "line": 34,
+                  "text": "                flag[ln] = en0 & mask_a[ln] & mask_b[ln];"
+                },
+                {
+                  "active": false,
+                  "line": 35,
+                  "text": "            end"
+                },
+                {
+                  "active": false,
+                  "line": 36,
+                  "text": "            else begin"
+                },
+                {
+                  "active": true,
+                  "line": 37,
+                  "text": "                dout[ln] = en1 & ((ctrl_sel | ctrl_mode) ? src_a"
+                },
+                {
+                  "active": false,
+                  "line": 38,
+                  "text": "                                 : fn_op(src_b, src_c, ctrl_sel));"
+                },
+                {
+                  "active": false,
+                  "line": 39,
+                  "text": "                flag[ln] = (en2 & mask_a[ln] & mask_b[ln]) |"
+                },
+                {
+                  "active": false,
+                  "line": 40,
+                  "text": "                           (en1 & mask_a[ln] & (ctrl_sel | ctrl_mode));"
+                }
+              ],
+              "time": "10ns",
+              "value": "'h01"
+            }
+          ]
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "signal": "top.u_dut.dout[2]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources",
+          "time": "10ns",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.01"
+    },
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "primary_input"
+      },
+      "catalog_index": 2,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.dout[2]",
+        "time": "20ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "20ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_rhs_sources",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 6,
+            "rhs_signal_count": 6,
+            "signal": "top.u_dut.dout[2]",
+            "statement_count": 1,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.dout[ln] = (en1 & ((ctrl_sel | ctrl_mode) ? src_a : fn_op(src_b, src_c, ctrl_sel)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 37,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "20ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "10ns"
+                    },
+                    "changed": true,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha0",
+                      "value_time": "20ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_a"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "20ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "10ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_b"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "20ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_c"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": [
+            {
+              "active_time": "20ns",
+              "chain_id": "c0",
+              "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+              "index": 0,
+              "line": 37,
+              "relation": "root",
+              "signal": "top.u_dut.dout[2]",
+              "signal_path": [
+                "top.u_dut.dout[2]"
+              ],
+              "source_context": [
+                {
+                  "active": false,
+                  "line": 34,
+                  "text": "                flag[ln] = en0 & mask_a[ln] & mask_b[ln];"
+                },
+                {
+                  "active": false,
+                  "line": 35,
+                  "text": "            end"
+                },
+                {
+                  "active": false,
+                  "line": 36,
+                  "text": "            else begin"
+                },
+                {
+                  "active": true,
+                  "line": 37,
+                  "text": "                dout[ln] = en1 & ((ctrl_sel | ctrl_mode) ? src_a"
+                },
+                {
+                  "active": false,
+                  "line": 38,
+                  "text": "                                 : fn_op(src_b, src_c, ctrl_sel));"
+                },
+                {
+                  "active": false,
+                  "line": 39,
+                  "text": "                flag[ln] = (en2 & mask_a[ln] & mask_b[ln]) |"
+                },
+                {
+                  "active": false,
+                  "line": 40,
+                  "text": "                           (en1 & mask_a[ln] & (ctrl_sel | ctrl_mode));"
+                }
+              ],
+              "time": "20ns",
+              "value": "'h00"
+            }
+          ]
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "signal": "top.u_dut.dout[2]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources",
+          "time": "20ns",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.02"
+    },
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "primary_input"
+      },
+      "catalog_index": 3,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.dout[2]",
+        "time": "30ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "30ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_rhs_sources",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 6,
+            "rhs_signal_count": 6,
+            "signal": "top.u_dut.dout[2]",
+            "statement_count": 1,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.dout[ln] = (en1 & ((ctrl_sel | ctrl_mode) ? src_a : fn_op(src_b, src_c, ctrl_sel)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 37,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "30ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "30ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "30ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha1",
+                      "value_time": "30ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha0",
+                      "value_time": "0ns"
+                    },
+                    "changed": true,
+                    "signal": "top.u_dut.src_a"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "30ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "10ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_b"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "30ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_c"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": [
+            {
+              "active_time": "30ns",
+              "chain_id": "c0",
+              "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+              "index": 0,
+              "line": 37,
+              "relation": "root",
+              "signal": "top.u_dut.dout[2]",
+              "signal_path": [
+                "top.u_dut.dout[2]"
+              ],
+              "source_context": [
+                {
+                  "active": false,
+                  "line": 34,
+                  "text": "                flag[ln] = en0 & mask_a[ln] & mask_b[ln];"
+                },
+                {
+                  "active": false,
+                  "line": 35,
+                  "text": "            end"
+                },
+                {
+                  "active": false,
+                  "line": 36,
+                  "text": "            else begin"
+                },
+                {
+                  "active": true,
+                  "line": 37,
+                  "text": "                dout[ln] = en1 & ((ctrl_sel | ctrl_mode) ? src_a"
+                },
+                {
+                  "active": false,
+                  "line": 38,
+                  "text": "                                 : fn_op(src_b, src_c, ctrl_sel));"
+                },
+                {
+                  "active": false,
+                  "line": 39,
+                  "text": "                flag[ln] = (en2 & mask_a[ln] & mask_b[ln]) |"
+                },
+                {
+                  "active": false,
+                  "line": 40,
+                  "text": "                           (en1 & mask_a[ln] & (ctrl_sel | ctrl_mode));"
+                }
+              ],
+              "time": "30ns",
+              "value": "'h01"
+            }
+          ]
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "signal": "top.u_dut.dout[2]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources",
+          "time": "30ns",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.03"
+    },
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "primary_input"
+      },
+      "catalog_index": 4,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.dout[2]",
+        "time": "41ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "41ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_rhs_sources",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 6,
+            "rhs_signal_count": 6,
+            "signal": "top.u_dut.dout[2]",
+            "statement_count": 1,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.dout[ln] = (en1 & ((ctrl_sel | ctrl_mode) ? src_a : fn_op(src_b, src_c, ctrl_sel)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 37,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "41ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "41ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "41ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "40ns"
+                    },
+                    "changed": true,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha1",
+                      "value_time": "41ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha1",
+                      "value_time": "30ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_a"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "41ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "10ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_b"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "41ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_c"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": [
+            {
+              "active_time": "41ns",
+              "chain_id": "c0",
+              "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+              "index": 0,
+              "line": 37,
+              "relation": "root",
+              "signal": "top.u_dut.dout[2]",
+              "signal_path": [
+                "top.u_dut.dout[2]"
+              ],
+              "source_context": [
+                {
+                  "active": false,
+                  "line": 34,
+                  "text": "                flag[ln] = en0 & mask_a[ln] & mask_b[ln];"
+                },
+                {
+                  "active": false,
+                  "line": 35,
+                  "text": "            end"
+                },
+                {
+                  "active": false,
+                  "line": 36,
+                  "text": "            else begin"
+                },
+                {
+                  "active": true,
+                  "line": 37,
+                  "text": "                dout[ln] = en1 & ((ctrl_sel | ctrl_mode) ? src_a"
+                },
+                {
+                  "active": false,
+                  "line": 38,
+                  "text": "                                 : fn_op(src_b, src_c, ctrl_sel));"
+                },
+                {
+                  "active": false,
+                  "line": 39,
+                  "text": "                flag[ln] = (en2 & mask_a[ln] & mask_b[ln]) |"
+                },
+                {
+                  "active": false,
+                  "line": 40,
+                  "text": "                           (en1 & mask_a[ln] & (ctrl_sel | ctrl_mode));"
+                }
+              ],
+              "time": "41ns",
+              "value": "'h01"
+            }
+          ]
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "signal": "top.u_dut.dout[2]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources",
+          "time": "41ns",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.04"
+    },
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "control_only"
+      },
+      "catalog_index": 5,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.dout[1]",
+        "time": "50ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "50ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_rhs_sources",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 6,
+            "rhs_signal_count": 6,
+            "signal": "top.u_dut.dout[1]",
+            "statement_count": 1,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.dout[ln] = (en1 & ((ctrl_sel | ctrl_mode) ? src_a : fn_op(src_b, src_c, ctrl_sel)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 37,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "41ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha1",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha1",
+                      "value_time": "30ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_a"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "10ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_b"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_c"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": [
+            {
+              "active_time": "50ns",
+              "chain_id": "c0",
+              "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+              "index": 0,
+              "line": 37,
+              "relation": "root",
+              "signal": "top.u_dut.dout[1]",
+              "signal_path": [
+                "top.u_dut.dout[1]"
+              ],
+              "source_context": [
+                {
+                  "active": false,
+                  "line": 34,
+                  "text": "                flag[ln] = en0 & mask_a[ln] & mask_b[ln];"
+                },
+                {
+                  "active": false,
+                  "line": 35,
+                  "text": "            end"
+                },
+                {
+                  "active": false,
+                  "line": 36,
+                  "text": "            else begin"
+                },
+                {
+                  "active": true,
+                  "line": 37,
+                  "text": "                dout[ln] = en1 & ((ctrl_sel | ctrl_mode) ? src_a"
+                },
+                {
+                  "active": false,
+                  "line": 38,
+                  "text": "                                 : fn_op(src_b, src_c, ctrl_sel));"
+                },
+                {
+                  "active": false,
+                  "line": 39,
+                  "text": "                flag[ln] = (en2 & mask_a[ln] & mask_b[ln]) |"
+                },
+                {
+                  "active": false,
+                  "line": 40,
+                  "text": "                           (en1 & mask_a[ln] & (ctrl_sel | ctrl_mode));"
+                }
+              ],
+              "time": "50ns",
+              "value": "'h51"
+            }
+          ]
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "signal": "top.u_dut.dout[1]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources",
+          "time": "50ns",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[1]"
+            }
+          ]
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.05"
+    },
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "ambiguous"
+      },
+      "catalog_index": 6,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.dout[1]",
+        "time": "60ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "50ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_rhs_sources",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 6,
+            "rhs_signal_count": 6,
+            "signal": "top.u_dut.dout[1]",
+            "statement_count": 1,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.dout[ln] = (en1 & ((ctrl_sel | ctrl_mode) ? src_a : fn_op(src_b, src_c, ctrl_sel)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 37,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "41ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha1",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha1",
+                      "value_time": "30ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_a"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb1",
+                      "value_time": "10ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_b"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "50ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_c"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": [
+            {
+              "active_time": "50ns",
+              "chain_id": "c0",
+              "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+              "index": 0,
+              "line": 37,
+              "relation": "root",
+              "signal": "top.u_dut.dout[1]",
+              "signal_path": [
+                "top.u_dut.dout[1]"
+              ],
+              "source_context": [
+                {
+                  "active": false,
+                  "line": 34,
+                  "text": "                flag[ln] = en0 & mask_a[ln] & mask_b[ln];"
+                },
+                {
+                  "active": false,
+                  "line": 35,
+                  "text": "            end"
+                },
+                {
+                  "active": false,
+                  "line": 36,
+                  "text": "            else begin"
+                },
+                {
+                  "active": true,
+                  "line": 37,
+                  "text": "                dout[ln] = en1 & ((ctrl_sel | ctrl_mode) ? src_a"
+                },
+                {
+                  "active": false,
+                  "line": 38,
+                  "text": "                                 : fn_op(src_b, src_c, ctrl_sel));"
+                },
+                {
+                  "active": false,
+                  "line": 39,
+                  "text": "                flag[ln] = (en2 & mask_a[ln] & mask_b[ln]) |"
+                },
+                {
+                  "active": false,
+                  "line": 40,
+                  "text": "                           (en1 & mask_a[ln] & (ctrl_sel | ctrl_mode));"
+                }
+              ],
+              "time": "60ns",
+              "value": "'h51"
+            }
+          ]
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "signal": "top.u_dut.dout[1]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources",
+          "time": "60ns",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[1]"
+            }
+          ]
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.06"
+    },
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "control_only"
+      },
+      "catalog_index": 7,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.flag[2]",
+        "time": "71ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "71ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_active_candidates",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 9,
+            "rhs_signal_count": 9,
+            "signal": "top.u_dut.flag[2]",
+            "statement_count": 2,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.flag[ln] = ((en0 & mask_a[ln]) & mask_b[ln]);,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 34,
+                "returned_rhs_signal_count": 3,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en0"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_a[ln]"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_b[ln]"
+                  }
+                ],
+                "rhs_signal_count": 3
+              },
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.flag[ln] = (((en2 & mask_a[ln]) & mask_b[ln]) | ((en1 & mask_a[ln]) & (ctrl_sel | ctrl_mode)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 39,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "41ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en2"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_a[ln]"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_b[ln]"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": []
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 0,
+          "scan_complete": true,
+          "signal": "top.u_dut.flag[2]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_active_candidates",
+          "time": "71ns",
+          "total_count": 0,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.07"
+    },
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "primary_input"
+      },
+      "catalog_index": 8,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.flag[2]",
+        "time": "81ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "71ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_active_candidates",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 9,
+            "rhs_signal_count": 9,
+            "signal": "top.u_dut.flag[2]",
+            "statement_count": 2,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.flag[ln] = ((en0 & mask_a[ln]) & mask_b[ln]);,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 34,
+                "returned_rhs_signal_count": 3,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en0"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_a[ln]"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_b[ln]"
+                  }
+                ],
+                "rhs_signal_count": 3
+              },
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.flag[ln] = (((en2 & mask_a[ln]) & mask_b[ln]) | ((en1 & mask_a[ln]) & (ctrl_sel | ctrl_mode)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 39,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "41ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en2"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_a[ln]"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_b[ln]"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": []
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 0,
+          "scan_complete": true,
+          "signal": "top.u_dut.flag[2]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_active_candidates",
+          "time": "81ns",
+          "total_count": 0,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.08"
+    },
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "primary_input"
+      },
+      "catalog_index": 9,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.dout[2]",
+        "time": "90ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "90ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_rhs_sources",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 6,
+            "rhs_signal_count": 6,
+            "signal": "top.u_dut.dout[2]",
+            "statement_count": 1,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.dout[ln] = (en1 & ((ctrl_sel | ctrl_mode) ? src_a : fn_op(src_b, src_c, ctrl_sel)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 37,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "90ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "90ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "90ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "81ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha3",
+                      "value_time": "90ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'ha2",
+                      "value_time": "60ns"
+                    },
+                    "changed": true,
+                    "signal": "top.u_dut.src_a"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb2",
+                      "value_time": "90ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hb2",
+                      "value_time": "60ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_b"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "90ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "8'hc0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.src_c"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": [
+            {
+              "active_time": "90ns",
+              "chain_id": "c0",
+              "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+              "index": 0,
+              "line": 37,
+              "relation": "root",
+              "signal": "top.u_dut.dout[2]",
+              "signal_path": [
+                "top.u_dut.dout[2]"
+              ],
+              "source_context": [
+                {
+                  "active": false,
+                  "line": 34,
+                  "text": "                flag[ln] = en0 & mask_a[ln] & mask_b[ln];"
+                },
+                {
+                  "active": false,
+                  "line": 35,
+                  "text": "            end"
+                },
+                {
+                  "active": false,
+                  "line": 36,
+                  "text": "            else begin"
+                },
+                {
+                  "active": true,
+                  "line": 37,
+                  "text": "                dout[ln] = en1 & ((ctrl_sel | ctrl_mode) ? src_a"
+                },
+                {
+                  "active": false,
+                  "line": 38,
+                  "text": "                                 : fn_op(src_b, src_c, ctrl_sel));"
+                },
+                {
+                  "active": false,
+                  "line": 39,
+                  "text": "                flag[ln] = (en2 & mask_a[ln] & mask_b[ln]) |"
+                },
+                {
+                  "active": false,
+                  "line": 40,
+                  "text": "                           (en1 & mask_a[ln] & (ctrl_sel | ctrl_mode));"
+                }
+              ],
+              "time": "90ns",
+              "value": "'h01"
+            }
+          ]
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "signal": "top.u_dut.dout[2]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources",
+          "time": "90ns",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.09"
+    },
+    {
+      "case": "phase5",
+      "catalog_expectation": {
+        "termination": "control_only"
+      },
+      "catalog_index": 10,
+      "fixture": {
+        "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+        "fsdb_size": 10799
+      },
+      "limits": {
+        "max_depth": 64,
+        "max_nodes": 64
+      },
+      "request": {
+        "render_time_unit": "ns",
+        "signal": "top.u_dut.flag[2]",
+        "time": "100ns"
+      },
+      "response": {
+        "data": {
+          "ambiguity_evidence": {
+            "active_time": "71ns",
+            "analysis_complete": true,
+            "hop_index": 0,
+            "kind": "multiple_active_candidates",
+            "omitted_rhs_signal_count": 0,
+            "returned_rhs_signal_count": 9,
+            "rhs_signal_count": 9,
+            "signal": "top.u_dut.flag[2]",
+            "statement_count": 2,
+            "statements": [
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.flag[ln] = ((en0 & mask_a[ln]) & mask_b[ln]);,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 34,
+                "returned_rhs_signal_count": 3,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en0"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_a[ln]"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_b[ln]"
+                  }
+                ],
+                "rhs_signal_count": 3
+              },
+              {
+                "complete": true,
+                "driver": "top.u_dut.lane_proc.unnamed$$_0.flag[ln] = (((en2 & mask_a[ln]) & mask_b[ln]) | ((en1 & mask_a[ln]) & (ctrl_sel | ctrl_mode)));,",
+                "file": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+                "kind": "assignment",
+                "line": 39,
+                "returned_rhs_signal_count": 6,
+                "rhs_samples": [
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h0",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_mode"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "20ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.ctrl_sel"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "41ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en1"
+                  },
+                  {
+                    "after": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "71ns"
+                    },
+                    "before": {
+                      "known": true,
+                      "status": "ok",
+                      "value": "1'h1",
+                      "value_time": "0ns"
+                    },
+                    "changed": false,
+                    "signal": "top.u_dut.en2"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_a[ln]"
+                  },
+                  {
+                    "after": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "before": {
+                      "known": null,
+                      "status": "signal_not_found",
+                      "value": null,
+                      "value_time": null
+                    },
+                    "changed": null,
+                    "signal": "top.u_dut.mask_b[ln]"
+                  }
+                ],
+                "rhs_signal_count": 6
+              }
+            ],
+            "truncation_scopes": []
+          },
+          "hops": []
+        },
+        "summary": {
+          "analysis_complete": true,
+          "response_truncated": false,
+          "returned_count": 0,
+          "scan_complete": true,
+          "signal": "top.u_dut.flag[2]",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_active_candidates",
+          "time": "100ns",
+          "total_count": 0,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/dut.sv",
+          "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+          "size": 1525
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/phase5/tb.sv",
+          "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+          "size": 3383
+        }
+      ],
+      "scenario_id": "active.phase5.10"
+    }
+  ],
+  "schema_version": "xdebug.p3c-phase5-public-oracle.v1",
+  "session": {
+    "all_runtime_writes_repository_local": true,
+    "closed_gracefully": true,
+    "fallback_used": false,
+    "mode": "combined",
+    "opened": true,
+    "transport": "uds"
+  }
+}

@@ -826,10 +826,56 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | 外部零写入/零 fallback | 已通过 | 前后 audit snapshot `b36b1c25...` 相同 |
 | timing red/green/证据 commit | 已完成 | `ad6f5f3` / `31bdddf` / 本批当前提交 |
 
+### 2026-08-30：P3-C Phase5 十场景红灯冻结
+
+- 本批以冻结公开 runtime `8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8`、schema
+  `c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c` 和
+  73/73 Action 身份门禁为原版权威。执行文件 SHA-256 为 `0f54515f...`，wrapper SHA-256 为
+  `c9569332...`，NPI 固定 `X-2025.06-SP1`。复用只读 Phase5 cache
+  `2ee4a76b...-prepare-tydl8ogq`，原始 FSDB SHA-256 为 `9fdc31f0...`；没有重建 cache，
+  没有接受 live catalog/report 漂移，也没有 fallback。
+- `tools/collect_p3c_phase5_public_oracle.py` 通过公开 JSON Action 在 UDS combined session 内采集
+  S1～S10，严格校验 runtime 身份、Action 数、响应完整性和 session 正常关闭；HOME、TMP、cache、
+  socket 与 session 写入全部位于当前仓库。原版仓库、FSDB/daidir 和 cache 只读，输出还会拒绝
+  绝对路径泄漏。连续采集两次得到相同 oracle：
+  `tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json` SHA-256 为
+  `2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca`。
+- 锁定公开响应与旧 catalog 预期存在历史漂移，因此本批不把旧 termination 摘要冒充实测。
+  S1～S6、S9 均为 `ambiguous/multiple_rhs_sources`，一个 hop、DUT 第 37 行、六个 RHS；S7、S8、
+  S10 均为 `ambiguous/multiple_active_candidates`，零 hop、DUT 第 34/39 行、九个 RHS。十项都
+  `scan_complete=true`、`analysis_complete=true`、`response_truncated=false`。原版 NPI 对
+  unpacked `dout` 元素保留显式 width diagnostic 和 unsized hop；`flag` 宽度完整。
+- 当前仓库补入 `dut.sv`/`tb.sv` 两份逐字节镜像，SHA-256 分别为 `168e18c...`、
+  `ea4c1d23...`。选择性生成器仅构建 Phase5，连续两轮得到相同 FST/XDD：SHA-256 分别为
+  `f242c3fe...`、`065f226b...`；`fixture.sha256` 锁住两份 RTL、dump probe、FST、XDD、manifest
+  共六个传递输入，未重建其他 fixture 缓存。
+- `tests/test_p3c_active_trace_phase5.py` 对每个场景逐字段比较完整公开响应：termination/detail、
+  完整性、statement/源码行、RHS 集合与顺序、before/after 值及时刻、hop/源码上下文及宽度投影；
+  另设 `max_trace_signals=1` 的 analysis-boundary 门禁。唯一允许的表示投影是当前 FST/DesignDB
+  给出比 NPI 更强的精确 8-bit 宽度，以及通用 `proc_assign` kind；源码和行为事实仍须严格一致。
+- 有效红灯结果为 2 pass/11 fail：oracle 身份/去敏与 RTL/fixture 哈希先通过；十个完整响应和
+  limits 边界全部失败。当前实现仍混入特殊分支 statement，把 S1 错判为两候选/七个 RHS，
+  native flattened leaf 的局部端口映射、RHS 稳定排序、after evidence time 和 summary 宽度字段
+  也尚未对齐。失败发生在业务断言内，不是 UDS、fixture、NPI 或环境失败。
+- 红灯执行使用既有 `.conda-xverif` pytest 解释器，只禁用与本地单测无关的自动编排插件；
+  `XVERIF_TEST_TMPDIR` 与 `--basetemp` 均显式指向当前仓库。整个批次遵守 Goal 唯一可写根
+  `${REPO_ROOT}`（仅解析为本任务当前仓库根），未修改原版/依赖仓库，未发起 PR 或 push。
+
+### Phase5 红灯当前状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 锁定原版公开 oracle | 已完成 | S1～S10 完整响应；SHA-256 `2da78f7e...` |
+| 两份 RTL 与当前 fixture | 已完成 | RTL 逐字节相同；FST/XDD 连续两轮确定 |
+| red 门禁 | 已完成 | 2 pass/11 fail；11 项均为目标语义差异 |
+| runtime 写边界/fallback | 已通过 | 写入仅当前仓库；外部只读；零 fallback |
+| 通用实现修复 | 未开始 | 下一批提交，不与红灯基线混合 |
+| Phase5 矩阵关闭 | 未完成 | 仍保留 10 个 partial；P3-C queue=12 |
+
 ### 下一步
 
-1. P3-C 继续处理 Phase5 十个场景，逐项关闭 width、RHS 顺序、statement、源码证据和完整响应；
-   已有 termination/ambiguity 子集门禁不能替代完整差分。
+1. 在通用 DesignDB/FST 路径修复 native flattened leaf 的 loop selector 与局部端口映射，并对齐
+   RHS 顺序、evidence time 和宽度完整性字段；Phase5 13 项须全部转绿，再运行 P3-C 相邻回归。
 2. 单独裁决 `fixture.active_trace_runner` 与 p0_4 declared-only orphan。p0_4 没有冻结 RTL/catalog
    request 时不得编造原版 fixture；只能补成有权威来源的动态合同，或给出受 schema/资产哈希约束
    的有限 proven-unobservable 证明。
