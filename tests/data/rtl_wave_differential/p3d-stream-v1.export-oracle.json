@@ -1,0 +1,896 @@
+{
+  "action_discovery": {
+    "catalog_action_count": 73,
+    "guide_error_code": "INVALID_REQUEST",
+    "guide_invalid_arg": "args.output.view",
+    "guide_request_supported": false,
+    "request_schema_id": "xdebug.stream.export.request.v1",
+    "request_schema_path": "schemas/v1/actions/stream.export.request.schema.json"
+  },
+  "fixture_id": "xdebug.stream_v1",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "locked_runtime": {
+    "action_count": 73,
+    "binary_sha256": "0f54515fa1c7e80634cdba1e9455ed7cdc1acae26144c7c5a39200853becf46d",
+    "build_id": "8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "cache_reused": true,
+    "fixture_rebuilt": false,
+    "fixture_version": "5eca27af24084f076f68c6a77c6fe0cb9e0a152332912dbf074cabc3b4600ede-prepare-c54cyr7t",
+    "npi_version": "X-2025.06-SP1",
+    "runtime_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
+    "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "source_access": "read_only",
+    "wrapper_sha256": "c9569332281ccad39099e06d547075d33b35f9b50699e4d148203ad5645978e7"
+  },
+  "observation_count": 6,
+  "observations": [
+    {
+      "observation_id": "transfer_preview",
+      "request": {
+        "cache_scope": "full",
+        "kind": "transfer",
+        "line_limit": 1,
+        "stream": "ready_stream",
+        "time_range": {
+          "begin": "0ns",
+          "end": "250us"
+        }
+      },
+      "response": {
+        "data": {
+          "preview": [
+            {
+              "beat_index": 0,
+              "bp": false,
+              "channel_id": {
+                "bits": "01",
+                "known": true,
+                "value": "2'h1",
+                "width": 2
+              },
+              "cycle": 7,
+              "eop": false,
+              "fields": {
+                "addr": {
+                  "bits": "01000000000000010000000100000001",
+                  "known": true,
+                  "value": "32'h40010101",
+                  "width": 32
+                },
+                "data": {
+                  "bits": "00100000000000000000000000000001",
+                  "known": true,
+                  "value": "32'h20000001",
+                  "width": 32
+                },
+                "is_wr": {
+                  "bits": "0",
+                  "known": true,
+                  "value": "1'h0",
+                  "width": 1
+                },
+                "low8": {
+                  "bits": "00000001",
+                  "known": true,
+                  "value": "8'h01",
+                  "width": 8
+                }
+              },
+              "rdy": true,
+              "sop": false,
+              "stall": false,
+              "time": "75ns",
+              "transfer": true,
+              "vld": true
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "clock": "clk",
+          "clock_edges": 20011,
+          "complete_packet_count": 0,
+          "control_xz_count": 0,
+          "data_xz_count": 0,
+          "edge": "posedge",
+          "first_stall_time": "115ns",
+          "first_transfer_time": "75ns",
+          "handshake": "vld/rdy",
+          "kind": "transfer",
+          "last_stall_time": "200015ns",
+          "last_transfer_time": "200055ns",
+          "line_limit": 1,
+          "output_written": false,
+          "packet_count_status": "not_configured",
+          "packet_enabled": false,
+          "packet_stable_mismatch_count": 0,
+          "partial_packet_count": 0,
+          "ready_bp_conflict_count": 0,
+          "requested_range": {
+            "begin": "0ns",
+            "end": "250000ns"
+          },
+          "response_truncated": true,
+          "returned_count": 1,
+          "row_count": 15059,
+          "sample_point": "before",
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "scanned_range": {
+            "begin": "5ns",
+            "end": "200105ns"
+          },
+          "stall_cycles": 3764,
+          "stall_windows": 3764,
+          "status": "preview",
+          "stream": "ready_stream",
+          "total_count": 15059,
+          "transfer_count": 15059,
+          "truncation_scopes": [
+            "response_preview"
+          ],
+          "value_width_complete": true,
+          "vld_cycles": 18823,
+          "width_diagnostics": []
+        }
+      },
+      "xout": "@xdebug.stream.export.v1\nsummary:\n  stream                      : ready_stream\n  sampling_mode               : clock_edge\n  clock                       : clk\n  edge                        : posedge\n  sample_point                : before\n  sample_time_semantics       : time is sample_time\n  handshake                   : vld/rdy\n  packet_enabled              : false\n  clock_edges                 : 20011\n  vld_cycles                  : 18823\n  transfer_count              : 15059\n  stall_cycles                : 3764\n  stall_windows               : 3764\n  complete_packet_count       : 0\n  partial_packet_count        : 0\n  packet_count_status         : not_configured\n  control_xz_count            : 0\n  data_xz_count               : 0\n  ready_bp_conflict_count     : 0\n  packet_stable_mismatch_count: 0\n  scan_complete               : true\n  analysis_complete           : true\n  response_truncated          : true\n  total_count                 : 15059\n  returned_count              : 1\n  first_transfer_time         : 75ns\n  last_transfer_time          : 200055ns\n  first_stall_time            : 115ns\n  last_stall_time             : 200015ns\n  status                      : preview\n  output_written              : false\n  row_count                   : 15059\n  line_limit                  : 1\n  kind                        : transfer\n  value_width_complete        : true\n\npreview:\n  cycle  time  vld   rdy   bp     sop    eop    transfer  stall  beat_index  fields                                                    channel_id\n  7      75ns  true  true  false  false  false  true      false  0           addr=32'h40010101 data=32'h20000001 is_wr=1'h0 low8=8'h1  2'h1\n",
+      "xout_sha256": "48b433c5e90af0f084b1260105c3e7ee25d70bc82f8fb8ede39c572b1160f36c"
+    },
+    {
+      "observation_id": "packet_preview",
+      "request": {
+        "cache_scope": "full",
+        "kind": "packet",
+        "line_limit": 1,
+        "stream": "ready_packet",
+        "time_range": {
+          "begin": "0ns",
+          "end": "250us"
+        }
+      },
+      "response": {
+        "data": {
+          "preview": [
+            {
+              "beat_count": 4,
+              "beat_fields_preview": {
+                "analysis_complete": true,
+                "head": [
+                  {
+                    "beat_index": 0,
+                    "cycle": 6,
+                    "fields": {
+                      "data": {
+                        "bits": "01000000000000000000000000000000",
+                        "known": true,
+                        "value": "32'h40000000",
+                        "width": 32
+                      },
+                      "seq": {
+                        "bits": "0000000000000000",
+                        "known": true,
+                        "value": "16'h0000",
+                        "width": 16
+                      }
+                    },
+                    "time": "65ns"
+                  },
+                  {
+                    "beat_index": 1,
+                    "cycle": 7,
+                    "fields": {
+                      "data": {
+                        "bits": "01000000000000000000000000000001",
+                        "known": true,
+                        "value": "32'h40000001",
+                        "width": 32
+                      },
+                      "seq": {
+                        "bits": "0000000000000001",
+                        "known": true,
+                        "value": "16'h0001",
+                        "width": 16
+                      }
+                    },
+                    "time": "75ns"
+                  },
+                  {
+                    "beat_index": 2,
+                    "cycle": 8,
+                    "fields": {
+                      "data": {
+                        "bits": "01000000000000000000000000000010",
+                        "known": true,
+                        "value": "32'h40000002",
+                        "width": 32
+                      },
+                      "seq": {
+                        "bits": "0000000000000010",
+                        "known": true,
+                        "value": "16'h0002",
+                        "width": 16
+                      }
+                    },
+                    "time": "85ns"
+                  },
+                  {
+                    "beat_index": 3,
+                    "cycle": 9,
+                    "fields": {
+                      "data": {
+                        "bits": "01000000000000000000000000000011",
+                        "known": true,
+                        "value": "32'h40000003",
+                        "width": 32
+                      },
+                      "seq": {
+                        "bits": "0000000000000011",
+                        "known": true,
+                        "value": "16'h0003",
+                        "width": 16
+                      }
+                    },
+                    "time": "95ns"
+                  }
+                ],
+                "response_truncated": false,
+                "returned_count": 4,
+                "scan_complete": true,
+                "tail": [],
+                "total_count": 4,
+                "truncation_scopes": []
+              },
+              "end_cycle": 9,
+              "end_time": "95ns",
+              "first_fields": {
+                "data": {
+                  "bits": "01000000000000000000000000000000",
+                  "known": true,
+                  "value": "32'h40000000",
+                  "width": 32
+                },
+                "seq": {
+                  "bits": "0000000000000000",
+                  "known": true,
+                  "value": "16'h0000",
+                  "width": 16
+                }
+              },
+              "last_fields": {
+                "data": {
+                  "bits": "01000000000000000000000000000011",
+                  "known": true,
+                  "value": "32'h40000003",
+                  "width": 32
+                },
+                "seq": {
+                  "bits": "0000000000000011",
+                  "known": true,
+                  "value": "16'h0003",
+                  "width": 16
+                }
+              },
+              "packet_index": 0,
+              "packet_stable_fields": {
+                "opcode": {
+                  "bits": "10100000",
+                  "known": true,
+                  "value": "8'ha0",
+                  "width": 8
+                }
+              },
+              "packet_stable_mismatches": [],
+              "partial_begin": false,
+              "partial_end": false,
+              "start_cycle": 6,
+              "start_time": "65ns"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "clock": "clk",
+          "clock_edges": 20011,
+          "complete_packet_count": 5000,
+          "control_xz_count": 0,
+          "data_xz_count": 0,
+          "edge": "posedge",
+          "first_transfer_time": "65ns",
+          "handshake": "vld/rdy",
+          "kind": "packet",
+          "last_transfer_time": "200055ns",
+          "line_limit": 1,
+          "output_written": false,
+          "packet_count_status": "exact",
+          "packet_enabled": true,
+          "packet_stable_mismatch_count": 0,
+          "partial_packet_count": 0,
+          "ready_bp_conflict_count": 0,
+          "requested_range": {
+            "begin": "0ns",
+            "end": "250000ns"
+          },
+          "response_truncated": true,
+          "returned_count": 1,
+          "row_count": 5000,
+          "sample_point": "before",
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "scanned_range": {
+            "begin": "5ns",
+            "end": "200105ns"
+          },
+          "stall_cycles": 0,
+          "stall_windows": 0,
+          "status": "preview",
+          "stream": "ready_packet",
+          "total_count": 5000,
+          "transfer_count": 20000,
+          "truncation_scopes": [
+            "response_preview"
+          ],
+          "value_width_complete": true,
+          "vld_cycles": 20000,
+          "width_diagnostics": []
+        }
+      },
+      "xout": "@xdebug.stream.export.v1\nsummary:\n  stream                      : ready_packet\n  sampling_mode               : clock_edge\n  clock                       : clk\n  edge                        : posedge\n  sample_point                : before\n  sample_time_semantics       : time is sample_time\n  handshake                   : vld/rdy\n  packet_enabled              : true\n  clock_edges                 : 20011\n  vld_cycles                  : 20000\n  transfer_count              : 20000\n  stall_cycles                : 0\n  stall_windows               : 0\n  complete_packet_count       : 5000\n  partial_packet_count        : 0\n  packet_count_status         : exact\n  control_xz_count            : 0\n  data_xz_count               : 0\n  ready_bp_conflict_count     : 0\n  packet_stable_mismatch_count: 0\n  scan_complete               : true\n  analysis_complete           : true\n  response_truncated          : true\n  total_count                 : 5000\n  returned_count              : 1\n  first_transfer_time         : 65ns\n  last_transfer_time          : 200055ns\n  status                      : preview\n  output_written              : false\n  row_count                   : 5000\n  line_limit                  : 1\n  kind                        : packet\n  value_width_complete        : true\n\npreview:\n  packet_index  start_cycle  end_cycle  start_time  end_time  beat_count  partial_begin  partial_end  packet_stable_fields  beat_fields_preview.scan_complete  beat_fields_preview.analysis_complete  beat_fields_preview.response_truncated  beat_fields_preview.total_count  beat_fields_preview.returned_count  first_fields                 last_fields\n  0             6            9          65ns        95ns      4           false          false        opcode=8'ha0          true                               true                                   false                                   4                                4                                   data=32'h40000000 seq=16'h0  data=32'h40000003 seq=16'h3\n",
+      "xout_sha256": "3f95da17dbb147534a3d0f8b35149a33148a4772eee5f4274ee22687664e06ff"
+    },
+    {
+      "observation_id": "packet_beats_preview",
+      "request": {
+        "cache_scope": "full",
+        "kind": "packet_beats",
+        "line_limit": 1,
+        "stream": "ready_packet",
+        "time_range": {
+          "begin": "0ns",
+          "end": "250us"
+        }
+      },
+      "response": {
+        "data": {
+          "preview": [
+            {
+              "beat_index": 0,
+              "bp": false,
+              "cycle": 6,
+              "eop": false,
+              "fields": {
+                "data": {
+                  "bits": "01000000000000000000000000000000",
+                  "known": true,
+                  "value": "32'h40000000",
+                  "width": 32
+                },
+                "seq": {
+                  "bits": "0000000000000000",
+                  "known": true,
+                  "value": "16'h0000",
+                  "width": 16
+                }
+              },
+              "packet_index": 0,
+              "packet_stable_fields": {
+                "opcode": {
+                  "bits": "10100000",
+                  "known": true,
+                  "value": "8'ha0",
+                  "width": 8
+                }
+              },
+              "rdy": true,
+              "sop": true,
+              "stall": false,
+              "time": "65ns",
+              "transfer": true,
+              "vld": true
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "clock": "clk",
+          "clock_edges": 20011,
+          "complete_packet_count": 5000,
+          "control_xz_count": 0,
+          "data_xz_count": 0,
+          "edge": "posedge",
+          "first_transfer_time": "65ns",
+          "handshake": "vld/rdy",
+          "kind": "packet_beats",
+          "last_transfer_time": "200055ns",
+          "line_limit": 1,
+          "output_written": false,
+          "packet_count_status": "exact",
+          "packet_enabled": true,
+          "packet_stable_mismatch_count": 0,
+          "partial_packet_count": 0,
+          "ready_bp_conflict_count": 0,
+          "requested_range": {
+            "begin": "0ns",
+            "end": "250000ns"
+          },
+          "response_truncated": true,
+          "returned_count": 1,
+          "row_count": 20000,
+          "sample_point": "before",
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "scanned_range": {
+            "begin": "5ns",
+            "end": "200105ns"
+          },
+          "stall_cycles": 0,
+          "stall_windows": 0,
+          "status": "preview",
+          "stream": "ready_packet",
+          "total_count": 20000,
+          "transfer_count": 20000,
+          "truncation_scopes": [
+            "response_preview"
+          ],
+          "value_width_complete": true,
+          "vld_cycles": 20000,
+          "width_diagnostics": []
+        }
+      },
+      "xout": "@xdebug.stream.export.v1\nsummary:\n  stream                      : ready_packet\n  sampling_mode               : clock_edge\n  clock                       : clk\n  edge                        : posedge\n  sample_point                : before\n  sample_time_semantics       : time is sample_time\n  handshake                   : vld/rdy\n  packet_enabled              : true\n  clock_edges                 : 20011\n  vld_cycles                  : 20000\n  transfer_count              : 20000\n  stall_cycles                : 0\n  stall_windows               : 0\n  complete_packet_count       : 5000\n  partial_packet_count        : 0\n  packet_count_status         : exact\n  control_xz_count            : 0\n  data_xz_count               : 0\n  ready_bp_conflict_count     : 0\n  packet_stable_mismatch_count: 0\n  scan_complete               : true\n  analysis_complete           : true\n  response_truncated          : true\n  total_count                 : 20000\n  returned_count              : 1\n  first_transfer_time         : 65ns\n  last_transfer_time          : 200055ns\n  status                      : preview\n  output_written              : false\n  row_count                   : 20000\n  line_limit                  : 1\n  kind                        : packet_beats\n  value_width_complete        : true\n\npreview:\n  cycle  time  vld   rdy   bp     sop   eop    transfer  stall  packet_index  beat_index  fields                       packet_stable_fields\n  6      65ns  true  true  false  true  false  true      false  0             0           data=32'h40000000 seq=16'h0  opcode=8'ha0\n",
+      "xout_sha256": "13d62d6aef05031a4d76fe82af4dc42a4dafbd81ef7edfc269df4dec8913f2df"
+    },
+    {
+      "artifact": {
+        "meta": {
+          "clock": "clk",
+          "edge": "posedge",
+          "fields": [
+            {
+              "expr": "{addr_hi, addr_lo}",
+              "name": "addr",
+              "scope": "beat"
+            },
+            {
+              "expr": "data_sig",
+              "name": "data",
+              "scope": "beat"
+            },
+            {
+              "expr": "cmd == 2'b01",
+              "name": "is_wr",
+              "scope": "beat"
+            },
+            {
+              "expr": "data_sig[7:0]",
+              "name": "low8",
+              "scope": "beat"
+            }
+          ],
+          "handshake": "vld/rdy",
+          "kind": "transfer",
+          "packet_enabled": false,
+          "row_count": 3,
+          "sample_point": "before",
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "stream": "ready_stream",
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 10,
+            "complete_packet_count": 0,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "first_transfer_time": "75ns",
+            "handshake": "vld/rdy",
+            "last_transfer_time": "95ns",
+            "packet_count_status": "not_configured",
+            "packet_enabled": false,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 0,
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "0ns",
+              "end": "100ns"
+            },
+            "response_truncated": false,
+            "returned_count": 3,
+            "sample_point": "before",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "5ns",
+              "end": "95ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "stream": "ready_stream",
+            "total_count": 3,
+            "transfer_count": 3,
+            "truncation_scopes": [],
+            "vld_cycles": 3
+          }
+        },
+        "meta_path": "artifact/ready.tsv.meta.json",
+        "meta_sha256": "ec7121cdec7e9ed60135b13e8957e166a25b7c1244fab20992eba5d54b2b9c9b",
+        "meta_size": 1641,
+        "path": "artifact/ready.tsv",
+        "sha256": "b23f0101a24fdaed7e8cf2849b8da34f4b6f969cbc2b39da3ccdfea5692eca28",
+        "size": 266,
+        "text": "cycle\ttime\ttransfer\tstall\tvld\trdy\tbp\tsop\teop\tchannel_id\taddr\tdata\tis_wr\tlow8\n7\t75ns\t1\t0\t1\t1\t0\t0\t0\t2'h1\t32'h40010101\t32'h20000001\t1'h0\t8'h01\n8\t85ns\t1\t0\t1\t1\t0\t0\t0\t2'h2\t32'h40020102\t32'h20000002\t1'h1\t8'h02\n9\t95ns\t1\t0\t1\t1\t0\t0\t0\t2'h3\t32'h40030103\t32'h20000003\t1'h0\t8'h03\n"
+      },
+      "observation_id": "transfer_written",
+      "request": {
+        "cache_scope": "range",
+        "kind": "transfer",
+        "output": {
+          "file_format": "tsv",
+          "path": "artifact/ready.tsv"
+        },
+        "stream": "ready_stream",
+        "time_range": {
+          "begin": "0ns",
+          "end": "100ns"
+        }
+      },
+      "response": {
+        "data": {},
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "clock": "clk",
+          "clock_edges": 10,
+          "complete_packet_count": 0,
+          "control_xz_count": 0,
+          "data_xz_count": 0,
+          "edge": "posedge",
+          "first_transfer_time": "75ns",
+          "handshake": "vld/rdy",
+          "kind": "transfer",
+          "last_transfer_time": "95ns",
+          "line_limit": 16,
+          "output": {
+            "file_format": "tsv",
+            "meta_path": "artifact/ready.tsv.meta.json",
+            "path": "artifact/ready.tsv"
+          },
+          "output_written": true,
+          "packet_count_status": "not_configured",
+          "packet_enabled": false,
+          "packet_stable_mismatch_count": 0,
+          "partial_packet_count": 0,
+          "ready_bp_conflict_count": 0,
+          "requested_range": {
+            "begin": "0ns",
+            "end": "100ns"
+          },
+          "response_truncated": false,
+          "returned_count": 3,
+          "row_count": 3,
+          "sample_point": "before",
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "scanned_range": {
+            "begin": "5ns",
+            "end": "95ns"
+          },
+          "stall_cycles": 0,
+          "stall_windows": 0,
+          "status": "written",
+          "stream": "ready_stream",
+          "total_count": 3,
+          "transfer_count": 3,
+          "truncation_scopes": [],
+          "vld_cycles": 3
+        }
+      }
+    },
+    {
+      "artifact": {
+        "meta": {
+          "clock": "clk",
+          "edge": "posedge",
+          "fields": [
+            {
+              "expr": "data",
+              "name": "data",
+              "scope": "beat"
+            },
+            {
+              "expr": "seq",
+              "name": "seq",
+              "scope": "beat"
+            },
+            {
+              "expr": "opcode",
+              "name": "opcode",
+              "scope": "packet_stable"
+            }
+          ],
+          "handshake": "vld/rdy",
+          "kind": "packet",
+          "packet_enabled": true,
+          "row_count": 1,
+          "sample_point": "before",
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "stream": "ready_packet",
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 4,
+            "complete_packet_count": 1,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "first_transfer_time": "65ns",
+            "handshake": "vld/rdy",
+            "last_transfer_time": "95ns",
+            "packet_count_status": "exact",
+            "packet_enabled": true,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 0,
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "65ns",
+              "end": "95ns"
+            },
+            "response_truncated": false,
+            "returned_count": 4,
+            "sample_point": "before",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "65ns",
+              "end": "95ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "stream": "ready_packet",
+            "total_count": 4,
+            "transfer_count": 4,
+            "truncation_scopes": [],
+            "vld_cycles": 4
+          }
+        },
+        "meta_path": "artifact/packets.xout.meta.json",
+        "meta_sha256": "bcfa7ddeb53c58d1f9f537cbf17f3fb17a955d19b2028a6c740920a0f252263c",
+        "meta_size": 1524,
+        "path": "artifact/packets.xout",
+        "sha256": "ed57d7dd8ab5ee2f68d7867a3cb9d2c4acd932fed1e7b4cab94140cd3d2b9e61",
+        "size": 252,
+        "text": "packet_index\tchannel_id\tstart_time\tend_time\tstart_cycle\tend_cycle\tbeat_count\tpartial\tpacket_stable_mismatch_count\tpacket_stable_opcode\tfirst_data\tlast_data\tfirst_seq\tlast_seq\n0\t\t65ns\t95ns\t0\t3\t4\tfalse\t0\t8'ha0\t32'h40000000\t32'h40000003\t16'h0000\t16'h0003\n"
+      },
+      "observation_id": "packet_written",
+      "request": {
+        "cache_scope": "range",
+        "kind": "packet",
+        "output": {
+          "file_format": "xout",
+          "path": "artifact/packets.xout"
+        },
+        "stream": "ready_packet",
+        "time_range": {
+          "begin": "65ns",
+          "end": "95ns"
+        }
+      },
+      "response": {
+        "data": {},
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "clock": "clk",
+          "clock_edges": 4,
+          "complete_packet_count": 1,
+          "control_xz_count": 0,
+          "data_xz_count": 0,
+          "edge": "posedge",
+          "first_transfer_time": "65ns",
+          "handshake": "vld/rdy",
+          "kind": "packet",
+          "last_transfer_time": "95ns",
+          "line_limit": 16,
+          "output": {
+            "file_format": "xout",
+            "meta_path": "artifact/packets.xout.meta.json",
+            "path": "artifact/packets.xout"
+          },
+          "output_written": true,
+          "packet_count_status": "exact",
+          "packet_enabled": true,
+          "packet_stable_mismatch_count": 0,
+          "partial_packet_count": 0,
+          "ready_bp_conflict_count": 0,
+          "requested_range": {
+            "begin": "65ns",
+            "end": "95ns"
+          },
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_point": "before",
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "scanned_range": {
+            "begin": "65ns",
+            "end": "95ns"
+          },
+          "stall_cycles": 0,
+          "stall_windows": 0,
+          "status": "written",
+          "stream": "ready_packet",
+          "total_count": 1,
+          "transfer_count": 4,
+          "truncation_scopes": [],
+          "vld_cycles": 4
+        }
+      }
+    },
+    {
+      "artifact": {
+        "meta": {
+          "clock": "clk",
+          "edge": "posedge",
+          "fields": [
+            {
+              "expr": "data",
+              "name": "data",
+              "scope": "beat"
+            },
+            {
+              "expr": "seq",
+              "name": "seq",
+              "scope": "beat"
+            },
+            {
+              "expr": "opcode",
+              "name": "opcode",
+              "scope": "packet_stable"
+            }
+          ],
+          "handshake": "vld/rdy",
+          "kind": "packet_beats",
+          "packet_enabled": true,
+          "row_count": 4,
+          "sample_point": "before",
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "stream": "ready_packet",
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 4,
+            "complete_packet_count": 1,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "first_transfer_time": "65ns",
+            "handshake": "vld/rdy",
+            "last_transfer_time": "95ns",
+            "packet_count_status": "exact",
+            "packet_enabled": true,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 0,
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "65ns",
+              "end": "95ns"
+            },
+            "response_truncated": false,
+            "returned_count": 4,
+            "sample_point": "before",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "65ns",
+              "end": "95ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "stream": "ready_packet",
+            "total_count": 4,
+            "transfer_count": 4,
+            "truncation_scopes": [],
+            "vld_cycles": 4
+          }
+        },
+        "meta_path": "artifact/beats.xout.meta.json",
+        "meta_sha256": "aa9e2c7a416b2ed91e3fa9dd4a967e00f7ac206da06d7d1644bc183ec36059bc",
+        "meta_size": 1530,
+        "path": "artifact/beats.xout",
+        "sha256": "2fe74fd9478c3defb087cb4e1910ded4fa184276c0aa70ab2a86d5524fd5a1b3",
+        "size": 236,
+        "text": "packet_index\tchannel_id\tbeat_index\tcycle\ttime\tdata\tseq\tpacket_stable_opcode\n0\t\t0\t0\t65ns\t32'h40000000\t16'h0000\t8'ha0\n0\t\t1\t1\t75ns\t32'h40000001\t16'h0001\t8'ha0\n0\t\t2\t2\t85ns\t32'h40000002\t16'h0002\t8'ha0\n0\t\t3\t3\t95ns\t32'h40000003\t16'h0003\t8'ha0\n"
+      },
+      "observation_id": "packet_beats_written",
+      "request": {
+        "cache_scope": "range",
+        "kind": "packet_beats",
+        "output": {
+          "file_format": "xout",
+          "path": "artifact/beats.xout"
+        },
+        "stream": "ready_packet",
+        "time_range": {
+          "begin": "65ns",
+          "end": "95ns"
+        }
+      },
+      "response": {
+        "data": {},
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "clock": "clk",
+          "clock_edges": 4,
+          "complete_packet_count": 1,
+          "control_xz_count": 0,
+          "data_xz_count": 0,
+          "edge": "posedge",
+          "first_transfer_time": "65ns",
+          "handshake": "vld/rdy",
+          "kind": "packet_beats",
+          "last_transfer_time": "95ns",
+          "line_limit": 16,
+          "output": {
+            "file_format": "xout",
+            "meta_path": "artifact/beats.xout.meta.json",
+            "path": "artifact/beats.xout"
+          },
+          "output_written": true,
+          "packet_count_status": "exact",
+          "packet_enabled": true,
+          "packet_stable_mismatch_count": 0,
+          "partial_packet_count": 0,
+          "ready_bp_conflict_count": 0,
+          "requested_range": {
+            "begin": "65ns",
+            "end": "95ns"
+          },
+          "response_truncated": false,
+          "returned_count": 4,
+          "row_count": 4,
+          "sample_point": "before",
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "scanned_range": {
+            "begin": "65ns",
+            "end": "95ns"
+          },
+          "stall_cycles": 0,
+          "stall_windows": 0,
+          "status": "written",
+          "stream": "ready_packet",
+          "total_count": 4,
+          "transfer_count": 4,
+          "truncation_scopes": [],
+          "vld_cycles": 4
+        }
+      }
+    }
+  ],
+  "schema_version": "xdebug.p3d-stream-v1-export-oracle.v1",
+  "session": {
+    "all_runtime_writes_repository_local": true,
+    "closed_gracefully": true,
+    "fallback_used": false,
+    "mode": "waveform",
+    "opened": true,
+    "transport": "uds"
+  }
+}

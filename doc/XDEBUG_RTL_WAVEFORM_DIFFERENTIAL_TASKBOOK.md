@@ -1026,3 +1026,27 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
   `build/goal-runtime/p3d-stream-v1-original`；外部审计的规范 JSON SHA-256 仍为
   `b36b1c254efbe860544f135e0fd964b9cd6fedd0cbb1bb32c7b3aae5de8c4bcb`。没有 FSDB→FST/
   JSON 转换，没有 export 回灌，没有 fixture/backend fallback，也没有修改外部仓库。
+
+### 2026-08-30：P3-D1 stream_v1 export/XOUT 补充红灯
+
+- 58 项 query/config 主体转绿后的相邻 `tests/test_stream.py` 暴露两项旧断言：stall reason 仍锁
+  `vld_without_rdy`，export preview scope 仍锁 `response_rows`。前者已由上述原版 oracle 证明应为
+  `rdy_low`；后者没有凭当前实现或旧测试裁决，而是回到同一冻结 runtime 补采 export 证据。
+- 按 xverif 流程请求 `actions args.output.view=guide` 时，冻结 schema 明确以
+  `INVALID_REQUEST/args.output.view` 拒绝；本批未切换 surface、transport、runtime 或 fixture，改为
+  锁住该版本真实能力事实，同时复核普通 73-Action catalog，并查询
+  `xdebug.stream.export.request.v1` 精确 schema。这个版本差异写入 oracle，不伪称 guide 成功。
+- 新增 `tools/collect_p3d_stream_v1_export_oracle.py`，复用同一只读 FSDB cache，在仓库内 UDS session
+  采集 transfer/packet/packet_beats 三类 preview 和三类小窗口 written artifact，共 6 个观察点；
+  两次独立采集逐字节一致，oracle SHA-256 为
+  `66a9c58192c4f6ff95edc70ff67537425ddc1aaaa52ce32d667ec25b113b8c29`。
+- 原版 preview 的 `row_count/total_count` 是完整结果数，`returned_count` 才受 line limit 限制，裁剪
+  scope 固定为 `response_preview`；written 必须写全量、`response_truncated=false`，并生成字段清单和
+  完整 summary meta。锁定小窗口 transfer、packet、packet-beats artifact SHA-256 分别为
+  `b23f0101...`、`ed57d7dd...`、`2fe74fd9...`；精确值由 oracle 逐字节保存。
+- 原版 preview XOUT 同时留下既有缺口：不投影 requested/scanned range，packet preview 还省略中间
+  beat 值；当前侧不复制这项退化，而以 XOUT 语义审计要求完整投影。JSON 和 artifact 仍要求与原版
+  严格一致，这一“原版缺口、当前增强”是显式裁决，不是白名单放宽。
+- 新增 `tests/test_p3d_stream_v1_export.py`。红灯为 1 pass/1 fail：runtime/schema/oracle/XOUT 缺口锁
+  通过，当前侧在第一个 `transfer_preview` 的 summary 公开语义处失败；尚未进入后续 artifact 比较，
+  因而不是伪造文件差异。所有采集输出仍只写当前仓库，没有 fallback 或 fixture 重建。
