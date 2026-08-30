@@ -98,3 +98,59 @@ def test_single_verilator_invocation_builds_binary_trace_session(
     for action, args in cases:
         response = loop_runner.request(action, args=args)
         assert response.get("ok"), {"action": action, "response": response}
+
+
+def test_hdl_top_named_top_uses_native_visible_signal_path(
+        loop_runner, repo_root: Path, xfst_bin: Path,
+        tmp_path: Path) -> None:
+    """A real ``module top`` must not expose the synthetic model root twice."""
+
+    verilator = xfst_bin.parent / "tools" / "verilator" / "bin" / "verilator"
+    assert verilator.is_file(), "统一构建未安装 patched Verilator"
+    environment = producer_environment(repo_root)
+    rtl = tmp_path / "native_top.sv"
+    rtl.write_text(
+        "`timescale 1ns/1ps\n"
+        "module top;\n"
+        "  logic in0 = 1'b0;\n"
+        "  wire middle;\n"
+        "  wire observed;\n"
+        "  assign middle = in0;\n"
+        "  assign observed = middle;\n"
+        "  initial begin\n"
+        "    $dumpfile(\"native-top.fst\");\n"
+        "    $dumpvars(0, top);\n"
+        "    #5 in0 = 1'b1;\n"
+        "    #5 $finish;\n"
+        "  end\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    obj_dir = tmp_path / "obj-native-top"
+    prefix = "Vnative_top"
+    built = subprocess.run(
+        [str(verilator), "--binary", "--timing", "--trace-fst",
+         "--design-db-binary", "--top-module", "top",
+         "--prefix", prefix, "--Mdir", str(obj_dir), str(rtl)],
+        cwd=tmp_path, env=environment, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        timeout=60, check=False,
+    )
+    assert built.returncode == 0, built.stderr
+    simulated = subprocess.run(
+        [str(obj_dir / prefix)], cwd=tmp_path, env=environment, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        timeout=30, check=False,
+    )
+    assert simulated.returncode == 0, simulated.stderr
+
+    open_session(loop_runner, tmp_path / "native-top.fst", obj_dir)
+    response = loop_runner.request("trace.active_driver_chain", args={
+        "signal": "top.observed", "time": "10ns",
+    })
+    assert response.get("ok"), response
+    assert response["summary"]["termination"] == "primary_input"
+    assert response["summary"]["returned_count"] == 3
+    assert [hop["signal"] for hop in response["data"]["hops"]] == [
+        "top.observed", "top.middle", "top.in0",
+    ]
