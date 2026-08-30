@@ -677,10 +677,76 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | 外部零写入/零 fallback | 已通过 | 前后 audit snapshot `bf6fb878...` 相同 |
 | Phase4 red/green commit | 已完成 | `1a3d152` / `829b0ed`；证据为当前提交 |
 
+### 2026-08-30：P3-C composite 二十场景补测
+
+- 测试提交 `ad19d52` 逐项镜像 `case_01`～`case_20` 的测试顶层；已有共享
+  `composite/chain_dut.sv` 继续复用并参与每个 case 的哈希锁。21 份 RTL 均与原版逐字节相同。
+  每个 case 提交独立原始 FST、binary-v1 XDD、manifest 和覆盖 case RTL、共享 RTL、dump probe、
+  FST、XDD、manifest 六个传递输入的 `fixture.sha256`，共 120 条逐文件锁；没有用共享 DUT 或
+  单个波形代表其余参数组合。
+- 选择性生成器以 `--group composite --jobs 4 --repeat 2` 在当前仓库连续构建两轮；20 组
+  FST/XDD 的大小和 SHA-256 逐项相同。原版 composite cache 指纹为
+  `93b0b714ac405932d426e9f03c88daaacad2d7c3a1595777d4c080f9a0c1d676`，只读复用实例后缀
+  `prepare-fpjmfmeo`；native runner SHA-256 为
+  `f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237`，NPI 为
+  `X-2025.06-SP1`。没有重建或修改原版 fixture cache。
+- 原版 oracle
+  `tests/data/rtl_wave_differential/p3c-composite.original-oracle.json` 的 SHA-256 为
+  `729f7a656f061d8bd5207217b987598ae81840dff3cd5bbaf4febc6b3cbcc5d7`。二十行均
+  `fixture_rebuilt=false`、`fallback_used=false`、`truncated=false`、limitations 为空；20 个
+  原版 FSDB 哈希各不相同，证明没有把 case 结果复用成同一份 oracle。
+- 锁定原版结果为 10 个 `primary_input`、10 个 `ambiguous`，hop 分布为
+  `6:11, 7:4, 11:3, 12:2`，共 151 hops；每行恰有一个 temporal boundary。十个 generate
+  歧义场景各锁定 `in[0]`～`in[7]` 八个逐 bit data 候选，80 个候选均在 35ns 切换；五个
+  interface 场景锁定 `file="", line=0` 的 source-less modport endpoint。
+- 新增 42 项门禁：1 项 oracle/runtime/schema/写边界、20 项 RTL 与 fixture 哈希、20 项完整
+  native chain 语义、1 项 limits。逐 case 对照 signal、hop 顺序、源码行、active time、四态值、
+  temporal relation、termination、80 个候选及 scan/analysis/response-truncation；source-less
+  endpoint 只按冻结公开 schema 投影为 `<unknown>:1` 和空 `source_context`，原始 oracle 不改写。
+- composite 门禁第一次运行即 42/42 通过。真实缺口是矩阵此前仍为 partial 且缺少 20 份独立
+  fixture/oracle/测试；Phase4 的通用实现已经覆盖相同共享 DUT 的较短复合链。这里以原 matrix
+  partial 作为覆盖红灯并由 `ad19d52` 关闭，不制造生产失败、不回退旧实现，也不为满足形式要求
+  添加 case 特判或无意义代码改动。因此本批没有单独生产实现 commit。
+- 原版完整链最长 12 hops，公开 request schema 默认 `max_depth=8` 保持不变；精确差分显式使用
+  从 oracle 推导的 `max_depth=11`。独立 limits 用例继续证明 `max_depth=1`、`max_nodes=1` 返回
+  analysis boundary，而不是 response truncation 或 backend fallback。
+- composite 正式门禁 42/42、P0+composite+Phase4 联合门禁 98/98、实现聚焦及相邻回归
+  171/171 通过；后者包含 composite 42、P0 14、combined 85、original-active 18、binary
+  DesignDB production E2E 2、binary backend 10。manifest/matrix/P3-B/producer 静态门禁
+  35/35 通过，`runtime-schema-validator`、`xdd-design-backend`、`wellen-fst-backend` CTest
+  3/3 通过，`git diff --check` 通过。
+- manifest 更新为原版 359 assets/103 RTL/23 fixture/260 consumer/25 outputs，当前 457 assets/
+  64 RTL/62 FST/1 VCD/65 consumer；零 missing asset、零未归属原版 HDL。manifest SHA-256 为
+  `173ad7264a588e9dc394f397c8df8d89840412182f1eecbe7a75bc588d06743e`；矩阵 SHA-256 为
+  `218d49b918b82e7468a9bd4a9cf85265d3f1a8002fb4683e049c997cad2ba0ff`。两者按
+  manifest write→matrix write→manifest write→matrix check→manifest check 到达可重复稳定点。
+- 二十项 composite 从 partial 升级为 semantic-equivalent，矩阵变为
+  `semantic-equivalent=53, proven-unobservable=2, partial=31, missing=2`；P3-C 队列从 44
+  降为 24。每行只保留本 case RTL、共享 DUT 和本 case FST 作为当前证据，公开请求明确记录
+  `limits.max_depth=11`，剩余 timing、Phase5、runner 和 orphan 没有被 composite 顺带关闭。
+- 批前批后 manifest 结构化外部审计一致：xverif 保持 HEAD `5110099482b...` 和 18 个既有
+  dirty/untracked 条目逐路径、状态、大小、内容不变；Wellen `afab0abd...`、Verilator
+  `bf01d667...` 均 clean。所有 HOME/TMP/cache/build/session 输出均在当前仓库；没有外部写入、
+  fallback、PR 或 push。
+
+### P3-C composite 当前状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 二十份 case RTL/共享 RTL | 已完成 | 21 份逐字节相同；20 个 fixture、120 条传递哈希锁 |
+| 锁定原版 native oracle | 已完成 | 20/20；只读 cache；oracle `729f7a65...` |
+| composite 精确差分 | 已通过 | 42/42；完整链、单次时序边界、generate/interface 证据 |
+| 实现/相邻回归 | 已通过 | 无新增生产修复；171/171 |
+| CTest | 已通过 | 关键 CTest 3/3 |
+| manifest/matrix 门禁 | 已通过 | 静态联合 35/35；连续 write/check 稳定 |
+| composite 矩阵关闭 | 已完成 | 20 semantic-equivalent；剩余 P3-C queue=24 |
+| 外部零写入/零 fallback | 已通过 | 完整外部 snapshot 与 Phase4 结束态一致 |
+| composite 测试/证据 commit | 已完成 | `ad19d52` / 本批当前提交 |
+
 ### 下一步
 
-1. P3-C 保持进行中，下一批逐项处理 composite 20、timing 12、phase5 10，以及
-   `fixture.active_trace_runner` 和 p0_4 declared-only orphan，共 44 项；共享 DUT 不能替代每个
+1. P3-C 保持进行中，下一批逐项处理 timing 12、phase5 10，以及
+   `fixture.active_trace_runner` 和 p0_4 declared-only orphan，共 24 项；共享 DUT 不能替代每个
    case 的控制、时间和完整响应证据。
 2. Phase5 必须单独关闭完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
    statement 和源码证据。p0_4 若无法建立原版动态 oracle，必须按冻结资产/schema 给出受限的
