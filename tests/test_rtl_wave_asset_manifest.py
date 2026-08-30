@@ -4,11 +4,13 @@ from pathlib import Path
 
 import pytest
 
+from tools import freeze_rtl_wave_assets as freezer
 from tools.freeze_rtl_wave_assets import (
     CURRENT_BASELINE_HEAD,
     GOAL_ID,
     InventoryError,
     ORIGINAL_BASELINE_HEAD,
+    ORIGINAL_TRANSITIVE_CONSUMERS,
     SCHEMA_VERSION,
     canonical_json,
     ensure_output_within_repo,
@@ -17,6 +19,7 @@ from tools.freeze_rtl_wave_assets import (
     parse_fixture_registry,
     parse_porcelain_z,
     relative_output_records,
+    verify_frozen_original_content,
 )
 
 
@@ -233,6 +236,67 @@ def test_ai_complex_runners_are_assigned_to_their_reused_fixture() -> None:
     counter_runner = assets["xdebug/tests/waveform/run_counter_statistics.py"]
     assert "xdebug.ai_complex_wave" in complex_runner["fixture_ids"]
     assert counter_runner["fixture_ids"] == ["xdebug.ai_complex_wave"]
+
+
+def test_transitive_oracle_runners_are_frozen_with_their_fixtures() -> None:
+    manifest = load_manifest()
+    assets = {
+        item["path"]: item
+        for item in manifest["assets"]
+        if item["side"] == "original"
+    }
+    assert manifest["discovery_contract"][
+        "original_transitive_consumers"
+    ] == ORIGINAL_TRANSITIVE_CONSUMERS
+    active_runner = assets[
+        "xdebug/tests/combined/run_active_driver_fixture.py"
+    ]
+    assert active_runner["fixture_ids"] == [
+        "xdebug.active_driver", "xdebug.interface_port_root",
+    ]
+    design_runner = assets["xdebug/tests/design/run_semantics.sh"]
+    assert design_runner["fixture_ids"] == [
+        "xdebug.design_p3", "xdebug.design_uart",
+    ]
+    assert design_runner["sha256"] == \
+        "74f0cc841505d5a2290102f57b0ee60ffc270ba4c94b8e66d546adc8f51beee1"
+
+
+def test_frozen_original_allows_only_goal_start_transitive_additions(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    existing = b"existing\n"
+    transitive = b"goal-start runner\n"
+
+    def asset(path: str, content: bytes) -> dict:
+        return {
+            "side": "original",
+            "path": path,
+            "exists": True,
+            "file_type": "file",
+            "sha256": freezer.sha256_bytes(content),
+            "size_bytes": len(content),
+        }
+
+    frozen = {"assets": [asset("xdebug/tests/existing.py", existing)]}
+    unchanged = asset("xdebug/tests/existing.py", existing)
+    approved = asset("xdebug/tests/design/run_semantics.sh", transitive)
+    monkeypatch.setattr(freezer, "git_bytes", lambda *_args: transitive)
+
+    verify_frozen_original_content(tmp_path, [unchanged, approved], frozen)
+    with pytest.raises(InventoryError, match="not an explicitly reviewed"):
+        verify_frozen_original_content(
+            tmp_path,
+            [unchanged, asset("xdebug/tests/new_unreviewed.py", b"new\n")],
+            frozen,
+        )
+    with pytest.raises(InventoryError, match="does not match the Goal-start"):
+        verify_frozen_original_content(
+            tmp_path,
+            [unchanged, asset("xdebug/tests/design/run_semantics.sh", b"drift\n")],
+            frozen,
+        )
 
 
 def test_active_trace_declares_dynamic_fsdb_outputs_from_probe_contracts() -> None:

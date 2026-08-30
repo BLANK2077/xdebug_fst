@@ -86,11 +86,26 @@ def directory_tree_sha256(root: Path) -> str:
     return digest.hexdigest()
 
 
+def temporary_test_directory(
+    default_prefix: str,
+    repository_local_prefix: str,
+) -> tempfile.TemporaryDirectory[str]:
+    configured_root = os.environ.get("XVERIF_TEST_TMPDIR")
+    if not configured_root:
+        return tempfile.TemporaryDirectory(prefix=default_prefix)
+    base = Path(configured_root)
+    base.mkdir(parents=True, exist_ok=True)
+    return tempfile.TemporaryDirectory(
+        prefix=repository_local_prefix,
+        dir=base,
+    )
+
+
 def main() -> int:
     executable = str(Path(sys.argv[1]).resolve())
     waveform = str(Path(sys.argv[2]).resolve())
     design_library = Path(sys.argv[3]).resolve()
-    with tempfile.TemporaryDirectory(prefix="xdebug-fst-session-") as root:
+    with temporary_test_directory("xdebug-fst-session-", "s-") as root:
         environment = os.environ.copy()
         environment["HOME"] = root
         environment["XVERIF_TEST_TMPDIR"] = root

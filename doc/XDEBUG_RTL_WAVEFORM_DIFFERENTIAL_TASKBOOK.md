@@ -475,12 +475,77 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | manifest/matrix 重现 | 已通过 | live check；85 partial、2 missing、1 semantic-equivalent |
 | compat/path gate | 已通过 | compat baseline OK；local path audit OK |
 | P3-A 实现 commit | 已完成 | `ddf9064 修复：对齐基础波形采样与表达式语义` |
-| P3-A 证据 commit | 本批待提交 | `测试：补齐 ai_complex 基础波形差分场景` |
+| P3-A 证据 commit | 已完成 | `40a0677 测试：补齐 ai_complex 基础波形差分场景` |
+
+### 2026-08-30：P3-B design 与 combined 补测
+
+- P0 资产复核发现两个传递 consumer 合同缺口：`run_active_driver_fixture.py` 虽已冻结，但错误
+  归入 cross-fixture；`run_semantics.sh` 没有进入清单。生成器现用显式映射分别绑定
+  `active_driver/interface_port_root` 和 `design_p3/design_uart`。只允许这两项经审阅的传递
+  consumer 补入或重分配，新增文件还必须与 Goal-start Git object `478a944...` 字节一致，原有
+  冻结资产继续逐文件失败关闭。清单变为原版 359 资产/260 consumer，当前 215 资产、15 RTL、
+  16 FST、1 VCD、59 consumer；103 个原版 HDL、23 fixture、25 个波形输出仍全部可反查。
+- 使用锁定 runtime `8eecf71271cc/c4509904...` 和既有只读 fixture cache 运行原版门禁：
+  active-driver/interface leaf runner 10/10、active-semantics 1/1、active-zero 16/16、X-prop 1/1、
+  design semantics 1/1 全部通过，session 正常关闭。七个受用 cache 均未重建，工具身份为
+  `X-2025.06`；FSDB、daidir、cache、日志和二进制均未复制或提交。
+- 原版行为 revision 和 Goal-start 资产 HEAD 继续分开保存。active-driver、active-semantics、
+  active-zero 和 `run_semantics.sh` 在两条基线上的 runner 哈希不同，审计同时记录 locked 与
+  Goal-start SHA-256；当前侧使用移植或归一化后的完整公开断言，明确标记“没有直接复用同一
+  原版 runner”，避免把等价证据夸大成同一可执行文件双侧运行。
+- 新增 `current.active_driver`、`current.interface_port_root`、`current.active_zero_evidence`。
+  三份 RTL 与原版逐字节相同，SHA-256 分别为 `03592650...`、`93793abd...`、`fcb281bb...`；
+  由受锁定 Verilator/DesignDB 直接生成四态 FST，不经 VCD/JSON 转换。连续两次重建的 FST
+  SHA-256 分别稳定为 `ff589ebe...`、`856a5d21...`、`ee351fdf...`。仓库内 Verilator patch 将
+  FST header 日期固定为 1970，依赖 lock 升级为 `xdebug-design-db-v4-deterministic-fst`，未修改
+  sibling Verilator。
+- 实现补齐无 `top.` 前缀的原版公开路径兼容、递归活动驱动、force/pass-through/default、精确
+  `active_time`、内部零证据与 primary input 区分、interface/modport alias、真实 module/interface
+  分类、`scope.roots` 稳定性及专用 XOUT；显式 `top.` 请求仍保持原当前语义。新增 18 项原版
+  oracle 测试全部通过。
+- P3-B 八个场景中，`active_driver`、`active_semantics`、`active_zero_evidence`、
+  `interface_port_root`、`trace_x_xprop`、`design_uart` 以双侧公开行为证据升级为
+  `semantic-equivalent`。`design_hierarchy` 在锁定 runtime 中没有对应测试，且 Goal-start 测试
+  所需 `interface_array/gen_scope/modport/mpport` kind 与六个扩展 data group 均被冻结
+  `scope.list` schema 排除；`design_p3` 在 locked/Goal-start `run_semantics.sh` 中都只用于
+  `session.open`，语义查询数为 0。两者以哈希锚定静态合同判为 `proven-unobservable`，没有作为
+  泛化免测入口。
+- 新增去敏 `p3b.runtime-audit.json`，锁定 runtime/schema/73 Action、原版 runner 与 cache、
+  当前 fixture/test 哈希、八项裁决、零 fallback 和外部三仓前后快照。矩阵从
+  `semantic-equivalent=1, partial=85, missing=2` 更新为 `semantic-equivalent=7,
+  proven-unobservable=2, partial=77, missing=2`；P3-B 队列为空，剩余 P3-C/D/E 队列分别为
+  70/6/3。
+- CTest 首轮为 5/7：两个 session 脚本在进入业务断言前失败。根因不是 backend/fixture，而是
+  脚本把调用方仓库内 `XVERIF_TEST_TMPDIR` 再包入长前缀临时目录并覆盖该变量，使 UDS
+  `sun_path` 再次超长。修复后，显式提供仓库内临时根时只在该根下使用短前缀；未提供变量时
+  默认行为不变。同一 binary、UDS transport、fixture 和测试重跑 7/7 通过，没有 fallback。
+- 补跑 live `check_compat_baseline.py` 时按预期失败：当前外部工作树的 binary/schema 已不是
+  Goal 冻结的 `8eecf71271cc/c4509904...`，工具逐项报告 runtime、engine、schema 和 actions
+  drift。该红灯不以另一目录或 live 新版替代；P3-B 行为仍由已通过身份与 73/73 Action 门禁的
+  冻结 runtime 裁决，P4 继续保留这项双基线冲突。独立 local path audit 使用正确参数重跑通过。
+
+### P3-B 当前状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 三个原版精确 RTL/FST 镜像 | 已完成 | RTL 哈希相同；连续两次 FST 重建相同 |
+| 锁定原版动态门禁 | 已通过 | 10/10 + 1/1 + 16/16 + 1/1 + 1/1 |
+| 当前 active fixture 门禁 | 已通过 | 18/18 |
+| design 合同门禁 | 已通过 | 13/13 |
+| combined/waveform/binary 相邻门禁 | 已通过 | 146/146 |
+| P0/matrix/P3-B 静态门禁 | 已通过 | 27/27 |
+| CMake build / CTest | 已通过 | build 完成；7/7 |
+| manifest/matrix 重现 | 已通过 | 连续 live check；P3-B queue=0 |
+| live compat baseline | 红灯保留 | live 原版已漂移；未替换冻结 runtime、未接受漂移 |
+| local path audit | 已通过 | `check_no_local_paths.py --repo-root` |
+| 外部零写入/零 fallback | 已通过 | xverif 18 个既有 dirty；Wellen/Verilator clean；前后快照一致 |
+| P3-B 实现 commit | 已完成 | `b4b810e 修复：对齐活动驱动递归与接口层级语义` |
+| P3-B 证据 commit | 本批待提交 | `测试：补齐设计与活动驱动差分场景` |
 
 ### 下一步
 
-1. 完成 P3-A 外部只读快照、diff/staged 白名单复核和独立中文详细证据 commit。
-2. 进入 P3-B，逐项处理 hierarchy、P3、UART、active semantics/zero、interface root 与 X-prop；
-   每个场景继续遵循 red→green、双侧公开 Action oracle 和独立提交门禁。
-3. P3-C 单独关闭 Phase5 完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
+1. 完成 P3-B manifest/matrix/audit/taskbook 的 diff/staged 白名单复核和独立中文详细证据 commit。
+2. 进入 P3-C，逐个关闭 68 个 active catalog case 和两个 P3-C 特殊场景；共享 DUT 不能替代
+   每个 case 的控制、时间和完整响应证据。
+3. Phase5 必须单独关闭完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
    statement 和源码证据。

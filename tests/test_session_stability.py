@@ -11,10 +11,14 @@ from pathlib import Path
 import signal
 import subprocess
 import sys
-import tempfile
 import time
 
-from test_session_uds_lifecycle import expect_ok, invoke, request
+from test_session_uds_lifecycle import (
+    expect_ok,
+    invoke,
+    request,
+    temporary_test_directory,
+)
 
 
 PARALLEL_SESSION_COUNT = 8
@@ -71,7 +75,7 @@ def main() -> int:
     waveform = str(Path(sys.argv[2]).resolve())
     assert Path(waveform).suffix == ".fst", waveform
 
-    with tempfile.TemporaryDirectory(prefix="xdebug-fst-stability-") as root:
+    with temporary_test_directory("xdebug-fst-stability-", "t-") as root:
         environment = os.environ.copy()
         environment["HOME"] = root
         environment["XVERIF_TEST_TMPDIR"] = root

@@ -1,0 +1,421 @@
+{
+  "schema_version": "xdebug.p3b-runtime-audit.v1",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "audit_date": "2026-08-30",
+  "scope": "P3-B design 与 combined 的冻结原版 FSDB/DesignDB oracle、当前 FST/DesignDB 门禁及不可观察性裁决",
+  "authority_policy": {
+    "behavior_authority": "locked_original_runtime",
+    "asset_authority": "goal_start_original_assets",
+    "authority_conflicts_preserved": true,
+    "binary_waveform_comparison_used": false,
+    "comparison_unit": "RTL/刺激/时间/公开 Action/完整响应或冻结 schema 不可观察性证明"
+  },
+  "locked_original_runtime": {
+    "git_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
+    "self_reported_git_revision": "8eecf71271cc",
+    "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "build_id": "8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "action_count": 73,
+    "source_access": "read_only",
+    "fixture_cache_reused": true,
+    "fixture_rebuilt": false,
+    "runner_gates": [
+      {
+        "gate_id": "active_driver_and_interface",
+        "relative_path": "xdebug/tests/combined/run_active_driver_fixture.py",
+        "locked_revision_sha256": "d7c31e53aebb84b019917241d58b7c4a29f3a431a45bfe58fe7f59a86c7c96f7",
+        "goal_start_asset_sha256": "f94eddd60869a607a0a803eda75d52ca0f12f6601ad28881415edf4b00f76ef0",
+        "passed": 10,
+        "failed": 0,
+        "skipped": 0,
+        "result": "passed",
+        "session_closed_gracefully": true
+      },
+      {
+        "gate_id": "active_semantics",
+        "relative_path": "xdebug/tests/combined/test_active_semantics.py",
+        "locked_revision_sha256": "e5508d815c2fc2c406a3a0691aef57ea72725f7ddff4b30f777aea9b20662022",
+        "goal_start_asset_sha256": "60f351c345247c07758a0ff578c194701269f03389391a5b1efa73fd0b97b132",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "result": "passed",
+        "session_closed_gracefully": true
+      },
+      {
+        "gate_id": "active_zero_evidence",
+        "relative_path": "xdebug/tests/combined/test_active_zero_evidence.py",
+        "locked_revision_sha256": "5c1e29c7298df9e452a1213f15501c9016a9ae504cbfcfd8265097a3ab779ced",
+        "goal_start_asset_sha256": "c42d6a035c205345eb1c7984ec1658cdbbebb5a8313a19c9b0cf69692ba9bc53",
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0,
+        "result": "passed",
+        "session_closed_gracefully": true
+      },
+      {
+        "gate_id": "trace_x_xprop",
+        "relative_path": "xdebug/tests/combined/test_trace_x_xprop.py",
+        "locked_revision_sha256": "e73b4612c26bfd068f632bb946729f2a4d889da7516f42612a982b42f6f29e19",
+        "goal_start_asset_sha256": "e73b4612c26bfd068f632bb946729f2a4d889da7516f42612a982b42f6f29e19",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "result": "passed",
+        "session_closed_gracefully": true
+      },
+      {
+        "gate_id": "design_semantics",
+        "relative_path": "xdebug/tests/design/test_design_semantics.py",
+        "locked_revision_sha256": "4f30a28b61f67abb4b61b2bb0ee8a76382d4daaf890d91319fbcf30d302bbb7a",
+        "goal_start_asset_sha256": "4f30a28b61f67abb4b61b2bb0ee8a76382d4daaf890d91319fbcf30d302bbb7a",
+        "transitive_runner_relative_path": "xdebug/tests/design/run_semantics.sh",
+        "locked_transitive_runner_sha256": "0e16294cf8a6fdcec74f12f376b6a8480716375c4a94a05cefbc42133dd3b323",
+        "goal_start_transitive_runner_sha256": "74f0cc841505d5a2290102f57b0ee60ffc270ba4c94b8e66d546adc8f51beee1",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "result": "passed",
+        "session_closed_gracefully": true
+      }
+    ],
+    "fixture_caches": [
+      {
+        "fixture_id": "xdebug.active_driver",
+        "cache_fingerprint": "133080dd144718dab3a521427d457d1128176b9678980c40123dc40ac33c439c",
+        "cache_version": "133080dd144718dab3a521427d457d1128176b9678980c40123dc40ac33c439c-prepare-z821urh5",
+        "manifest_sha256": "b1646b8a471f2d0afd71fab5e61eb517fed5112f2a82c92d9ea15a30b34c0d04",
+        "format": "fsdb",
+        "waveform_sha256": "180d7173204f1e67c3580e77386eb22c4face896e970a82f6d2281dbf0554f65",
+        "waveform_size": 9994,
+        "tool_identity": "X-2025.06"
+      },
+      {
+        "fixture_id": "xdebug.interface_port_root",
+        "cache_fingerprint": "8cde5db1e21dcfbf64594c67dba0a770033b8251097cbe2743410a9606c4f0d4",
+        "cache_version": "8cde5db1e21dcfbf64594c67dba0a770033b8251097cbe2743410a9606c4f0d4-prepare-3gll2uuy",
+        "manifest_sha256": "5b7c455c77679a21483da06014489711f6eebbdcb8bb1ab8a119b44d700cb321",
+        "format": "fsdb",
+        "waveform_sha256": "eae0c2961e7a6f77b22cf4c82d5a9d6f7a495be26a330ee23d59b76519842505",
+        "waveform_size": 9918,
+        "tool_identity": "X-2025.06"
+      },
+      {
+        "fixture_id": "xdebug.active_semantics",
+        "cache_fingerprint": "585596a0b185a09e028b04fdc2653542b7a5eef8b0293f4cd5746ca579a54ea3",
+        "cache_version": "585596a0b185a09e028b04fdc2653542b7a5eef8b0293f4cd5746ca579a54ea3-prepare-yg0sir_8",
+        "manifest_sha256": "ec778553d2406a2b1e3938234cd02fa0a8d3072f9bd2bae03b0f91d0df1a29a4",
+        "format": "fsdb",
+        "waveform_sha256": "9d33d956b55e9b3a401868b06ff7a727afaa3ad134f645747c5866e0c7486b30",
+        "waveform_size": 10907,
+        "tool_identity": "X-2025.06"
+      },
+      {
+        "fixture_id": "xdebug.active_zero_evidence",
+        "cache_fingerprint": "9187df2a132841368353c2ea38d3f7e354944be168db9b268b9ab086d6fff6b5",
+        "cache_version": "9187df2a132841368353c2ea38d3f7e354944be168db9b268b9ab086d6fff6b5-prepare-aqt76yqd",
+        "manifest_sha256": "e0d86388a9071b35962ffcdead2a6b22f5dd60cca4760d4208912cf16243bda5",
+        "format": "fsdb",
+        "waveform_sha256": "1d11a5869eee12ceb1959d9572c21d33de8deb5601454aff627f94101519ba5d",
+        "waveform_size": 13197,
+        "tool_identity": "X-2025.06"
+      },
+      {
+        "fixture_id": "xdebug.trace_x_xprop",
+        "cache_fingerprint": "8efd40845b015e9729763fe8fad3cff590e4399458e80b01b29874d830af18da",
+        "cache_version": "8efd40845b015e9729763fe8fad3cff590e4399458e80b01b29874d830af18da-prepare-hpo1d8u0",
+        "manifest_sha256": "f95d89eb83a20cdb23961090aa448e8724ef23fbb414e2cc5a95b7edd660da53",
+        "format": "fsdb",
+        "waveform_sha256": "ad49ea263c98137406c7a7ac95d1ba1c84d95d9beff4b4bb009c2afa3107ee19",
+        "waveform_size": 10731,
+        "xprop_log_sha256": "3be42cab903713790a7f7eaecbeee9c734b5d84e2bc48faac17f9f2e034978e8",
+        "tool_identity": "X-2025.06"
+      },
+      {
+        "fixture_id": "xdebug.design_uart",
+        "cache_fingerprint": "43e9f88e756a9829e3b5a341ecc9dd9c84ffde232f54c557347ea94776aec6a3",
+        "cache_version": "43e9f88e756a9829e3b5a341ecc9dd9c84ffde232f54c557347ea94776aec6a3-prepare-cjsuxods",
+        "manifest_sha256": "64b0975692b5301de9452e51cca854d4083a458261ee9bc8767c95741b3b9c26",
+        "format": "daidir",
+        "tool_identity": "X-2025.06"
+      },
+      {
+        "fixture_id": "xdebug.design_p3",
+        "cache_fingerprint": "d4a7ac8bde26cf3b4c5d7696582784ff0053821cf7e8c023beab41607f77e0e8",
+        "cache_version": "d4a7ac8bde26cf3b4c5d7696582784ff0053821cf7e8c023beab41607f77e0e8-prepare-wcz2g3n_",
+        "manifest_sha256": "cb2c70eb048646db1ff76239feb35c358f196752a084936b029072ac175b59b2",
+        "format": "daidir",
+        "tool_identity": "X-2025.06"
+      }
+    ]
+  },
+  "current_runtime": {
+    "implementation_commit": "b4b810e",
+    "binary": "build/xdebug-fst",
+    "fixture_generation": {
+      "script_path": "tools/regenerate_p3b_active_fixtures.sh",
+      "script_sha256": "ba4750b776c3230c6ccd1eccac99001069ee6084c76e7a6de72c53c96132cdeb",
+      "verilator_patch_path": "patches/verilator/xdebug-design-db.patch",
+      "verilator_patch_sha256": "8d7b76516ee66c0e1715e52545e25811a343dc2010e1f2c48ff97767e2c222e0",
+      "fst_header_date": "Thu Jan  1 00:00:00 1970",
+      "deterministic_second_build": true,
+      "vcd_or_json_conversion_used": false,
+      "fallback_used": false
+    },
+    "fixtures": [
+      {
+        "fixture_id": "current.active_driver",
+        "rtl_path": "testdata/fixtures/active_driver/active_driver_tb.sv",
+        "rtl_sha256": "03592650de62daa0f73f5769079ef353ec15899d5fe10fe7ba4cfe854094b74f",
+        "harness_path": "testdata/fixtures/active_driver/tb_active_driver.cpp",
+        "harness_sha256": "c410c978689f1d8265ba446b10299b45f71ae743d638fbd98d50cf30a80886de",
+        "design_db_path": "testdata/fixtures/active_driver/Vactive_driver_tb__DesignDb.cpp",
+        "design_db_sha256": "6a33d1721f4a8885427145bea79feb9b0add9b20c3dbff4f943d44ee45622812",
+        "fst_path": "testdata/fixtures/active_driver/waves.fst",
+        "fst_sha256": "ff589ebe3c51d5292460a3d5fedb192f1438e97f9cfa277a7fba6cf86639da3d",
+        "hash_record_path": "testdata/fixtures/active_driver/fixture.sha256",
+        "hash_record_sha256": "7ddb8db331c0680134ce99f4a1d6440c2721f901f7996d5a0671dcf4bdd54a6e"
+      },
+      {
+        "fixture_id": "current.interface_port_root",
+        "rtl_path": "testdata/fixtures/interface_port_root/if_root_tb.sv",
+        "rtl_sha256": "93793abd7fe618558cbedffef847239a607614940c1c5fb898cfaa4ffcb5c3a5",
+        "harness_path": "testdata/fixtures/interface_port_root/tb_if_root.cpp",
+        "harness_sha256": "815f16d9b7cd34d1fb6c660574901c4128172b849987746a201ae90b75c4e5d9",
+        "design_db_path": "testdata/fixtures/interface_port_root/Vif_root_tb__DesignDb.cpp",
+        "design_db_sha256": "af43821b9c721c74d63cb6fbb2e7e11e1f0cbaccf7cfe3c723168a27523f9efa",
+        "fst_path": "testdata/fixtures/interface_port_root/waves.fst",
+        "fst_sha256": "856a5d21d7b44be5e0c27c79524ed95db8e3a6cd8b6bddac49960ee9eac93c8b",
+        "hash_record_path": "testdata/fixtures/interface_port_root/fixture.sha256",
+        "hash_record_sha256": "f761565a92faf35a8c63cb7b750768bff2097b40d947d354f7d344aa6c28d773"
+      },
+      {
+        "fixture_id": "current.active_zero_evidence",
+        "rtl_path": "testdata/fixtures/active_zero_evidence/active_zero_evidence_tb.v",
+        "rtl_sha256": "fcb281bb45f45a7938b31c3ed86ef3cb34fee6e4e727537dee741359cc686950",
+        "harness_path": "testdata/fixtures/active_zero_evidence/tb_active_zero_evidence.cpp",
+        "harness_sha256": "a60ab1a632657702a54be7de8d7bff0a5a9c053290c2b5e3a4412163a77a53e3",
+        "design_db_path": "testdata/fixtures/active_zero_evidence/Vactive_zero_evidence_tb__DesignDb.cpp",
+        "design_db_sha256": "9a3da9d9585760810aadd434c75bd79092295727a2d6a5468e599b5a6c111b9e",
+        "fst_path": "testdata/fixtures/active_zero_evidence/waves.fst",
+        "fst_sha256": "ee351fdf1c85a36b146772694c148752a3c9fe4f44e7bd23aa9f27bcdcf76f29",
+        "hash_record_path": "testdata/fixtures/active_zero_evidence/fixture.sha256",
+        "hash_record_sha256": "41d3b1f4e879f28e47187254d1051beffafefbe1cb3d43d5667a6c67edd7f1eb"
+      },
+      {
+        "fixture_id": "current.case",
+        "fst_path": "testdata/fixtures/case/waves.fst",
+        "fst_sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
+      },
+      {
+        "fixture_id": "current.matches",
+        "fst_path": "testdata/fixtures/matches/waves.fst",
+        "fst_sha256": "d418f4bbdd3d75b1dcb755527416d3363f290653b38bdb46bd87ff4a693bf1a0"
+      },
+      {
+        "fixture_id": "current.output_mixed",
+        "fst_path": "testdata/fixtures/output_mixed/waves.fst",
+        "fst_sha256": "29c4c3d812696ae97c36bf11941e72dd1a9d31c739da6317f3d071371a4125d6"
+      },
+      {
+        "fixture_id": "current.counter",
+        "fst_path": "testdata/fixtures/counter/waves.fst",
+        "fst_sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+      },
+      {
+        "fixture_id": "current.xprop",
+        "fst_path": "testdata/fixtures/xprop/waves.fst",
+        "fst_sha256": "dc2061e949f7ac866ce03a33763081a1f0dedd15474541adab0a832d6a485954"
+      }
+    ],
+    "repository_gates": [
+      {
+        "gate_id": "ported_original_active_oracles",
+        "path": "tests/test_original_active_fixtures.py",
+        "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+        "passed": 18,
+        "failed": 0
+      },
+      {
+        "gate_id": "design_contracts",
+        "path": "tests/test_design.py",
+        "sha256": "f307255aa12b4c3ba07ce3a0aceb79fadd802aee1eadbed12d324957061ff7f9",
+        "passed": 13,
+        "failed": 0
+      },
+      {
+        "gate_id": "adjacent_regression",
+        "scope": "combined + waveform + binary waveform + P3-B active fixtures",
+        "passed": 146,
+        "failed": 0
+      },
+      {
+        "gate_id": "static_differential_contracts",
+        "scope": "P0 manifest + semantic matrix + P3-B runtime audit",
+        "passed": 27,
+        "failed": 0
+      },
+      {
+        "gate_id": "ctest",
+        "scope": "runtime schema + registry + UDS + DesignDB + Wellen FST + lifecycle + stability",
+        "passed": 7,
+        "failed": 0
+      }
+    ]
+  },
+  "comparisons": [
+    {
+      "scenario_id": "fixture.active_driver",
+      "original_fixture_id": "xdebug.active_driver",
+      "status": "semantic-equivalent",
+      "p3_batch": "P3-B",
+      "comparison_method": "exact_rtl_and_ported_public_oracle",
+      "public_actions": ["trace.active_driver"],
+      "original_rtl_path": "xdebug/testdata/combined/active_driver/active_driver_tb.sv",
+      "original_rtl_sha256": "03592650de62daa0f73f5769079ef353ec15899d5fe10fe7ba4cfe854094b74f",
+      "current_fixture_id": "current.active_driver",
+      "current_rtl_path": "testdata/fixtures/active_driver/active_driver_tb.sv",
+      "current_rtl_sha256": "03592650de62daa0f73f5769079ef353ec15899d5fe10fe7ba4cfe854094b74f",
+      "exact_rtl_match": true,
+      "original_gate_id": "active_driver_and_interface",
+      "current_gate_id": "ported_original_active_oracles",
+      "same_locked_oracle_executable_used_on_current": false,
+      "ported_public_oracle_complete": true,
+      "remaining_observable_gap_count": 0
+    },
+    {
+      "scenario_id": "fixture.interface_port_root",
+      "original_fixture_id": "xdebug.interface_port_root",
+      "status": "semantic-equivalent",
+      "p3_batch": "P3-B",
+      "comparison_method": "exact_rtl_and_ported_public_oracle",
+      "public_actions": ["scope.list", "trace.active_driver"],
+      "original_rtl_path": "xdebug/testdata/combined/interface_port_root/if_root_tb.sv",
+      "original_rtl_sha256": "93793abd7fe618558cbedffef847239a607614940c1c5fb898cfaa4ffcb5c3a5",
+      "current_fixture_id": "current.interface_port_root",
+      "current_rtl_path": "testdata/fixtures/interface_port_root/if_root_tb.sv",
+      "current_rtl_sha256": "93793abd7fe618558cbedffef847239a607614940c1c5fb898cfaa4ffcb5c3a5",
+      "exact_rtl_match": true,
+      "original_gate_id": "active_driver_and_interface",
+      "current_gate_id": "ported_original_active_oracles",
+      "same_locked_oracle_executable_used_on_current": false,
+      "ported_public_oracle_complete": true,
+      "remaining_observable_gap_count": 0
+    },
+    {
+      "scenario_id": "fixture.active_zero_evidence",
+      "original_fixture_id": "xdebug.active_zero_evidence",
+      "status": "semantic-equivalent",
+      "p3_batch": "P3-B",
+      "comparison_method": "exact_rtl_and_ported_public_oracle",
+      "public_actions": ["scope.list", "scope.roots", "trace.active_driver", "trace.active_driver_chain", "trace.driver"],
+      "original_rtl_path": "xdebug/testdata/combined/active_zero_evidence/active_zero_evidence_tb.v",
+      "original_rtl_sha256": "fcb281bb45f45a7938b31c3ed86ef3cb34fee6e4e727537dee741359cc686950",
+      "current_fixture_id": "current.active_zero_evidence",
+      "current_rtl_path": "testdata/fixtures/active_zero_evidence/active_zero_evidence_tb.v",
+      "current_rtl_sha256": "fcb281bb45f45a7938b31c3ed86ef3cb34fee6e4e727537dee741359cc686950",
+      "exact_rtl_match": true,
+      "original_gate_id": "active_zero_evidence",
+      "current_gate_id": "ported_original_active_oracles",
+      "same_locked_oracle_executable_used_on_current": false,
+      "ported_public_oracle_complete": true,
+      "remaining_observable_gap_count": 0
+    },
+    {
+      "scenario_id": "fixture.active_semantics",
+      "original_fixture_id": "xdebug.active_semantics",
+      "status": "semantic-equivalent",
+      "p3_batch": "P3-B",
+      "comparison_method": "complete_normalized_public_oracle_mapping",
+      "public_actions": ["signal.canonicalize", "trace.active_driver", "trace.active_driver_chain"],
+      "current_fixture_ids": ["current.case", "current.matches", "current.output_mixed"],
+      "original_gate_id": "active_semantics",
+      "current_gate_ids": ["ported_original_active_oracles", "adjacent_regression"],
+      "same_locked_oracle_executable_used_on_current": false,
+      "normalized_contract_mapping_complete": true,
+      "remaining_observable_gap_count": 0
+    },
+    {
+      "scenario_id": "fixture.trace_x_xprop",
+      "original_fixture_id": "xdebug.trace_x_xprop",
+      "status": "semantic-equivalent",
+      "p3_batch": "P3-B",
+      "comparison_method": "complete_normalized_public_oracle_mapping",
+      "public_actions": ["list.load", "trace.active_driver_chain", "trace.x_origin", "value.at"],
+      "current_fixture_ids": ["current.xprop"],
+      "original_gate_id": "trace_x_xprop",
+      "current_gate_ids": ["adjacent_regression"],
+      "same_locked_oracle_executable_used_on_current": false,
+      "normalized_contract_mapping_complete": true,
+      "four_state_x_preserved": true,
+      "remaining_observable_gap_count": 0
+    },
+    {
+      "scenario_id": "fixture.design_uart",
+      "original_fixture_id": "xdebug.design_uart",
+      "status": "semantic-equivalent",
+      "p3_batch": "P3-B",
+      "comparison_method": "complete_normalized_design_action_mapping",
+      "public_actions": ["batch", "expr.normalize", "signal.canonicalize", "signal.resolve", "trace.driver"],
+      "current_fixture_ids": ["current.counter", "current.output_mixed"],
+      "original_gate_id": "design_semantics",
+      "current_gate_ids": ["design_contracts", "adjacent_regression"],
+      "same_locked_oracle_executable_used_on_current": false,
+      "normalized_contract_mapping_complete": true,
+      "remaining_observable_gap_count": 0
+    },
+    {
+      "scenario_id": "fixture.design_hierarchy",
+      "original_fixture_id": "xdebug.design_hierarchy",
+      "status": "proven-unobservable",
+      "p3_batch": "P3-B",
+      "comparison_method": "locked_runtime_and_schema_negative_proof",
+      "public_actions": ["scope.list"],
+      "goal_start_test_path": "xdebug/tests/design/test_design_hierarchy_runtime.py",
+      "goal_start_test_sha256": "3b22a22836e692d18498f1cddb33ea10eca7e25afa5cb316a51ac8e8a0f9f2fe",
+      "test_present_at_locked_runtime": false,
+      "locked_scope_list_kind_enum": ["all", "module", "port", "signal"],
+      "goal_start_requested_unsupported_kinds": ["gen_scope", "interface_array", "modport", "mpport"],
+      "locked_scope_list_data_groups": ["modules", "ports", "signals"],
+      "goal_start_requested_unsupported_groups": ["gen_scopes", "interface_arrays", "interfaces", "internal_scopes", "modports", "mpports"],
+      "static_contract_gate": "tests/test_p3b_runtime_audit.py",
+      "remaining_observable_gap_count": 0
+    },
+    {
+      "scenario_id": "fixture.design_p3",
+      "original_fixture_id": "xdebug.design_p3",
+      "status": "proven-unobservable",
+      "p3_batch": "P3-B",
+      "comparison_method": "goal_start_and_locked_runner_request_inventory",
+      "public_actions": ["session.open"],
+      "goal_start_runner_path": "xdebug/tests/design/run_semantics.sh",
+      "goal_start_runner_sha256": "74f0cc841505d5a2290102f57b0ee60ffc270ba4c94b8e66d546adc8f51beee1",
+      "locked_runner_sha256": "0e16294cf8a6fdcec74f12f376b6a8480716375c4a94a05cefbc42133dd3b323",
+      "p3_session_opened": true,
+      "p3_semantic_query_count": 0,
+      "static_contract_gate": "tests/test_p3b_runtime_audit.py",
+      "remaining_observable_gap_count": 0
+    }
+  ],
+  "write_boundary_audit": {
+    "only_writable_repository": "xdebug_fst",
+    "external_inputs_read_only": true,
+    "fallback_used": false,
+    "all_runtime_home_tmp_socket_and_artifacts_repository_local": true,
+    "original_xverif_snapshot_sha256_before": "fd890650bbf9c2bb29542fa001af282ccbe8cfea6d3ad1db93abfe6d9f47ba37",
+    "original_xverif_snapshot_sha256_after": "fd890650bbf9c2bb29542fa001af282ccbe8cfea6d3ad1db93abfe6d9f47ba37",
+    "wellen_snapshot_sha256_before": "0773c4bfa9349ba05495fd8201ff23548ec78cd0b53116afc93eee22301354b1",
+    "wellen_snapshot_sha256_after": "0773c4bfa9349ba05495fd8201ff23548ec78cd0b53116afc93eee22301354b1",
+    "verilator_snapshot_sha256_before": "8bace1ef8213ab2f9c5f66b4143dc65afcd9a8a9d16dd516e502339656bca561",
+    "verilator_snapshot_sha256_after": "8bace1ef8213ab2f9c5f66b4143dc65afcd9a8a9d16dd516e502339656bca561"
+  },
+  "verdict": {
+    "p3_batch": "P3-B",
+    "scenario_count": 8,
+    "semantic_equivalent_count": 6,
+    "proven_unobservable_count": 2,
+    "partial_count": 0,
+    "missing_count": 0,
+    "remaining_observable_gap_count": 0
+  }
+}

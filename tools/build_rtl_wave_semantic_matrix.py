@@ -36,6 +36,9 @@ PHASE5_RUNTIME_AUDIT = Path(
 AI_COMPLEX_RUNTIME_AUDIT = Path(
     "tests/data/rtl_wave_differential/ai_complex.runtime-audit.json"
 )
+P3B_RUNTIME_AUDIT = Path(
+    "tests/data/rtl_wave_differential/p3b.runtime-audit.json"
+)
 AI_COMPLEX_RUNNER_SHA256 = (
     "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724"
 )
@@ -92,13 +95,17 @@ CONSTRUCT_PATTERNS = {
 # equal request against both waveforms, every entry below remains partial.
 FIXTURE_CANDIDATES = {
     "xdebug.active_driver": {
-        "fixtures": ["current.counter", "current.case"],
+        "fixtures": ["current.active_driver"],
         "tests": [
-            "test_trace_active_driver",
-            "test_trace_active_driver_chain",
+            "test_locked_active_driver_assignment_and_force",
+            "test_locked_active_driver_recurses_and_preserves_limits",
         ],
-        "actions": ["trace.active_driver", "trace.active_driver_chain"],
+        "actions": ["trace.active_driver"],
         "batch": "P3-B",
+        "evidence_scope": (
+            "原版 RTL 字节相同；原版 runner 先在锁定 FSDB/runtime 上通过，"
+            "同一公开请求与完整断言移植到当前原生 FST/DesignDB 后通过"
+        ),
     },
     "xdebug.active_semantics": {
         "fixtures": ["current.case", "current.matches", "current.output_mixed"],
@@ -106,32 +113,67 @@ FIXTURE_CANDIDATES = {
             "test_trace_active_driver_selects_case_item_and_default",
             "test_trace_active_driver_selects_pattern_variable_binding",
             "test_trace_active_driver_chain_reports_two_active_procedural_drivers",
+            "test_signal_canonicalize_port_connection",
         ],
-        "actions": ["trace.active_driver", "trace.active_driver_chain"],
+        "actions": [
+            "signal.canonicalize",
+            "trace.active_driver",
+            "trace.active_driver_chain",
+        ],
         "batch": "P3-B",
+        "evidence_scope": (
+            "锁定原版完整 oracle 通过；当前按公开 Action、分支、时间、完整性字段"
+            "逐项归一映射，而非宣称复用同一原版 runner"
+        ),
     },
     "xdebug.active_zero_evidence": {
-        "fixtures": ["current.counter"],
+        "fixtures": ["current.active_zero_evidence"],
         "tests": [
-            "test_trace_active_driver_chain_distinguishes_internal_zero_evidence_from_primary_input"
+            "test_locked_active_zero_scope_roots_discovers_combined_top",
+            "test_locked_active_zero_precise_active_time",
+            "test_locked_active_zero_reduction_zero_evidence",
+            "test_locked_active_zero_module_input_follows_parent",
+            "test_locked_active_zero_expression_outputs_have_zero_evidence",
         ],
-        "actions": ["trace.active_driver", "trace.active_driver_chain"],
+        "actions": [
+            "scope.list", "scope.roots", "trace.active_driver",
+            "trace.active_driver_chain", "trace.driver",
+        ],
         "batch": "P3-B",
+        "evidence_scope": (
+            "原版 RTL 字节相同；完整移植 scope/driver/chain/零证据与时间尺度 oracle"
+            "在当前原生 FST/DesignDB 上通过"
+        ),
     },
     "xdebug.interface_port_root": {
-        "fixtures": ["current.interface_modport"],
-        "tests": ["test_trace_active_driver_chain_crosses_interface_modports"],
-        "actions": ["signal.resolve", "trace.active_driver_chain"],
+        "fixtures": ["current.interface_port_root"],
+        "tests": [
+            "test_locked_interface_scope_classification",
+            "test_locked_interface_active_driver_aliases",
+        ],
+        "actions": ["scope.list", "trace.active_driver"],
         "batch": "P3-B",
+        "evidence_scope": (
+            "原版 RTL 字节相同；interface 分类、modport alias 和活动驱动公开 oracle"
+            "在当前原生 FST/DesignDB 上通过"
+        ),
     },
     "xdebug.trace_x_xprop": {
         "fixtures": ["current.xprop"],
         "tests": [
+            "test_batch_preserves_nested_x_value_from_direct_raw_fst",
             "test_trace_x_origin_x_propagation",
+            "test_trace_x_origin_branch_chain_ids_are_consistent",
             "test_trace_x_origin_keeps_loop_and_normal_source_branches",
         ],
-        "actions": ["trace.x_origin", "signal.xz_verify"],
+        "actions": [
+            "list.load", "trace.active_driver_chain", "trace.x_origin", "value.at",
+        ],
         "batch": "P3-B",
+        "evidence_scope": (
+            "锁定原版 X-prop oracle 通过；当前 FST 逐项覆盖四态点读、list、"
+            "X origin、alias/loop/limits 和 active chain 公开结果"
+        ),
     },
     "xdebug.ai_complex_wave": {
         "fixtures": ["current.ai_complex"],
@@ -233,24 +275,45 @@ FIXTURE_CANDIDATES = {
     },
     "xdebug.design_uart": {
         "fixtures": ["current.counter", "current.output_mixed"],
-        "tests": ["test_signal_resolve_contract", "test_trace_driver_contract_and_role_filter"],
-        "actions": ["signal.resolve", "signal.canonicalize", "trace.driver", "trace.load"],
+        "tests": [
+            "test_batch_aggregates_responses",
+            "test_expr_normalize_contract",
+            "test_expr_normalize_parse_error",
+            "test_signal_canonicalize_port_connection",
+            "test_signal_resolve_contract",
+            "test_trace_driver_contract_and_role_filter",
+        ],
+        "actions": [
+            "batch", "expr.normalize", "signal.canonicalize",
+            "signal.resolve", "trace.driver",
+        ],
         "batch": "P3-B",
+        "evidence_scope": (
+            "锁定 UART DesignDB runner 通过；当前以同一公开设计 Action 和完整响应合同"
+            "完成归一映射，不比较不同设计数据库二进制"
+        ),
     },
     "xdebug.design_p3": {
-        "fixtures": ["current.case", "current.matches", "current.ref_port"],
-        "tests": [
-            "test_trace_active_driver_selects_case_inside_pattern_and_range",
-            "test_trace_active_driver_chain_crosses_ref_port",
-        ],
-        "actions": ["signal.resolve", "trace.driver", "trace.load", "trace.active_driver"],
+        "fixtures": [],
+        "tests": ["test_design_p3_unobservable_proof_is_hash_anchored"],
+        "actions": ["session.open"],
         "batch": "P3-B",
+        "evidence_scope": (
+            "Goal-start 与锁定 run_semantics 只对 P3 DesignDB 执行 session.open，"
+            "没有任何 P3 语义查询；由 runner 哈希静态门禁证明不可观察"
+        ),
     },
     "xdebug.design_hierarchy": {
-        "fixtures": ["current.interface_modport", "current.output_mixed"],
-        "tests": ["test_scope_list", "test_signal_canonicalize_port_connection"],
-        "actions": ["scope.roots", "scope.list", "signal.resolve", "signal.canonicalize"],
+        "fixtures": [],
+        "tests": [
+            "test_design_hierarchy_unobservable_proof_matches_locked_schema",
+        ],
+        "actions": ["scope.list"],
         "batch": "P3-B",
+        "evidence_scope": (
+            "Goal-start hierarchy test 不存在于锁定 runtime；所需 kind/data groups 又被"
+            "冻结 scope.list schema 排除，由静态合同门禁证明不可观察"
+        ),
     },
     "xdebug.active_trace_runner": {
         "fixtures": ["current.counter"],
@@ -540,6 +603,314 @@ def validate_ai_complex_runtime_audit(
         or verdict.get("remaining_observable_gap_count") != 0
     ):
         raise MatrixError("ai_complex runtime audit verdict drifted")
+
+
+def validate_p3b_runtime_audit(
+    audit: dict,
+    runtime_revision: str,
+    schema_revision: str,
+    repo_root: Path,
+    original_assets: dict[str, dict],
+    current_assets: dict[str, dict],
+) -> dict[str, dict]:
+    if audit.get("schema_version") != "xdebug.p3b-runtime-audit.v1":
+        raise MatrixError("P3-B runtime audit has the wrong schema_version")
+    if audit.get("goal_id") != GOAL_ID:
+        raise MatrixError("P3-B runtime audit belongs to a different Goal")
+    policy = audit.get("authority_policy", {})
+    if (
+        policy.get("behavior_authority") != "locked_original_runtime"
+        or policy.get("asset_authority") != "goal_start_original_assets"
+        or policy.get("authority_conflicts_preserved") is not True
+        or policy.get("binary_waveform_comparison_used") is not False
+    ):
+        raise MatrixError("P3-B audit collapsed or changed the two original authorities")
+
+    locked = audit.get("locked_original_runtime", {})
+    if locked.get("git_revision") != runtime_revision:
+        raise MatrixError("P3-B audit does not use the locked runtime revision")
+    if locked.get("schema_revision") != schema_revision:
+        raise MatrixError("P3-B audit does not use the locked schema revision")
+    if locked.get("action_count") != 73:
+        raise MatrixError("P3-B audit does not prove the 73-Action identity gate")
+    if (
+        locked.get("source_access") != "read_only"
+        or locked.get("fixture_cache_reused") is not True
+        or locked.get("fixture_rebuilt") is not False
+    ):
+        raise MatrixError("P3-B original fixture/cache policy drifted")
+
+    gates = {
+        item.get("gate_id"): item
+        for item in locked.get("runner_gates", [])
+    }
+    expected_gates = {
+        "active_driver_and_interface": 10,
+        "active_semantics": 1,
+        "active_zero_evidence": 16,
+        "trace_x_xprop": 1,
+        "design_semantics": 1,
+    }
+    if set(gates) != set(expected_gates):
+        raise MatrixError("P3-B original runner gate inventory drifted")
+    for gate_id, passed in expected_gates.items():
+        gate = gates[gate_id]
+        if (
+            gate.get("result") != "passed"
+            or gate.get("passed") != passed
+            or gate.get("failed") != 0
+            or gate.get("skipped") != 0
+            or gate.get("session_closed_gracefully") is not True
+        ):
+            raise MatrixError(f"P3-B original runner gate is incomplete: {gate_id}")
+        path = gate.get("relative_path")
+        asset = original_assets.get(path)
+        if asset is None or asset["sha256"] != gate.get("goal_start_asset_sha256"):
+            raise MatrixError(f"P3-B Goal-start runner evidence drifted: {path}")
+        if "transitive_runner_relative_path" in gate:
+            transitive = gate["transitive_runner_relative_path"]
+            transitive_asset = original_assets.get(transitive)
+            if (
+                transitive_asset is None
+                or transitive_asset["sha256"] !=
+                    gate.get("goal_start_transitive_runner_sha256")
+            ):
+                raise MatrixError(
+                    f"P3-B Goal-start transitive runner drifted: {transitive}"
+                )
+
+    caches = locked.get("fixture_caches", [])
+    expected_caches = {
+        "xdebug.active_driver", "xdebug.interface_port_root",
+        "xdebug.active_semantics", "xdebug.active_zero_evidence",
+        "xdebug.trace_x_xprop", "xdebug.design_uart", "xdebug.design_p3",
+    }
+    if {item.get("fixture_id") for item in caches} != expected_caches:
+        raise MatrixError("P3-B locked fixture cache inventory drifted")
+    digest_pattern = re.compile(r"[0-9a-f]{64}")
+    for fixture in caches:
+        fingerprint = fixture.get("cache_fingerprint", "")
+        if (
+            not digest_pattern.fullmatch(fingerprint)
+            or not fixture.get("cache_version", "").startswith(
+                fingerprint + "-prepare-"
+            )
+            or not digest_pattern.fullmatch(fixture.get("manifest_sha256", ""))
+            or fixture.get("tool_identity") != "X-2025.06"
+        ):
+            raise MatrixError(
+                f"P3-B cache evidence is incomplete: {fixture.get('fixture_id')}"
+            )
+
+    current = audit.get("current_runtime", {})
+    generation = current.get("fixture_generation", {})
+    if (
+        current.get("implementation_commit") != "b4b810e"
+        or generation.get("deterministic_second_build") is not True
+        or generation.get("vcd_or_json_conversion_used") is not False
+        or generation.get("fallback_used") is not False
+    ):
+        raise MatrixError("P3-B current fixture generation contract drifted")
+    for path_key, hash_key in (
+        ("script_path", "script_sha256"),
+        ("verilator_patch_path", "verilator_patch_sha256"),
+    ):
+        path = generation.get(path_key)
+        expected_hash = generation.get(hash_key)
+        if (
+            not isinstance(path, str)
+            or not isinstance(expected_hash, str)
+            or sha256_bytes((repo_root / path).read_bytes()) != expected_hash
+        ):
+            raise MatrixError(f"P3-B fixture generator evidence drifted: {path}")
+
+    fixture_ids = set()
+    for fixture in current.get("fixtures", []):
+        fixture_id = fixture.get("fixture_id")
+        if not isinstance(fixture_id, str) or fixture_id in fixture_ids:
+            raise MatrixError("P3-B current fixture identity is missing or duplicated")
+        fixture_ids.add(fixture_id)
+        for path_key, hash_key in (
+            ("rtl_path", "rtl_sha256"),
+            ("harness_path", "harness_sha256"),
+            ("design_db_path", "design_db_sha256"),
+            ("fst_path", "fst_sha256"),
+            ("hash_record_path", "hash_record_sha256"),
+        ):
+            if path_key not in fixture:
+                continue
+            path = fixture[path_key]
+            asset = current_assets.get(path)
+            if asset is None or asset["sha256"] != fixture.get(hash_key):
+                raise MatrixError(f"P3-B current fixture evidence drifted: {path}")
+            validate_frozen_file(repo_root, asset)
+
+    repository_gates = {
+        item.get("gate_id"): item
+        for item in current.get("repository_gates", [])
+    }
+    if set(repository_gates) != {
+        "ported_original_active_oracles", "design_contracts",
+        "adjacent_regression", "static_differential_contracts", "ctest",
+    }:
+        raise MatrixError("P3-B current repository gate inventory drifted")
+    expected_repository_passes = {
+        "ported_original_active_oracles": 18,
+        "design_contracts": 13,
+        "adjacent_regression": 146,
+        "static_differential_contracts": 27,
+        "ctest": 7,
+    }
+    for gate_id, passed in expected_repository_passes.items():
+        gate = repository_gates[gate_id]
+        if gate.get("passed") != passed or gate.get("failed") != 0:
+            raise MatrixError(f"P3-B current repository gate failed: {gate_id}")
+        if "path" in gate:
+            asset = current_assets.get(gate["path"])
+            if asset is None or asset["sha256"] != gate.get("sha256"):
+                raise MatrixError(f"P3-B current test evidence drifted: {gate['path']}")
+
+    rows = audit.get("comparisons")
+    if not isinstance(rows, list) or len(rows) != 8:
+        raise MatrixError("P3-B audit must contain exactly eight fixture comparisons")
+    row_map = {}
+    for row in rows:
+        scenario_id = row.get("scenario_id")
+        if scenario_id in row_map:
+            raise MatrixError(f"duplicate P3-B scenario: {scenario_id}")
+        if (
+            row.get("p3_batch") != "P3-B"
+            or row.get("status") not in {
+                "semantic-equivalent", "proven-unobservable",
+            }
+            or row.get("remaining_observable_gap_count") != 0
+        ):
+            raise MatrixError(f"P3-B scenario is not closed: {scenario_id}")
+        if row.get("status") == "semantic-equivalent":
+            if row.get("same_locked_oracle_executable_used_on_current") is not False:
+                raise MatrixError(f"P3-B overclaims original runner reuse: {scenario_id}")
+            if not (
+                row.get("ported_public_oracle_complete") is True
+                or row.get("normalized_contract_mapping_complete") is True
+            ):
+                raise MatrixError(f"P3-B observable mapping is incomplete: {scenario_id}")
+        row_map[scenario_id] = row
+
+    expected_rows = {
+        "fixture.active_driver", "fixture.active_semantics",
+        "fixture.active_zero_evidence", "fixture.interface_port_root",
+        "fixture.trace_x_xprop", "fixture.design_uart",
+        "fixture.design_p3", "fixture.design_hierarchy",
+    }
+    if set(row_map) != expected_rows:
+        raise MatrixError("P3-B scenario inventory drifted")
+    counts = Counter(row["status"] for row in rows)
+    if counts != {"semantic-equivalent": 6, "proven-unobservable": 2}:
+        raise MatrixError("P3-B status count drifted")
+
+    for scenario_id in (
+        "fixture.active_driver", "fixture.interface_port_root",
+        "fixture.active_zero_evidence",
+    ):
+        row = row_map[scenario_id]
+        original_asset = original_assets.get(row.get("original_rtl_path"))
+        current_asset = current_assets.get(row.get("current_rtl_path"))
+        if (
+            row.get("comparison_method") != "exact_rtl_and_ported_public_oracle"
+            or row.get("exact_rtl_match") is not True
+            or original_asset is None
+            or current_asset is None
+            or original_asset["sha256"] != row.get("original_rtl_sha256")
+            or current_asset["sha256"] != row.get("current_rtl_sha256")
+            or row.get("original_rtl_sha256") != row.get("current_rtl_sha256")
+        ):
+            raise MatrixError(f"P3-B exact RTL proof drifted: {scenario_id}")
+
+    hierarchy = row_map["fixture.design_hierarchy"]
+    request_schema = json.loads((
+        repo_root / "compat/xdebug-v1/schemas/v1/actions/"
+        "scope.list.request.schema.json"
+    ).read_text(encoding="utf-8"))
+    response_schema = json.loads((
+        repo_root / "compat/xdebug-v1/schemas/v1/actions/"
+        "scope.list.response.schema.json"
+    ).read_text(encoding="utf-8"))
+    locked_kinds = request_schema["properties"]["args"]["properties"]["kind"][
+        "enum"
+    ]
+    locked_groups = sorted(response_schema["$defs"]["successData"]["properties"])
+    hierarchy_asset = original_assets.get(hierarchy.get("goal_start_test_path"))
+    if (
+        hierarchy.get("comparison_method") !=
+            "locked_runtime_and_schema_negative_proof"
+        or hierarchy.get("test_present_at_locked_runtime") is not False
+        or hierarchy.get("locked_scope_list_kind_enum") != locked_kinds
+        or hierarchy.get("locked_scope_list_data_groups") != locked_groups
+        or hierarchy_asset is None
+        or hierarchy_asset["sha256"] != hierarchy.get("goal_start_test_sha256")
+        or not set(
+            hierarchy.get("goal_start_requested_unsupported_kinds", [])
+        ).isdisjoint(locked_kinds)
+        or not set(
+            hierarchy.get("goal_start_requested_unsupported_groups", [])
+        ).isdisjoint(locked_groups)
+    ):
+        raise MatrixError("P3-B design hierarchy negative schema proof drifted")
+
+    design_p3 = row_map["fixture.design_p3"]
+    p3_runner = original_assets.get(design_p3.get("goal_start_runner_path"))
+    if (
+        design_p3.get("comparison_method") !=
+            "goal_start_and_locked_runner_request_inventory"
+        or design_p3.get("public_actions") != ["session.open"]
+        or design_p3.get("p3_session_opened") is not True
+        or design_p3.get("p3_semantic_query_count") != 0
+        or p3_runner is None
+        or p3_runner["sha256"] != design_p3.get("goal_start_runner_sha256")
+    ):
+        raise MatrixError("P3-B design P3 unobservable proof drifted")
+
+    boundary = audit.get("write_boundary_audit", {})
+    if (
+        boundary.get("only_writable_repository") != "xdebug_fst"
+        or boundary.get("external_inputs_read_only") is not True
+        or boundary.get("fallback_used") is not False
+        or boundary.get(
+            "all_runtime_home_tmp_socket_and_artifacts_repository_local"
+        ) is not True
+    ):
+        raise MatrixError("P3-B write/fallback boundary is not proven")
+    for repository in ("original_xverif", "wellen", "verilator"):
+        if boundary.get(f"{repository}_snapshot_sha256_before") != \
+                boundary.get(f"{repository}_snapshot_sha256_after"):
+            raise MatrixError(f"P3-B audit changed external {repository}")
+
+    def strings(value: object) -> Iterable[str]:
+        if isinstance(value, str):
+            yield value
+        elif isinstance(value, dict):
+            for key, item in value.items():
+                yield from strings(key)
+                yield from strings(item)
+        elif isinstance(value, list):
+            for item in value:
+                yield from strings(item)
+
+    if any(value.startswith("/") for value in strings(audit)):
+        raise MatrixError("P3-B audit contains an absolute path")
+
+    verdict = audit.get("verdict", {})
+    if verdict != {
+        "p3_batch": "P3-B",
+        "scenario_count": 8,
+        "semantic_equivalent_count": 6,
+        "proven_unobservable_count": 2,
+        "partial_count": 0,
+        "missing_count": 0,
+        "remaining_observable_gap_count": 0,
+    }:
+        raise MatrixError("P3-B runtime audit verdict drifted")
+    return row_map
 
 
 def scan_constructs(text: str) -> dict[str, list[int]]:
@@ -874,6 +1245,21 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
     ):
         raise MatrixError("ai_complex frozen original RTL evidence drifted")
 
+    p3b_audit_asset = current_assets.get(P3B_RUNTIME_AUDIT.as_posix())
+    if p3b_audit_asset is None:
+        raise MatrixError("P0 manifest does not freeze the P3-B runtime audit")
+    p3b_runtime_audit = json.loads(
+        validate_frozen_file(repo_root, p3b_audit_asset).decode("utf-8")
+    )
+    p3b_runtime_rows = validate_p3b_runtime_audit(
+        p3b_runtime_audit,
+        runtime_baseline["runtime_revision"],
+        runtime_baseline["schema_revision"],
+        repo_root,
+        original_assets,
+        current_assets,
+    )
+
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
     for asset in original_assets.values():
@@ -956,6 +1342,41 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                     observable["same_locked_oracle_passed_both_sides"],
                 "remaining_observable_gap_count":
                     verdict["remaining_observable_gap_count"],
+            }
+        if scenario_id in p3b_runtime_rows:
+            comparison = p3b_runtime_rows[scenario_id]
+            if sorted(candidate["actions"]) != comparison["public_actions"]:
+                raise MatrixError(
+                    f"P3-B audited public Action set drifted: {scenario_id}"
+                )
+            status = comparison["status"]
+            scenario["status"] = status
+            if status == "semantic-equivalent":
+                if comparison["comparison_method"] == \
+                        "exact_rtl_and_ported_public_oracle":
+                    scenario["rationale"] = (
+                        "锁定原版 runtime/FSDB oracle 已通过；当前使用字节相同 RTL、"
+                        "确定性原生 FST/DesignDB 和完整移植的公开请求断言通过。"
+                        "原版 runner 未直接用于当前侧，审计明确保留该差别。"
+                    )
+                else:
+                    scenario["rationale"] = (
+                        "锁定原版完整 oracle 已通过；当前按相同公开 Action、刺激/时间、"
+                        "响应字段与完整性语义逐项归一映射通过，未宣称复用同一 runner。"
+                    )
+            else:
+                scenario["rationale"] = (
+                    "冻结 73 Action/runtime/schema 与 Goal-start runner 哈希共同证明"
+                    "该资产差异没有可执行公开语义观察点；静态合同门禁禁止将其泛化为免测。"
+                )
+            scenario["runtime_audit"] = {
+                "path": P3B_RUNTIME_AUDIT.as_posix(),
+                "sha256": p3b_audit_asset["sha256"],
+                "status": status,
+                "p3_batch": comparison["p3_batch"],
+                "comparison_method": comparison["comparison_method"],
+                "remaining_observable_gap_count":
+                    comparison["remaining_observable_gap_count"],
             }
         scenarios.append(scenario)
 

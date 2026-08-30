@@ -94,14 +94,15 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "active_catalog_case_count": 68,
         "declared_only_orphan_count": 1,
         "declared_waveform_output_count": 25,
-        "original_consumer_count": 259,
+        "original_consumer_count": 260,
         "original_fixture_count": 23,
         "original_hdl_count": 103,
         "scenario_count": 88,
         "status_counts": {
             "missing": 2,
-            "partial": 85,
-            "semantic-equivalent": 1,
+            "partial": 77,
+            "proven-unobservable": 2,
+            "semantic-equivalent": 7,
         },
         "unclassified_count": 0,
         "unqueued_gap_count": 0,
@@ -147,7 +148,17 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         if item["status"] in {"partial", "missing"}
     }
     assert queued == gaps
-    assert ids - gaps == {"fixture.ai_complex_wave"}
+    assert ids - gaps == {
+        "fixture.ai_complex_wave",
+        "fixture.active_driver",
+        "fixture.active_semantics",
+        "fixture.active_zero_evidence",
+        "fixture.interface_port_root",
+        "fixture.trace_x_xprop",
+        "fixture.design_uart",
+        "fixture.design_p3",
+        "fixture.design_hierarchy",
+    }
 
 
 def test_matrix_evidence_is_relative_hashed_and_line_addressable() -> None:

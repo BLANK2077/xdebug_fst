@@ -4305,7 +4305,8 @@
         "fixture.stream_v1"
       ],
       "xdebug/tests/combined/run_active_driver_fixture.py": [
-        "cross_fixture.public_contract_consumers"
+        "fixture.active_driver",
+        "fixture.interface_port_root"
       ],
       "xdebug/tests/combined/test_active_semantics.py": [
         "fixture.active_semantics"
@@ -4331,6 +4332,10 @@
       ],
       "xdebug/tests/contract/test_unified_runtime_contract.py": [
         "cross_fixture.public_contract_consumers"
+      ],
+      "xdebug/tests/design/run_semantics.sh": [
+        "fixture.design_p3",
+        "fixture.design_uart"
       ],
       "xdebug/tests/design/test_design_hierarchy_runtime.py": [
         "fixture.design_hierarchy"
@@ -6501,7 +6506,8 @@
         ]
       },
       "fixture_ids": [
-        "original.cross_fixture"
+        "xdebug.active_driver",
+        "xdebug.interface_port_root"
       ],
       "sha256": "f94eddd60869a607a0a803eda75d52ca0f12f6601ad28881415edf4b00f76ef0"
     },
@@ -7162,6 +7168,52 @@
         "original.cross_fixture"
       ],
       "sha256": "5f6014908c060e35074efcb86bb6794d658bb855f0aae7a43b524f863f6d958b"
+    },
+    "xdebug/tests/design/run_semantics.sh": {
+      "action_lines": {
+        "actions": [
+          54,
+          57
+        ],
+        "batch": [
+          86
+        ],
+        "expr.normalize": [
+          77,
+          80
+        ],
+        "schema": [
+          60
+        ],
+        "session.close": [
+          11
+        ],
+        "session.open": [
+          62,
+          83
+        ],
+        "signal.canonicalize": [
+          71
+        ],
+        "signal.resolve": [
+          86,
+          89
+        ],
+        "signal.statistics": [
+          60
+        ],
+        "trace.driver": [
+          57,
+          65,
+          68,
+          86
+        ]
+      },
+      "fixture_ids": [
+        "xdebug.design_p3",
+        "xdebug.design_uart"
+      ],
+      "sha256": "74f0cc841505d5a2290102f57b0ee60ffc270ba4c94b8e66d546adc8f51beee1"
     },
     "xdebug/tests/design/test_design_hierarchy_runtime.py": {
       "action_lines": {
@@ -9455,16 +9507,6 @@
     }
   },
   "p3_queue": {
-    "P3-B": [
-      "fixture.active_driver",
-      "fixture.active_semantics",
-      "fixture.active_zero_evidence",
-      "fixture.design_hierarchy",
-      "fixture.design_p3",
-      "fixture.design_uart",
-      "fixture.interface_port_root",
-      "fixture.trace_x_xprop"
-    ],
     "P3-C": [
       "active.composite.01",
       "active.composite.02",
@@ -36377,7 +36419,6 @@
       "kind": "cross_fixture_contract_surface",
       "original": {
         "consumer_paths": [
-          "xdebug/tests/combined/run_active_driver_fixture.py",
           "xdebug/tests/contract/test_session_lifecycle_internal_requests.py",
           "xdebug/tests/contract/test_time_output_contract.py",
           "xdebug/tests/contract/test_unified_runtime_contract.py",
@@ -36503,245 +36544,128 @@
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter",
-          "current.case"
+          "current.active_driver"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
               "always_comb": [
-                176
+                23
+              ],
+              "always_ff": [
+                14
               ],
               "case": [
-                14,
-                59
-              ],
-              "casex": [
-                31
-              ],
-              "casez": [
-                27
+                24
               ],
               "clock": [
-                2,
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
+                4,
+                14,
+                35,
+                45,
+                56,
+                57
               ],
-              "continuous_assign": [
-                54,
-                55,
+              "delay": [
+                57,
                 67,
                 71,
-                142,
-                150,
-                158,
-                167,
-                168
+                76,
+                81,
+                84,
+                87,
+                90
+              ],
+              "force": [
+                82
               ],
               "four_state_literal": [
-                12,
                 16,
-                17,
-                24,
                 25,
+                26,
+                27,
                 28,
-                29,
-                32,
-                33,
-                41,
-                45,
-                47,
-                51,
-                55,
-                60,
+                56,
                 61,
                 62,
-                87,
-                96,
-                103,
-                107,
-                158,
-                168,
-                180
+                63,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                74,
+                77,
+                78,
+                79,
+                82,
+                88
               ],
               "if": [
-                11,
-                23,
-                40,
-                42,
-                44,
-                82,
-                86,
-                102,
-                104,
-                177
-              ],
-              "inside": [
-                59
-              ],
-              "module": [
-                1,
-                133,
-                138,
-                146,
-                153,
-                161,
-                171
-              ],
-              "nonblocking_assignment": [
-                12,
                 15,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                43,
-                45,
-                47,
-                51,
-                60,
-                61,
-                62,
-                83,
-                87,
-                103,
-                105,
-                107
+                17
               ],
-              "reset": [
-                3,
-                11,
-                23,
-                40,
-                82,
-                102
-              ]
-            },
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 182,
-            "path": "testdata/fixtures/case/case_top.sv",
-            "sha256": "4bca4382a96ce062aedcf007bc2f296c9dea42ac203ce211ff5b115583872716"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/case/tb_case.cpp",
-            "sha256": "b664ca6c2d338e16596c89210f2311d2ecdd6459e1c17c23afd63c3fb78b895d"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 32,
-            "path": "testdata/fixtures/case/waves.fst",
-            "sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
-          },
-          {
-            "construct_lines": {
-              "always": [
-                7
-              ],
-              "clock": [
-                2,
-                7
-              ],
-              "four_state_literal": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "if": [
-                8
+              "initial": [
+                55,
+                60
               ],
               "module": [
-                1
+                3,
+                34
               ],
               "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
+                16,
+                18,
+                20
               ],
-              "reset": [
-                3,
-                8
+              "release": [
+                85
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_driver"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 94,
+            "path": "testdata/fixtures/active_driver/active_driver_tb.sv",
+            "sha256": "03592650de62daa0f73f5769079ef353ec15899d5fe10fe7ba4cfe854094b74f"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_driver"
             ],
             "kind": "testbench",
             "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "line_count": 21,
+            "path": "testdata/fixtures/active_driver/tb_active_driver.cpp",
+            "sha256": "c410c978689f1d8265ba446b10299b45f71ae743d638fbd98d50cf30a80886de"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_driver"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 18,
+            "path": "testdata/fixtures/active_driver/waves.fst",
+            "sha256": "ff589ebe3c51d5292460a3d5fedb192f1438e97f9cfa277a7fba6cf86639da3d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "原版 RTL 字节相同；原版 runner 先在锁定 FSDB/runtime 上通过，同一公开请求与完整断言移植到当前原生 FST/DesignDB 后通过",
         "test_evidence": [
           {
-            "line": 12,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver"
+            "line": 72,
+            "path": "tests/test_original_active_fixtures.py",
+            "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+            "test": "test_locked_active_driver_assignment_and_force"
           },
           {
-            "line": 586,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain"
+            "line": 95,
+            "path": "tests/test_original_active_fixtures.py",
+            "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+            "test": "test_locked_active_driver_recurses_and_preserves_limits"
           }
         ]
       },
@@ -36755,6 +36679,7 @@
           574
         ],
         "consumer_paths": [
+          "xdebug/tests/combined/run_active_driver_fixture.py",
           "xdebug/tests/mcp/test_xdebug_mcp_e2e.py",
           "xdebug/tests/session/test_session_lifecycle.py",
           "xdebug/tests/synthetic/test_existing_regressions.py"
@@ -36777,6 +36702,7 @@
         "observed_public_actions": [
           "actions",
           "schema",
+          "scope.list",
           "scope.roots",
           "session.close",
           "session.doctor",
@@ -36886,26 +36812,19 @@
           ],
           "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver.response.schema.json"
-        },
-        "trace.active_driver_chain": {
-          "completeness_fields": [
-            "summary.analysis_complete",
-            "summary.response_truncated",
-            "summary.returned_count",
-            "summary.scan_complete",
-            "summary.termination",
-            "summary.termination_detail",
-            "summary.total_count",
-            "summary.truncation_scopes",
-            "summary.value_width_complete"
-          ],
-          "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver_chain.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版 runtime/FSDB oracle 已通过；当前使用字节相同 RTL、确定性原生 FST/DesignDB 和完整移植的公开请求断言通过。原版 runner 未直接用于当前侧，审计明确保留该差别。",
+      "runtime_audit": {
+        "comparison_method": "exact_rtl_and_ported_public_oracle",
+        "p3_batch": "P3-B",
+        "path": "tests/data/rtl_wave_differential/p3b.runtime-audit.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "f7df30462c710deb7b84d1c6dbc363907d6988df1d4bce9e9aa38d059554c75e",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "fixture.active_driver",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -37271,7 +37190,7 @@
             "sha256": "29c4c3d812696ae97c36bf11941e72dd1a9d31c739da6317f3d071371a4125d6"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "锁定原版完整 oracle 通过；当前按公开 Action、分支、时间、完整性字段逐项归一映射，而非宣称复用同一原版 runner",
         "test_evidence": [
           {
             "line": 88,
@@ -37290,6 +37209,12 @@
             "path": "tests/test_combined.py",
             "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
             "test": "test_trace_active_driver_chain_reports_two_active_procedural_drivers"
+          },
+          {
+            "line": 42,
+            "path": "tests/test_design.py",
+            "sha256": "f307255aa12b4c3ba07ce3a0aceb79fadd802aee1eadbed12d324957061ff7f9",
+            "test": "test_signal_canonicalize_port_connection"
           }
         ]
       },
@@ -37476,6 +37401,17 @@
       },
       "p3_batch": "P3-B",
       "public_action_contracts": {
+        "signal.canonicalize": {
+          "completeness_fields": [
+            "analysis_complete",
+            "response_truncated",
+            "returned_count",
+            "scan_complete",
+            "total_count"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.canonicalize.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.canonicalize.response.schema.json"
+        },
         "trace.active_driver": {
           "completeness_fields": [
             "summary.analysis_complete",
@@ -37506,9 +37442,17 @@
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版完整 oracle 已通过；当前按相同公开 Action、刺激/时间、响应字段与完整性语义逐项归一映射通过，未宣称复用同一 runner。",
+      "runtime_audit": {
+        "comparison_method": "complete_normalized_public_oracle_mapping",
+        "p3_batch": "P3-B",
+        "path": "tests/data/rtl_wave_differential/p3b.runtime-audit.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "f7df30462c710deb7b84d1c6dbc363907d6988df1d4bce9e9aa38d059554c75e",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "fixture.active_semantics",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -37651,78 +37595,405 @@
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_zero_evidence"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
               "always": [
-                7
+                24,
+                32,
+                65,
+                73,
+                102,
+                116,
+                124,
+                155,
+                163,
+                189,
+                200,
+                269,
+                291,
+                506
               ],
               "clock": [
-                2,
-                7
+                14,
+                24,
+                32,
+                44,
+                53,
+                59,
+                60,
+                61,
+                62,
+                65,
+                73,
+                85,
+                95,
+                100,
+                102,
+                116,
+                124,
+                136,
+                145,
+                153,
+                155,
+                163,
+                175,
+                182,
+                185,
+                186,
+                189,
+                195,
+                200,
+                212,
+                269,
+                291,
+                337,
+                385,
+                404,
+                411,
+                444,
+                445,
+                506
+              ],
+              "continuous_assign": [
+                22,
+                50,
+                92,
+                142,
+                179,
+                441
+              ],
+              "delay": [
+                11,
+                57,
+                58,
+                59,
+                60,
+                61,
+                62,
+                97,
+                100,
+                148,
+                149,
+                150,
+                153,
+                185,
+                186,
+                209,
+                384,
+                445,
+                464,
+                465,
+                474,
+                475,
+                484,
+                494,
+                503
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                26,
+                34,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                61,
+                62,
+                67,
+                75,
+                95,
+                96,
+                97,
+                105,
+                109,
+                111,
+                118,
+                126,
+                145,
+                146,
+                147,
+                148,
+                149,
+                150,
+                157,
+                165,
+                182,
+                183,
+                184,
+                185,
+                186,
+                202,
+                253,
+                254,
+                259,
+                260,
+                261,
+                271,
+                272,
+                273,
+                274,
+                275,
+                276,
+                277,
+                278,
+                293,
+                294,
+                295,
+                296,
+                297,
+                298,
+                299,
+                300,
+                301,
+                302,
+                303,
+                304,
+                305,
+                306,
+                307,
+                308,
+                309,
+                310,
+                444,
+                449,
+                450,
+                451,
+                452,
+                453,
+                454,
+                455,
+                456,
+                457,
+                458,
+                459,
+                460,
+                461,
+                462,
+                464,
+                465,
+                466,
+                467,
+                468,
+                469,
+                470,
+                471,
+                472,
+                473,
+                474,
+                475,
+                476,
+                477,
+                478,
+                479,
+                480,
+                481,
+                482,
+                483,
+                484,
+                485,
+                486,
+                487,
+                488,
+                489,
+                490,
+                491,
+                492,
+                493,
+                494,
+                495,
+                496,
+                497,
+                498,
+                499,
+                500,
+                501,
+                502,
+                508
               ],
               "if": [
-                8
+                25,
+                33,
+                66,
+                74,
+                103,
+                108,
+                110,
+                117,
+                125,
+                156,
+                164,
+                201,
+                270,
+                292,
+                507
+              ],
+              "initial": [
+                52,
+                94,
+                144,
+                181,
+                443,
+                448
               ],
               "module": [
-                1
+                3,
+                11,
+                41,
+                82,
+                133,
+                172,
+                194,
+                209,
+                334
               ],
               "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                26,
+                28,
+                34,
+                36,
+                67,
+                69,
+                75,
+                77,
+                104,
+                105,
+                107,
+                109,
+                111,
+                118,
+                120,
+                126,
+                128,
+                157,
+                159,
+                165,
+                167,
+                190,
+                202,
+                204,
+                271,
+                272,
+                273,
+                274,
+                275,
+                276,
+                277,
+                278,
+                280,
+                281,
+                282,
+                283,
+                284,
+                285,
+                286,
+                287,
+                293,
+                294,
+                295,
+                296,
+                297,
+                298,
+                299,
+                300,
+                301,
+                302,
+                303,
+                304,
+                305,
+                306,
+                307,
+                308,
+                309,
+                310,
+                312,
+                313,
+                314,
+                315,
+                316,
+                317,
+                318,
+                319,
+                320,
+                321,
+                322,
+                323,
+                324,
+                325,
+                326,
+                327,
+                328,
+                329,
+                508,
+                510
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_zero_evidence"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 513,
+            "path": "testdata/fixtures/active_zero_evidence/active_zero_evidence_tb.v",
+            "sha256": "fcb281bb45f45a7938b31c3ed86ef3cb34fee6e4e727537dee741359cc686950"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_zero_evidence"
             ],
             "kind": "testbench",
             "line_anchor": 1,
             "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "path": "testdata/fixtures/active_zero_evidence/tb_active_zero_evidence.cpp",
+            "sha256": "a60ab1a632657702a54be7de8d7bff0a5a9c053290c2b5e3a4412163a77a53e3"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_zero_evidence"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 92,
+            "path": "testdata/fixtures/active_zero_evidence/waves.fst",
+            "sha256": "ee351fdf1c85a36b146772694c148752a3c9fe4f44e7bd23aa9f27bcdcf76f29"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "原版 RTL 字节相同；完整移植 scope/driver/chain/零证据与时间尺度 oracle在当前原生 FST/DesignDB 上通过",
         "test_evidence": [
           {
-            "line": 619,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_distinguishes_internal_zero_evidence_from_primary_input"
+            "line": 176,
+            "path": "tests/test_original_active_fixtures.py",
+            "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+            "test": "test_locked_active_zero_scope_roots_discovers_combined_top"
+          },
+          {
+            "line": 318,
+            "path": "tests/test_original_active_fixtures.py",
+            "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+            "test": "test_locked_active_zero_precise_active_time"
+          },
+          {
+            "line": 376,
+            "path": "tests/test_original_active_fixtures.py",
+            "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+            "test": "test_locked_active_zero_reduction_zero_evidence"
+          },
+          {
+            "line": 422,
+            "path": "tests/test_original_active_fixtures.py",
+            "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+            "test": "test_locked_active_zero_module_input_follows_parent"
+          },
+          {
+            "line": 497,
+            "path": "tests/test_original_active_fixtures.py",
+            "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+            "test": "test_locked_active_zero_expression_outputs_have_zero_evidence"
           }
         ]
       },
@@ -38105,6 +38376,30 @@
       },
       "p3_batch": "P3-B",
       "public_action_contracts": {
+        "scope.list": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/scope.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.list.response.schema.json"
+        },
+        "scope.roots": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/scope.roots.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.roots.response.schema.json"
+        },
         "trace.active_driver": {
           "completeness_fields": [
             "summary.analysis_complete",
@@ -38133,11 +38428,31 @@
           ],
           "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver_chain.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
+        },
+        "trace.driver": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/trace.driver.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.driver.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版 runtime/FSDB oracle 已通过；当前使用字节相同 RTL、确定性原生 FST/DesignDB 和完整移植的公开请求断言通过。原版 runner 未直接用于当前侧，审计明确保留该差别。",
+      "runtime_audit": {
+        "comparison_method": "exact_rtl_and_ported_public_oracle",
+        "p3_batch": "P3-B",
+        "path": "tests/data/rtl_wave_differential/p3b.runtime-audit.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "f7df30462c710deb7b84d1c6dbc363907d6988df1d4bce9e9aa38d059554c75e",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "fixture.active_zero_evidence",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -41182,114 +41497,15 @@
     },
     {
       "current": {
-        "candidate_fixture_ids": [
-          "current.interface_modport",
-          "current.output_mixed"
-        ],
-        "candidate_sources": [
-          {
-            "construct_lines": {
-              "continuous_assign": [
-                11,
-                15
-              ],
-              "interface": [
-                4
-              ],
-              "modport": [
-                6,
-                7
-              ],
-              "module": [
-                10,
-                14,
-                18
-              ]
-            },
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 25,
-            "path": "testdata/fixtures/interface_modport/interface_modport_top.sv",
-            "sha256": "8719eba578990c1ba9b135c299b0386f7108b59421833f2c69fe2250d4ee1036"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/interface_modport/tb_interface_modport.cpp",
-            "sha256": "124c061daa725ea5a4cdf8c3d7315687f5ed14e6cc017d1c03a4a81988536aa9"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 10,
-            "path": "testdata/fixtures/interface_modport/waves.fst",
-            "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
-          },
-          {
-            "construct_lines": {
-              "continuous_assign": [
-                13,
-                14,
-                21
-              ],
-              "module": [
-                1,
-                17
-              ]
-            },
-            "fixture_ids": [
-              "current.output_mixed"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 22,
-            "path": "testdata/fixtures/output_mixed/output_mixed_top.sv",
-            "sha256": "76024eeb0b1e4d1dacc02b7a5b54fc75d0422aa4b3361dff85e4673584292732"
-          },
-          {
-            "fixture_ids": [
-              "current.output_mixed"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 25,
-            "path": "testdata/fixtures/output_mixed/tb_output_mixed.cpp",
-            "sha256": "f7bbafb2cd47b82571450ef004524590f1c487e0079eb915f44fe1c2cf3c5204"
-          },
-          {
-            "fixture_ids": [
-              "current.output_mixed"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 7,
-            "path": "testdata/fixtures/output_mixed/waves.fst",
-            "sha256": "29c4c3d812696ae97c36bf11941e72dd1a9d31c739da6317f3d071371a4125d6"
-          }
-        ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "candidate_fixture_ids": [],
+        "candidate_sources": [],
+        "evidence_scope": "Goal-start hierarchy test 不存在于锁定 runtime；所需 kind/data groups 又被冻结 scope.list schema 排除，由静态合同门禁证明不可观察",
         "test_evidence": [
           {
-            "line": 480,
-            "path": "tests/test_waveform.py",
-            "sha256": "475805b2d441bf578682277374d048beffd5bdc2c5e28fbf85f8cc0f2fbf3196",
-            "test": "test_scope_list"
-          },
-          {
-            "line": 42,
-            "path": "tests/test_design.py",
-            "sha256": "f307255aa12b4c3ba07ce3a0aceb79fadd802aee1eadbed12d324957061ff7f9",
-            "test": "test_signal_canonicalize_port_connection"
+            "line": 235,
+            "path": "tests/test_p3b_runtime_audit.py",
+            "sha256": "ab659e94184495b0a40a42b21265eff5972476cf03ac431b04baa89621fb6ce3",
+            "test": "test_design_hierarchy_unobservable_proof_matches_locked_schema"
           }
         ]
       },
@@ -41385,423 +41601,31 @@
           ],
           "request_example": "compat/xdebug-v1/examples/requests/scope.list.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.list.response.schema.json"
-        },
-        "scope.roots": {
-          "completeness_fields": [
-            "summary.analysis_complete",
-            "summary.response_truncated",
-            "summary.returned_count",
-            "summary.scan_complete",
-            "summary.total_count",
-            "summary.truncation_scopes"
-          ],
-          "request_example": "compat/xdebug-v1/examples/requests/scope.roots.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.roots.response.schema.json"
-        },
-        "signal.canonicalize": {
-          "completeness_fields": [
-            "analysis_complete",
-            "response_truncated",
-            "returned_count",
-            "scan_complete",
-            "total_count"
-          ],
-          "request_example": "compat/xdebug-v1/examples/requests/signal.canonicalize.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.canonicalize.response.schema.json"
-        },
-        "signal.resolve": {
-          "completeness_fields": [
-            "summary.analysis_complete",
-            "summary.response_truncated",
-            "summary.returned_count",
-            "summary.scan_complete",
-            "summary.total_count",
-            "summary.truncation_scopes"
-          ],
-          "request_example": "compat/xdebug-v1/examples/requests/signal.resolve.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.resolve.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "冻结 73 Action/runtime/schema 与 Goal-start runner 哈希共同证明该资产差异没有可执行公开语义观察点；静态合同门禁禁止将其泛化为免测。",
+      "runtime_audit": {
+        "comparison_method": "locked_runtime_and_schema_negative_proof",
+        "p3_batch": "P3-B",
+        "path": "tests/data/rtl_wave_differential/p3b.runtime-audit.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "f7df30462c710deb7b84d1c6dbc363907d6988df1d4bce9e9aa38d059554c75e",
+        "status": "proven-unobservable"
+      },
       "scenario_id": "fixture.design_hierarchy",
-      "status": "partial"
+      "status": "proven-unobservable"
     },
     {
       "current": {
-        "candidate_fixture_ids": [
-          "current.case",
-          "current.matches",
-          "current.ref_port"
-        ],
-        "candidate_sources": [
-          {
-            "construct_lines": {
-              "always": [
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "always_comb": [
-                176
-              ],
-              "case": [
-                14,
-                59
-              ],
-              "casex": [
-                31
-              ],
-              "casez": [
-                27
-              ],
-              "clock": [
-                2,
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "continuous_assign": [
-                54,
-                55,
-                67,
-                71,
-                142,
-                150,
-                158,
-                167,
-                168
-              ],
-              "four_state_literal": [
-                12,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                45,
-                47,
-                51,
-                55,
-                60,
-                61,
-                62,
-                87,
-                96,
-                103,
-                107,
-                158,
-                168,
-                180
-              ],
-              "if": [
-                11,
-                23,
-                40,
-                42,
-                44,
-                82,
-                86,
-                102,
-                104,
-                177
-              ],
-              "inside": [
-                59
-              ],
-              "module": [
-                1,
-                133,
-                138,
-                146,
-                153,
-                161,
-                171
-              ],
-              "nonblocking_assignment": [
-                12,
-                15,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                43,
-                45,
-                47,
-                51,
-                60,
-                61,
-                62,
-                83,
-                87,
-                103,
-                105,
-                107
-              ],
-              "reset": [
-                3,
-                11,
-                23,
-                40,
-                82,
-                102
-              ]
-            },
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 182,
-            "path": "testdata/fixtures/case/case_top.sv",
-            "sha256": "4bca4382a96ce062aedcf007bc2f296c9dea42ac203ce211ff5b115583872716"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/case/tb_case.cpp",
-            "sha256": "b664ca6c2d338e16596c89210f2311d2ecdd6459e1c17c23afd63c3fb78b895d"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 32,
-            "path": "testdata/fixtures/case/waves.fst",
-            "sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
-          },
-          {
-            "construct_lines": {
-              "always": [
-                10,
-                28,
-                38,
-                48,
-                54,
-                56,
-                66,
-                87,
-                102,
-                112,
-                120
-              ],
-              "always_comb": [
-                73,
-                93,
-                133,
-                146
-              ],
-              "case": [
-                14,
-                94,
-                134,
-                147
-              ],
-              "clock": [
-                2,
-                10,
-                28,
-                38,
-                48,
-                54,
-                56,
-                66,
-                87,
-                102,
-                112,
-                120
-              ],
-              "continuous_assign": [
-                25,
-                26,
-                27,
-                37,
-                47,
-                53,
-                65,
-                86,
-                101,
-                111,
-                119,
-                131
-              ],
-              "force": [
-                58
-              ],
-              "four_state_literal": [
-                12,
-                15,
-                16,
-                30,
-                40,
-                55,
-                67,
-                77,
-                81,
-                88,
-                136,
-                142,
-                149,
-                151,
-                152
-              ],
-              "if": [
-                11,
-                29,
-                39,
-                57,
-                74,
-                78,
-                103,
-                113,
-                139
-              ],
-              "matches": [
-                14,
-                74,
-                78,
-                94,
-                134,
-                139,
-                147
-              ],
-              "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                12,
-                15,
-                16,
-                30,
-                32,
-                40,
-                42,
-                49,
-                55,
-                68,
-                88,
-                89,
-                104,
-                106,
-                114,
-                121
-              ],
-              "release": [
-                60
-              ],
-              "reset": [
-                3,
-                11,
-                29
-              ]
-            },
-            "fixture_ids": [
-              "current.matches"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 155,
-            "path": "testdata/fixtures/matches/matches_top.sv",
-            "sha256": "139dae2d029de6fd5067c9065b657fabec5e531ea0950234e5be3860958ef56e"
-          },
-          {
-            "fixture_ids": [
-              "current.matches"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 34,
-            "path": "testdata/fixtures/matches/tb_matches.cpp",
-            "sha256": "58d39e7ed04037c7fd3418722d6aaf6c03a74ed10f46ec2c813d21a7b9943d98"
-          },
-          {
-            "fixture_ids": [
-              "current.matches"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 27,
-            "path": "testdata/fixtures/matches/waves.fst",
-            "sha256": "d418f4bbdd3d75b1dcb755527416d3363f290653b38bdb46bd87ff4a693bf1a0"
-          },
-          {
-            "construct_lines": {
-              "continuous_assign": [
-                9,
-                10
-              ],
-              "module": [
-                4,
-                13
-              ]
-            },
-            "fixture_ids": [
-              "current.ref_port"
-            ],
-            "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 19,
-            "path": "testdata/fixtures/ref_port/ref_port_top.sv",
-            "sha256": "3f2e0bf3bd623c251f33269b2523dafea0aa33e055c79bf87ab8cbb897cb77df"
-          },
-          {
-            "fixture_ids": [
-              "current.ref_port"
-            ],
-            "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/ref_port/tb_ref_port.cpp",
-            "sha256": "22840f64a301983104c03a3c3a3745eb8a67833cb44033bded5acbcef2dd37a2"
-          },
-          {
-            "fixture_ids": [
-              "current.ref_port"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 9,
-            "path": "testdata/fixtures/ref_port/waves.fst",
-            "sha256": "ea54ae4b0a1299c521235d5a7a413ed8f9e971a15f56709dce91b312fbd7b324"
-          }
-        ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "candidate_fixture_ids": [],
+        "candidate_sources": [],
+        "evidence_scope": "Goal-start 与锁定 run_semantics 只对 P3 DesignDB 执行 session.open，没有任何 P3 语义查询；由 runner 哈希静态门禁证明不可观察",
         "test_evidence": [
           {
-            "line": 755,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_selects_case_inside_pattern_and_range"
-          },
-          {
-            "line": 682,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_crosses_ref_port"
+            "line": 267,
+            "path": "tests/test_p3b_runtime_audit.py",
+            "sha256": "ab659e94184495b0a40a42b21265eff5972476cf03ac431b04baa89621fb6ce3",
+            "test": "test_design_p3_unobservable_proof_is_hash_anchored"
           }
         ]
       },
@@ -41811,12 +41635,24 @@
           680
         ],
         "consumer_paths": [
+          "xdebug/tests/design/run_semantics.sh",
           "xdebug/tests/design/test_design_semantics.py"
         ],
         "declared_waveform_outputs": [],
         "fixture_id": "xdebug.design_p3",
         "fixture_source_dir": "xdebug/testdata/design/p3_semantics",
-        "observed_public_actions": [],
+        "observed_public_actions": [
+          "actions",
+          "batch",
+          "expr.normalize",
+          "schema",
+          "session.close",
+          "session.open",
+          "signal.canonicalize",
+          "signal.resolve",
+          "signal.statistics",
+          "trace.driver"
+        ],
         "sources": [
           {
             "construct_lines": {
@@ -41907,60 +41743,23 @@
       },
       "p3_batch": "P3-B",
       "public_action_contracts": {
-        "signal.resolve": {
-          "completeness_fields": [
-            "summary.analysis_complete",
-            "summary.response_truncated",
-            "summary.returned_count",
-            "summary.scan_complete",
-            "summary.total_count",
-            "summary.truncation_scopes"
-          ],
-          "request_example": "compat/xdebug-v1/examples/requests/signal.resolve.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.resolve.response.schema.json"
-        },
-        "trace.active_driver": {
-          "completeness_fields": [
-            "summary.analysis_complete",
-            "summary.response_truncated",
-            "summary.returned_count",
-            "summary.scan_complete",
-            "summary.termination",
-            "summary.termination_detail",
-            "summary.total_count",
-            "summary.truncation_scopes"
-          ],
-          "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver.response.schema.json"
-        },
-        "trace.driver": {
-          "completeness_fields": [
-            "summary.analysis_complete",
-            "summary.response_truncated",
-            "summary.returned_count",
-            "summary.scan_complete",
-            "summary.total_count",
-            "summary.truncation_scopes"
-          ],
-          "request_example": "compat/xdebug-v1/examples/requests/trace.driver.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.driver.response.schema.json"
-        },
-        "trace.load": {
-          "completeness_fields": [
-            "summary.analysis_complete",
-            "summary.response_truncated",
-            "summary.returned_count",
-            "summary.scan_complete",
-            "summary.total_count",
-            "summary.truncation_scopes"
-          ],
-          "request_example": "compat/xdebug-v1/examples/requests/trace.load.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.load.response.schema.json"
+        "session.open": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/session.open.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.open.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "冻结 73 Action/runtime/schema 与 Goal-start runner 哈希共同证明该资产差异没有可执行公开语义观察点；静态合同门禁禁止将其泛化为免测。",
+      "runtime_audit": {
+        "comparison_method": "goal_start_and_locked_runner_request_inventory",
+        "p3_batch": "P3-B",
+        "path": "tests/data/rtl_wave_differential/p3b.runtime-audit.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "f7df30462c710deb7b84d1c6dbc363907d6988df1d4bce9e9aa38d059554c75e",
+        "status": "proven-unobservable"
+      },
       "scenario_id": "fixture.design_p3",
-      "status": "partial"
+      "status": "proven-unobservable"
     },
     {
       "current": {
@@ -42072,8 +41871,32 @@
             "sha256": "29c4c3d812696ae97c36bf11941e72dd1a9d31c739da6317f3d071371a4125d6"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "锁定 UART DesignDB runner 通过；当前以同一公开设计 Action 和完整响应合同完成归一映射，不比较不同设计数据库二进制",
         "test_evidence": [
+          {
+            "line": 106,
+            "path": "tests/test_common.py",
+            "sha256": "e72ead4cce7d18cc5bb6a315c6ec81d296eaafb4380176cabbc946be6761e1c8",
+            "test": "test_batch_aggregates_responses"
+          },
+          {
+            "line": 175,
+            "path": "tests/test_design.py",
+            "sha256": "f307255aa12b4c3ba07ce3a0aceb79fadd802aee1eadbed12d324957061ff7f9",
+            "test": "test_expr_normalize_contract"
+          },
+          {
+            "line": 204,
+            "path": "tests/test_design.py",
+            "sha256": "f307255aa12b4c3ba07ce3a0aceb79fadd802aee1eadbed12d324957061ff7f9",
+            "test": "test_expr_normalize_parse_error"
+          },
+          {
+            "line": 42,
+            "path": "tests/test_design.py",
+            "sha256": "f307255aa12b4c3ba07ce3a0aceb79fadd802aee1eadbed12d324957061ff7f9",
+            "test": "test_signal_canonicalize_port_connection"
+          },
           {
             "line": 8,
             "path": "tests/test_design.py",
@@ -42096,6 +41919,7 @@
           680
         ],
         "consumer_paths": [
+          "xdebug/tests/design/run_semantics.sh",
           "xdebug/tests/design/test_design_semantics.py",
           "xdebug/tests/mcp/test_xdebug_mcp_e2e.py",
           "xdebug/tests/session/test_session_lifecycle.py"
@@ -42105,6 +41929,8 @@
         "fixture_source_dir": "xdebug/testdata/design/uart",
         "observed_public_actions": [
           "actions",
+          "batch",
+          "expr.normalize",
           "schema",
           "scope.roots",
           "session.close",
@@ -42112,6 +41938,9 @@
           "session.gc",
           "session.list",
           "session.open",
+          "signal.canonicalize",
+          "signal.resolve",
+          "signal.statistics",
           "trace.active_driver",
           "trace.driver",
           "value.at"
@@ -42962,6 +42791,27 @@
       },
       "p3_batch": "P3-B",
       "public_action_contracts": {
+        "batch": {
+          "completeness_fields": [
+            "analysis_complete",
+            "complete",
+            "response_truncated",
+            "returned_count",
+            "scan_complete",
+            "scan_status.analysis_complete",
+            "statements.complete",
+            "termination",
+            "termination_detail",
+            "total_count"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/batch.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/batch.response.schema.json"
+        },
+        "expr.normalize": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/expr.normalize.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/expr.normalize.response.schema.json"
+        },
         "signal.canonicalize": {
           "completeness_fields": [
             "analysis_complete",
@@ -42996,38 +42846,72 @@
           ],
           "request_example": "compat/xdebug-v1/examples/requests/trace.driver.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.driver.response.schema.json"
-        },
-        "trace.load": {
-          "completeness_fields": [
-            "summary.analysis_complete",
-            "summary.response_truncated",
-            "summary.returned_count",
-            "summary.scan_complete",
-            "summary.total_count",
-            "summary.truncation_scopes"
-          ],
-          "request_example": "compat/xdebug-v1/examples/requests/trace.load.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.load.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版完整 oracle 已通过；当前按相同公开 Action、刺激/时间、响应字段与完整性语义逐项归一映射通过，未宣称复用同一 runner。",
+      "runtime_audit": {
+        "comparison_method": "complete_normalized_design_action_mapping",
+        "p3_batch": "P3-B",
+        "path": "tests/data/rtl_wave_differential/p3b.runtime-audit.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "f7df30462c710deb7b84d1c6dbc363907d6988df1d4bce9e9aa38d059554c75e",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "fixture.design_uart",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.interface_modport"
+          "current.interface_port_root"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "continuous_assign": [
-                11,
-                15
+              "always_ff": [
+                17,
+                32
+              ],
+              "clock": [
+                3,
+                6,
+                7,
+                17,
+                32,
+                41,
+                48,
+                65,
+                66
+              ],
+              "delay": [
+                66,
+                75,
+                79,
+                82
+              ],
+              "four_state_literal": [
+                19,
+                34,
+                65,
+                70,
+                71,
+                72,
+                73,
+                76,
+                77,
+                80
+              ],
+              "if": [
+                18,
+                20,
+                33
+              ],
+              "initial": [
+                64,
+                69
               ],
               "interface": [
-                4
+                3
               ],
               "modport": [
                 6,
@@ -43035,47 +42919,60 @@
               ],
               "module": [
                 10,
-                14,
-                18
+                27,
+                40
+              ],
+              "nonblocking_assignment": [
+                19,
+                21,
+                23,
+                34,
+                36
               ]
             },
             "fixture_ids": [
-              "current.interface_modport"
+              "current.interface_port_root"
             ],
             "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 25,
-            "path": "testdata/fixtures/interface_modport/interface_modport_top.sv",
-            "sha256": "8719eba578990c1ba9b135c299b0386f7108b59421833f2c69fe2250d4ee1036"
+            "line_anchor": 1,
+            "line_count": 85,
+            "path": "testdata/fixtures/interface_port_root/if_root_tb.sv",
+            "sha256": "93793abd7fe618558cbedffef847239a607614940c1c5fb898cfaa4ffcb5c3a5"
           },
           {
             "fixture_ids": [
-              "current.interface_modport"
+              "current.interface_port_root"
             ],
             "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/interface_modport/tb_interface_modport.cpp",
-            "sha256": "124c061daa725ea5a4cdf8c3d7315687f5ed14e6cc017d1c03a4a81988536aa9"
+            "line_anchor": 1,
+            "line_count": 21,
+            "path": "testdata/fixtures/interface_port_root/tb_if_root.cpp",
+            "sha256": "815f16d9b7cd34d1fb6c660574901c4128172b849987746a201ae90b75c4e5d9"
           },
           {
             "fixture_ids": [
-              "current.interface_modport"
+              "current.interface_port_root"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 10,
-            "path": "testdata/fixtures/interface_modport/waves.fst",
-            "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
+            "line_count": 13,
+            "path": "testdata/fixtures/interface_port_root/waves.fst",
+            "sha256": "856a5d21d7b44be5e0c27c79524ed95db8e3a6cd8b6bddac49960ee9eac93c8b"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "原版 RTL 字节相同；interface 分类、modport alias 和活动驱动公开 oracle在当前原生 FST/DesignDB 上通过",
         "test_evidence": [
           {
-            "line": 659,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_crosses_interface_modports"
+            "line": 127,
+            "path": "tests/test_original_active_fixtures.py",
+            "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+            "test": "test_locked_interface_scope_classification"
+          },
+          {
+            "line": 151,
+            "path": "tests/test_original_active_fixtures.py",
+            "sha256": "83fb3346005ee98a6a4e695f2416acfc3ae975940d2c75cbba9a8cca8a3310b0",
+            "test": "test_locked_interface_active_driver_aliases"
           }
         ]
       },
@@ -43085,6 +42982,7 @@
           574
         ],
         "consumer_paths": [
+          "xdebug/tests/combined/run_active_driver_fixture.py",
           "xdebug/tests/synthetic/test_existing_regressions.py"
         ],
         "declared_waveform_outputs": [
@@ -43102,7 +43000,12 @@
         ],
         "fixture_id": "xdebug.interface_port_root",
         "fixture_source_dir": "xdebug/testdata/combined/interface_port_root",
-        "observed_public_actions": [],
+        "observed_public_actions": [
+          "scope.list",
+          "session.close",
+          "session.open",
+          "trace.active_driver"
+        ],
         "sources": [
           {
             "construct_lines": {
@@ -43177,7 +43080,7 @@
       },
       "p3_batch": "P3-B",
       "public_action_contracts": {
-        "signal.resolve": {
+        "scope.list": {
           "completeness_fields": [
             "summary.analysis_complete",
             "summary.response_truncated",
@@ -43186,10 +43089,10 @@
             "summary.total_count",
             "summary.truncation_scopes"
           ],
-          "request_example": "compat/xdebug-v1/examples/requests/signal.resolve.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.resolve.response.schema.json"
+          "request_example": "compat/xdebug-v1/examples/requests/scope.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.list.response.schema.json"
         },
-        "trace.active_driver_chain": {
+        "trace.active_driver": {
           "completeness_fields": [
             "summary.analysis_complete",
             "summary.response_truncated",
@@ -43198,16 +43101,23 @@
             "summary.termination",
             "summary.termination_detail",
             "summary.total_count",
-            "summary.truncation_scopes",
-            "summary.value_width_complete"
+            "summary.truncation_scopes"
           ],
-          "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver_chain.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
+          "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版 runtime/FSDB oracle 已通过；当前使用字节相同 RTL、确定性原生 FST/DesignDB 和完整移植的公开请求断言通过。原版 runner 未直接用于当前侧，审计明确保留该差别。",
+      "runtime_audit": {
+        "comparison_method": "exact_rtl_and_ported_public_oracle",
+        "p3_batch": "P3-B",
+        "path": "tests/data/rtl_wave_differential/p3b.runtime-audit.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "f7df30462c710deb7b84d1c6dbc363907d6988df1d4bce9e9aa38d059554c75e",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "fixture.interface_port_root",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -44125,13 +44035,25 @@
             "sha256": "c4da383a5f09f5822405639c2fadb2040d3e1e63f63366c2c182fbf471e3a470"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "锁定原版 X-prop oracle 通过；当前 FST 逐项覆盖四态点读、list、X origin、alias/loop/limits 和 active chain 公开结果",
         "test_evidence": [
+          {
+            "line": 132,
+            "path": "tests/test_common.py",
+            "sha256": "e72ead4cce7d18cc5bb6a315c6ec81d296eaafb4380176cabbc946be6761e1c8",
+            "test": "test_batch_preserves_nested_x_value_from_direct_raw_fst"
+          },
           {
             "line": 1088,
             "path": "tests/test_combined.py",
             "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
             "test": "test_trace_x_origin_x_propagation"
+          },
+          {
+            "line": 1171,
+            "path": "tests/test_combined.py",
+            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
+            "test": "test_trace_x_origin_branch_chain_ids_are_consistent"
           },
           {
             "line": 1555,
@@ -44297,18 +44219,25 @@
       },
       "p3_batch": "P3-B",
       "public_action_contracts": {
-        "signal.xz_verify": {
+        "list.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.load.response.schema.json"
+        },
+        "trace.active_driver_chain": {
           "completeness_fields": [
             "summary.analysis_complete",
             "summary.response_truncated",
             "summary.returned_count",
             "summary.scan_complete",
+            "summary.termination",
+            "summary.termination_detail",
             "summary.total_count",
             "summary.truncation_scopes",
             "summary.value_width_complete"
           ],
-          "request_example": "compat/xdebug-v1/examples/requests/signal.xz_verify.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.xz_verify.response.schema.json"
+          "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver_chain.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
         },
         "trace.x_origin": {
           "completeness_fields": [
@@ -44323,11 +44252,26 @@
           ],
           "request_example": "compat/xdebug-v1/examples/requests/trace.x_origin.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.x_origin.response.schema.json"
+        },
+        "value.at": {
+          "completeness_fields": [
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/value.at.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/value.at.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版完整 oracle 已通过；当前按相同公开 Action、刺激/时间、响应字段与完整性语义逐项归一映射通过，未宣称复用同一 runner。",
+      "runtime_audit": {
+        "comparison_method": "complete_normalized_public_oracle_mapping",
+        "p3_batch": "P3-B",
+        "path": "tests/data/rtl_wave_differential/p3b.runtime-audit.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "f7df30462c710deb7b84d1c6dbc363907d6988df1d4bce9e9aa38d059554c75e",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "fixture.trace_x_xprop",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -44627,14 +44571,15 @@
     "active_catalog_case_count": 68,
     "declared_only_orphan_count": 1,
     "declared_waveform_output_count": 25,
-    "original_consumer_count": 259,
+    "original_consumer_count": 260,
     "original_fixture_count": 23,
     "original_hdl_count": 103,
     "scenario_count": 88,
     "status_counts": {
       "missing": 2,
-      "partial": 85,
-      "semantic-equivalent": 1
+      "partial": 77,
+      "proven-unobservable": 2,
+      "semantic-equivalent": 7
     },
     "unclassified_count": 0,
     "unqueued_gap_count": 0

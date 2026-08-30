@@ -54,6 +54,16 @@ ORIGINAL_CONSUMER_MARKERS = (
     "waveform",
     "xverif_fixture",
 )
+ORIGINAL_TRANSITIVE_CONSUMERS = {
+    "xdebug/tests/combined/run_active_driver_fixture.py": [
+        "xdebug.active_driver",
+        "xdebug.interface_port_root",
+    ],
+    "xdebug/tests/design/run_semantics.sh": [
+        "xdebug.design_p3",
+        "xdebug.design_uart",
+    ],
+}
 
 
 class InventoryError(RuntimeError):
@@ -404,6 +414,8 @@ def discover_original_assets(root: Path, fixtures: list[dict]) -> list[dict]:
         if path.startswith("xdebug/tests/"):
             if path.startswith("xdebug/tests/active_trace_chain/"):
                 roles.append("test_consumer")
+            elif path in ORIGINAL_TRANSITIVE_CONSUMERS:
+                roles.append("test_consumer")
             elif text_contains(root / path, (*ORIGINAL_CONSUMER_MARKERS, *fixture_ids)):
                 roles.append("test_consumer")
         if path == "testinfra/leaf/prepare_active_trace.py":
@@ -417,13 +429,16 @@ def discover_original_assets(root: Path, fixtures: list[dict]) -> list[dict]:
         if not matched_fixture_ids and "generator" in roles:
             matched_fixture_ids = ["original.cross_fixture"]
         if "test_consumer" in roles and not matched_fixture_ids:
-            referenced = []
-            try:
-                text = (root / path).read_text(encoding="utf-8", errors="replace")
-                referenced = fixture_ids_referenced_by_consumer(text, fixtures)
-            except OSError:
-                pass
-            matched_fixture_ids = referenced or ["original.cross_fixture"]
+            if path in ORIGINAL_TRANSITIVE_CONSUMERS:
+                matched_fixture_ids = ORIGINAL_TRANSITIVE_CONSUMERS[path]
+            else:
+                referenced = []
+                try:
+                    text = (root / path).read_text(encoding="utf-8", errors="replace")
+                    referenced = fixture_ids_referenced_by_consumer(text, fixtures)
+                except OSError:
+                    pass
+                matched_fixture_ids = referenced or ["original.cross_fixture"]
         assets.append(make_asset(
             side="original",
             root=root,
@@ -491,19 +506,44 @@ def original_content_index(assets: Iterable[dict]) -> dict[str, tuple]:
     }
 
 
-def verify_frozen_original_content(live_assets: list[dict], frozen_manifest: dict) -> None:
+def verify_frozen_original_content(
+    root: Path,
+    live_assets: list[dict],
+    frozen_manifest: dict,
+) -> None:
     live = original_content_index(live_assets)
     frozen = original_content_index(frozen_manifest.get("assets", []))
-    if live == frozen:
-        return
-    changed = sorted(path for path in set(live) | set(frozen) if live.get(path) != frozen.get(path))
+    changed = sorted(
+        path for path in frozen
+        if live.get(path) != frozen[path]
+    )
+    additions = sorted(set(live) - set(frozen))
     preview = ", ".join(changed[:8])
     if len(changed) > 8:
         preview += f", ... ({len(changed)} total)"
-    raise InventoryError(
-        "frozen original test asset content drifted; baseline replacement is forbidden: "
-        + preview
-    )
+    if changed:
+        raise InventoryError(
+            "frozen original test asset content drifted; baseline replacement is forbidden: "
+            + preview
+        )
+    for path in additions:
+        if path not in ORIGINAL_TRANSITIVE_CONSUMERS:
+            raise InventoryError(
+                "new original asset is not an explicitly reviewed transitive consumer: "
+                + path
+            )
+        baseline = git_bytes(root, "show", f"{ORIGINAL_BASELINE_HEAD}:{path}")
+        baseline_record = (
+            True,
+            "file",
+            sha256_bytes(baseline),
+            len(baseline),
+        )
+        if live[path] != baseline_record:
+            raise InventoryError(
+                "new transitive consumer does not match the Goal-start Git object: "
+                + path
+            )
 
 
 def relative_output_records(fixtures: list[dict]) -> list[dict]:
@@ -593,7 +633,9 @@ def build_manifest(
             f"{external[0]['head']}"
         )
     if frozen_manifest is not None:
-        verify_frozen_original_content(original_assets, frozen_manifest)
+        verify_frozen_original_content(
+            original_root, original_assets, frozen_manifest
+        )
         goal_start_external = frozen_manifest.get(
             "external_read_only_goal_start_snapshot",
             frozen_manifest.get("external_read_only_snapshot"),
@@ -630,6 +672,7 @@ def build_manifest(
             "original_fixture_sources": "longest xdebug fixture source_dir prefix",
             "original_untracked_policy": "include non-ignored untracked fixture files",
             "original_consumers": list(ORIGINAL_CONSUMER_MARKERS),
+            "original_transitive_consumers": ORIGINAL_TRANSITIVE_CONSUMERS,
             "current_fixture_prefix": CURRENT_ASSET_PREFIX,
             "current_consumers": "all text/source files below tests",
             "generated_or_ignored_outputs": "excluded unless tracked",
