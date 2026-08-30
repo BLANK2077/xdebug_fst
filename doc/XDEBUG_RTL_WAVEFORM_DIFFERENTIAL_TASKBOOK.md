@@ -380,11 +380,65 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | 73 Action request/schema/完整性字段 | 已链接 | matrix `action_contracts` |
 | 缺口队列 | 已完成 | P3-A 1、P3-B 8、P3-C 70、P3-D 6、P3-E 3 |
 | P1 focused/adjacent gate | 已通过 | 21/21；compat baseline OK；local path audit OK |
-| P1 中文详细 commit | 待提交 | `测试：建立原版 RTL 场景语义映射矩阵` |
+| P1 中文详细 commit | 已完成 | `bd602e3 测试：建立原版 RTL 场景语义映射矩阵` |
+
+### 2026-08-30：P2 公开 Action 差分设施
+
+- 新增 `tools/compare_public_action_responses.py`。比较器只读取公开请求/响应 JSON，不读取波形
+  二进制；严格校验 plan、FSDB bundle 和 FST bundle 的 observation 集合与 Action 身份。
+- 时间统一转换为整数 fs，四态字面量保留 width、signed、X 与 Z，数组顺序保持不变，因此同一
+  时刻 delta 或协议 transaction 顺序变化不会被排序掩盖。typed string/event 的 payload 即使
+  恰好写成 `1ns` 或 `4'hf`，也不会被误当作时间或逻辑值归一化。
+- ignore/rewrite 必须逐 JSON Pointer 写明理由；rewrite 还有精确旧值前置条件。输出 realpath
+  只能位于当前仓库，并以同目录临时文件原子替换。没有全局易变字段白名单。
+- synthetic 正例覆盖 `signal.changes` 的 type/width/timescale/delta/四态/real/string/event、
+  AXI ID/latency/outstanding/stall，以及 Phase5 active trace。负例覆盖缺信号、type/width、X/Z、
+  delta 与顺序、typed payload、协议字段、trace termination、宽度完整性、scan/analysis/truncation、
+  source-line rewrite 前置条件和输出软链接逃逸。
+- P2 纯差分与去敏审计门禁 31/31 通过；CLI 正例报告 3 个 observation、0 difference，返回成功。
+
+### 2026-08-30：P2 锁定原版 Phase5 实测
+
+- 先通过已查询的 `session.open`、`trace.active_driver_chain`、`session.close` schema，再运行原版
+  NPI。所有 HOME、TMP、cache、session、socket 和编译产物都进入当前仓库；外部 xverif、
+  Wellen、Verilator 只读。
+- 发现 Goal-start 可执行文件自报 `478a944d2b1e/6ace27b2...`，不是冻结 runtime。该版本的十个
+  scene 结果可作旁证，不能作为金标准。
+- 在当前仓库 ignored build 目录从冻结 Git object 构建 `8eecf71271cc/c4509904...`；二进制
+  身份、schema 和 73/73 Action 门禁通过。复用既有 Phase5 cache，FSDB SHA-256 为
+  `9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba`，未重建 fixture。
+- 冻结 runtime 的 S1～S6、S9 均为 `ambiguous/multiple_rhs_sources`；S7、S8、S10 均为
+  `ambiguous/multiple_active_candidates`。十项都 `scan_complete=true`、
+  `analysis_complete=true`、`response_truncated=false`。这与 Goal-start 可执行文件一致。
+- 因此冻结 catalog 有 8 个 termination 漂移、旧报告有 9 个漂移；S6/S8 的 catalog/report
+  内部冲突继续保留。runtime 只裁决当前行为，不反写或伪造历史资产 oracle。
+- 当前 FST 十场景 termination/ambiguity 子集门禁 1/1 通过。第一次测试未进入业务断言，原因是
+  隔离 HOME 生成的 UDS 路径超过 Linux `sockaddr_un` 容量；按仓库已有
+  `XVERIF_TEST_TMPDIR` 合同改用当前仓库内短路径后，同一 binary/backend/fixture/test 原样通过，
+  没有 fallback。
+- S1 完整响应 spot check 仍发现可观察差异：原版公开宽度不完整诊断与 unsized hop value、
+  RHS sample 顺序、statement kind/driver，以及等价 RTL 的 file:line/source_context。故十个 scene
+  仍为 `partial`，全部留在 P3-C；不得因终止子集一致升级为 `semantic-equivalent`。
+- 去敏 `phase5.runtime-audit.json` 只保留 revision、哈希、计数和相对证据，不含绝对路径、FSDB、
+  daidir、二进制或日志。原版 session 正常关闭；查询前后外部 xverif porcelain 内容哈希相同。
+
+### P2 当前状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| JSON 差分比较器 | 已完成 | 严格 plan/bundle、顺序保真、类型化归一化、结构化 diff |
+| 合成正负门禁 | 已通过 | P2 与 Phase5 audit 合计 31/31 |
+| 锁定 runtime 身份 | 已通过 | `8eecf71271cc/c4509904...`，Action 73/73 |
+| Phase5 原版查询 | 已完成 | S1～S10，完整性全真、零裁剪，fixture cache 未重建 |
+| 当前 Phase5 子集回归 | 已通过 | focused 1/1；termination/ambiguity 10/10 |
+| 完整响应差异 | 未关闭 | Phase5 保持 partial，进入 P3-C |
+| P0～P2 相邻静态门禁 | 已通过 | 44/44；compat baseline OK；local path audit OK |
+| 外部零写入 | 已通过 | xverif 查询前后 status 内容哈希一致；Wellen/Verilator 未变 |
+| P2 中文详细 commit | 待提交 | `测试：建立 FSDB 与 FST 公开语义差分门禁` |
 
 ### 下一步
 
-1. 更新 P0 manifest，把 P1 新增的当前仓库资产纳入 current-side 发现结果，并重复 live check。
-2. 完成 P1 独立中文详细 commit。
-3. 进入 P2，建立只比较公开 Action 归一化 JSON 的 FSDB/FST 差分设施；先用合成正负例锁定
-   signal/type/width/XZ/time-delta/value/completeness 差异，再运行受控原版查询。
+1. 重复 manifest/matrix live check、compat/path 相邻门禁，完成 P2 独立中文详细 commit。
+2. 进入 P3-A，按矩阵先补基础波形/type/delta/four-state 的逐观察点差分。
+3. P3-C 单独关闭 Phase5 完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
+   statement 和源码证据。

@@ -2066,9 +2066,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "a5485bb78f04cbed98b83e317032287a03f246db3d9d4a5f8b9b81c757468f72",
+      "sha256": "e3c2079dd23ed9b26696f6b6e06c9298219b95c4214600af8a5ddfb337c890ea",
       "side": "current",
-      "size_bytes": 1362121
+      "size_bytes": 1371403
     },
     {
       "exists": true,
@@ -2174,6 +2174,66 @@
       "sha256": "012472fc68327e0afa733c9abf46fc435b2ee0f4f4f0833863a0342902e22091",
       "side": "current",
       "size_bytes": 14043
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/equivalent.current.bundle.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "7e1db5f5642063f71b0af51d8c7e373b518b134357e0afa3e0afdbf47d61faf3",
+      "side": "current",
+      "size_bytes": 3994
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/equivalent.original.bundle.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "d05dc2b68a91bc8d4bc4a84ec6892925de9581a5d7e331a5a737f8dd1092c471",
+      "side": "current",
+      "size_bytes": 3900
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/equivalent.plan.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "387c9b49d7c2994c201a207c837f4b8b553e1313bf9aa1ba186593f1235c0231",
+      "side": "current",
+      "size_bytes": 5611
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+      "side": "current",
+      "size_bytes": 19049
     },
     {
       "exists": true,
@@ -2527,6 +2587,21 @@
         "current.cross_fixture"
       ],
       "kind": "test_consumer",
+      "path": "tests/test_phase5_runtime_audit.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "32d9d435cd28789e9f439a8295ae059324ae9d2db4233a2a62ecb5d0f4687630",
+      "side": "current",
+      "size_bytes": 6803
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
       "path": "tests/test_prepare_dependencies.py",
       "roles": [
         "test_consumer"
@@ -2549,6 +2624,21 @@
       "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
       "side": "current",
       "size_bytes": 34036
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/test_public_action_differential.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "a96c0f0c1eed4fe3eff808967ff385f0ffd188d2f21a6e06387b2463e45b738e",
+      "side": "current",
+      "size_bytes": 9340
     },
     {
       "exists": true,
@@ -10952,10 +11042,10 @@
   "schema_version": "xdebug-rtl-wave-assets.v1",
   "summary": {
     "current": {
-      "asset_count": 182,
+      "asset_count": 188,
       "fst_count": 12,
       "rtl_count": 11,
-      "test_consumer_count": 47,
+      "test_consumer_count": 53,
       "vcd_count": 1
     },
     "missing_assets": [],

@@ -30,6 +30,9 @@ ACTIVE_README = Path("xdebug/tests/active_trace_chain/README.md")
 PHASE5_REPORT = Path(
     "xdebug/tests/active_trace_chain/reports/phase5_lane_select_report.md"
 )
+PHASE5_RUNTIME_AUDIT = Path(
+    "tests/data/rtl_wave_differential/phase5.runtime-audit.json"
+)
 
 ALLOWED_STATUSES = {
     "exact",
@@ -374,6 +377,57 @@ def parse_phase5_report_terminations(text: str) -> list[dict]:
     return rows
 
 
+def validate_phase5_runtime_audit(
+    audit: dict,
+    runtime_revision: str,
+    schema_revision: str,
+) -> dict[str, dict]:
+    if audit.get("schema_version") != "xdebug.phase5-runtime-audit.v1":
+        raise MatrixError("Phase5 runtime audit has the wrong schema_version")
+    if audit.get("goal_id") != GOAL_ID:
+        raise MatrixError("Phase5 runtime audit belongs to a different Goal")
+    locked = audit.get("locked_original_runtime", {})
+    if locked.get("git_revision") != runtime_revision:
+        raise MatrixError("Phase5 runtime audit does not use the locked runtime revision")
+    if locked.get("schema_revision") != schema_revision:
+        raise MatrixError("Phase5 runtime audit does not use the locked schema revision")
+    if locked.get("action_count") != 73:
+        raise MatrixError("Phase5 runtime audit does not prove the 73-Action identity gate")
+    if locked.get("fixture", {}).get("fixture_rebuilt") is not False:
+        raise MatrixError("Phase5 runtime audit must reuse, not rebuild, the fixture cache")
+    if locked.get("external_write_audit", {}).get("unchanged") is not True:
+        raise MatrixError("Phase5 runtime audit does not prove zero external writes")
+
+    rows = audit.get("scene_results")
+    if not isinstance(rows, list) or len(rows) != 10:
+        raise MatrixError("Phase5 runtime audit must contain exactly ten scenes")
+    result = {}
+    for index, row in enumerate(rows, 1):
+        scenario_id = f"active.phase5.{index:02d}"
+        if row.get("scenario_id") != scenario_id:
+            raise MatrixError(f"Phase5 runtime audit scene order drift at {scenario_id}")
+        if row.get("status") != "partial" or row.get("p3_batch") != "P3-C":
+            raise MatrixError(f"Phase5 runtime audit closes {scenario_id} prematurely")
+        locked_result = row.get("locked_runtime", {})
+        if (
+            locked_result.get("scan_complete") is not True
+            or locked_result.get("analysis_complete") is not True
+            or locked_result.get("response_truncated") is not False
+        ):
+            raise MatrixError(f"Phase5 locked response is incomplete: {scenario_id}")
+        if scenario_id in result:
+            raise MatrixError(f"duplicate Phase5 runtime audit scene: {scenario_id}")
+        result[scenario_id] = row
+    verdict = audit.get("verdict", {})
+    if (
+        verdict.get("status") != "partial"
+        or verdict.get("termination_and_ambiguity_subset_equivalent_scene_count") != 10
+        or verdict.get("full_response_equivalent_scene_count") != 0
+    ):
+        raise MatrixError("Phase5 runtime audit verdict drifted")
+    return result
+
+
 def scan_constructs(text: str) -> dict[str, list[int]]:
     found: dict[str, list[int]] = {}
     in_block_comment = False
@@ -651,6 +705,19 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
     original_assets = asset_lookup(manifest, "original")
     current_assets = asset_lookup(manifest, "current")
 
+    runtime_baseline = manifest["baselines"]["original_runtime"]
+    audit_asset = current_assets.get(PHASE5_RUNTIME_AUDIT.as_posix())
+    if audit_asset is None:
+        raise MatrixError("P0 manifest does not freeze the Phase5 runtime audit")
+    phase5_runtime_audit = json.loads(
+        validate_frozen_file(repo_root, audit_asset).decode("utf-8")
+    )
+    phase5_runtime_rows = validate_phase5_runtime_audit(
+        phase5_runtime_audit,
+        runtime_baseline["runtime_revision"],
+        runtime_baseline["schema_revision"],
+    )
+
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
     for asset in original_assets.values():
@@ -746,6 +813,12 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         }
         rationale = "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。"
         if group == "phase5":
+            scenario_id = f"active.phase5.{ordinal:02d}"
+            runtime_row = phase5_runtime_rows[scenario_id]
+            if runtime_row["locked_request"] != original["query"]:
+                raise MatrixError(
+                    f"Phase5 runtime request differs from frozen catalog: {scenario_id}"
+                )
             report = phase5_by_scene[ordinal]
             original["report_oracle"] = {
                 "path": PHASE5_REPORT.as_posix(),
@@ -758,12 +831,41 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                     "field": "termination",
                     "catalog_value": row["termination"],
                     "report_value": report["termination"],
-                    "resolution": "P2 必须保留双值并以冻结 runtime 实测裁决，禁止静默选边。",
+                    "resolution": (
+                        "P2 已保留双值；冻结 runtime 实测为 ambiguous。catalog/report 作为"
+                        "历史 oracle 漂移继续保留，禁止静默改写。"
+                    ),
                 }
+            original["locked_runtime_oracle"] = {
+                "path": PHASE5_RUNTIME_AUDIT.as_posix(),
+                "scenario_id": scenario_id,
+                "termination": runtime_row["locked_runtime"]["termination"],
+                "termination_detail": runtime_row["locked_runtime"]["termination_detail"],
+                "scan_complete": runtime_row["locked_runtime"]["scan_complete"],
+                "analysis_complete": runtime_row["locked_runtime"]["analysis_complete"],
+                "response_truncated": runtime_row["locked_runtime"]["response_truncated"],
+            }
             rationale = (
-                "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；"
-                "原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。"
+                "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；"
+                "S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，"
+                "且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。"
             )
+        current = current_evidence(repo_root, current_assets, current_tests, candidate)
+        runtime_evidence = None
+        if group == "phase5":
+            current["evidence_scope"] = (
+                "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭"
+            )
+            runtime_evidence = {
+                "path": PHASE5_RUNTIME_AUDIT.as_posix(),
+                "sha256": audit_asset["sha256"],
+                "scenario_id": scenario_id,
+                "status": runtime_row["status"],
+                "p3_batch": runtime_row["p3_batch"],
+                "locked_termination": runtime_row["locked_runtime"]["termination"],
+                "current_gate_termination": runtime_row["current_gate"]["termination"],
+                "full_response_equivalent": False,
+            }
         scenarios.append({
             "scenario_id": f"active.{group}.{ordinal:02d}",
             "kind": "active_trace_catalog_case",
@@ -771,7 +873,8 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
             "status": "partial",
             "rationale": rationale,
             "original": original,
-            "current": current_evidence(repo_root, current_assets, current_tests, candidate),
+            "current": current,
+            **({"runtime_audit": runtime_evidence} if runtime_evidence else {}),
             "public_request": {
                 "api_version": "xdebug.v1",
                 "action": "trace.active_driver_chain",

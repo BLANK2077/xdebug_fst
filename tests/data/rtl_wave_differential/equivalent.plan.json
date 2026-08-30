@@ -1,0 +1,69 @@
+{
+  "schema_version": "xdebug.public-action-differential-plan.v1",
+  "plan_id": "p2.synthetic.fsdb-fst.semantic-equivalence",
+  "observations": [
+    {
+      "observation_id": "typed_wave",
+      "action": "signal.changes",
+      "ignore": [
+        {"pointer": "/response/tool", "reason": "运行时版本元数据不属于波形语义"},
+        {"pointer": "/response/session", "reason": "session 标识、socket 与源格式路径按侧必然不同"}
+      ],
+      "rewrites": [
+        {"side": "original", "pointer": "/request/args/signal", "from": "top.u_fsdb.bus", "to": "wave.bus", "reason": "P1 映射确认两侧观察点等价"},
+        {"side": "current", "pointer": "/request/args/signal", "from": "top.u_fst.bus", "to": "wave.bus", "reason": "P1 映射确认两侧观察点等价"},
+        {"side": "original", "pointer": "/response/summary/signal", "from": "top.u_fsdb.bus", "to": "wave.bus", "reason": "P1 映射确认两侧观察点等价"},
+        {"side": "current", "pointer": "/response/summary/signal", "from": "top.u_fst.bus", "to": "wave.bus", "reason": "P1 映射确认两侧观察点等价"},
+        {"side": "original", "pointer": "/response/data/signals/0/path", "from": "top.u_fsdb.bus", "to": "wave.bus", "reason": "P1 映射确认两侧观察点等价"},
+        {"side": "current", "pointer": "/response/data/signals/0/path", "from": "top.u_fst.bus", "to": "wave.bus", "reason": "P1 映射确认两侧观察点等价"}
+      ],
+      "requirements": [
+        {"pointer": "/response/summary/scan_complete", "equals": true, "reason": "transition 必须完成全窗口扫描"},
+        {"pointer": "/response/summary/analysis_complete", "equals": true, "reason": "类型和值分析必须完整"},
+        {"pointer": "/response/summary/response_truncated", "equals": false, "reason": "不得用裁剪响应宣称等价"},
+        {"pointer": "/response/summary/value_width_complete", "equals": true, "reason": "值宽度必须完整，不能靠省略宽度诊断宣称等价"},
+        {"pointer": "/response/summary/width_diagnostics", "equals": [], "reason": "宽度完整时不得残留诊断"}
+      ]
+    },
+    {
+      "observation_id": "axi_transactions",
+      "action": "axi.query",
+      "ignore": [
+        {"pointer": "/response/tool", "reason": "运行时版本元数据不属于协议波形语义"},
+        {"pointer": "/response/session", "reason": "session 标识、socket 与源格式路径按侧必然不同"}
+      ],
+      "requirements": [
+        {"pointer": "/response/summary/scan_complete", "equals": true, "reason": "协议扫描必须完整"},
+        {"pointer": "/response/summary/analysis_complete", "equals": true, "reason": "协议配对分析必须完整"},
+        {"pointer": "/response/summary/response_truncated", "equals": false, "reason": "不得漏掉 transaction"}
+      ]
+    },
+    {
+      "observation_id": "phase5_trace",
+      "action": "trace.active_driver_chain",
+      "ignore": [
+        {"pointer": "/response/tool", "reason": "运行时版本元数据不属于活动驱动语义"},
+        {"pointer": "/response/session", "reason": "session 标识、socket 与源格式路径按侧必然不同"}
+      ],
+      "rewrites": [
+        {"side": "original", "pointer": "/request/args/signal", "from": "top.u_dut.dout[2]", "to": "phase5.dout[2]", "reason": "P1 Phase5 RTL 端口映射"},
+        {"side": "current", "pointer": "/request/args/signal", "from": "top.phase5_dut.dout[2]", "to": "phase5.dout[2]", "reason": "P1 Phase5 RTL 端口映射"},
+        {"side": "original", "pointer": "/response/summary/signal", "from": "top.u_dut.dout[2]", "to": "phase5.dout[2]", "reason": "P1 Phase5 RTL 端口映射"},
+        {"side": "current", "pointer": "/response/summary/signal", "from": "top.phase5_dut.dout[2]", "to": "phase5.dout[2]", "reason": "P1 Phase5 RTL 端口映射"},
+        {"side": "original", "pointer": "/response/data/hops/0/signal", "from": "top.u_dut.dout[2]", "to": "phase5.dout[2]", "reason": "P1 Phase5 RTL 端口映射"},
+        {"side": "current", "pointer": "/response/data/hops/0/signal", "from": "top.phase5_dut.dout[2]", "to": "phase5.dout[2]", "reason": "P1 Phase5 RTL 端口映射"},
+        {"side": "original", "pointer": "/response/data/hops/0/file", "from": "active_trace_chain/phase5/dut.sv", "to": "phase5.normal_lane_assign", "reason": "P1 记录的等价 RTL construct"},
+        {"side": "current", "pointer": "/response/data/hops/0/file", "from": "testdata/fixtures/phase5/phase5_dut.sv", "to": "phase5.normal_lane_assign", "reason": "P1 记录的等价 RTL construct"},
+        {"side": "original", "pointer": "/response/data/hops/0/line", "from": 37, "to": "normal_lane_assign", "reason": "原版 normal lane 赋值语句"},
+        {"side": "current", "pointer": "/response/data/hops/0/line", "from": 39, "to": "normal_lane_assign", "reason": "当前 normal lane 赋值语句"}
+      ],
+      "requirements": [
+        {"pointer": "/response/summary/scan_complete", "equals": true, "reason": "active trace 候选扫描必须完整"},
+        {"pointer": "/response/summary/analysis_complete", "equals": true, "reason": "活动驱动分析必须完整"},
+        {"pointer": "/response/summary/response_truncated", "equals": false, "reason": "不得以裁剪链宣称等价"},
+        {"pointer": "/response/summary/value_width_complete", "equals": true, "reason": "synthetic 完整响应必须显式证明 hop 值宽度完整"},
+        {"pointer": "/response/summary/width_diagnostics", "equals": [], "reason": "synthetic 完整响应不得隐去宽度诊断"}
+      ]
+    }
+  ]
+}

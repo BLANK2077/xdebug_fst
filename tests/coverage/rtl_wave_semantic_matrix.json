@@ -30789,7 +30789,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -30824,6 +30824,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.01",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.dout[2]",
@@ -30945,7 +30954,17 @@
           "time": "10ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.01",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.01",
       "status": "partial"
     },
@@ -31006,7 +31025,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -31041,6 +31060,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.02",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.dout[2]",
@@ -31162,7 +31190,17 @@
           "time": "20ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.02",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.02",
       "status": "partial"
     },
@@ -31223,7 +31261,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -31258,6 +31296,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.03",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.dout[2]",
@@ -31379,7 +31426,17 @@
           "time": "30ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.03",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.03",
       "status": "partial"
     },
@@ -31440,7 +31497,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -31475,6 +31532,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.04",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.dout[2]",
@@ -31596,7 +31662,17 @@
           "time": "41ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.04",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.04",
       "status": "partial"
     },
@@ -31657,7 +31733,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -31692,6 +31768,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.05",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.dout[1]",
@@ -31813,7 +31898,17 @@
           "time": "50ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.05",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.05",
       "status": "partial"
     },
@@ -31874,7 +31969,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -31890,7 +31985,7 @@
           "catalog_value": "ambiguous",
           "field": "termination",
           "report_value": "control_only",
-          "resolution": "P2 必须保留双值并以冻结 runtime 实测裁决，禁止静默选边。"
+          "resolution": "P2 已保留双值；冻结 runtime 实测为 ambiguous。catalog/report 作为历史 oracle 漂移继续保留，禁止静默改写。"
         },
         "case": "phase5",
         "catalog": {
@@ -31915,6 +32010,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.06",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.dout[1]",
@@ -32036,7 +32140,17 @@
           "time": "60ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.06",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.06",
       "status": "partial"
     },
@@ -32097,7 +32211,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -32132,6 +32246,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.07",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_active_candidates"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.flag[2]",
@@ -32253,7 +32376,17 @@
           "time": "71ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.07",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.07",
       "status": "partial"
     },
@@ -32314,7 +32447,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -32330,7 +32463,7 @@
           "catalog_value": "primary_input",
           "field": "termination",
           "report_value": "control_only",
-          "resolution": "P2 必须保留双值并以冻结 runtime 实测裁决，禁止静默选边。"
+          "resolution": "P2 已保留双值；冻结 runtime 实测为 ambiguous。catalog/report 作为历史 oracle 漂移继续保留，禁止静默改写。"
         },
         "case": "phase5",
         "catalog": {
@@ -32355,6 +32488,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.08",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_active_candidates"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.flag[2]",
@@ -32476,7 +32618,17 @@
           "time": "81ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.08",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.08",
       "status": "partial"
     },
@@ -32537,7 +32689,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -32572,6 +32724,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.09",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_rhs_sources"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.dout[2]",
@@ -32693,7 +32854,17 @@
           "time": "90ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.09",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.09",
       "status": "partial"
     },
@@ -32754,7 +32925,7 @@
             "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
         "test_evidence": [
           {
             "line": 1737,
@@ -32789,6 +32960,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "locked_runtime_oracle": {
+          "analysis_complete": true,
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "response_truncated": false,
+          "scan_complete": true,
+          "scenario_id": "active.phase5.10",
+          "termination": "ambiguous",
+          "termination_detail": "multiple_active_candidates"
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.u_dut.flag[2]",
@@ -32910,7 +33090,17 @@
           "time": "100ns"
         }
       },
-      "rationale": "当前 Phase5 RTL 与刺激近似，但既有测试把该组结果统一断言为 ambiguous；原版逐 scene oracle 不同，且 S6/S8 另有 catalog/report 冲突。",
+      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "runtime_audit": {
+        "current_gate_termination": "ambiguous",
+        "full_response_equivalent": false,
+        "locked_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "scenario_id": "active.phase5.10",
+        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+        "status": "partial"
+      },
       "scenario_id": "active.phase5.10",
       "status": "partial"
     },

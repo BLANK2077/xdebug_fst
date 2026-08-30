@@ -1,0 +1,75 @@
+{
+  "schema_version": "xdebug.public-action-observation-bundle.v1",
+  "side": "current",
+  "waveform_format": "fst",
+  "observations": [
+    {
+      "observation_id": "typed_wave",
+      "action": "signal.changes",
+      "request": {"api_version": "xdebug.v1", "action": "signal.changes", "args": {"signal": "top.u_fst.bus", "begin": "1000ps", "end": "2000000fs"}},
+      "response": {
+        "api_version": "xdebug.v1",
+        "ok": true,
+        "action": "signal.changes",
+        "tool": {"name": "xdebug-fst", "version": "current"},
+        "session": {"session_id": "fst-case", "fsdb": "waves.fst", "transport": "stdio", "socket_path": "fst.sock"},
+        "summary": {"signal": "top.u_fst.bus", "scan_complete": true, "analysis_complete": true, "response_truncated": false, "total_count": 3, "returned_count": 3, "value_width_complete": true, "width_diagnostics": []},
+        "data": {
+          "signals": [
+            {"path": "top.u_fst.bus", "type": "logic", "width": 4, "timescale": "1000fs"},
+            {"path": "wave.typed_real", "type": "real", "width": null, "timescale": "1000fs"}
+          ],
+          "changes": [
+            {"time": "1000000fs", "delta": 0, "value": {"value": "4'bXXXX", "known": false, "width": 4, "bits": "XXXX"}},
+            {"time": "1000ps", "delta": 1, "value": {"value": "4'b10Z1", "known": false, "width": 4, "bits": "10Z1"}},
+            {"time": "2000ps", "delta": 0, "value": {"value": "4'b1111", "known": true, "width": 4, "bits": "1111"}}
+          ],
+          "typed_values": [
+            {"kind": "real", "value": "1.5"},
+            {"kind": "string", "value": "波形"},
+            {"kind": "event", "value": "triggered"}
+          ]
+        },
+        "error": null
+      }
+    },
+    {
+      "observation_id": "axi_transactions",
+      "action": "axi.query",
+      "request": {"api_version": "xdebug.v1", "action": "axi.query", "args": {"name": "if0", "direction": "write"}},
+      "response": {
+        "api_version": "xdebug.v1",
+        "ok": true,
+        "action": "axi.query",
+        "tool": {"name": "xdebug-fst", "version": "current"},
+        "session": {"session_id": "fst-axi", "fsdb": "axi.fst", "transport": "stdio", "socket_path": "axi-fst.sock"},
+        "summary": {"name": "if0", "scan_complete": true, "analysis_complete": true, "response_truncated": false, "total_count": 2, "returned_count": 2},
+        "data": {
+          "transactions": [
+            {"id": "4'b0001", "address": "32'h1000", "start_time": "10000ps", "end_time": "14000ps", "latency": "4000ps", "response": "2'b00", "outstanding": 1, "stalled_cycles": 0},
+            {"id": "4'b0010", "address": "32'h2000", "start_time": "11000ps", "end_time": "13000ps", "latency": "2000ps", "response": "2'b00", "outstanding": 2, "stalled_cycles": 1}
+          ]
+        },
+        "error": null
+      }
+    },
+    {
+      "observation_id": "phase5_trace",
+      "action": "trace.active_driver_chain",
+      "request": {"api_version": "xdebug.v1", "action": "trace.active_driver_chain", "args": {"signal": "top.phase5_dut.dout[2]", "time": "10000ps"}},
+      "response": {
+        "api_version": "xdebug.v1",
+        "ok": true,
+        "action": "trace.active_driver_chain",
+        "tool": {"name": "xdebug-fst", "version": "current"},
+        "session": null,
+        "summary": {"signal": "top.phase5_dut.dout[2]", "time": "10000ps", "termination": "ambiguous", "termination_detail": "multiple_rhs_sources", "scan_complete": true, "analysis_complete": true, "response_truncated": false, "total_count": 1, "returned_count": 1, "value_width_complete": true, "width_diagnostics": []},
+        "data": {
+          "hops": [{"index": 0, "signal": "top.phase5_dut.dout[2]", "time": "10000ps", "active_time": "10000000fs", "value": "8'bXXXXXXXX", "file": "testdata/fixtures/phase5/phase5_dut.sv", "line": 39}],
+          "ambiguity_evidence": {"kind": "multiple_rhs_sources", "rhs_signal_count": 6}
+        },
+        "error": null
+      }
+    }
+  ]
+}

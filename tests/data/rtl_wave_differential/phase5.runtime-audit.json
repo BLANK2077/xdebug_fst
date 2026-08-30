@@ -1,0 +1,581 @@
+{
+  "schema_version": "xdebug.phase5-runtime-audit.v1",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "audit_date": "2026-08-30",
+  "scope": "Phase5 S1-S10 trace.active_driver_chain 公开响应；不比较 FSDB/FST 二进制",
+  "authority_order": [
+    "locked_original_runtime",
+    "goal_start_asset_runtime",
+    "frozen_asset_catalog_and_report"
+  ],
+  "locked_original_runtime": {
+    "git_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
+    "self_reported_git_revision": "8eecf71271cc",
+    "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "build_id": "8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "action_count": 73,
+    "build_source": "当前仓库 ignored build 目录中的只读 detached snapshot",
+    "build_products_committed": false,
+    "session": {
+      "mode": "combined",
+      "transport": "uds",
+      "opened": true,
+      "closed_gracefully": true,
+      "all_runtime_writes_repository_local": true
+    },
+    "fixture": {
+      "fixture_id": "xdebug.active_trace_phase5",
+      "fingerprint": "2ee4a76b564e9c59197f85abde73928afc903d82fcf77224ccf1b99b3d160442",
+      "cache_version": "2ee4a76b564e9c59197f85abde73928afc903d82fcf77224ccf1b99b3d160442-prepare-tydl8ogq",
+      "format": "fsdb",
+      "fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+      "fsdb_size": 10799,
+      "daidir_used": true,
+      "cache_reused": true,
+      "fixture_rebuilt": false,
+      "source_access": "read_only",
+      "proprietary_artifacts_committed": false
+    },
+    "schema_queries": [
+      "session.open",
+      "trace.active_driver_chain",
+      "session.close"
+    ],
+    "external_write_audit": {
+      "xverif_status_porcelain_sha256_before": "b2daea28c5ba75a4342962fc1a08f429bced7939e6fa14a386989590d3081966",
+      "xverif_status_porcelain_sha256_after": "b2daea28c5ba75a4342962fc1a08f429bced7939e6fa14a386989590d3081966",
+      "unchanged": true
+    }
+  },
+  "goal_start_asset_runtime": {
+    "role": "corroborating_only",
+    "git_revision": "478a944d2b1e",
+    "schema_revision": "6ace27b232adefe5a896cb4222f9ea539e6127e600baf1761e560ec103872574",
+    "action_count": 73,
+    "all_scene_summaries_match_locked_runtime": true,
+    "reason_not_authoritative": "Goal-start 测试资产 HEAD 不是 dependencies.lock.json 冻结运行时"
+  },
+  "current_runtime": {
+    "repository_head_at_query": "bd602e33bb1ba675c070b88f4532e9489b343cf6",
+    "binary": "build/xdebug-fst",
+    "fixture": {
+      "fixture_id": "current.phase5",
+      "format": "fst",
+      "fst_sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d",
+      "design_db_format": "xdd-so",
+      "fixture_rebuilt": false
+    },
+    "focused_gate": {
+      "test": "tests/test_combined.py::test_trace_active_driver_chain_matches_original_phase5_public_semantics",
+      "result": "passed",
+      "passed": 1,
+      "failed": 0,
+      "backend_changed": false,
+      "fixture_changed": false,
+      "repository_local_uds_tmp": true
+    },
+    "environment_diagnostic": {
+      "first_attempt_counted_as_acceptance": false,
+      "cause": "pytest 隔离 HOME 生成的 UDS 路径超过 sockaddr_un 容量",
+      "resolution": "使用仓库既有 XVERIF_TEST_TMPDIR 合同并指向当前仓库内短路径",
+      "fallback_used": false
+    }
+  },
+  "scene_results": [
+    {
+      "scenario_id": "active.phase5.01",
+      "scene": "S1",
+      "asset_oracles": {
+        "catalog_termination": "ambiguous",
+        "report_termination": "ambiguous"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.dout[2]",
+        "time": "10ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.dout[2]",
+        "time": "10ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "10ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 1,
+        "returned_count": 1,
+        "hop_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [37],
+        "value_width_complete": false,
+        "width_diagnostic_reasons": ["npi_range_size_unavailable"]
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "10ns",
+        "total_count": 1,
+        "returned_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [39]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    },
+    {
+      "scenario_id": "active.phase5.02",
+      "scene": "S2",
+      "asset_oracles": {
+        "catalog_termination": "primary_input",
+        "report_termination": "primary_input"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.dout[2]",
+        "time": "20ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.dout[2]",
+        "time": "20ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "20ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 1,
+        "returned_count": 1,
+        "hop_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [37],
+        "value_width_complete": false,
+        "width_diagnostic_reasons": ["npi_range_size_unavailable"]
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "20ns",
+        "total_count": 1,
+        "returned_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [39]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    },
+    {
+      "scenario_id": "active.phase5.03",
+      "scene": "S3",
+      "asset_oracles": {
+        "catalog_termination": "primary_input",
+        "report_termination": "primary_input"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.dout[2]",
+        "time": "30ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.dout[2]",
+        "time": "30ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "30ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 1,
+        "returned_count": 1,
+        "hop_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [37],
+        "value_width_complete": false,
+        "width_diagnostic_reasons": ["npi_range_size_unavailable"]
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "30ns",
+        "total_count": 1,
+        "returned_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [39]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    },
+    {
+      "scenario_id": "active.phase5.04",
+      "scene": "S4",
+      "asset_oracles": {
+        "catalog_termination": "primary_input",
+        "report_termination": "primary_input"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.dout[2]",
+        "time": "41ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.dout[2]",
+        "time": "41ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "41ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 1,
+        "returned_count": 1,
+        "hop_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [37],
+        "value_width_complete": false,
+        "width_diagnostic_reasons": ["npi_range_size_unavailable"]
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "41ns",
+        "total_count": 1,
+        "returned_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [39]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    },
+    {
+      "scenario_id": "active.phase5.05",
+      "scene": "S5",
+      "asset_oracles": {
+        "catalog_termination": "control_only",
+        "report_termination": "control_only"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.dout[1]",
+        "time": "50ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.dout[1]",
+        "time": "50ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "50ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 1,
+        "returned_count": 1,
+        "hop_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [37],
+        "value_width_complete": false,
+        "width_diagnostic_reasons": ["npi_range_size_unavailable"]
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "50ns",
+        "total_count": 1,
+        "returned_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [39]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    },
+    {
+      "scenario_id": "active.phase5.06",
+      "scene": "S6",
+      "asset_oracles": {
+        "catalog_termination": "ambiguous",
+        "report_termination": "control_only"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.dout[1]",
+        "time": "60ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.dout[1]",
+        "time": "60ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "50ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 1,
+        "returned_count": 1,
+        "hop_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [37],
+        "value_width_complete": false,
+        "width_diagnostic_reasons": ["npi_range_size_unavailable"]
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "50ns",
+        "total_count": 1,
+        "returned_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [39]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    },
+    {
+      "scenario_id": "active.phase5.07",
+      "scene": "S7",
+      "asset_oracles": {
+        "catalog_termination": "control_only",
+        "report_termination": "control_only"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.flag[2]",
+        "time": "71ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.flag[2]",
+        "time": "71ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_active_candidates",
+        "active_time": "71ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 0,
+        "returned_count": 0,
+        "hop_count": 0,
+        "evidence_kind": "multiple_active_candidates",
+        "statement_count": 2,
+        "rhs_signal_count": 9,
+        "statement_lines": [34, 39],
+        "value_width_complete": true,
+        "width_diagnostic_reasons": []
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_active_candidates",
+        "active_time": "71ns",
+        "total_count": 0,
+        "returned_count": 0,
+        "evidence_kind": "multiple_active_candidates",
+        "statement_count": 2,
+        "rhs_signal_count": 9,
+        "statement_lines": [37, 42]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    },
+    {
+      "scenario_id": "active.phase5.08",
+      "scene": "S8",
+      "asset_oracles": {
+        "catalog_termination": "primary_input",
+        "report_termination": "control_only"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.flag[2]",
+        "time": "81ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.flag[2]",
+        "time": "81ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_active_candidates",
+        "active_time": "71ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 0,
+        "returned_count": 0,
+        "hop_count": 0,
+        "evidence_kind": "multiple_active_candidates",
+        "statement_count": 2,
+        "rhs_signal_count": 9,
+        "statement_lines": [34, 39],
+        "value_width_complete": true,
+        "width_diagnostic_reasons": []
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_active_candidates",
+        "active_time": "71ns",
+        "total_count": 0,
+        "returned_count": 0,
+        "evidence_kind": "multiple_active_candidates",
+        "statement_count": 2,
+        "rhs_signal_count": 9,
+        "statement_lines": [37, 42]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    },
+    {
+      "scenario_id": "active.phase5.09",
+      "scene": "S9",
+      "asset_oracles": {
+        "catalog_termination": "primary_input",
+        "report_termination": "primary_input"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.dout[2]",
+        "time": "90ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.dout[2]",
+        "time": "90ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "90ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 1,
+        "returned_count": 1,
+        "hop_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [37],
+        "value_width_complete": false,
+        "width_diagnostic_reasons": ["npi_range_size_unavailable"]
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_rhs_sources",
+        "active_time": "90ns",
+        "total_count": 1,
+        "returned_count": 1,
+        "evidence_kind": "multiple_rhs_sources",
+        "statement_count": 1,
+        "rhs_signal_count": 6,
+        "statement_lines": [39]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    },
+    {
+      "scenario_id": "active.phase5.10",
+      "scene": "S10",
+      "asset_oracles": {
+        "catalog_termination": "control_only",
+        "report_termination": "control_only"
+      },
+      "locked_request": {
+        "signal": "top.u_dut.flag[2]",
+        "time": "100ns"
+      },
+      "current_request": {
+        "signal": "top.phase5_dut.flag[2]",
+        "time": "100ns"
+      },
+      "locked_runtime": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_active_candidates",
+        "active_time": "71ns",
+        "scan_complete": true,
+        "analysis_complete": true,
+        "response_truncated": false,
+        "total_count": 0,
+        "returned_count": 0,
+        "hop_count": 0,
+        "evidence_kind": "multiple_active_candidates",
+        "statement_count": 2,
+        "rhs_signal_count": 9,
+        "statement_lines": [34, 39],
+        "value_width_complete": true,
+        "width_diagnostic_reasons": []
+      },
+      "current_gate": {
+        "termination": "ambiguous",
+        "termination_detail": "multiple_active_candidates",
+        "active_time": "71ns",
+        "total_count": 0,
+        "returned_count": 0,
+        "evidence_kind": "multiple_active_candidates",
+        "statement_count": 2,
+        "rhs_signal_count": 9,
+        "statement_lines": [37, 42]
+      },
+      "status": "partial",
+      "p3_batch": "P3-C"
+    }
+  ],
+  "full_response_spot_check": {
+    "scenario_id": "active.phase5.01",
+    "locked_and_current_subset_matches": [
+      "termination",
+      "termination_detail",
+      "active_time",
+      "scan_complete",
+      "analysis_complete",
+      "response_truncated",
+      "total_count",
+      "returned_count",
+      "ambiguity kind/counts",
+      "RHS sampled values after hierarchy mapping"
+    ],
+    "remaining_observable_differences": [
+      "原版 summary 明确 value_width_complete=false 并给出 npi_range_size_unavailable；当前响应省略两个可选宽度诊断字段",
+      "原版 hop value 为 unsized 'h01，当前为已知宽度 8'h01",
+      "原版 RHS sample 顺序按 ctrl_mode/ctrl_sel/en1/src_a/src_b/src_c，当前顺序按 DesignDB 表达式事实",
+      "原版 statement kind/driver 为 assignment 与完整 NPI statement，当前为 proc_assign 与静态 kind",
+      "两侧 file:line/source_context 因等价 RTL 的变量名、函数名和文件头不同而不同"
+    ]
+  },
+  "oracle_drift_summary": {
+    "catalog_mismatch_scene_count": 8,
+    "report_mismatch_scene_count": 9,
+    "catalog_report_conflict_scenes": ["S6", "S8"],
+    "runtime_resolution": "冻结运行时 S1-S10 均为 ambiguous；资产 catalog/report 作为历史 oracle 漂移保留，不覆盖运行时结果"
+  },
+  "verdict": {
+    "status": "partial",
+    "p3_batch": "P3-C",
+    "termination_and_ambiguity_subset_equivalent_scene_count": 10,
+    "full_response_equivalent_scene_count": 0,
+    "reason": "10 个场景的终止与歧义证据子集已对齐，但至少 S1 的完整公开响应仍有宽度、顺序、statement 和源码证据差异；不得提前升级为 semantic-equivalent"
+  }
+}
