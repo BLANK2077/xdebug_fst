@@ -134,6 +134,14 @@ struct ValueAtHandler : public EngineActionHandler {
             refs.push_back(ref);
             if (ref) wf->load_signals({ref});
         }
+        // The locked xdebug contract treats an unresolved direct selector as
+        // a request failure.  Per-cell signal_not_found remains available to
+        // collection selectors, whose entries may be projected independently.
+        if (source_kind == "signal" &&
+            (refs.empty() || refs.front() == IWaveformBackend::kInvalidSignalRef)) {
+            return value_error("SIGNAL_NOT_FOUND",
+                               "signal not found in waveform: " + source_name);
+        }
         bool value_width_complete = true;
         Json width_diagnostics = Json::array();
         for (size_t i = 0; i < refs.size(); ++i) {
@@ -159,6 +167,7 @@ struct ValueAtHandler : public EngineActionHandler {
         Json samples = Json::array();
         for (size_t time_i = 0; time_i < ticks.size(); ++time_i) {
             const uint32_t ti = wf->time_idx_of(ticks[time_i]);
+            bool any_edge_hit = !clocked;
             bool target_edge_hit = !clocked;
             Json clock_context;
             IWaveformBackend::ObservationPoint clock_point =
@@ -201,7 +210,8 @@ struct ValueAtHandler : public EngineActionHandler {
                     else if (edge_time > ticks[time_i] && next.is_null())
                         next = wf->format_time(edge_time, render_unit);
                 }
-                target_edge_hit = !exact_kind.empty() &&
+                any_edge_hit = !exact_kind.empty();
+                target_edge_hit = any_edge_hit &&
                     (edge == "dual" || edge == exact_kind);
                 const Json requested{{"edge", edge},
                     {"sample_point", requested_point.empty()
@@ -217,7 +227,7 @@ struct ValueAtHandler : public EngineActionHandler {
                     {"sample_point_ignored_for_negedge",
                         negedge && !requested_point.empty()},
                     {"requested_time", wf->format_time(ticks[time_i], render_unit)},
-                    {"requested_any_edge_hit", !exact_kind.empty()},
+                    {"requested_any_edge_hit", any_edge_hit},
                     {"clock_edge_kind", exact_kind.empty()
                         ? Json(nullptr) : Json(exact_kind)},
                     {"requested_target_edge_hit", target_edge_hit},
@@ -232,7 +242,11 @@ struct ValueAtHandler : public EngineActionHandler {
             for (size_t i = 0; i < entries.size(); ++i) {
                 Json row{{"key", entries[i].key}};
                 if (!refs[i]) { row["status"] = "signal_not_found"; values.push_back(row); continue; }
-                if (clocked && !target_edge_hit) {
+                // A value exists at any exact clock transition.  The target
+                // edge match remains diagnostic metadata: the locked xdebug
+                // behavior returns the finalized value on an opposite edge,
+                // while a time with no clock transition is missing.
+                if (clocked && !any_edge_hit) {
                     row["status"] = "missing_value";
                     values.push_back(row);
                     continue;

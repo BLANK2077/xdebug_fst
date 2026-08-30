@@ -942,6 +942,13 @@ static Json run_event_find(const Json& args) {
         if (!ref) return make_error("SIGNAL_NOT_FOUND", "event signal not found");
         wf->load_signals({ref});
     }
+    uint32_t reset_ref = IWaveformBackend::kInvalidSignalRef;
+    if (config.contains("reset")) {
+        reset_ref = wf->find_signal(config.at("reset").at("signal"));
+        if (!reset_ref)
+            return make_error("SIGNAL_NOT_FOUND", "event reset signal not found");
+        wf->load_signals({reset_ref});
+    }
     std::string parse_error;
     std::unique_ptr<ExprNode> expression(parse_expression(args.at("expr"), parse_error));
     if (!expression || !bind_event_expression(expression.get(), signals, fields,
@@ -987,9 +994,8 @@ static Json run_event_find(const Json& args) {
         ++sample_count;
         if (config.contains("reset")) {
             const Json reset = config.at("reset");
-            const uint32_t reset_ref = wf->find_signal(reset.at("signal"));
             IWaveformBackend::SampledValue reset_value;
-            if (!reset_ref || !wf->sampled_value_at(reset_ref, ti, point, reset_value) ||
+            if (!wf->sampled_value_at(reset_ref, ti, point, reset_value) ||
                 reset_value.value.text.empty() ||
                 (reset.at("polarity") == "active_low"
                     ? reset_value.value.text.back() != '1'

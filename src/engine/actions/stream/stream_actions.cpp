@@ -91,6 +91,14 @@ static std::string signal_bits_at(IWaveformBackend* wf, uint32_t ref,
     return wf->signal_value_str(ref, off.start, 0);
 }
 
+static std::string sampled_signal_bits_at(
+        IWaveformBackend* wf, uint32_t ref, uint32_t ti,
+        IWaveformBackend::ObservationPoint point) {
+    IWaveformBackend::SampledValue sampled;
+    return ref && wf->sampled_value_at(ref, ti, point, sampled)
+        ? sampled.value.text : std::string();
+}
+
 /// Check if a signal value at a time index is considered "high".
 /// Returns false if signal not found / not loaded.
 static bool signal_is_high_at(IWaveformBackend* wf, uint32_t ref, uint32_t ti) {
@@ -228,9 +236,11 @@ static bool parse_stream(const Json& input, StreamConfig& cfg, std::string& mess
         return false;
     }
     cfg.data.clear();
-    if (!cfg.beat_fields.empty()) {
-        const std::string expression = cfg.beat_fields.begin().value();
-        cfg.data = resolve(expression);
+    if (input.contains("data")) {
+        cfg.data = resolve(input.at("data"));
+    } else if (cfg.beat_fields.contains("data") &&
+               cfg.beat_fields.at("data").is_string()) {
+        cfg.data = resolve(cfg.beat_fields.at("data"));
     }
     cfg.source = input;
     cfg.source["edge"] = cfg.edge;
@@ -309,7 +319,9 @@ static std::string resolve_field_expression(const std::string& expression,
 static bool evaluate_field_expression(const std::string& expression,
                                       const StreamConfig& cfg,
                                       const IWaveformBackend& wf,
-                                      uint32_t time_idx, LogicValue& value,
+                                      uint32_t time_idx,
+                                      IWaveformBackend::ObservationPoint point,
+                                      LogicValue& value,
                                       std::string& message) {
     std::string text = expression;
     const auto first = text.find_first_not_of(" \t");
@@ -332,7 +344,9 @@ static bool evaluate_field_expression(const std::string& expression,
         std::string bits;
         for (const auto& item : parts) {
             LogicValue component;
-            if (!evaluate_field_expression(item,cfg,wf,time_idx,component,message)) return false;
+            if (!evaluate_field_expression(
+                    item, cfg, wf, time_idx, point, component, message))
+                return false;
             bits += component.bits;
         }
         value = logic_value_from_bits(bits,static_cast<int>(bits.size()));
@@ -341,18 +355,21 @@ static bool evaluate_field_expression(const std::string& expression,
     const std::string resolved = resolve_field_expression(text,cfg);
     std::unique_ptr<ExprNode> root(parse_expression(resolved,message));
     if (!root) return false;
-    value = eval_expression(root.get(),wf,time_idx);
+    value = eval_expression(root.get(), wf, time_idx, nullptr, point);
     return !value.bits.empty();
 }
 
 static Json stream_fields_at(const StreamConfig& cfg, const IWaveformBackend& wf,
-                             uint32_t time_idx, ValueRenderFormat format,
+                             uint32_t time_idx,
+                             IWaveformBackend::ObservationPoint point,
+                             ValueRenderFormat format,
                              bool& complete) {
     Json fields = Json::object();
     for (const auto& item : cfg.beat_fields.items()) {
         LogicValue value; std::string message;
         if (!item.value().is_string() ||
-            !evaluate_field_expression(item.value(),cfg,wf,time_idx,value,message)) {
+            !evaluate_field_expression(
+                item.value(), cfg, wf, time_idx, point, value, message)) {
             complete = false;
             continue;
         }
@@ -382,52 +399,82 @@ static std::vector<StreamSample> scan_stream_samples(
         bp_ref=cfg.backpressure.empty()?0:load_signal(wf,cfg.backpressure);
     const uint32_t sop_ref=cfg.sop.empty()?0:load_signal(wf,cfg.sop),
         eop_ref=cfg.eop.empty()?0:load_signal(wf,cfg.eop);
-    std::string previous_clock;
-    bool have_previous = false;
+    const uint32_t reset_ref=cfg.reset.empty()?0:load_signal(wf,cfg.reset);
+    const IWaveformBackend::ObservationPoint point = cfg.edge == "negedge"
+        ? IWaveformBackend::ObservationPoint::Raw
+        : (cfg.sample_point == "after"
+            ? IWaveformBackend::ObservationPoint::After
+            : IWaveformBackend::ObservationPoint::Before);
     size_t cycle = 0;
     for (uint32_t ti : wf->time_indices_of(clk_ref)) {
-        IWaveformBackend::SignalOffset offset;
-        if (!wf->signal_offset_at(clk_ref,ti,offset) || !offset.time_match) continue;
-        const std::string current_clock=wf->signal_value_str(clk_ref,offset.start,0);
-        const bool rising=have_previous && is_rising_edge(previous_clock,current_clock);
-        previous_clock=current_clock; have_previous=true;
-        if (!rising || ti < begin_ti) continue;
+        IWaveformBackend::SampledValue before_clock, raw_clock;
+        if (!wf->sampled_value_at(
+                clk_ref, ti, IWaveformBackend::ObservationPoint::Before,
+                before_clock) ||
+            !wf->sampled_value_at(
+                clk_ref, ti, IWaveformBackend::ObservationPoint::Raw,
+                raw_clock)) continue;
+        const bool rising = is_rising_edge(
+            before_clock.value.text, raw_clock.value.text);
+        const bool falling = is_falling_edge(
+            before_clock.value.text, raw_clock.value.text);
+        const bool selected = cfg.edge == "dual" ? (rising || falling)
+            : cfg.edge == "posedge" ? rising : falling;
+        if (!selected || ti < begin_ti) continue;
         if (ti > end_ti) break;
+        if (reset_ref) {
+            const std::string reset_bits = sampled_signal_bits_at(
+                wf, reset_ref, ti, point);
+            const bool reset_deasserted = cfg.reset_polarity == "active_low"
+                ? reset_bits == "1" : reset_bits == "0";
+            if (!reset_deasserted) continue;
+        }
         StreamSample sample;
         sample.cycle=cycle++; sample.time_idx=ti; sample.time=wf->time_at(ti);
-        const std::string vld_bits=signal_bits_at(wf,vld_ref,ti);
-        const std::string rdy_bits=rdy_ref?signal_bits_at(wf,rdy_ref,ti):"1";
-        const std::string bp_bits=bp_ref?signal_bits_at(wf,bp_ref,ti):"0";
-        const std::string sop_bits=sop_ref?signal_bits_at(wf,sop_ref,ti):"0";
-        const std::string eop_bits=eop_ref?signal_bits_at(wf,eop_ref,ti):"0";
+        const std::string vld_bits=sampled_signal_bits_at(wf,vld_ref,ti,point);
+        const std::string rdy_bits=rdy_ref
+            ? sampled_signal_bits_at(wf,rdy_ref,ti,point):"1";
+        const std::string bp_bits=bp_ref
+            ? sampled_signal_bits_at(wf,bp_ref,ti,point):"0";
+        const std::string sop_bits=sop_ref
+            ? sampled_signal_bits_at(wf,sop_ref,ti,point):"0";
+        const std::string eop_bits=eop_ref
+            ? sampled_signal_bits_at(wf,eop_ref,ti,point):"0";
         sample.control_known=is_known_binary(vld_bits)&&
             is_known_binary(rdy_bits)&&is_known_binary(bp_bits)&&
             is_known_binary(sop_bits)&&is_known_binary(eop_bits);
         sample.ready_bp_conflict=rdy_ref&&bp_ref&&
             is_high(rdy_bits)&&is_high(bp_bits);
-        const bool v_now=signal_is_high_at(wf,vld_ref,ti),
-            v_prev=ti>0&&signal_is_high_at(wf,vld_ref,ti-1);
-        bool ready_now=true,ready_prev=true;
-        if (rdy_ref) {
-            ready_now=signal_is_high_at(wf,rdy_ref,ti);
-            ready_prev=ti>0&&signal_is_high_at(wf,rdy_ref,ti-1);
+        const bool vld_now=is_high(vld_bits);
+        const bool rdy_now=rdy_ref&&is_high(rdy_bits);
+        sample.vld=vld_now;
+        sample.rdy=rdy_now;
+        sample.bp=bp_ref&&is_high(bp_bits);
+        const bool ready = (!rdy_ref || rdy_now) && !sample.bp;
+        sample.transfer=vld_now&&ready;
+        // At an explicit post-edge observation the producer or consumer may
+        // change its control on the same edge that accepted the transfer.
+        // Preserve that accepted handshake by joining the post-edge level
+        // with the other side's pre-edge level.  A before-edge query must not
+        // use this join: it describes only the old values by contract.
+        if (point == IWaveformBackend::ObservationPoint::After &&
+            rdy_ref && !bp_ref) {
+            const bool vld_before=is_high(sampled_signal_bits_at(
+                wf,vld_ref,ti,IWaveformBackend::ObservationPoint::Before));
+            const bool rdy_before=is_high(sampled_signal_bits_at(
+                wf,rdy_ref,ti,IWaveformBackend::ObservationPoint::Before));
+            sample.transfer=sample.transfer||
+                (vld_now&&!vld_before&&rdy_before)||
+                (rdy_now&&!rdy_before&&vld_before);
+            sample.vld=sample.transfer||vld_now;
+            sample.rdy=sample.transfer||rdy_now;
         }
-        if (bp_ref) {
-            sample.bp=signal_is_high_at(wf,bp_ref,ti);
-            ready_now=ready_now&&!sample.bp;
-            ready_prev=ready_prev&&!(ti>0&&signal_is_high_at(wf,bp_ref,ti-1));
-        }
-        sample.transfer=v_now&&ready_now;
-        if (rdy_ref&&!bp_ref)
-            sample.transfer=sample.transfer||(v_now&&!v_prev&&ready_prev)||
-                (ready_now&&!ready_prev&&v_prev);
-        sample.vld=sample.transfer||v_now;
-        sample.rdy=rdy_ref&&(sample.transfer||ready_now);
-        sample.stall=sample.vld&&!ready_now;
-        sample.sop=sample.transfer&&sop_ref&&signal_is_high_at(wf,sop_ref,ti);
-        sample.eop=sample.transfer&&eop_ref&&signal_is_high_at(wf,eop_ref,ti);
+        sample.stall=sample.vld&&!ready;
+        sample.sop=sample.transfer&&sop_ref&&is_high(sop_bits);
+        sample.eop=sample.transfer&&eop_ref&&is_high(eop_bits);
         if (sample.transfer) {
-            sample.fields=stream_fields_at(cfg,*wf,ti,format,fields_complete);
+            sample.fields=stream_fields_at(
+                cfg, *wf, ti, point, format, fields_complete);
             for (const auto& field : sample.fields.items())
                 if (!field.value().value("known",false)) sample.data_known=false;
         }

@@ -73,7 +73,9 @@ struct Parser {
         LogicValue v;
         if (tick != std::string::npos) {
             std::string width_str = text.substr(pos, tick - pos);
-            bool all_digits = !width_str.empty();
+            // SystemVerilog also permits an unsized based literal such as
+            // 'h22.  An empty width prefix is therefore valid here.
+            bool all_digits = true;
             for (char c : width_str) {
                 if (!std::isdigit(static_cast<unsigned char>(c))) { all_digits = false; break; }
             }
@@ -558,7 +560,10 @@ LogicValue eq(const LogicValue& a, const LogicValue& b, const std::string& op) {
     bool equal = true;
     if (!a.known || !b.known) {
         if (strict) {
-            equal = (a.bits == b.bits) && (a.known == b.known);
+            const size_t width = std::max(a.bits.size(), b.bits.size());
+            const std::string lhs(width - a.bits.size(), '0');
+            const std::string rhs(width - b.bits.size(), '0');
+            equal = lhs + a.bits == rhs + b.bits;
         } else {
             LogicValue v;
             v.width = 1;
@@ -568,7 +573,13 @@ LogicValue eq(const LogicValue& a, const LogicValue& b, const std::string& op) {
             return v;
         }
     } else {
-        equal = (a.bits == b.bits);
+        // Equality is value based, not serialized-bit-string based.  In
+        // particular, an unsized decimal zero must compare equal to a known
+        // zero vector after the operands are extended to a common width.
+        const size_t width = std::max(a.bits.size(), b.bits.size());
+        const std::string lhs(width - a.bits.size(), '0');
+        const std::string rhs(width - b.bits.size(), '0');
+        equal = lhs + a.bits == rhs + b.bits;
     }
     bool r = (op == "!=" || op == "!==") ? !equal : equal;
     return from_bool(r);

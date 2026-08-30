@@ -5,6 +5,7 @@
 #include "engine/engine_globals.h"
 #include "core/value/logic_value.h"
 #include "waveform/clock_sampling.h"
+#include "waveform/cursor/cursor_manager.h"
 #include "waveform/expr/expr_eval.h"
 #include "api/json_types.h"
 
@@ -109,6 +110,25 @@ static Json analysis_error(const std::string& code,
                 {"error", {{"code", code}, {"message", message}}}};
 }
 
+static bool parse_analysis_time(IWaveformBackend& wf, const Json& input,
+                                uint64_t& value, std::string& error,
+                                bool allow_max) {
+    if (input.is_string()) {
+        const std::string text = input.get<std::string>();
+        if (text.size() > 1 && text.front() == '@') {
+            WaveformCursor cursor;
+            const std::string name = text.substr(1);
+            if (!CursorManager::instance().get(name, cursor)) {
+                error = "waveform cursor not found: " + name;
+                return false;
+            }
+            value = cursor.time;
+            return true;
+        }
+    }
+    return wf.parse_time(input, value, error, allow_max);
+}
+
 static bool parse_analysis_range(IWaveformBackend& wf, const Json& args,
                                  uint64_t& begin, uint64_t& end,
                                  Json& error) {
@@ -117,12 +137,12 @@ static bool parse_analysis_range(IWaveformBackend& wf, const Json& args,
     const Json range = args.value("time_range", Json::object());
     std::string message;
     if (range.contains("begin") &&
-        !wf.parse_time(range.at("begin"), begin, message)) {
+        !parse_analysis_time(wf, range.at("begin"), begin, message, false)) {
         error = analysis_error("INVALID_TIME", message);
         return false;
     }
     if (range.contains("end") &&
-        !wf.parse_time(range.at("end"), end, message, true)) {
+        !parse_analysis_time(wf, range.at("end"), end, message, true)) {
         error = analysis_error("INVALID_TIME", message);
         return false;
     }

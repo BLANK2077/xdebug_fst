@@ -29,6 +29,35 @@ def test_expr_eval_at_equal(loop_runner: StdioLoopRunner, counter_fst) -> None:
     assert rsp["data"]["expr_value"] is True
 
 
+def test_expr_eval_at_unsized_zero_uses_value_equality(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    equal = loop_runner.request("expr.eval_at", args={
+        "expr": "count == 0", "time": "20ps", "clock": "top.clk",
+        "signals": {"count": "top.counter_top.count"}})
+    assert equal.get("ok"), equal
+    assert equal["summary"]["status"] == "true"
+    assert equal["data"]["expr_value"] is True
+
+    unequal = loop_runner.request("expr.eval_at", args={
+        "expr": "count != 0", "time": "20ps", "clock": "top.clk",
+        "signals": {"count": "top.counter_top.count"}})
+    assert unequal.get("ok"), unequal
+    assert unequal["summary"]["status"] == "false"
+    assert unequal["data"]["expr_value"] is False
+
+
+def test_expr_eval_at_accepts_unsized_based_literal(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("expr.eval_at", args={
+        "expr": "count == 'h0b", "time": "300ps", "clock": "top.clk",
+        "signals": {"count": "top.counter_top.count"}})
+    assert rsp.get("ok"), rsp
+    assert rsp["summary"]["status"] == "true"
+    assert rsp["data"]["expr_value"] is True
+
+
 def test_expr_eval_at_signed_sized_literal(
         loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
@@ -141,6 +170,44 @@ def test_counter_statistics(loop_runner: StdioLoopRunner, counter_fst) -> None:
     assert s["scan_complete"] is True
     assert rsp["data"]["sampling"]["effective"]["sample_point"] == "after"
     assert rsp["data"]["evidence"][0]["kind"] == "initial"
+
+
+def test_counter_statistics_resolves_named_cursor_time_range(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    common = {
+        "cnt": "top.counter_top.count",
+        "clock": "top.clk",
+        "vld": {"expr": "!rst", "signals": {"rst": "top.reset"}},
+        "edge": "posedge",
+        "sample_point": "after",
+    }
+    direct = loop_runner.request("counter.statistics", args={
+        **common, "time_range": {"begin": "100ps", "end": "300ps"},
+    })
+    assert direct.get("ok"), direct
+    for name, time in (("cnt_begin", "100ps"), ("cnt_end", "300ps")):
+        cursor = loop_runner.request("waveform.cursor.set", args={
+            "name": name, "time": time,
+        })
+        assert cursor.get("ok"), cursor
+
+    resolved = loop_runner.request("counter.statistics", args={
+        **common,
+        "time_range": {"begin": "@cnt_begin", "end": "@cnt_end"},
+    })
+    assert resolved.get("ok"), resolved
+    assert resolved["summary"]["begin"] == direct["summary"]["begin"]
+    assert resolved["summary"]["end"] == direct["summary"]["end"]
+    assert resolved["summary"]["min_value"] == direct["summary"]["min_value"]
+    assert resolved["summary"]["max_value"] == direct["summary"]["max_value"]
+
+    missing = loop_runner.request("counter.statistics", args={
+        **common, "time_range": {"begin": "@missing", "end": "300ps"},
+    })
+    assert not missing.get("ok"), missing
+    assert missing["error"]["code"] == "INVALID_TIME"
+    assert "waveform cursor not found: missing" in missing["error"]["message"]
 
 
 def test_counter_statistics_sample_and_evidence_limits(

@@ -292,6 +292,30 @@ def test_event_find_rising_edge(loop_runner: StdioLoopRunner, counter_fst) -> No
         "edge": "posedge", "sample_point": "before"}
 
 
+def test_event_find_loads_reset_outside_signal_aliases(
+        loop_runner: StdioLoopRunner, counter_fst, tmp_path) -> None:
+    open_session(loop_runner, counter_fst)
+    config_path = tmp_path / "reset_event.json"
+    config_path.write_text(json.dumps({
+        "clock": "top.clk", "edge": "posedge",
+        "reset": {"signal": "top.reset", "polarity": "active_high"},
+        "signals": {"count": "top.counter_top.count"},
+    }))
+    loaded = loop_runner.request("event.config.load", args={
+        "name": "reset_event", "config_path": str(config_path)})
+    assert loaded.get("ok"), loaded
+
+    rsp = loop_runner.request("event.find", args={
+        "name": "reset_event", "expr": "count === count", "mode": "all",
+        "line_limit": 10,
+        "time_range": {"begin": "0ps", "end": "140ps"},
+        "render_time_unit": "ps",
+    })
+    assert rsp.get("ok"), rsp
+    assert [event["time"] for event in rsp["data"]["events"]] == [
+        "120ps", "140ps"]
+
+
 def test_event_find_value_equals(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("event.find", args={

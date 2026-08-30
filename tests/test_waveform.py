@@ -50,9 +50,8 @@ def test_value_at_case_insensitive_and_top_prefix(loop_runner: StdioLoopRunner,
 def test_value_at_unknown_signal(loop_runner: StdioLoopRunner, counter_fst) -> None:
     open_session(loop_runner, counter_fst)
     rsp = loop_runner.request("value.at", args={"signal": "nope.sig", "time": "100"})
-    assert rsp.get("ok"), rsp
-    assert rsp["data"]["samples"][0]["values"] == [
-        {"key": "nope.sig", "status": "signal_not_found"}]
+    assert not rsp.get("ok"), rsp
+    assert rsp["error"]["code"] == "SIGNAL_NOT_FOUND"
 
 
 def test_value_at_missing_fields(loop_runner: StdioLoopRunner, counter_fst) -> None:
@@ -150,6 +149,23 @@ def test_value_at_clock_miss_reports_missing_value(
     assert sample["values"][0]["status"] == "missing_value"
     assert sample["clock_context"]["requested_any_edge_hit"] is False
     assert sample["clock_context"]["requested_target_edge_hit"] is False
+
+
+def test_value_at_opposite_clock_edge_returns_finalized_value(
+        loop_runner: StdioLoopRunner, counter_fst) -> None:
+    open_session(loop_runner, counter_fst)
+    rsp = loop_runner.request("value.at", args={
+        "signal": "top.counter_top.count", "time": "300ps",
+        "clock": "top.clk", "edge": "negedge",
+    })
+    assert rsp.get("ok"), rsp
+    sample = rsp["data"]["samples"][0]
+    assert sample["values"][0]["status"] == "ok"
+    assert sample["values"][0]["value"]["value"] == "8'h0b"
+    context = sample["clock_context"]
+    assert context["requested_any_edge_hit"] is True
+    assert context["clock_edge_kind"] == "posedge"
+    assert context["requested_target_edge_hit"] is False
 
 
 def test_value_at_apb_source(loop_runner: StdioLoopRunner, apb_fst) -> None:
