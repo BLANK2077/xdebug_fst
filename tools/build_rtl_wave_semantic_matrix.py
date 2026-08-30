@@ -54,6 +54,10 @@ P3C_TIMING_ORACLE = Path(
 P3C_PHASE5_PUBLIC_ORACLE = Path(
     "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json"
 )
+P3C_ACTIVE_TRACE_CLOSURE_AUDIT = Path(
+    "tests/data/rtl_wave_differential/"
+    "p3c-active-trace-closure.audit.json"
+)
 AI_COMPLEX_RUNNER_SHA256 = (
     "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724"
 )
@@ -360,10 +364,21 @@ FIXTURE_CANDIDATES = {
         ),
     },
     "xdebug.active_trace_runner": {
-        "fixtures": ["current.counter"],
-        "tests": ["test_trace_active_driver_chain"],
+        "fixtures": [],
+        "tests": [
+            "test_runner_private_helper_has_no_uncovered_public_observation",
+        ],
         "actions": ["trace.active_driver_chain"],
         "batch": "P3-C",
+        "status": "proven-unobservable",
+        "rationale": (
+            "原版 runner 是无 RTL/波形输出的私有 native oracle helper；68 个 catalog "
+            "公开观察点已逐项闭合，冻结 schema 不暴露独立 runner Action"
+        ),
+        "evidence_scope": (
+            "受 runner 输入/输出、58 个 native oracle、10 个公开 runtime oracle 和"
+            "trace.active_driver_chain request schema 联合约束的有限不可观察证明"
+        ),
     },
     "xdebug.xif_event": {
         "fixtures": [],
@@ -591,6 +606,274 @@ def validate_phase5_runtime_audit(
     ):
         raise MatrixError("Phase5 runtime audit verdict drifted")
     return result
+
+
+def validate_p3c_active_trace_closure_audit(
+    audit: dict,
+    repo_root: Path,
+    manifest: dict,
+    original_assets: dict[str, dict],
+    current_assets: dict[str, dict],
+) -> dict:
+    if (
+        audit.get("schema_version") !=
+            "xdebug.p3c-active-trace-closure-audit.v1"
+        or audit.get("goal_id") != GOAL_ID
+    ):
+        raise MatrixError(
+            "P3-C active-trace closure audit belongs to another Goal/schema"
+        )
+    if audit.get("session") != {
+        "all_writes_repository_local": True,
+        "fallback_used": False,
+        "fixture_rebuilt": False,
+        "source_access": "read_only",
+    }:
+        raise MatrixError(
+            "P3-C active-trace closure write/cache/fallback boundary drifted"
+        )
+
+    def strings(value: object) -> Iterable[str]:
+        if isinstance(value, str):
+            yield value
+        elif isinstance(value, list):
+            for item in value:
+                yield from strings(item)
+        elif isinstance(value, dict):
+            for key, item in value.items():
+                yield from strings(key)
+                yield from strings(item)
+
+    if any(
+            value.startswith("/") or "/home/" in value
+            for value in strings(audit)):
+        raise MatrixError(
+            "P3-C active-trace closure audit contains an absolute path"
+        )
+
+    runner = audit.get("runner", {})
+    fixture_map = {
+        item["id"]: item for item in manifest.get("original_fixtures", [])
+    }
+    runner_fixture = fixture_map.get("xdebug.active_trace_runner")
+    if (
+        runner.get("fixture_id") != "xdebug.active_trace_runner"
+        or runner.get("classification") != "proven-unobservable"
+        or runner.get("fixture_contract") != runner_fixture
+        or runner.get("private_helper") != {
+            "output_kind": "native_test_executable",
+            "output_path": "build/chain_test",
+            "public_action": False,
+            "rtl_input_count": 0,
+            "waveform_output_count": 0,
+        }
+        or not runner.get("proof_scope")
+    ):
+        raise MatrixError("P3-C private runner boundary drifted")
+
+    expected_runner_sources = []
+    for path in (
+        "xdebug/tests/active_trace_chain/Makefile",
+        "xdebug/tests/active_trace_chain/chain_test.cpp",
+        "xdebug/tests/active_trace_chain/chain_test.h",
+    ):
+        asset = original_assets.get(path)
+        if asset is None:
+            raise MatrixError(f"P3-C runner source is not frozen: {path}")
+        expected_runner_sources.append({
+            "path": path,
+            "sha256": asset["sha256"],
+            "size_bytes": asset["size_bytes"],
+        })
+    if runner.get("source_assets") != expected_runner_sources:
+        raise MatrixError("P3-C private runner source identity drifted")
+
+    request_schema = (
+        "compat/xdebug-v1/schemas/v1/actions/"
+        "trace.active_driver_chain.request.schema.json"
+    )
+    schema_path = repo_root / request_schema
+    if not schema_path.is_file():
+        raise MatrixError("trace.active_driver_chain request schema is missing")
+    schema_hash = hashlib.sha256(schema_path.read_bytes()).hexdigest()
+    private_fields = [
+        "active_trace_calls",
+        "edgecheck_direct_count",
+        "fallback_0_5ns_count",
+        "stop_on_temporal",
+        "temporal_boundary_stops",
+    ]
+    if runner.get("public_contract") != {
+        "private_fields_absent": private_fields,
+        "request_schema": request_schema,
+        "request_schema_sha256": schema_hash,
+        "required_args": ["signal", "time"],
+    }:
+        raise MatrixError("P3-C private/public runner schema boundary drifted")
+
+    catalog_asset = original_assets.get(ACTIVE_CATALOG.as_posix())
+    if catalog_asset is None:
+        raise MatrixError("P3-C runner catalog is not frozen")
+    expected_group_counts = {
+        "composite": 20,
+        "p0": 6,
+        "phase4": 20,
+        "phase5": 10,
+        "timing": 12,
+    }
+    runner_sha = (
+        "f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237"
+    )
+    native_specs = [
+        (
+            "p0",
+            P3C_P0_ORACLE.as_posix(),
+            6,
+        ),
+        (
+            "composite",
+            P3C_COMPOSITE_ORACLE.as_posix(),
+            20,
+        ),
+        (
+            "timing",
+            P3C_TIMING_ORACLE.as_posix(),
+            12,
+        ),
+        (
+            "phase4",
+            P3C_PHASE4_ORACLE.as_posix(),
+            20,
+        ),
+    ]
+    native_oracles = []
+    covered_scenarios = []
+    for group, path, row_count in native_specs:
+        asset = current_assets.get(path)
+        if asset is None:
+            raise MatrixError(f"P3-C native runner oracle is not frozen: {path}")
+        native_oracles.append({
+            "group": group,
+            "path": path,
+            "row_count": row_count,
+            "runner_sha256": runner_sha,
+            "sha256": asset["sha256"],
+        })
+        covered_scenarios.extend(
+            f"active.{group}.{index:02d}"
+            for index in range(1, row_count + 1)
+        )
+    phase5_asset = current_assets.get(P3C_PHASE5_PUBLIC_ORACLE.as_posix())
+    if phase5_asset is None:
+        raise MatrixError("P3-C Phase5 public oracle is not frozen")
+    covered_scenarios.extend(
+        f"active.phase5.{index:02d}" for index in range(1, 11)
+    )
+    readme_asset = original_assets.get(ACTIVE_README.as_posix())
+    phase5_test_path = "xdebug/tests/active_trace_chain/test_phase5.py"
+    phase5_test_asset = original_assets.get(phase5_test_path)
+    if readme_asset is None or phase5_test_asset is None:
+        raise MatrixError("P3-C runner public consumer evidence is not frozen")
+    native_paths = [path for _, path, _ in native_specs]
+    consumer_action_disposition = {
+        "session.close": {
+            "covered_by": P3C_PHASE5_PUBLIC_ORACLE.as_posix(),
+            "executable_request_count": 1,
+            "source": phase5_test_path,
+            "source_sha256": phase5_test_asset["sha256"],
+        },
+        "session.open": {
+            "covered_by": P3C_PHASE5_PUBLIC_ORACLE.as_posix(),
+            "executable_request_count": 1,
+            "source": phase5_test_path,
+            "source_sha256": phase5_test_asset["sha256"],
+        },
+        "trace.active_driver": {
+            "documentation_only_lines": [9, 10, 27],
+            "executable_request_count": 0,
+            "source": ACTIVE_README.as_posix(),
+            "source_sha256": readme_asset["sha256"],
+        },
+        "trace.active_driver_chain": {
+            "catalog_observation_count": 68,
+            "covered_by": [
+                *native_paths, P3C_PHASE5_PUBLIC_ORACLE.as_posix(),
+            ],
+            "executable_request_count": 1,
+            "source": phase5_test_path,
+            "source_sha256": phase5_test_asset["sha256"],
+        },
+    }
+    coverage = runner.get("coverage", {})
+    if coverage != {
+        "catalog": {
+            "group_counts": expected_group_counts,
+            "path": ACTIVE_CATALOG.as_posix(),
+            "sha256": catalog_asset["sha256"],
+        },
+        "catalog_case_count": 68,
+        "consumer_public_action_count": 4,
+        "consumer_public_action_disposition": consumer_action_disposition,
+        "covered_scenario_ids": covered_scenarios,
+        "native_oracles": native_oracles,
+        "native_runner_case_count": 58,
+        "public_runtime_case_count": 10,
+        "public_runtime_oracle": {
+            "group": "phase5",
+            "path": P3C_PHASE5_PUBLIC_ORACLE.as_posix(),
+            "row_count": 10,
+            "sha256": phase5_asset["sha256"],
+        },
+        "remaining_unmapped_consumer_action_count": 0,
+        "remaining_distinct_public_observation_count": 0,
+    }:
+        raise MatrixError("P3-C private runner catalog coverage drifted")
+
+    orphan = audit.get("declared_only_orphan", {})
+    orphan_dir = (
+        "xdebug/tests/active_trace_chain/p0_composability/"
+        "p0_4_interface_modport"
+    )
+    orphan_entry = f"{orphan_dir}/.gitignore"
+    orphan_asset = original_assets.get(orphan_entry)
+    frozen_entries = sorted(
+        path.removeprefix(orphan_dir + "/")
+        for path in original_assets
+        if path.startswith(orphan_dir + "/")
+    )
+    if orphan_asset is None or readme_asset is None:
+        raise MatrixError("P3-C declared-only orphan evidence is not frozen")
+    if frozen_entries != [".gitignore"]:
+        raise MatrixError("P3-C declared-only orphan inventory drifted")
+    if (
+        orphan.get("scenario_id") != "active.p0.declared_only_p0_4"
+        or orphan.get("case") != "p0_4_interface_modport"
+        or orphan.get("classification") != "proven-unobservable"
+        or orphan.get("declaration") != {
+            "line": 22,
+            "path": ACTIVE_README.as_posix(),
+            "sha256": readme_asset["sha256"],
+        }
+        or orphan.get("frozen_directory") != {
+            "concrete_waveform_count": 0,
+            "entries": [".gitignore"],
+            "entry_sha256": orphan_asset["sha256"],
+            "path": orphan_dir,
+            "rtl_count": 0,
+            "stimulus_count": 0,
+        }
+        or orphan.get("catalog") != {
+            "path": ACTIVE_CATALOG.as_posix(),
+            "sha256": catalog_asset["sha256"],
+        }
+        or orphan.get("catalog_row_count") != 0
+        or orphan.get("authoritative_public_request_count") != 0
+        or orphan.get("remaining_distinct_public_observation_count") != 0
+        or orphan.get("current_capability_is_not_equivalence") is not True
+        or not orphan.get("proof_scope")
+    ):
+        raise MatrixError("P3-C declared-only orphan proof drifted")
+    return audit
 
 
 def validate_p3c_phase5_public_oracle(
@@ -2580,6 +2863,25 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         runtime_baseline["runtime_revision"],
         runtime_baseline["schema_revision"],
     )
+    p3c_closure_audit_asset = current_assets.get(
+        P3C_ACTIVE_TRACE_CLOSURE_AUDIT.as_posix()
+    )
+    if p3c_closure_audit_asset is None:
+        raise MatrixError(
+            "P0 manifest does not freeze the P3-C active-trace closure audit"
+        )
+    p3c_closure_audit = json.loads(
+        validate_frozen_file(
+            repo_root, p3c_closure_audit_asset
+        ).decode("utf-8")
+    )
+    validate_p3c_active_trace_closure_audit(
+        p3c_closure_audit,
+        repo_root,
+        manifest,
+        original_assets,
+        current_assets,
+    )
 
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
@@ -2698,6 +3000,39 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                 "comparison_method": comparison["comparison_method"],
                 "remaining_observable_gap_count":
                     comparison["remaining_observable_gap_count"],
+            }
+        if fixture_id == "xdebug.active_trace_runner":
+            runner_proof = p3c_closure_audit["runner"]
+            coverage = runner_proof["coverage"]
+            scenario["original"]["private_helper"] = runner_proof[
+                "private_helper"
+            ]
+            scenario["original"]["runner_source_assets"] = runner_proof[
+                "source_assets"
+            ]
+            scenario["original"]["direct_helper_public_actions"] = []
+            scenario["unobservable_proof"] = {
+                "path": P3C_ACTIVE_TRACE_CLOSURE_AUDIT.as_posix(),
+                "sha256": p3c_closure_audit_asset["sha256"],
+                "classification": runner_proof["classification"],
+                "catalog_case_count": coverage["catalog_case_count"],
+                "native_runner_case_count": coverage[
+                    "native_runner_case_count"
+                ],
+                "public_runtime_case_count": coverage[
+                    "public_runtime_case_count"
+                ],
+                "consumer_public_action_disposition": coverage[
+                    "consumer_public_action_disposition"
+                ],
+                "covered_scenario_ids": coverage["covered_scenario_ids"],
+                "remaining_unmapped_consumer_action_count": coverage[
+                    "remaining_unmapped_consumer_action_count"
+                ],
+                "remaining_distinct_public_observation_count": coverage[
+                    "remaining_distinct_public_observation_count"
+                ],
+                "proof_scope": runner_proof["proof_scope"],
             }
         scenarios.append(scenario)
 
@@ -3240,13 +3575,15 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
     readme_text = validate_frozen_file(original_root, readme_asset).decode("utf-8")
     orphan_line = file_line(original_root / ACTIVE_README, r"p0_4_interface_modport")
     orphan_candidate = {
-        "fixtures": ["current.interface_modport"],
-        "tests": ["test_trace_active_driver_chain_crosses_interface_modports"],
+        "fixtures": [],
+        "tests": [
+            "test_declared_only_p0_4_has_a_bounded_frozen_absence_proof",
+        ],
         "actions": ["trace.active_driver_chain"],
         "batch": "P3-C",
         "evidence_scope": (
-            "仅证明当前存在 interface/modport active-chain 能力；原版 p0_4 没有"
-            "RTL、catalog request 或动态 oracle，不能据此关闭 missing"
+            "冻结原版 p0_4 仅有声明和 .gitignore；零 RTL/stimulus/catalog request/"
+            "具体波形的有限不可观察证明，不使用当前 interface/modport 候选替代"
         ),
     }
     p0_paths = fixture_consumers(consumers, "xdebug.active_trace_p0")
@@ -3254,10 +3591,11 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         "scenario_id": "active.p0.declared_only_p0_4",
         "kind": "declared_only_orphan",
         "p3_batch": "P3-C",
-        "status": "missing",
+        "status": "proven-unobservable",
         "rationale": (
-            "README 声明 interface/modport case，但冻结目录只有 .gitignore，cases.v1.yaml 也无条目；"
-            "当前相关能力测试不能替代缺失的原版刺激/oracle，必须显式补建差分合同。"
+            "冻结 README 只声明 case 名，目录仅有 .gitignore，catalog 没有 signal/time 请求，"
+            "也没有 RTL、刺激或具体波形；公开 schema 无法形成可执行观察点。该证明只关闭"
+            "此冻结空骨架，不把当前 interface/modport 能力当作原版等价证据。"
         ),
         "original": {
             "fixture_id": "xdebug.active_trace_p0",
@@ -3273,10 +3611,40 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
             "observed_public_actions": fixture_actions(consumers, p0_paths),
         },
         "current": current_evidence(repo_root, current_assets, current_tests, orphan_candidate),
+        "unobservable_proof": {
+            "path": P3C_ACTIVE_TRACE_CLOSURE_AUDIT.as_posix(),
+            "sha256": p3c_closure_audit_asset["sha256"],
+            "classification": p3c_closure_audit[
+                "declared_only_orphan"
+            ]["classification"],
+            "catalog_row_count": 0,
+            "authoritative_public_request_count": 0,
+            "rtl_count": 0,
+            "stimulus_count": 0,
+            "concrete_waveform_count": 0,
+            "remaining_distinct_public_observation_count": 0,
+            "proof_scope": p3c_closure_audit[
+                "declared_only_orphan"
+            ]["proof_scope"],
+        },
         "public_action_contracts": {
             "trace.active_driver_chain": contracts["trace.active_driver_chain"]
         },
     })
+
+    scenarios_by_id = {item["scenario_id"]: item for item in scenarios}
+    covered_runner_scenarios = p3c_closure_audit["runner"]["coverage"][
+        "covered_scenario_ids"
+    ]
+    if any(
+        scenarios_by_id.get(scenario_id, {}).get("status") !=
+            "semantic-equivalent"
+        for scenario_id in covered_runner_scenarios
+    ):
+        raise MatrixError(
+            "P3-C runner cannot be proven unobservable before all 68 catalog "
+            "observations are semantically closed"
+        )
 
     cross_paths = fixture_consumers(consumers, "original.cross_fixture")
     scenarios.append({

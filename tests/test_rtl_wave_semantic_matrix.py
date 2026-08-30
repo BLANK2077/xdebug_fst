@@ -105,9 +105,9 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "original_hdl_count": 103,
         "scenario_count": 88,
         "status_counts": {
-            "missing": 2,
-            "partial": 9,
-            "proven-unobservable": 2,
+            "missing": 1,
+            "partial": 8,
+            "proven-unobservable": 4,
             "semantic-equivalent": 75,
         },
         "unclassified_count": 0,
@@ -164,6 +164,8 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "fixture.design_uart",
         "fixture.design_p3",
         "fixture.design_hierarchy",
+        "fixture.active_trace_runner",
+        "active.p0.declared_only_p0_4",
         *{f"active.p0.{index:02d}" for index in range(1, 7)},
         *{f"active.composite.{index:02d}" for index in range(1, 21)},
         *{f"active.timing.{index:02d}" for index in range(1, 13)},
@@ -309,7 +311,7 @@ def test_phase5_full_responses_are_closed_without_hiding_historical_drift() -> N
             if "dout" in item["public_request"]["args"]["signal"]
             else ["statement_kind_projection"]
         )
-        assert item["scenario_id"] not in matrix["p3_queue"]["P3-C"]
+        assert item["scenario_id"] not in matrix["p3_queue"].get("P3-C", [])
 
 
 def test_p3c_phase5_matrix_gate_rejects_full_response_evidence_drift() -> None:
@@ -373,21 +375,21 @@ def test_p3c_phase5_matrix_gate_rejects_full_response_evidence_drift() -> None:
         validate(fallback)
 
 
-def test_declared_only_p0_case_remains_an_explicit_gap() -> None:
+def test_declared_only_p0_case_is_closed_only_by_the_bounded_absence_proof() -> None:
     matrix = load_matrix()
     scenarios = {item["scenario_id"]: item for item in matrix["scenarios"]}
 
     orphan = scenarios["active.p0.declared_only_p0_4"]
-    assert orphan["status"] == "missing"
+    assert orphan["status"] == "proven-unobservable"
     assert orphan["original"]["catalog_presence"] is False
     assert orphan["original"]["sources"] == []
-    assert orphan["current"]["candidate_fixture_ids"] == [
-        "current.interface_modport"
-    ]
+    assert orphan["current"]["candidate_fixture_ids"] == []
     assert [
         evidence["test"] for evidence in orphan["current"]["test_evidence"]
-    ] == ["test_trace_active_driver_chain_crosses_interface_modports"]
-    assert orphan["scenario_id"] in matrix["p3_queue"]["P3-C"]
+    ] == ["test_declared_only_p0_4_has_a_bounded_frozen_absence_proof"]
+    assert orphan["unobservable_proof"]["catalog_row_count"] == 0
+    assert orphan["unobservable_proof"]["authoritative_public_request_count"] == 0
+    assert orphan["scenario_id"] not in matrix["p3_queue"].get("P3-C", [])
 
 
 def test_p3c_p0_cases_are_closed_individually_with_locked_evidence() -> None:
@@ -442,7 +444,8 @@ def test_p3c_p0_cases_are_closed_individually_with_locked_evidence() -> None:
         for item in p0
     )
     assert not any(
-        item["scenario_id"] in matrix["p3_queue"]["P3-C"] for item in p0
+        item["scenario_id"] in matrix["p3_queue"].get("P3-C", [])
+        for item in p0
     )
 
 
@@ -558,7 +561,7 @@ def test_p3c_composite_cases_are_closed_individually_with_locked_evidence() -> N
             evidence["test"] for evidence in
             item["current"]["test_evidence"]
         } == required_tests
-        assert item["scenario_id"] not in matrix["p3_queue"]["P3-C"]
+        assert item["scenario_id"] not in matrix["p3_queue"].get("P3-C", [])
 
 
 def test_p3c_composite_matrix_gate_rejects_oracle_boundary_drift() -> None:
@@ -668,7 +671,7 @@ def test_p3c_timing_cases_are_closed_individually_with_locked_evidence() -> None
             evidence["test"] for evidence in
             item["current"]["test_evidence"]
         } == required_tests
-        assert item["scenario_id"] not in matrix["p3_queue"]["P3-C"]
+        assert item["scenario_id"] not in matrix["p3_queue"].get("P3-C", [])
 
 
 def test_p3c_timing_matrix_gate_rejects_oracle_boundary_drift() -> None:
@@ -785,7 +788,7 @@ def test_p3c_phase4_cases_are_closed_individually_with_locked_evidence() -> None
             evidence["test"] for evidence in
             item["current"]["test_evidence"]
         } == required_tests
-        assert item["scenario_id"] not in matrix["p3_queue"]["P3-C"]
+        assert item["scenario_id"] not in matrix["p3_queue"].get("P3-C", [])
 
 
 def test_p3c_phase4_matrix_gate_rejects_oracle_boundary_drift() -> None:

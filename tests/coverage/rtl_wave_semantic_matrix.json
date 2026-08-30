@@ -9507,10 +9507,6 @@
     }
   },
   "p3_queue": {
-    "P3-C": [
-      "active.p0.declared_only_p0_4",
-      "fixture.active_trace_runner"
-    ],
     "P3-D": [
       "fixture.apb_vip",
       "fixture.apb_xamba_vip",
@@ -20445,66 +20441,15 @@
     },
     {
       "current": {
-        "candidate_fixture_ids": [
-          "current.interface_modport"
-        ],
-        "candidate_sources": [
-          {
-            "construct_lines": {
-              "continuous_assign": [
-                11,
-                15
-              ],
-              "interface": [
-                4
-              ],
-              "modport": [
-                6,
-                7
-              ],
-              "module": [
-                10,
-                14,
-                18
-              ]
-            },
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 25,
-            "path": "testdata/fixtures/interface_modport/interface_modport_top.sv",
-            "sha256": "8719eba578990c1ba9b135c299b0386f7108b59421833f2c69fe2250d4ee1036"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/interface_modport/tb_interface_modport.cpp",
-            "sha256": "124c061daa725ea5a4cdf8c3d7315687f5ed14e6cc017d1c03a4a81988536aa9"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 10,
-            "path": "testdata/fixtures/interface_modport/waves.fst",
-            "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
-          }
-        ],
-        "evidence_scope": "仅证明当前存在 interface/modport active-chain 能力；原版 p0_4 没有RTL、catalog request 或动态 oracle，不能据此关闭 missing",
+        "candidate_fixture_ids": [],
+        "candidate_sources": [],
+        "evidence_scope": "冻结原版 p0_4 仅有声明和 .gitignore；零 RTL/stimulus/catalog request/具体波形的有限不可观察证明，不使用当前 interface/modport 候选替代",
         "test_evidence": [
           {
-            "line": 659,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_crosses_interface_modports"
+            "line": 90,
+            "path": "tests/test_p3c_active_trace_closure.py",
+            "sha256": "18c5ffbb8c0b44df34bb8de6708d03981b9eb151dbf182626b1135ab079703db",
+            "test": "test_declared_only_p0_4_has_a_bounded_frozen_absence_proof"
           }
         ]
       },
@@ -20570,9 +20515,21 @@
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
         }
       },
-      "rationale": "README 声明 interface/modport case，但冻结目录只有 .gitignore，cases.v1.yaml 也无条目；当前相关能力测试不能替代缺失的原版刺激/oracle，必须显式补建差分合同。",
+      "rationale": "冻结 README 只声明 case 名，目录仅有 .gitignore，catalog 没有 signal/time 请求，也没有 RTL、刺激或具体波形；公开 schema 无法形成可执行观察点。该证明只关闭此冻结空骨架，不把当前 interface/modport 能力当作原版等价证据。",
       "scenario_id": "active.p0.declared_only_p0_4",
-      "status": "missing"
+      "status": "proven-unobservable",
+      "unobservable_proof": {
+        "authoritative_public_request_count": 0,
+        "catalog_row_count": 0,
+        "classification": "proven-unobservable",
+        "concrete_waveform_count": 0,
+        "path": "tests/data/rtl_wave_differential/p3c-active-trace-closure.audit.json",
+        "proof_scope": "Only the frozen declaration and empty case skeleton are classified; interface/modport behavior remains testable when an authoritative RTL and signal/time request exist.",
+        "remaining_distinct_public_observation_count": 0,
+        "rtl_count": 0,
+        "sha256": "c9d29f6e93c598501013c011243b62aa81574f104ffdd8d53f5474a8ac51c7fc",
+        "stimulus_count": 0
+      }
     },
     {
       "current": {
@@ -40642,79 +40599,15 @@
     },
     {
       "current": {
-        "candidate_fixture_ids": [
-          "current.counter"
-        ],
-        "candidate_sources": [
-          {
-            "construct_lines": {
-              "always": [
-                7
-              ],
-              "clock": [
-                2,
-                7
-              ],
-              "four_state_literal": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "if": [
-                8
-              ],
-              "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
-              ]
-            },
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
-          }
-        ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "candidate_fixture_ids": [],
+        "candidate_sources": [],
+        "evidence_scope": "受 runner 输入/输出、58 个 native oracle、10 个公开 runtime oracle 和trace.active_driver_chain request schema 联合约束的有限不可观察证明",
         "test_evidence": [
           {
-            "line": 586,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain"
+            "line": 39,
+            "path": "tests/test_p3c_active_trace_closure.py",
+            "sha256": "18c5ffbb8c0b44df34bb8de6708d03981b9eb151dbf182626b1135ab079703db",
+            "test": "test_runner_private_helper_has_no_uncovered_public_observation"
           }
         ]
       },
@@ -40746,6 +40639,7 @@
           "xdebug/tests/active_trace_chain/test_timing.py"
         ],
         "declared_waveform_outputs": [],
+        "direct_helper_public_actions": [],
         "fixture_id": "xdebug.active_trace_runner",
         "fixture_source_dir": "xdebug/tests/active_trace_chain",
         "observed_public_actions": [
@@ -40753,6 +40647,30 @@
           "session.open",
           "trace.active_driver",
           "trace.active_driver_chain"
+        ],
+        "private_helper": {
+          "output_kind": "native_test_executable",
+          "output_path": "build/chain_test",
+          "public_action": false,
+          "rtl_input_count": 0,
+          "waveform_output_count": 0
+        },
+        "runner_source_assets": [
+          {
+            "path": "xdebug/tests/active_trace_chain/Makefile",
+            "sha256": "2d54d35659a8e252588896731b5efeb8bd141f0abeca5d27b64a678d1672d704",
+            "size_bytes": 367
+          },
+          {
+            "path": "xdebug/tests/active_trace_chain/chain_test.cpp",
+            "sha256": "20c91013dbbe302751af23db7d4b3fc951967cf5014f44da922ddc3602711cfd",
+            "size_bytes": 26743
+          },
+          {
+            "path": "xdebug/tests/active_trace_chain/chain_test.h",
+            "sha256": "84fb3f4ca5cf00f7a56050e5c7e3e4e2ea29be22eeeff6cfda2932acc2fb9aa3",
+            "size_bytes": 2993
+          }
         ],
         "sources": []
       },
@@ -40774,9 +40692,127 @@
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "原版 runner 是无 RTL/波形输出的私有 native oracle helper；68 个 catalog 公开观察点已逐项闭合，冻结 schema 不暴露独立 runner Action",
       "scenario_id": "fixture.active_trace_runner",
-      "status": "partial"
+      "status": "proven-unobservable",
+      "unobservable_proof": {
+        "catalog_case_count": 68,
+        "classification": "proven-unobservable",
+        "consumer_public_action_disposition": {
+          "session.close": {
+            "covered_by": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+            "executable_request_count": 1,
+            "source": "xdebug/tests/active_trace_chain/test_phase5.py",
+            "source_sha256": "0c2a6f321f7c9965d91c92acc3d794cc8612867d955e8b9fccd6691576b44494"
+          },
+          "session.open": {
+            "covered_by": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+            "executable_request_count": 1,
+            "source": "xdebug/tests/active_trace_chain/test_phase5.py",
+            "source_sha256": "0c2a6f321f7c9965d91c92acc3d794cc8612867d955e8b9fccd6691576b44494"
+          },
+          "trace.active_driver": {
+            "documentation_only_lines": [
+              9,
+              10,
+              27
+            ],
+            "executable_request_count": 0,
+            "source": "xdebug/tests/active_trace_chain/README.md",
+            "source_sha256": "836f352ddf6ed085498e32a9e4e8c503efff4d6ced01c718a2b3a8701964e77b"
+          },
+          "trace.active_driver_chain": {
+            "catalog_observation_count": 68,
+            "covered_by": [
+              "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+              "tests/data/rtl_wave_differential/p3c-composite.original-oracle.json",
+              "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+              "tests/data/rtl_wave_differential/p3c-phase4.original-oracle.json",
+              "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json"
+            ],
+            "executable_request_count": 1,
+            "source": "xdebug/tests/active_trace_chain/test_phase5.py",
+            "source_sha256": "0c2a6f321f7c9965d91c92acc3d794cc8612867d955e8b9fccd6691576b44494"
+          }
+        },
+        "covered_scenario_ids": [
+          "active.p0.01",
+          "active.p0.02",
+          "active.p0.03",
+          "active.p0.04",
+          "active.p0.05",
+          "active.p0.06",
+          "active.composite.01",
+          "active.composite.02",
+          "active.composite.03",
+          "active.composite.04",
+          "active.composite.05",
+          "active.composite.06",
+          "active.composite.07",
+          "active.composite.08",
+          "active.composite.09",
+          "active.composite.10",
+          "active.composite.11",
+          "active.composite.12",
+          "active.composite.13",
+          "active.composite.14",
+          "active.composite.15",
+          "active.composite.16",
+          "active.composite.17",
+          "active.composite.18",
+          "active.composite.19",
+          "active.composite.20",
+          "active.timing.01",
+          "active.timing.02",
+          "active.timing.03",
+          "active.timing.04",
+          "active.timing.05",
+          "active.timing.06",
+          "active.timing.07",
+          "active.timing.08",
+          "active.timing.09",
+          "active.timing.10",
+          "active.timing.11",
+          "active.timing.12",
+          "active.phase4.01",
+          "active.phase4.02",
+          "active.phase4.03",
+          "active.phase4.04",
+          "active.phase4.05",
+          "active.phase4.06",
+          "active.phase4.07",
+          "active.phase4.08",
+          "active.phase4.09",
+          "active.phase4.10",
+          "active.phase4.11",
+          "active.phase4.12",
+          "active.phase4.13",
+          "active.phase4.14",
+          "active.phase4.15",
+          "active.phase4.16",
+          "active.phase4.17",
+          "active.phase4.18",
+          "active.phase4.19",
+          "active.phase4.20",
+          "active.phase5.01",
+          "active.phase5.02",
+          "active.phase5.03",
+          "active.phase5.04",
+          "active.phase5.05",
+          "active.phase5.06",
+          "active.phase5.07",
+          "active.phase5.08",
+          "active.phase5.09",
+          "active.phase5.10"
+        ],
+        "native_runner_case_count": 58,
+        "path": "tests/data/rtl_wave_differential/p3c-active-trace-closure.audit.json",
+        "proof_scope": "The native executable remains a private oracle helper; its catalog-derived public observations are closed elsewhere.",
+        "public_runtime_case_count": 10,
+        "remaining_distinct_public_observation_count": 0,
+        "remaining_unmapped_consumer_action_count": 0,
+        "sha256": "c9d29f6e93c598501013c011243b62aa81574f104ffdd8d53f5474a8ac51c7fc"
+      }
     },
     {
       "current": {
@@ -47762,9 +47798,9 @@
     "original_hdl_count": 103,
     "scenario_count": 88,
     "status_counts": {
-      "missing": 2,
-      "partial": 9,
-      "proven-unobservable": 2,
+      "missing": 1,
+      "partial": 8,
+      "proven-unobservable": 4,
       "semantic-equivalent": 75
     },
     "unclassified_count": 0,

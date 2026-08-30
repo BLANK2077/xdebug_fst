@@ -6881,9 +6881,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "b2889f3f452287e4b1494486f18b73041b85dbc51741d2f24abcbb462f7b4748",
+      "sha256": "7a8a21ab9c8071641f00b26e083e6bd91f016da88f3b5aa47f79954242062c56",
       "side": "current",
-      "size_bytes": 1500106
+      "size_bytes": 1503346
     },
     {
       "exists": true,
@@ -7064,6 +7064,21 @@
       "sha256": "f7df30462c710deb7b84d1c6dbc363907d6988df1d4bce9e9aa38d059554c75e",
       "side": "current",
       "size_bytes": 21279
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/p3c-active-trace-closure.audit.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "c9d29f6e93c598501013c011243b62aa81574f104ffdd8d53f5474a8ac51c7fc",
+      "side": "current",
+      "size_bytes": 10071
     },
     {
       "exists": true,
@@ -7537,6 +7552,21 @@
         "current.cross_fixture"
       ],
       "kind": "test_consumer",
+      "path": "tests/test_p3c_active_trace_closure.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "18c5ffbb8c0b44df34bb8de6708d03981b9eb151dbf182626b1135ab079703db",
+      "side": "current",
+      "size_bytes": 6110
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
       "path": "tests/test_p3c_active_trace_composite.py",
       "roles": [
         "test_consumer"
@@ -7751,9 +7781,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "26962d40033368a2d63748d3aea12707cd7622d0dcf04c7ff6926ea67d18b239",
+      "sha256": "d570a30409f04e449d8ef83885ab08ad6f1022e6a19682e71e5224235e363311",
       "side": "current",
-      "size_bytes": 33489
+      "size_bytes": 33769
     },
     {
       "exists": true,
@@ -7867,13 +7897,28 @@
         "current.cross_fixture"
       ],
       "kind": "generator",
+      "path": "tools/build_p3c_active_trace_closure_audit.py",
+      "roles": [
+        "generator"
+      ],
+      "sha256": "4ff9d7c7eb0dd45a731ccc474055463810b5b042f5700743e630bf5a4924f75a",
+      "side": "current",
+      "size_bytes": 20292
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "generator",
       "path": "tools/build_rtl_wave_semantic_matrix.py",
       "roles": [
         "generator"
       ],
-      "sha256": "9c72e04879c61527ae7d326e7b42505f6e616a073ff2338e799e92bbd742cc69",
+      "sha256": "d2e0f28c23d4c184b40cc94885b6fe42719a67a83ec9435791518206bee2ceea",
       "side": "current",
-      "size_bytes": 147642
+      "size_bytes": 161497
     },
     {
       "exists": true,
@@ -16186,10 +16231,10 @@
   "schema_version": "xdebug-rtl-wave-assets.v1",
   "summary": {
     "current": {
-      "asset_count": 529,
+      "asset_count": 532,
       "fst_count": 75,
       "rtl_count": 79,
-      "test_consumer_count": 69,
+      "test_consumer_count": 71,
       "vcd_count": 1
     },
     "missing_assets": [],

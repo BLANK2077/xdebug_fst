@@ -942,3 +942,57 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
   68 个既有公开观察点全部闭合、额外观察点为零，orphan 的冻结目录/catalog/request 计数均为零，
   两项才可升级为 `proven-unobservable` 并清空 P3-C queue。当前 audit 尚不存在、矩阵仍为
   partial/missing，预期三项失败；不运行 EDA、不重建 fixture/cache，也不允许用 current 候选替代。
+
+### 2026-08-30：P3-C runner/orphan 有限不可观察证明转绿
+
+- 新增 `tools/build_p3c_active_trace_closure_audit.py`，只读冻结 manifest、原版目录、既有 native/
+  public oracles 和当前 request schema，确定性生成去敏 audit；输出路径由仓库边界检查保护，工具
+  同时提供 `--write/--check`，不接受默认外部根或 fallback。audit SHA-256 为
+  `c9d29f6e93c598501013c011243b62aa81574f104ffdd8d53f5474a8ac51c7fc`。
+- runner 证明锁住 fixture 的三项输入与唯一 `build/chain_test` 输出、源文件哈希、私有 NPI 入口、
+  runner binary SHA-256 `f7e80398...`、catalog 68 行和 `trace.active_driver_chain` 必填
+  signal/time 的封闭 request schema。P0/composite/timing/Phase4 的 58 行逐项链接 native oracle，
+  Phase5 十行链接完整公开 runtime oracle；所有 68 个目标场景必须先是 semantic-equivalent，矩阵
+  才允许把 runner 自身标为 proven-unobservable。
+- 原版 runner consumer 扫出的四个 Action 也没有被汇总计数掩盖：`session.open`、
+  `trace.active_driver_chain`、`session.close` 的可执行请求由 Phase5 公开 oracle 覆盖；
+  `trace.active_driver` 只出现在 README 第 9/10/27 行，冻结 consumer 中没有可执行 JSON 请求。
+  audit 要求剩余未映射 consumer Action 和额外公开观察点都为零。
+- orphan 证明锁住 README 第 22 行、原版目录唯一 `.gitignore` 及其 SHA-256、catalog SHA；并要求
+  RTL、stimulus、具体 waveform、catalog row、权威 signal/time 请求均为零。矩阵移除 current
+  interface/modport candidate，避免以当前能力反向创造原版行为；proof scope 明确只关闭此冻结
+  空骨架，后续若出现权威 RTL/request，interface/modport 仍必须正常差分。
+- matrix validator 对 Goal/schema、只读/零重建/零 fallback、绝对路径、runner fixture/source、
+  公开/私有 schema 边界、四份 native oracle、一份 Phase5 oracle、68 行顺序、consumer Action
+  disposition 和 orphan 清单全部 fail closed；mutation 门禁会拒绝 fallback、未关闭观察点、把私有
+  helper 冒充公开 Action、或凭空增加 orphan RTL。
+- 红灯 3/3 失败已转为 closure/matrix 20/20 通过；manifest/matrix/P3-B/producer/closure 静态联合
+  43/43、active-trace 相邻回归 222/222、关键 CTest 3/3、audit/manifest/matrix 可重复 `--check`
+  和 `git diff --check` 全通过。没有运行 EDA，没有重建 fixture 或 CMake cache。
+- runner 与 orphan 均升级为有限 `proven-unobservable`；矩阵变为
+  `semantic-equivalent=75, proven-unobservable=4, partial=8, missing=1`，P3-C queue 已清空，剩余
+  只有 P3-D 六项和 P3-E 三项。manifest 为原版 359 assets/103 RTL/23 fixture/260 consumer/
+  25 outputs，当前 532 assets/79 RTL/75 FST/1 VCD/71 consumer；manifest/matrix SHA-256 分别为
+  `b01771b8c2bf3aad9c58fa31c974681cec6d7f71a02f8cb3c623b38196a3e79a`、
+  `7a8a21ab9c8071641f00b26e083e6bd91f016da88f3b5aa47f79954242062c56`。
+- 前后结构化外部审计 SHA-256 仍为
+  `b36b1c254efbe860544f135e0fd964b9cd6fedd0cbb1bb32c7b3aae5de8c4bcb`；原版 xverif 的既有
+  dirty/untracked 清单和 Wellen/Verilator clean 状态未变，零外部写入、零 fallback。
+
+### P3-C 最终状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 五组 68 个 catalog 场景 | 已完成 | 75 个矩阵 semantic-equivalent 中含全部 68 行 |
+| 私有 runner 独立观察面 | proven-unobservable | 58 native + 10 public；四个 consumer Action 全裁决 |
+| p0_4 空骨架 | proven-unobservable | 零 RTL/stimulus/request/waveform；当前候选不作等价 |
+| P3-C queue | 已清空 | 矩阵不再包含 P3-C gap |
+| 门禁 | 已通过 | closure 4/4；静态 43/43；相邻 222/222；CTest 3/3 |
+| red/green/证据 commit | 已完成 | `6b09512` / 本批提交 / 本批提交 |
+
+### 下一阶段
+
+1. 进入 P3-D，按 stream/APB/AXI 六个 fixture 逐项建立 red→green 差分；不得把协议工具 runner、
+   XAMBA wrapper 或代表性 FST 混成同一场景。
+2. P3-D 清零后进入 P3-E 的 `npi_fsdb_sva`、`xif_event` 与 cross-fixture consumer，最后执行 P4
+   全量门禁和最终差异报告。

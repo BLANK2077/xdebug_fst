@@ -1,7 +1,17 @@
 from __future__ import annotations
 
+from copy import deepcopy
+import hashlib
 import json
 from pathlib import Path
+
+import pytest
+
+from tools.build_rtl_wave_semantic_matrix import (
+    MatrixError,
+    asset_lookup,
+    validate_p3c_active_trace_closure_audit,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -10,10 +20,15 @@ AUDIT_PATH = (
     "p3c-active-trace-closure.audit.json"
 )
 MATRIX_PATH = ROOT / "tests/coverage/rtl_wave_semantic_matrix.json"
+MANIFEST_PATH = ROOT / "compat/xdebug-v1/rtl-wave-assets.manifest.json"
+AUDIT_SHA256 = (
+    "c9d29f6e93c598501013c011243b62aa81574f104ffdd8d53f5474a8ac51c7fc"
+)
 
 
 def load_audit() -> dict:
     assert AUDIT_PATH.is_file(), "缺少 P3-C runner/orphan 冻结裁决证据"
+    assert hashlib.sha256(AUDIT_PATH.read_bytes()).hexdigest() == AUDIT_SHA256
     return json.loads(AUDIT_PATH.read_text(encoding="utf-8"))
 
 
@@ -44,6 +59,16 @@ def test_runner_private_helper_has_no_uncovered_public_observation() -> None:
     assert runner["coverage"]["catalog_case_count"] == 68
     assert runner["coverage"]["native_runner_case_count"] == 58
     assert runner["coverage"]["public_runtime_case_count"] == 10
+    assert set(runner["coverage"]["consumer_public_action_disposition"]) == {
+        "session.close",
+        "session.open",
+        "trace.active_driver",
+        "trace.active_driver_chain",
+    }
+    assert runner["coverage"]["consumer_public_action_disposition"][
+        "trace.active_driver"
+    ]["executable_request_count"] == 0
+    assert runner["coverage"]["remaining_unmapped_consumer_action_count"] == 0
     assert runner["coverage"]["remaining_distinct_public_observation_count"] == 0
 
     matrix = load_matrix()
@@ -95,3 +120,43 @@ def test_p3c_queue_is_empty_only_after_both_bounded_proofs() -> None:
         "proven-unobservable"
     assert scenarios["active.p0.declared_only_p0_4"]["status"] == \
         "proven-unobservable"
+
+
+def test_closure_validator_rejects_broadened_or_mutated_proofs() -> None:
+    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    original_assets = asset_lookup(manifest, "original")
+    current_assets = asset_lookup(manifest, "current")
+
+    def validate(document: dict) -> dict:
+        return validate_p3c_active_trace_closure_audit(
+            document,
+            ROOT,
+            manifest,
+            original_assets,
+            current_assets,
+        )
+
+    audit = load_audit()
+    assert validate(audit) == audit
+
+    fallback = deepcopy(audit)
+    fallback["session"]["fallback_used"] = True
+    with pytest.raises(MatrixError, match="write/cache/fallback boundary"):
+        validate(fallback)
+
+    uncovered = deepcopy(audit)
+    uncovered["runner"]["coverage"][
+        "remaining_distinct_public_observation_count"
+    ] = 1
+    with pytest.raises(MatrixError, match="catalog coverage drifted"):
+        validate(uncovered)
+
+    public_helper = deepcopy(audit)
+    public_helper["runner"]["private_helper"]["public_action"] = True
+    with pytest.raises(MatrixError, match="private runner boundary drifted"):
+        validate(public_helper)
+
+    invented_rtl = deepcopy(audit)
+    invented_rtl["declared_only_orphan"]["frozen_directory"]["rtl_count"] = 1
+    with pytest.raises(MatrixError, match="declared-only orphan proof drifted"):
+        validate(invented_rtl)

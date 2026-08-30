@@ -1,0 +1,289 @@
+{
+  "declared_only_orphan": {
+    "authoritative_public_request_count": 0,
+    "case": "p0_4_interface_modport",
+    "catalog": {
+      "path": "xdebug/tests/active_trace_chain/cases.v1.yaml",
+      "sha256": "f4e61f065e1c1c4412f3c823c336d8962da559274e8c7f71387919d38e6bfb3c"
+    },
+    "catalog_row_count": 0,
+    "classification": "proven-unobservable",
+    "current_capability_is_not_equivalence": true,
+    "declaration": {
+      "line": 22,
+      "path": "xdebug/tests/active_trace_chain/README.md",
+      "sha256": "836f352ddf6ed085498e32a9e4e8c503efff4d6ced01c718a2b3a8701964e77b"
+    },
+    "frozen_directory": {
+      "concrete_waveform_count": 0,
+      "entries": [
+        ".gitignore"
+      ],
+      "entry_sha256": "af69c0f2f3470ff9b75c1ccbcb1ee4152eb93eed113bbf9929267ddbebeaed9b",
+      "path": "xdebug/tests/active_trace_chain/p0_composability/p0_4_interface_modport",
+      "rtl_count": 0,
+      "stimulus_count": 0
+    },
+    "proof_scope": "Only the frozen declaration and empty case skeleton are classified; interface/modport behavior remains testable when an authoritative RTL and signal/time request exist.",
+    "remaining_distinct_public_observation_count": 0,
+    "scenario_id": "active.p0.declared_only_p0_4"
+  },
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "runner": {
+    "classification": "proven-unobservable",
+    "coverage": {
+      "catalog": {
+        "group_counts": {
+          "composite": 20,
+          "p0": 6,
+          "phase4": 20,
+          "phase5": 10,
+          "timing": 12
+        },
+        "path": "xdebug/tests/active_trace_chain/cases.v1.yaml",
+        "sha256": "f4e61f065e1c1c4412f3c823c336d8962da559274e8c7f71387919d38e6bfb3c"
+      },
+      "catalog_case_count": 68,
+      "consumer_public_action_count": 4,
+      "consumer_public_action_disposition": {
+        "session.close": {
+          "covered_by": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+          "executable_request_count": 1,
+          "source": "xdebug/tests/active_trace_chain/test_phase5.py",
+          "source_sha256": "0c2a6f321f7c9965d91c92acc3d794cc8612867d955e8b9fccd6691576b44494"
+        },
+        "session.open": {
+          "covered_by": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+          "executable_request_count": 1,
+          "source": "xdebug/tests/active_trace_chain/test_phase5.py",
+          "source_sha256": "0c2a6f321f7c9965d91c92acc3d794cc8612867d955e8b9fccd6691576b44494"
+        },
+        "trace.active_driver": {
+          "documentation_only_lines": [
+            9,
+            10,
+            27
+          ],
+          "executable_request_count": 0,
+          "source": "xdebug/tests/active_trace_chain/README.md",
+          "source_sha256": "836f352ddf6ed085498e32a9e4e8c503efff4d6ced01c718a2b3a8701964e77b"
+        },
+        "trace.active_driver_chain": {
+          "catalog_observation_count": 68,
+          "covered_by": [
+            "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+            "tests/data/rtl_wave_differential/p3c-composite.original-oracle.json",
+            "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+            "tests/data/rtl_wave_differential/p3c-phase4.original-oracle.json",
+            "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json"
+          ],
+          "executable_request_count": 1,
+          "source": "xdebug/tests/active_trace_chain/test_phase5.py",
+          "source_sha256": "0c2a6f321f7c9965d91c92acc3d794cc8612867d955e8b9fccd6691576b44494"
+        }
+      },
+      "covered_scenario_ids": [
+        "active.p0.01",
+        "active.p0.02",
+        "active.p0.03",
+        "active.p0.04",
+        "active.p0.05",
+        "active.p0.06",
+        "active.composite.01",
+        "active.composite.02",
+        "active.composite.03",
+        "active.composite.04",
+        "active.composite.05",
+        "active.composite.06",
+        "active.composite.07",
+        "active.composite.08",
+        "active.composite.09",
+        "active.composite.10",
+        "active.composite.11",
+        "active.composite.12",
+        "active.composite.13",
+        "active.composite.14",
+        "active.composite.15",
+        "active.composite.16",
+        "active.composite.17",
+        "active.composite.18",
+        "active.composite.19",
+        "active.composite.20",
+        "active.timing.01",
+        "active.timing.02",
+        "active.timing.03",
+        "active.timing.04",
+        "active.timing.05",
+        "active.timing.06",
+        "active.timing.07",
+        "active.timing.08",
+        "active.timing.09",
+        "active.timing.10",
+        "active.timing.11",
+        "active.timing.12",
+        "active.phase4.01",
+        "active.phase4.02",
+        "active.phase4.03",
+        "active.phase4.04",
+        "active.phase4.05",
+        "active.phase4.06",
+        "active.phase4.07",
+        "active.phase4.08",
+        "active.phase4.09",
+        "active.phase4.10",
+        "active.phase4.11",
+        "active.phase4.12",
+        "active.phase4.13",
+        "active.phase4.14",
+        "active.phase4.15",
+        "active.phase4.16",
+        "active.phase4.17",
+        "active.phase4.18",
+        "active.phase4.19",
+        "active.phase4.20",
+        "active.phase5.01",
+        "active.phase5.02",
+        "active.phase5.03",
+        "active.phase5.04",
+        "active.phase5.05",
+        "active.phase5.06",
+        "active.phase5.07",
+        "active.phase5.08",
+        "active.phase5.09",
+        "active.phase5.10"
+      ],
+      "native_oracles": [
+        {
+          "group": "p0",
+          "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+          "row_count": 6,
+          "runner_sha256": "f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237",
+          "sha256": "78fd3616cd961b66d59afcd55eb682b71ddb5549db8e99c580f4f141552298f2"
+        },
+        {
+          "group": "composite",
+          "path": "tests/data/rtl_wave_differential/p3c-composite.original-oracle.json",
+          "row_count": 20,
+          "runner_sha256": "f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237",
+          "sha256": "729f7a656f061d8bd5207217b987598ae81840dff3cd5bbaf4febc6b3cbcc5d7"
+        },
+        {
+          "group": "timing",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "row_count": 12,
+          "runner_sha256": "f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237",
+          "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c"
+        },
+        {
+          "group": "phase4",
+          "path": "tests/data/rtl_wave_differential/p3c-phase4.original-oracle.json",
+          "row_count": 20,
+          "runner_sha256": "f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237",
+          "sha256": "08e729d6370a48fde04611acb479c66c2458e5e7f193fd7747268a0d56b69368"
+        }
+      ],
+      "native_runner_case_count": 58,
+      "public_runtime_case_count": 10,
+      "public_runtime_oracle": {
+        "group": "phase5",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "row_count": 10,
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca"
+      },
+      "remaining_distinct_public_observation_count": 0,
+      "remaining_unmapped_consumer_action_count": 0
+    },
+    "fixture_contract": {
+      "build_capabilities": [
+        "make",
+        "gxx",
+        "npi"
+      ],
+      "builder_argv": [
+        "make",
+        "chain_test",
+        "BUILD={resources}/build"
+      ],
+      "catalog_reference_lines": [
+        693,
+        706,
+        719,
+        732,
+        745
+      ],
+      "id": "xdebug.active_trace_runner",
+      "inputs": [
+        "Makefile",
+        "chain_test.cpp",
+        "chain_test.h"
+      ],
+      "outputs": [
+        {
+          "kind": "file",
+          "min_bytes": 1024,
+          "name": "runner",
+          "path": "build/chain_test"
+        }
+      ],
+      "probe_argv": [
+        [
+          "python3",
+          "{repo}/testinfra/leaf/probe_fixture.py",
+          "--resources",
+          "{resources}",
+          "--executable-glob",
+          "build/chain_test"
+        ]
+      ],
+      "source_dir": "xdebug/tests/active_trace_chain"
+    },
+    "fixture_id": "xdebug.active_trace_runner",
+    "private_helper": {
+      "output_kind": "native_test_executable",
+      "output_path": "build/chain_test",
+      "public_action": false,
+      "rtl_input_count": 0,
+      "waveform_output_count": 0
+    },
+    "proof_scope": "The native executable remains a private oracle helper; its catalog-derived public observations are closed elsewhere.",
+    "public_contract": {
+      "private_fields_absent": [
+        "active_trace_calls",
+        "edgecheck_direct_count",
+        "fallback_0_5ns_count",
+        "stop_on_temporal",
+        "temporal_boundary_stops"
+      ],
+      "request_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.request.schema.json",
+      "request_schema_sha256": "abcae2209e56e8b0244b0bc2e124532b1dff9a2dc4fe4ea85cac56290730797b",
+      "required_args": [
+        "signal",
+        "time"
+      ]
+    },
+    "source_assets": [
+      {
+        "path": "xdebug/tests/active_trace_chain/Makefile",
+        "sha256": "2d54d35659a8e252588896731b5efeb8bd141f0abeca5d27b64a678d1672d704",
+        "size_bytes": 367
+      },
+      {
+        "path": "xdebug/tests/active_trace_chain/chain_test.cpp",
+        "sha256": "20c91013dbbe302751af23db7d4b3fc951967cf5014f44da922ddc3602711cfd",
+        "size_bytes": 26743
+      },
+      {
+        "path": "xdebug/tests/active_trace_chain/chain_test.h",
+        "sha256": "84fb3f4ca5cf00f7a56050e5c7e3e4e2ea29be22eeeff6cfda2932acc2fb9aa3",
+        "size_bytes": 2993
+      }
+    ]
+  },
+  "schema_version": "xdebug.p3c-active-trace-closure-audit.v1",
+  "session": {
+    "all_writes_repository_local": true,
+    "fallback_used": false,
+    "fixture_rebuilt": false,
+    "source_access": "read_only"
+  }
+}
