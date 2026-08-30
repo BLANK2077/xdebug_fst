@@ -1,0 +1,769 @@
+{
+  "catalog": {
+    "row_count": 12,
+    "schema_version": "xdebug-active-trace-cases.v1",
+    "sha256": "f4e61f065e1c1c4412f3c823c336d8962da559274e8c7f71387919d38e6bfb3c"
+  },
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "group": "timing",
+  "locked_runtime": {
+    "cache_reused": true,
+    "fixture_rebuilt": false,
+    "fixture_version": "1042c712bf8a59877d837e55ffd4e986a62eefc16aba01eaec2d6e459eca5fb5-prepare-d9oyxhx2",
+    "npi_version": "X-2025.06-SP1",
+    "runner_sha256": "f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237",
+    "source_access": "read_only"
+  },
+  "rows": [
+    {
+      "case": "case_01",
+      "catalog_expectation": {},
+      "catalog_index": 1,
+      "fixture": {
+        "fsdb_sha256": "c563473e02b4ff334d3823ee9be1d307290dab8e76facd995953460f2cb88cd6",
+        "fsdb_size": 10265
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "55.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[5]",
+            "next_time": "55.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_01/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_01/tb.sv",
+          "sha256": "a82c990363024f8bd2ff0668a24f3202f743362cae51bc0818cf2c51b19e6597",
+          "size": 561
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.01"
+    },
+    {
+      "case": "case_02",
+      "catalog_expectation": {},
+      "catalog_index": 2,
+      "fixture": {
+        "fsdb_sha256": "c0151f776be4c70a308112b1132edf49e7b5a78e39c2e8ee23e6fadb0bc33489",
+        "fsdb_size": 10266
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "25.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[5]",
+            "next_time": "25.0n",
+            "requested_time": "35ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "10100101",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "35ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_02/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_02/tb.sv",
+          "sha256": "a82c990363024f8bd2ff0668a24f3202f743362cae51bc0818cf2c51b19e6597",
+          "size": 561
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.02"
+    },
+    {
+      "case": "case_03",
+      "catalog_expectation": {},
+      "catalog_index": 3,
+      "fixture": {
+        "fsdb_sha256": "8418396a3be21c9d06c8fc9982c7ffce78c88a56607d131c728dbf6384508b5f",
+        "fsdb_size": 10324
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "55.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[10]",
+            "next_time": "55.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_03/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_03/tb.sv",
+          "sha256": "c4325afdfec37aad0706594bf1e643d71cc874cdcc7d872b790653e8dcb63404",
+          "size": 562
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.03"
+    },
+    {
+      "case": "case_04",
+      "catalog_expectation": {},
+      "catalog_index": 4,
+      "fixture": {
+        "fsdb_sha256": "3734bf001493570bbccc96e3567a704c910c50967881b347efe7a27d03d93708",
+        "fsdb_size": 10323
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "55.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[5]",
+            "next_time": "55.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_04/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_04/tb.sv",
+          "sha256": "5f06140ce705b1cdf8dc82891611e2db580ce26d9190f1e934243010aa81b8a3",
+          "size": 562
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.04"
+    },
+    {
+      "case": "case_05",
+      "catalog_expectation": {},
+      "catalog_index": 5,
+      "fixture": {
+        "fsdb_sha256": "9e766ebffd68e9abc9ed26b4e5695f720dbbfe086893afa32d7e35626e432709",
+        "fsdb_size": 10266
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "55.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[5]",
+            "next_time": "55.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_05/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_05/tb.sv",
+          "sha256": "e165cf3bfa19b9ad1810e66674493f87f45e6e42e37781ee2756ccd2a8db18b3",
+          "size": 561
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.05"
+    },
+    {
+      "case": "case_06",
+      "catalog_expectation": {},
+      "catalog_index": 6,
+      "fixture": {
+        "fsdb_sha256": "b7cce73667db4a57897648c41e98a1fbb9d0ec3dc1e1bf00971dca6f9bd76c97",
+        "fsdb_size": 10266
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "55.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[5]",
+            "next_time": "55.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_06/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_06/tb.sv",
+          "sha256": "002a9e0a218d8a16f5d23dbf89ed1d613d878472d32943f5c8f114e699d039bd",
+          "size": 561
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.06"
+    },
+    {
+      "case": "case_07",
+      "catalog_expectation": {},
+      "catalog_index": 7,
+      "fixture": {
+        "fsdb_sha256": "347c4ea1e46a0eb7503a904f1894f3bf3b0d8bc48b80c943a55003ceffec3582",
+        "fsdb_size": 10264
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "55.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[5]",
+            "next_time": "55.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_07/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_07/tb.sv",
+          "sha256": "ef07545e538edaa6bb6311a6b78506fb26950da00430a09ca8790e68b5abe57b",
+          "size": 561
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.07"
+    },
+    {
+      "case": "case_08",
+      "catalog_expectation": {},
+      "catalog_index": 8,
+      "fixture": {
+        "fsdb_sha256": "ac3502fe869363990852178690a649bfc7de59464533eccbc6f405cd5ffb2798",
+        "fsdb_size": 10244
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "55.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post",
+            "next_time": "55.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_08/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_08/tb.sv",
+          "sha256": "89c1eb42baa68a8848655adc064f517af34ae3a8200cd733850cb9f2b5e164b4",
+          "size": 561
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.08"
+    },
+    {
+      "case": "case_09",
+      "catalog_expectation": {},
+      "catalog_index": 9,
+      "fixture": {
+        "fsdb_sha256": "5435991f6db057320eae86a9a14a61d69486b8daf15eb97ad2157e1e60295ac5",
+        "fsdb_size": 10235
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "45.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[5]",
+            "next_time": "45.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_09/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_09/tb.sv",
+          "sha256": "6d7abbaadca5cded96983ee2b7962dc3e119c42f49b2f5f05b5b8da1de056bd0",
+          "size": 561
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.09"
+    },
+    {
+      "case": "case_10",
+      "catalog_expectation": {},
+      "catalog_index": 10,
+      "fixture": {
+        "fsdb_sha256": "4c58ae2d6cd2430a978702e0df3231ff569e05557d2e1afe24cbc5012381d4a4",
+        "fsdb_size": 10267
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "0.00",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[5]",
+            "next_time": "0.00",
+            "requested_time": "15ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "15ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_10/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_10/tb.sv",
+          "sha256": "a82c990363024f8bd2ff0668a24f3202f743362cae51bc0818cf2c51b19e6597",
+          "size": 561
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.10"
+    },
+    {
+      "case": "case_11",
+      "catalog_expectation": {},
+      "catalog_index": 11,
+      "fixture": {
+        "fsdb_sha256": "a39a3d7e251c12e039bf5a6ec0cca336503ae8309473d8fe0d10ad39cf3f7d31",
+        "fsdb_size": 10309
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "55.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[8]",
+            "next_time": "55.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_11/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_11/tb.sv",
+          "sha256": "a690716150cb0212cffb5368fbde3f25f3d94ef334880d62d20f129a94e4191d",
+          "size": 561
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.11"
+    },
+    {
+      "case": "case_12",
+      "catalog_expectation": {},
+      "catalog_index": 12,
+      "fixture": {
+        "fsdb_sha256": "960503b881df80709ba2514461461f93a91825e4c5684b0d150b77d92c31244b",
+        "fsdb_size": 10269
+      },
+      "native_result": {
+        "active_trace_calls": 1,
+        "branch_evidence": [],
+        "chain": [
+          {
+            "active_time": "55.0n",
+            "driver_kind": "cont_assign",
+            "file": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+            "hop": 0,
+            "hop_type": "temporal_boundary",
+            "line": 44,
+            "next_signal": "top.u_dut.post[5]",
+            "next_time": "55.0n",
+            "requested_time": "75ns",
+            "signal": "top.data_out",
+            "text": "npiContAssign, top.u_dut.assign data_out = post[NUM_POST], {xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv : 44}",
+            "value": "01011010",
+            "value_known": true
+          }
+        ],
+        "control_boundary_kind": "",
+        "edgecheck_direct_count": 1,
+        "fallback_0_5ns_count": 0,
+        "likely_source": "",
+        "limitations": [],
+        "temporal_boundaries": 1,
+        "temporal_boundary_stops": 1,
+        "termination": "temporal_boundary",
+        "total_hops": 1,
+        "truncated": false
+      },
+      "request": {
+        "signal": "top.data_out",
+        "stop_on_temporal": true,
+        "time": "75ns"
+      },
+      "rtl_mirrors": [
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/case_12/tb.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/case_12/tb.sv",
+          "sha256": "214d7d281d60dcdc21a92dc0656e8ef8f31cf69b581543a6bb4a137320166c3c",
+          "size": 562
+        },
+        {
+          "byte_identical": true,
+          "current_path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+          "original_path": "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv",
+          "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83",
+          "size": 1510
+        }
+      ],
+      "scenario_id": "active.timing.12"
+    }
+  ],
+  "schema_version": "xdebug.p3c-original-active-trace-oracle.v1",
+  "session": {
+    "all_runtime_writes_repository_local": true,
+    "fallback_used": false,
+    "mode": "native_chain_test"
+  }
+}
