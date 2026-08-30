@@ -216,16 +216,41 @@ int BinaryDesignBackend::signal_count() const {
 }
 
 int BinaryDesignBackend::resolve(const char* name) const {
-    if (!header_ || !name) return -1;
+    if (!header_ || !name || !*name) return -1;
     const auto* records = section<bd::NameIndexRecord>(bd::NameIndex);
-    uint64_t low = 0, high = header_->sections[bd::NameIndex].count;
-    while (low < high) {
-        const uint64_t mid = low + (high - low) / 2;
-        const int order = std::strcmp(name, string_at(records[mid].name));
-        if (order == 0) return records[mid].signal;
-        if (order < 0) high = mid;
-        else low = mid + 1;
+    const auto exact = [&](const std::string& query) {
+        uint64_t low = 0, high = header_->sections[bd::NameIndex].count;
+        while (low < high) {
+            const uint64_t mid = low + (high - low) / 2;
+            const int order = std::strcmp(
+                query.c_str(), string_at(records[mid].name));
+            if (order == 0) return records[mid].signal;
+            if (order < 0) high = mid;
+            else low = mid + 1;
+        }
+        return -1;
+    };
+
+    std::string query(name);
+    int resolved = exact(query);
+    if (resolved >= 0) return resolved;
+    if (query.rfind("TOP.", 0) == 0) {
+        query = "top." + query.substr(4);
+        resolved = exact(query);
+        if (resolved >= 0) return resolved;
     }
+    if (query.rfind("top.", 0) != 0) {
+        return exact("top." + query);
+    }
+    resolved = exact(query.substr(4));
+    if (resolved >= 0) return resolved;
+
+    // Verilator's model root is also named "top".  A user HDL top named
+    // ``top`` is therefore stored as top.top.*, while its native/NPI-visible
+    // path remains top.*.  Only try the duplicate-root spelling after every
+    // ordinary exact/compatibility candidate has missed.
+    resolved = exact("top." + query);
+    if (resolved >= 0) return resolved;
     return -1;
 }
 

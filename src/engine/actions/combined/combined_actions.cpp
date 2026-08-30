@@ -199,13 +199,20 @@ std::string signal_name(IDesignBackend& design, int index) {
 }
 
 std::string public_signal_name(const std::string& signal,
-                               const std::string& requested_root) {
-    const bool explicit_top=requested_root=="top"||
-        requested_root.rfind("top.",0)==0||
-        requested_root=="TOP"||requested_root.rfind("TOP.",0)==0;
-    if (!explicit_top&&signal.rfind("top.",0)==0)
+                               const std::string& requested_root,
+                               bool compatibility_projection) {
+    if (signal==requested_root) return signal;
+    const bool requested_explicit_top=requested_root=="top"||
+        requested_root.rfind("top.",0)==0||requested_root=="TOP"||
+        requested_root.rfind("TOP.",0)==0;
+    if (compatibility_projection&&requested_explicit_top) {
+        if (signal.rfind("top.top.",0)==0) return signal.substr(4);
+        if (signal.rfind("TOP.top.",0)==0) return signal.substr(4);
+        return signal;
+    }
+    if (compatibility_projection&&signal.rfind("top.",0)==0)
         return signal.substr(4);
-    if (!explicit_top&&signal.rfind("TOP.",0)==0)
+    if (compatibility_projection&&signal.rfind("TOP.",0)==0)
         return signal.substr(4);
     return signal;
 }
@@ -213,6 +220,17 @@ std::string public_signal_name(const std::string& signal,
 bool has_explicit_top_root(const std::string& signal) {
     return signal=="top"||signal.rfind("top.",0)==0||
         signal=="TOP"||signal.rfind("TOP.",0)==0;
+}
+
+bool uses_native_visible_root(IDesignBackend& design,
+                              const std::string& signal) {
+    if (!has_explicit_top_root(signal)) return true;
+    const int index=design.resolve(signal.c_str());
+    const std::string resolved=signal_name(design,index);
+    std::string canonical_request=signal;
+    if (canonical_request.rfind("TOP.",0)==0)
+        canonical_request="top."+canonical_request.substr(4);
+    return !resolved.empty()&&resolved=="top."+canonical_request;
 }
 
 bool final_numeric_selector(const std::string& signal,std::string& base,
@@ -1325,7 +1343,7 @@ void append_unique_signal(Json& path,const std::string& signal) {
 
 void append_flattened_statement_context_paths(
     Json& paths,const StatementGroup& statement,const std::string& target,
-    IDesignBackend& design) {
+    IDesignBackend& design,bool compatibility_projection) {
     if (statement.kind!="nba") return;
     int control_line=0,event_line=0;
     for (int offset=1;offset<=16&&event_line==0;++offset) {
@@ -1354,7 +1372,8 @@ void append_flattened_statement_context_paths(
         if (expression) {
             for (const auto& signal : expression_signals(expression.get()))
                 append_unique_signal(
-                    signal_path,public_signal_name(signal,target));
+                    signal_path,public_signal_name(
+                        signal,target,compatibility_projection));
         }
         append_unique_signal(signal_path,target);
         paths.push_back({{"file",statement.file},{"line",control_line},
@@ -1369,7 +1388,8 @@ void append_flattened_statement_context_paths(
                 record.dependency_role.rfind("event_",0)==0) {
                 append_unique_signal(
                     signal_path,public_signal_name(
-                        signal_name(design,record.src_signal),target));
+                        signal_name(design,record.src_signal),
+                        target,compatibility_projection));
             }
         }
         append_unique_signal(signal_path,target);
@@ -1503,7 +1523,8 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
         if (!target.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST");
         const Json limits=request.value("limits",Json::object());
         const size_t max_results=limits.value("max_results",10u);
-        const bool compatibility_projection=!has_explicit_top_root(signal);
+        const bool compatibility_projection=uses_native_visible_root(
+            design,signal);
         if (compatibility_projection&&is_external_primary_input(design,index)) {
             const std::string file=design.signal_file(index)
                 ?design.signal_file(index):"<unknown>";
@@ -1549,11 +1570,12 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
             const auto* driver=representative_driver(statement);
             if (!driver||driver->line<=0||driver->file.empty()) continue;
             const std::string source=public_signal_name(
-                signal_name(design,driver->src_signal),signal);
+                signal_name(design,driver->src_signal),
+                signal,compatibility_projection);
             paths.push_back(source_path(*driver,source,signal));
             if (flattened_output)
                 append_flattened_statement_context_paths(
-                    paths,statement,signal,design);
+                    paths,statement,signal,design,compatibility_projection);
         }
 
         const bool transparent_boundary=std::any_of(
@@ -1659,7 +1681,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         bool limited=false,ambiguity_limited=false,ambiguity_incomplete=false;
         std::string frontier_signal; Sample frontier_sample;
         Json ambiguity=nullptr;
-        const bool compatibility_projection=!has_explicit_top_root(root);
+        const bool compatibility_projection=uses_native_visible_root(
+            design,root);
         for (size_t depth=0;;++depth) {
             const std::string visit_key=current+"\x1f"+std::to_string(current_time);
             if (!visited.insert(visit_key).second) {
@@ -1711,7 +1734,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 max_nodes,&self_hold_backtrack_limited);
             if (self_hold_backtrack_limited) {
                 hops.push_back(trace_hop(depth,
-                    public_signal_name(current,root),sample,
+                    public_signal_name(
+                        current,root,compatibility_projection),sample,
                     depth==0?"root":"driver",nullptr,design,index,waveform,
                     unit,format));
                 limited=true;
@@ -1985,18 +2009,23 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             // before constructing a node.  Other ambiguity kinds are found
             // only after the current node exists and therefore keep the hop.
             if (!stops_before_current_hop) {
-                Json hop=trace_hop(depth,public_signal_name(current,root),sample,
+                Json hop=trace_hop(depth,public_signal_name(
+                    current,root,compatibility_projection),sample,
                     depth==0?"root":"driver",selected,design,index,waveform,
                     unit,format);
                 Json signal_path=Json::array();
                 if (projected_root_input&&!root_input_parent.empty())
                     append_unique_signal(signal_path,
-                        public_signal_name(root_input_parent,root));
+                        public_signal_name(
+                            root_input_parent,root,
+                            compatibility_projection));
                 else if (!upstream.empty())
                     append_unique_signal(signal_path,
-                        public_signal_name(upstream,root));
+                        public_signal_name(
+                            upstream,root,compatibility_projection));
                 append_unique_signal(
-                    signal_path,public_signal_name(current,root));
+                    signal_path,public_signal_name(
+                        current,root,compatibility_projection));
                 hop["signal_path"]=std::move(signal_path);
                 hops.push_back(std::move(hop));
             }

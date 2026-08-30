@@ -131,7 +131,10 @@ int XddDesignBackend::resolve(const char* name) const {
     const std::string query(name);
     if (query.rfind("TOP.", 0) == 0) {
         const std::string canonical = "top." + query.substr(4);
-        return fn_resolve_(db_, canonical.c_str());
+        const int normalized = fn_resolve_(db_, canonical.c_str());
+        if (normalized >= 0) return normalized;
+        const std::string duplicated = "top." + canonical;
+        return fn_resolve_(db_, duplicated.c_str());
     }
     if (query.rfind("top.", 0) != 0) {
         const std::string canonical = "top." + query;
@@ -140,6 +143,9 @@ int XddDesignBackend::resolve(const char* name) const {
     } else {
         const int unprefixed = fn_resolve_(db_, query.substr(4).c_str());
         if (unprefixed >= 0) return unprefixed;
+        const std::string duplicated = "top." + query;
+        const int nested_top = fn_resolve_(db_, duplicated.c_str());
+        if (nested_top >= 0) return nested_top;
     }
     return -1;
 }

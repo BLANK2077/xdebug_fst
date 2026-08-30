@@ -737,6 +737,19 @@ uint32_t WellenFstBackend::find_signal(const std::string& path) const {
     if (it != signal_index_.end()) return it->second;
     const uint32_t selected = create_packed_selection(key);
     if (selected != kInvalidSignalRef) return selected;
+    // With an HDL top literally named "top", DesignDB uses top.top.* while
+    // an FST emitted by Verilator's generated main contains top.*.  The first
+    // normalize_path() call removes the synthetic model root; on an exact
+    // miss, remove the duplicated HDL root once more.  Exact lookup remains
+    // authoritative, so a real nested top scope is never shadowed.
+    if (key.rfind("top.", 0) == 0) {
+        key = key.substr(4);
+        it = signal_index_.find(key);
+        if (it != signal_index_.end()) return it->second;
+        const uint32_t duplicate_root_selection = create_packed_selection(key);
+        if (duplicate_root_selection != kInvalidSignalRef)
+            return duplicate_root_selection;
+    }
     // build_signal_index() traverses every variable.  A miss after the exact
     // and packed-selection indexes is definitive; rescanning the hierarchy
     // makes every absent DesignDB-only temporary O(number of waveform vars).

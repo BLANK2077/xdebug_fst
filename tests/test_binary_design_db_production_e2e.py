@@ -111,8 +111,7 @@ def test_hdl_top_named_top_uses_native_visible_signal_path(
     rtl = tmp_path / "native_top.sv"
     rtl.write_text(
         "`timescale 1ns/1ps\n"
-        "module top;\n"
-        "  logic in0 = 1'b0;\n"
+        "module top(input logic in0);\n"
         "  wire middle;\n"
         "  wire observed;\n"
         "  assign middle = in0;\n"
@@ -120,8 +119,7 @@ def test_hdl_top_named_top_uses_native_visible_signal_path(
         "  initial begin\n"
         "    $dumpfile(\"native-top.fst\");\n"
         "    $dumpvars(0, top);\n"
-        "    #5 in0 = 1'b1;\n"
-        "    #5 $finish;\n"
+        "    #10 $finish;\n"
         "  end\n"
         "endmodule\n",
         encoding="utf-8",
