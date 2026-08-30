@@ -996,3 +996,33 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
    XAMBA wrapper 或代表性 FST 混成同一场景。
 2. P3-D 清零后进入 P3-E 的 `npi_fsdb_sva`、`xif_event` 与 cross-fixture consumer，最后执行 P4
    全量门禁和最终差异报告。
+
+### 2026-08-30：P3-D1 stream_v1 原版公开语义红灯
+
+- P3-D 的六项不再共用“代表性协议 fixture”结论，拆成 D1 stream_v1（同时裁决私有
+  differential runner）、D2 APB VIP/XAMBA、D3 AXI VIP/XAMBA 三个可独立回滚子批。每个子批
+  均先提交锁定原版 oracle 与有效业务红灯，再补当前 fixture/实现，最后单独更新矩阵和证据。
+- 原版 `stream_v1_top.sv` 固定 `N=20000`，在 5 ns 半周期时钟上生成七类流：valid-only、
+  ready、backpressure、ready packet、bp packet、negedge ready+bp packet 和双通道交织 packet。
+  它不是当前 `testdata/fixtures/stream` 的 4-transfer 小样例。锁定原版预期分别为 20,000、
+  15,059、17,142、20,000、20,000、20,000、20,000 次 transfer；ready/bp stall 分别为
+  3,764/2,858，四类 packet 各 5,000 包，并有 1 次 ready/bp 冲突。
+- 新增 `tools/collect_p3d_stream_v1_public_oracle.py`，仅通过冻结 runtime
+  `8eecf71271cc/c4509904...` 的公开 JSON Action 读取既有只读 FSDB cache；runtime wrapper/
+  binary SHA-256 分别为 `c9569332...`/`0f54515f...`，73/73 Action 与 NPI
+  `X-2025.06-SP1` 身份门禁通过。复用 cache 版本
+  `5eca27af...-prepare-c54cyr7t`，FSDB SHA-256 为 `0507c9c...`，没有重建 fixture。
+- oracle 共 58 个完整观察点：七个 stream 的 config/list/describe/validate、summary、first/last、
+  transfer window，以及部分包、包索引、越界、stable mismatch、stall、negedge、交织、beat/
+  packet/channel filter 和 invalid-interleaving 错误。所有 query/validate 都要求 scan/analysis
+  完整，允许的裁剪只能是请求明确造成的 response 侧 line limit；不保存 FSDB 内容、导出物、
+  私有分析缓存或绝对路径。oracle SHA-256 为 `8c40c3ec...`。
+- 新增 `tests/test_p3d_stream_v1.py`。第一项先锁住 runtime/cache/RTL/config/FSDB/expected 哈希、
+  58 项 observation 集合、正常 session close、零 fallback 和去敏边界；第二项要求当前仓库提供
+  逐字节相同 RTL/config、固定 expected、可重建原始 FST/hash lock，并逐项严格比较 58 个公开
+  响应。有效红灯为 1 pass/1 fail，唯一失败是当前 `testdata/fixtures/stream_v1/stream_v1_top.sv`
+  缺失；失败已进入目标业务断言，不是 runtime、NPI、socket 或 cache 错误。
+- 本批所有 HOME/TMP/cache/socket/session 写入都在当前仓库
+  `build/goal-runtime/p3d-stream-v1-original`；外部审计的规范 JSON SHA-256 仍为
+  `b36b1c254efbe860544f135e0fd964b9cd6fedd0cbb1bb32c7b3aae5de8c4bcb`。没有 FSDB→FST/
+  JSON 转换，没有 export 回灌，没有 fixture/backend fallback，也没有修改外部仓库。
