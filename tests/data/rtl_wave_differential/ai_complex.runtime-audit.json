@@ -1,0 +1,185 @@
+{
+  "schema_version": "xdebug.ai-complex-runtime-audit.v1",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "audit_date": "2026-08-30",
+  "scope": "锁定原版 ai_complex 非 AXI 公开 Action oracle 在原版 FSDB 与当前 FST 上的语义对照；不比较波形二进制",
+  "locked_original_runtime": {
+    "git_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
+    "self_reported_git_revision": "8eecf71271cc",
+    "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "build_id": "8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "action_count": 73,
+    "runner": {
+      "relative_path": "xdebug/tests/waveform/run_complex_wave.py",
+      "sha256": "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724",
+      "mode": "nonaxi"
+    },
+    "counter_runner": {
+      "relative_path": "xdebug/tests/waveform/run_counter_statistics.py",
+      "sha256": "fe0bafa4ff50d36d1fc283da07f915981ce613aae618341324edfb683c29ead5"
+    },
+    "fixture": {
+      "fixture_id": "xdebug.ai_complex_wave",
+      "cache_fingerprint": "a5da8054a5d15693369316da2fb212b16fc10e5e065bc3fe560800ce7e14ee17",
+      "format": "fsdb",
+      "fsdb_sha256": "6a30388f464162d29bb538af92992c702667fe55c57a423095e27066d0636152",
+      "fsdb_size": 9232,
+      "cache_reused": true,
+      "fixture_rebuilt": false,
+      "source_access": "read_only",
+      "proprietary_artifacts_committed": false
+    },
+    "suite_gate": {
+      "result": "passed",
+      "pass_marker": "PASS: xdebug complex waveform validation completed",
+      "session_opened": true,
+      "session_closed_gracefully": true,
+      "all_runtime_writes_repository_local": true
+    },
+    "counter_suite_gate": {
+      "result": "passed",
+      "pass_marker": "PASS: xdebug counter.statistics validation completed",
+      "session_opened": true,
+      "session_closed_gracefully": true,
+      "all_runtime_writes_repository_local": true
+    }
+  },
+  "current_runtime": {
+    "implementation_commit": "ddf9064",
+    "binary": "build/xdebug-fst",
+    "fixture": {
+      "fixture_id": "current.ai_complex",
+      "format": "fst",
+      "rtl_sha256": "a045e6c40faab433546242f7e6e6511186ffc875ec22e996218099b3f4c6e047",
+      "generator_sha256": "3199d2409a7d61c19e13b478aa825ebc57ac4f32eeaf1bf2d193d5c5eadb39c7",
+      "writer_patch_sha256": "9db81ca952ec5579bd95bf142d94996834d0f64d8b109fe2e996014d5b24cc83",
+      "fst_sha256": "71218e2a72fb43567cc4b1fe6070caeb1d9319568412cfa2d05adffc44fcbea9",
+      "fixture_rebuilt": true,
+      "deterministic_second_build": true,
+      "vcd_or_json_conversion_used": false
+    },
+    "locked_suite_gate": {
+      "same_runner_sha256": "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724",
+      "same_mode": "nonaxi",
+      "result": "passed",
+      "pass_marker": "PASS: xdebug complex waveform validation completed",
+      "session_opened": true,
+      "session_closed_gracefully": true
+    },
+    "locked_counter_suite_gate": {
+      "same_runner_sha256": "fe0bafa4ff50d36d1fc283da07f915981ce613aae618341324edfb683c29ead5",
+      "result": "passed",
+      "pass_marker": "PASS: xdebug counter.statistics validation completed",
+      "session_opened": true,
+      "session_closed_gracefully": true
+    },
+    "repository_gate": {
+      "path": "tests/test_ai_complex_wave.py",
+      "sha256": "97e070e2360b4da2d1ed3de7a60a2de24f694476074be3cb3066d9f23c67407d",
+      "passed": 7,
+      "failed": 0
+    },
+    "focused_regression": {
+      "path": "tests/test_clock_counter.py",
+      "sha256": "fd8ed3a6e22d19156da8e0e77d3f23d2497cfeae24e092182670118c7e42fa27",
+      "test": "test_counter_statistics_resolves_named_cursor_time_range",
+      "passed": 1,
+      "failed": 0
+    }
+  },
+  "observable_contract": {
+    "original_rtl": {
+      "path": "xdebug/testdata/waveform/ai_complex_wave/tb/ai_complex_top.sv",
+      "sha256": "4260ec96869ecfbda3ab8961d85fec45a30356d7881cecf7267904def042f167"
+    },
+    "current_rtl": {
+      "path": "testdata/fixtures/ai_complex/ai_complex_top.sv",
+      "sha256": "a045e6c40faab433546242f7e6e6511186ffc875ec22e996218099b3f4c6e047"
+    },
+    "public_actions": [
+      "counter.statistics",
+      "event.config.list",
+      "event.config.load",
+      "event.export",
+      "event.find",
+      "expr.eval_at",
+      "list.add",
+      "list.create",
+      "list.delete",
+      "list.export",
+      "list.first_change",
+      "list.load",
+      "list.show",
+      "list.validate",
+      "protocol.handshake.inspect",
+      "scope.list",
+      "signal.anomaly.inspect",
+      "signal.changes",
+      "signal.sampled_pulse.inspect",
+      "signal.stability",
+      "signal.statistics",
+      "signal.xz_verify",
+      "stream.config.load",
+      "stream.query",
+      "value.at",
+      "verify.conditions",
+      "waveform.cursor.set",
+      "window.verify"
+    ],
+    "same_stimulus_times": true,
+    "same_signal_hierarchy_and_widths": true,
+    "four_state_x_and_z_preserved": true,
+    "same_locked_oracle_passed_both_sides": true,
+    "binary_waveform_comparison_used": false
+  },
+  "closed_differences": [
+    {
+      "area": "value.at",
+      "red": "反向目标 edge 落在真实时钟跳变时错误返回 missing_value",
+      "green": "任一精确时钟跳变返回最终值，同时保留 target-edge 诊断"
+    },
+    {
+      "area": "value.at",
+      "red": "直接未知 signal 返回成功 envelope 与 cell-level signal_not_found",
+      "green": "直接 selector 按锁定合同返回 SIGNAL_NOT_FOUND"
+    },
+    {
+      "area": "event.find",
+      "red": "config reset 仅校验路径但未 load，导致所有采样被过滤",
+      "green": "扫描前解析并 load reset，before/after 与 reset gate 同时成立"
+    },
+    {
+      "area": "stream.query",
+      "red": "忽略 sample_point 且不接受顶层 data alias，before 错计同边沿 transfer",
+      "green": "按 before/after 采样 control/data，after 保留同边沿已接受握手"
+    },
+    {
+      "area": "expression",
+      "red": "等值按序列化宽度比较且拒绝无尺寸进制常量",
+      "green": "等值扩展到共同宽度，并接受 SystemVerilog 'h22 形式"
+    },
+    {
+      "area": "counter.statistics",
+      "red": "time_range 中已经建立的 @cursor 被当作普通时间并返回 INVALID_TIME",
+      "green": "分析窗口先解析 session cursor，再按同一闭区间执行统计"
+    }
+  ],
+  "write_boundary_audit": {
+    "only_writable_repository": "xdebug_fst",
+    "external_inputs_read_only": true,
+    "fallback_used": false,
+    "original_xverif_snapshot_sha256_before": "fd890650bbf9c2bb29542fa001af282ccbe8cfea6d3ad1db93abfe6d9f47ba37",
+    "original_xverif_snapshot_sha256_after": "fd890650bbf9c2bb29542fa001af282ccbe8cfea6d3ad1db93abfe6d9f47ba37",
+    "wellen_snapshot_sha256_before": "0773c4bfa9349ba05495fd8201ff23548ec78cd0b53116afc93eee22301354b1",
+    "wellen_snapshot_sha256_after": "0773c4bfa9349ba05495fd8201ff23548ec78cd0b53116afc93eee22301354b1",
+    "verilator_snapshot_sha256_before": "8bace1ef8213ab2f9c5f66b4143dc65afcd9a8a9d16dd516e502339656bca561",
+    "verilator_snapshot_sha256_after": "8bace1ef8213ab2f9c5f66b4143dc65afcd9a8a9d16dd516e502339656bca561"
+  },
+  "verdict": {
+    "scenario_id": "fixture.ai_complex_wave",
+    "status": "semantic-equivalent",
+    "p3_batch": "P3-A",
+    "remaining_observable_gap_count": 0,
+    "format_difference_retained": "原版为 FSDB/NPI，当前为直接四态 FST/Wellen；公开 Action oracle 等价"
+  }
+}

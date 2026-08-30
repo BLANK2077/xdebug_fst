@@ -13,6 +13,7 @@ from tools.freeze_rtl_wave_assets import (
     canonical_json,
     ensure_output_within_repo,
     fixture_ids_for_path,
+    fixture_ids_referenced_by_consumer,
     parse_fixture_registry,
     parse_porcelain_z,
     relative_output_records,
@@ -93,6 +94,35 @@ fixtures:
             "path": "out/waves.fsdb",
         },
     ]
+
+
+def test_consumer_fixture_reference_recognizes_constructed_source_path() -> None:
+    fixtures = [
+        {
+            "id": "xdebug.ai_complex_wave",
+            "source_dir": "xdebug/testdata/waveform/ai_complex_wave",
+        },
+        {
+            "id": "xdebug.counter_stats",
+            "source_dir": "xdebug/testdata/waveform/counter_stats",
+        },
+    ]
+    text = '''
+NONAXI_DIR = os.path.join(
+    ROOT, "testdata", "waveform", "ai_complex_wave")
+'''
+    assert fixture_ids_referenced_by_consumer(text, fixtures) == [
+        "xdebug.ai_complex_wave"
+    ]
+    assert fixture_ids_referenced_by_consumer(
+        "fixture = 'xdebug.counter_stats'", fixtures
+    ) == ["xdebug.counter_stats"]
+    assert fixture_ids_referenced_by_consumer(
+        "from run_complex_wave import NONAXI_FSDB", fixtures
+    ) == ["xdebug.ai_complex_wave"]
+    assert fixture_ids_referenced_by_consumer(
+        "output = 'out/waves.fsdb'", fixtures
+    ) == []
 
 
 def test_porcelain_parser_preserves_dirty_and_untracked_states() -> None:
@@ -190,6 +220,19 @@ def test_checked_in_manifest_has_unique_hashed_relative_assets() -> None:
     local_home_prefix = "/" + "home/"
     assert not any(text.startswith(local_home_prefix) for text in all_strings(manifest))
     assert canonical_json(manifest) == MANIFEST_PATH.read_text(encoding="utf-8")
+
+
+def test_ai_complex_runners_are_assigned_to_their_reused_fixture() -> None:
+    manifest = load_manifest()
+    assets = {
+        item["path"]: item
+        for item in manifest["assets"]
+        if item["side"] == "original"
+    }
+    complex_runner = assets["xdebug/tests/waveform/run_complex_wave.py"]
+    counter_runner = assets["xdebug/tests/waveform/run_counter_statistics.py"]
+    assert "xdebug.ai_complex_wave" in complex_runner["fixture_ids"]
+    assert counter_runner["fixture_ids"] == ["xdebug.ai_complex_wave"]
 
 
 def test_active_trace_declares_dynamic_fsdb_outputs_from_probe_contracts() -> None:

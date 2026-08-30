@@ -19,6 +19,81 @@
       "exists": true,
       "file_type": "file",
       "fixture_ids": [
+        "current.ai_complex"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/ai_complex/ai_complex_top.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "a045e6c40faab433546242f7e6e6511186ffc875ec22e996218099b3f4c6e047",
+      "side": "current",
+      "size_bytes": 3371
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.ai_complex"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/ai_complex/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "8ad9c2749745595554b029d011a8d88e11840102a14d0d95d180ef5cdd2f82a0",
+      "side": "current",
+      "size_bytes": 351
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.ai_complex"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/ai_complex/fstcpp-four-state-vector.patch",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "9db81ca952ec5579bd95bf142d94996834d0f64d8b109fe2e996014d5b24cc83",
+      "side": "current",
+      "size_bytes": 1137
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.ai_complex"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/ai_complex/generate_ai_complex_fst.cpp",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "3199d2409a7d61c19e13b478aa825ebc57ac4f32eeaf1bf2d193d5c5eadb39c7",
+      "side": "current",
+      "size_bytes": 8551
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.ai_complex"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/ai_complex/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "71218e2a72fb43567cc4b1fe6070caeb1d9319568412cfa2d05adffc44fcbea9",
+      "side": "current",
+      "size_bytes": 983
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
         "current.apb"
       ],
       "kind": "rtl",
@@ -2021,9 +2096,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "2b644cdb7dc9181b276b5a385c9a0a9a6238ef775323b57517f8cbffbed22a05",
+      "sha256": "a5d0a930463e9119a648184d01aca4fcd006bb5003443481eed64e245f9b80b6",
       "side": "current",
-      "size_bytes": 10903
+      "size_bytes": 10998
     },
     {
       "exists": true,
@@ -2066,9 +2141,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "e3c2079dd23ed9b26696f6b6e06c9298219b95c4214600af8a5ddfb337c890ea",
+      "sha256": "2e2205abb2429674bcc0025042c094fb48a09baaee2419d163d5584f2f7bb4eb",
       "side": "current",
-      "size_bytes": 1371403
+      "size_bytes": 1387402
     },
     {
       "exists": true,
@@ -2174,6 +2249,21 @@
       "sha256": "012472fc68327e0afa733c9abf46fc435b2ee0f4f4f0833863a0342902e22091",
       "side": "current",
       "size_bytes": 14043
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/ai_complex.runtime-audit.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "1672f7637a09d7802d3e88b6b3a6d8f373441dd8ebb6ebca1bfdab188d009f24",
+      "side": "current",
+      "size_bytes": 7535
     },
     {
       "exists": true,
@@ -2317,6 +2407,36 @@
         "current.cross_fixture"
       ],
       "kind": "test_consumer",
+      "path": "tests/test_ai_complex_runtime_audit.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "16120cf71c5917a52b47dbc8075d59276f5966bc33d2ae383e5f1e883c75798e",
+      "side": "current",
+      "size_bytes": 5468
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/test_ai_complex_wave.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "97e070e2360b4da2d1ed3de7a60a2de24f694476074be3cb3066d9f23c67407d",
+      "side": "current",
+      "size_bytes": 14575
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
       "path": "tests/test_binary_design_backend.py",
       "roles": [
         "test_consumer"
@@ -2396,9 +2516,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "02a78047496d9feedbb82ca59030d50c34cd159317707e656d0c65150269e10f",
+      "sha256": "fd8ed3a6e22d19156da8e0e77d3f23d2497cfeae24e092182670118c7e42fa27",
       "side": "current",
-      "size_bytes": 16376
+      "size_bytes": 19208
     },
     {
       "exists": true,
@@ -2516,9 +2636,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "70a0d0833217e01f136e199c38f000f485692f12065629ed474ba4bda2fe4a00",
+      "sha256": "97e9ae7969b4a3a4ff8da0958188398dafd9708eb2fefc0727e47e7f7b94b996",
       "side": "current",
-      "size_bytes": 21327
+      "size_bytes": 22298
     },
     {
       "exists": true,
@@ -2681,9 +2801,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "c6a7494414b4fe8f5a65f431ef41abd1b642fd0f9a724b7bb775851b5ed06638",
+      "sha256": "79cb4b2911d7a0198fdaadaf45f53d41af0d656ba1c078ce9eee38c5ebbf6e42",
       "side": "current",
-      "size_bytes": 7116
+      "size_bytes": 8643
     },
     {
       "exists": true,
@@ -2696,9 +2816,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "1129927776ba64f2050682daac233f21b38a55d70c18fc11c4a57c984980b6d4",
+      "sha256": "6053ce47f530992160038f77698faa23ea7483c1c646135ef056e2757e84273c",
       "side": "current",
-      "size_bytes": 8965
+      "size_bytes": 9084
     },
     {
       "exists": true,
@@ -2771,9 +2891,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "7b25a1945131d543c72bfa4ef74a3b55a94dacd3522e0479c2f61481ea1c8ae1",
+      "sha256": "475805b2d441bf578682277374d048beffd5bdc2c5e28fbf85f8cc0f2fbf3196",
       "side": "current",
-      "size_bytes": 21802
+      "size_bytes": 22457
     },
     {
       "exists": true,
@@ -2812,13 +2932,28 @@
         "current.cross_fixture"
       ],
       "kind": "generator",
+      "path": "tools/build_rtl_wave_semantic_matrix.py",
+      "roles": [
+        "generator"
+      ],
+      "sha256": "c3f2fb340085fd976a167407e3890bc9062072499be1fd807c5a76f94c68b344",
+      "side": "current",
+      "size_bytes": 53356
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "generator",
       "path": "tools/freeze_rtl_wave_assets.py",
       "roles": [
         "generator"
       ],
-      "sha256": "b66b53f945c162f6ee61a8822709ccc1b28cf577d8791adf4aaa890e37ef0fe6",
+      "sha256": "6e2e207774a513b46a0f976f5de1016f9709f30cf64f8cb5a50009ee6cc8907e",
       "side": "current",
-      "size_bytes": 27525
+      "size_bytes": 29006
     },
     {
       "exists": true,
@@ -7874,7 +8009,7 @@
       "exists": true,
       "file_type": "file",
       "fixture_ids": [
-        "original.cross_fixture"
+        "xdebug.stream_v1"
       ],
       "git_state": "tracked_clean",
       "kind": "test_consumer",
@@ -8735,7 +8870,8 @@
       "exists": true,
       "file_type": "file",
       "fixture_ids": [
-        "original.cross_fixture"
+        "xdebug.ai_complex_wave",
+        "xdebug.axi_vip"
       ],
       "git_state": "tracked_clean",
       "kind": "test_consumer",
@@ -8751,7 +8887,7 @@
       "exists": true,
       "file_type": "file",
       "fixture_ids": [
-        "original.cross_fixture"
+        "xdebug.ai_complex_wave"
       ],
       "git_state": "tracked_clean",
       "kind": "test_consumer",
@@ -11042,10 +11178,10 @@
   "schema_version": "xdebug-rtl-wave-assets.v1",
   "summary": {
     "current": {
-      "asset_count": 188,
-      "fst_count": 12,
-      "rtl_count": 11,
-      "test_consumer_count": 53,
+      "asset_count": 197,
+      "fst_count": 13,
+      "rtl_count": 12,
+      "test_consumer_count": 56,
       "vcd_count": 1
     },
     "missing_assets": [],

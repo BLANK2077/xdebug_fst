@@ -434,11 +434,53 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | 完整响应差异 | 未关闭 | Phase5 保持 partial，进入 P3-C |
 | P0～P2 相邻静态门禁 | 已通过 | 44/44；compat baseline OK；local path audit OK |
 | 外部零写入 | 已通过 | xverif 查询前后 status 内容哈希一致；Wellen/Verilator 未变 |
-| P2 中文详细 commit | 待提交 | `测试：建立 FSDB 与 FST 公开语义差分门禁` |
+| P2 中文详细 commit | 已完成 | `e2101b0 测试：建立 FSDB 与 FST 公开语义差分门禁` |
+
+### 2026-08-30：P3-A ai_complex 基础波形与类型补测
+
+- 新增 `current.ai_complex`：RTL 保留原版非 AXI 场景的可观察层级、刺激时间、宽度和四态值；
+  `generate_ai_complex_fst.cpp` 直接写 FST，不经过 VCD、JSON、私有索引或 export 回灌。受锁定
+  Verilator `fstcpp` 的向量 X/Z 写入限制仅以本仓库 fixture-local patch 表达，未修改 sibling。
+- `tools/regenerate_ai_complex_fixture.sh` 把 HOME、TMP、编译输出和 patched header 全部限制在
+  本仓库 `build/fixtures/ai_complex`。连续两次受影响 fixture 重建得到相同 983-byte FST，SHA-256
+  均为 `71218e2a72fb43567cc4b1fe6070caeb1d9319568412cfa2d05adffc44fcbea9`；未重建任何未变 fixture
+  cache，未提交 FSDB、daidir 或构建物。
+- 先用锁定原版公开 runner 固化失败观察点，再在实现提交 `ddf9064` 中关闭六类语义差异：
+  `value.at` 反向目标 edge/直接未知 signal、`event.find` reset load、`stream.query` before/after 与
+  顶层 data alias、表达式共同宽度及无尺寸进制常量、`counter.statistics` 的 `@cursor` 窗口。
+- 锁定 runtime `8eecf71271cc/c4509904...` 的 `run_complex_wave.py` 和
+  `run_counter_statistics.py` 分别在原版 FSDB 与当前 FST 上运行，四个 suite 全部通过；原版
+  `ai_complex` FSDB cache 只读复用，SHA-256 为
+  `6a30388f464162d29bb538af92992c702667fe55c57a423095e27066d0636152`，没有重建或提交。
+- 新增 7 项当前 fixture 回归和 3 项去敏 runtime-audit 门禁；本批 focused 31/31、实现相邻
+  `waveform/list-event/counter/stream` 128/128 通过。audit 逐项锁定两个 runner、73 Action runtime、
+  当前 fixture/test 哈希、双侧完整通过标记、零 fallback 及外部只读快照，不保存绝对外部路径。
+- 修正 consumer-to-fixture 解析，使动态构造的源路径和导入的 `NONAXI_FSDB` 常量都归属
+  `xdebug.ai_complex_wave`；原版仍为 358 资产、103 RTL、23 fixture、259 consumer 和 25 个声明
+  波形输出。当前清单更新为 197 资产、12 RTL、13 FST、1 VCD 和 56 consumer，零 missing asset、
+  零 unassigned original HDL。
+- 语义矩阵只把 `fixture.ai_complex_wave` 从缺口队列升级为 `semantic-equivalent`，并绑定去敏
+  runtime audit；状态从 `partial=86, missing=2` 变为 `semantic-equivalent=1, partial=85,
+  missing=2`。P3-B～E 的 87 个缺口保持排队，没有用 P3-A 的能力覆盖替代逐场景证据。
+
+### P3-A 当前状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 直接四态 FST fixture | 已完成 | 两次确定性重建 SHA-256 `71218e2...` |
+| 原版 complex/counter suite | 已通过 | 锁定 runner、只读复用原版 FSDB cache |
+| 当前 complex/counter suite | 已通过 | 同 runner、同 mode、当前原始 FST |
+| 当前仓库 focused gate | 已通过 | 31/31 |
+| 实现相邻 gate | 已通过 | 128/128 |
+| manifest/matrix 重现 | 已通过 | live check；85 partial、2 missing、1 semantic-equivalent |
+| compat/path gate | 已通过 | compat baseline OK；local path audit OK |
+| P3-A 实现 commit | 已完成 | `ddf9064 修复：对齐基础波形采样与表达式语义` |
+| P3-A 证据 commit | 本批待提交 | `测试：补齐 ai_complex 基础波形差分场景` |
 
 ### 下一步
 
-1. 重复 manifest/matrix live check、compat/path 相邻门禁，完成 P2 独立中文详细 commit。
-2. 进入 P3-A，按矩阵先补基础波形/type/delta/four-state 的逐观察点差分。
+1. 完成 P3-A 外部只读快照、diff/staged 白名单复核和独立中文详细证据 commit。
+2. 进入 P3-B，逐项处理 hierarchy、P3、UART、active semantics/zero、interface root 与 X-prop；
+   每个场景继续遵循 red→green、双侧公开 Action oracle 和独立提交门禁。
 3. P3-C 单独关闭 Phase5 完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
    statement 和源码证据。

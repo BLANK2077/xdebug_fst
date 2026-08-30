@@ -1,0 +1,26 @@
+diff --git a/include/fstcpp/fstcpp_variable_info.h b/include/fstcpp/fstcpp_variable_info.h
+--- a/include/fstcpp/fstcpp_variable_info.h
++++ b/include/fstcpp/fstcpp_variable_info.h
+@@ -559 +558,0 @@
+-					FST_CHECK(enc == EncodingType::BINARY);  // TODO
+@@ -563,3 +562,17 @@
+-					h  //
+-						.writeLEB128((delta_time_index << 1) | has_non_binary)
+-						.writeUIntPartialForValueChange(rh.peek<T>(), bitwidth);
++					h.writeLEB128((delta_time_index << 1) | has_non_binary);
++					if (!has_non_binary) {
++						h.writeUIntPartialForValueChange(rh.peek<T>(), bitwidth);
++					} else {
++						// FST stores a non-binary vector as one ASCII 0/1/x/z
++						// digit per bit after the tagged time delta.  This is
++						// the representation used by the reference fstapi.c.
++						FST_CHECK(enc == EncodingType::VERILOG);
++						const T v0 = rh.peek<T>(0);
++						const T v1 = rh.peek<T>(1);
++						for (unsigned i = bitwidth; i-- > 0;) {
++							const T b1 = ((v1 >> i) & T(1));
++							const T b0 = ((v0 >> i) & T(1));
++							const char c = kEncodedBitToCharTable[(b1 << 1) | b0];
++							h.write(static_cast<uint8_t>(c));
++						}
++					}

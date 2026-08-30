@@ -33,6 +33,15 @@ PHASE5_REPORT = Path(
 PHASE5_RUNTIME_AUDIT = Path(
     "tests/data/rtl_wave_differential/phase5.runtime-audit.json"
 )
+AI_COMPLEX_RUNTIME_AUDIT = Path(
+    "tests/data/rtl_wave_differential/ai_complex.runtime-audit.json"
+)
+AI_COMPLEX_RUNNER_SHA256 = (
+    "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724"
+)
+AI_COMPLEX_COUNTER_RUNNER_SHA256 = (
+    "fe0bafa4ff50d36d1fc283da07f915981ce613aae618341324edfb683c29ead5"
+)
 
 ALLOWED_STATUSES = {
     "exact",
@@ -125,18 +134,37 @@ FIXTURE_CANDIDATES = {
         "batch": "P3-B",
     },
     "xdebug.ai_complex_wave": {
-        "fixtures": ["current.counter", "current.root"],
+        "fixtures": ["current.ai_complex"],
         "tests": [
-            "test_value_at_bus_signal",
-            "test_signal_changes_preserves_same_time_string_deltas",
-            "test_value_at_preserves_typed_real_value",
-            "test_value_at_preserves_event_kind",
+            "test_ai_complex_fixture_is_frozen_and_four_state",
+            "test_ai_complex_scope_value_and_four_state_contract",
+            "test_ai_complex_event_reset_and_sampling_contract",
+            "test_ai_complex_stream_before_after_contract",
+            "test_ai_complex_expression_window_and_xz_contract",
+            "test_ai_complex_counter_statistics_contract",
+            "test_ai_complex_changes_statistics_anomaly_and_handshake_contract",
         ],
         "actions": [
-            "scope.roots", "scope.list", "value.at", "signal.changes",
-            "signal.statistics", "event.find", "window.verify",
+            "counter.statistics", "event.config.list", "event.config.load", "event.export",
+            "event.find", "expr.eval_at", "list.add", "list.create",
+            "list.delete", "list.export", "list.first_change", "list.load",
+            "list.show", "list.validate", "protocol.handshake.inspect",
+            "scope.list", "signal.anomaly.inspect", "signal.changes",
+            "signal.sampled_pulse.inspect", "signal.stability",
+            "signal.statistics", "signal.xz_verify", "stream.config.load",
+            "stream.query", "value.at", "verify.conditions", "waveform.cursor.set",
+            "window.verify",
         ],
         "batch": "P3-A",
+        "status": "semantic-equivalent",
+        "rationale": (
+            "锁定 8eec runtime 的同一 nonaxi oracle 已分别在原版 FSDB 与当前四态 FST 上完整通过；"
+            "当前仓库另有逐 Action 回归，格式差异不改变公开可观察语义。"
+        ),
+        "evidence_scope": (
+            "same locked original oracle on original FSDB and current FST; "
+            "repository-local regression covers the closed differences"
+        ),
     },
     "xdebug.stream_v1": {
         "fixtures": ["current.stream"],
@@ -428,6 +456,92 @@ def validate_phase5_runtime_audit(
     return result
 
 
+def validate_ai_complex_runtime_audit(
+    audit: dict,
+    runtime_revision: str,
+    schema_revision: str,
+) -> None:
+    if audit.get("schema_version") != "xdebug.ai-complex-runtime-audit.v1":
+        raise MatrixError("ai_complex runtime audit has the wrong schema_version")
+    if audit.get("goal_id") != GOAL_ID:
+        raise MatrixError("ai_complex runtime audit belongs to a different Goal")
+    locked = audit.get("locked_original_runtime", {})
+    if locked.get("git_revision") != runtime_revision:
+        raise MatrixError("ai_complex audit does not use the locked runtime revision")
+    if locked.get("schema_revision") != schema_revision:
+        raise MatrixError("ai_complex audit does not use the locked schema revision")
+    if locked.get("action_count") != 73:
+        raise MatrixError("ai_complex audit does not prove the 73-Action identity gate")
+    runner = locked.get("runner", {})
+    if (
+        runner.get("sha256") != AI_COMPLEX_RUNNER_SHA256
+        or runner.get("mode") != "nonaxi"
+    ):
+        raise MatrixError("ai_complex audit does not use the locked nonaxi oracle")
+    counter_runner = locked.get("counter_runner", {})
+    if counter_runner.get("sha256") != AI_COMPLEX_COUNTER_RUNNER_SHA256:
+        raise MatrixError("ai_complex audit does not use the locked counter oracle")
+    original_fixture = locked.get("fixture", {})
+    if (
+        original_fixture.get("cache_reused") is not True
+        or original_fixture.get("fixture_rebuilt") is not False
+        or original_fixture.get("source_access") != "read_only"
+    ):
+        raise MatrixError("ai_complex audit did not reuse the original fixture read-only")
+    original_gate = locked.get("suite_gate", {})
+    original_counter_gate = locked.get("counter_suite_gate", {})
+    current = audit.get("current_runtime", {})
+    current_gate = current.get("locked_suite_gate", {})
+    current_counter_gate = current.get("locked_counter_suite_gate", {})
+    if (
+        original_gate.get("result") != "passed"
+        or original_gate.get("session_closed_gracefully") is not True
+        or original_counter_gate.get("result") != "passed"
+        or original_counter_gate.get("session_closed_gracefully") is not True
+        or current_gate.get("result") != "passed"
+        or current_gate.get("same_runner_sha256") != runner.get("sha256")
+        or current_gate.get("same_mode") != runner.get("mode")
+        or current_gate.get("session_closed_gracefully") is not True
+        or current_counter_gate.get("result") != "passed"
+        or current_counter_gate.get("same_runner_sha256") !=
+            counter_runner.get("sha256")
+        or current_counter_gate.get("session_closed_gracefully") is not True
+    ):
+        raise MatrixError("ai_complex two-sided locked suite gate is incomplete")
+    current_fixture = current.get("fixture", {})
+    if (
+        current_fixture.get("deterministic_second_build") is not True
+        or current_fixture.get("vcd_or_json_conversion_used") is not False
+    ):
+        raise MatrixError("ai_complex FST regeneration contract is incomplete")
+    observable = audit.get("observable_contract", {})
+    if (
+        observable.get("same_locked_oracle_passed_both_sides") is not True
+        or observable.get("four_state_x_and_z_preserved") is not True
+        or observable.get("binary_waveform_comparison_used") is not False
+    ):
+        raise MatrixError("ai_complex public observable comparison drifted")
+    boundary = audit.get("write_boundary_audit", {})
+    if (
+        boundary.get("only_writable_repository") != "xdebug_fst"
+        or boundary.get("external_inputs_read_only") is not True
+        or boundary.get("fallback_used") is not False
+    ):
+        raise MatrixError("ai_complex write/fallback boundary is not proven")
+    for repository in ("original_xverif", "wellen", "verilator"):
+        if boundary.get(f"{repository}_snapshot_sha256_before") != \
+                boundary.get(f"{repository}_snapshot_sha256_after"):
+            raise MatrixError(f"ai_complex audit changed external {repository}")
+    verdict = audit.get("verdict", {})
+    if (
+        verdict.get("scenario_id") != "fixture.ai_complex_wave"
+        or verdict.get("status") != "semantic-equivalent"
+        or verdict.get("p3_batch") != "P3-A"
+        or verdict.get("remaining_observable_gap_count") != 0
+    ):
+        raise MatrixError("ai_complex runtime audit verdict drifted")
+
+
 def scan_constructs(text: str) -> dict[str, list[int]]:
     found: dict[str, list[int]] = {}
     in_block_comment = False
@@ -626,7 +740,10 @@ def current_evidence(
         "candidate_sources": sources,
         "test_evidence": test_evidence,
         "evidence_scope": (
-            "related capability only; exact stimulus/time/result remains gated by P2"
+            candidate.get(
+                "evidence_scope",
+                "related capability only; exact stimulus/time/result remains gated by P2",
+            )
         ),
     }
 
@@ -717,6 +834,45 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         runtime_baseline["runtime_revision"],
         runtime_baseline["schema_revision"],
     )
+    ai_audit_asset = current_assets.get(AI_COMPLEX_RUNTIME_AUDIT.as_posix())
+    if ai_audit_asset is None:
+        raise MatrixError("P0 manifest does not freeze the ai_complex runtime audit")
+    ai_complex_runtime_audit = json.loads(
+        validate_frozen_file(repo_root, ai_audit_asset).decode("utf-8")
+    )
+    validate_ai_complex_runtime_audit(
+        ai_complex_runtime_audit,
+        runtime_baseline["runtime_revision"],
+        runtime_baseline["schema_revision"],
+    )
+    ai_current = ai_complex_runtime_audit["current_runtime"]
+    ai_fixture = ai_current["fixture"]
+    ai_current_hashes = {
+        "testdata/fixtures/ai_complex/ai_complex_top.sv":
+            ai_fixture["rtl_sha256"],
+        "testdata/fixtures/ai_complex/generate_ai_complex_fst.cpp":
+            ai_fixture["generator_sha256"],
+        "testdata/fixtures/ai_complex/fstcpp-four-state-vector.patch":
+            ai_fixture["writer_patch_sha256"],
+        "testdata/fixtures/ai_complex/waves.fst": ai_fixture["fst_sha256"],
+        ai_current["repository_gate"]["path"]:
+            ai_current["repository_gate"]["sha256"],
+        ai_current["focused_regression"]["path"]:
+            ai_current["focused_regression"]["sha256"],
+    }
+    for path, expected_hash in ai_current_hashes.items():
+        asset = current_assets.get(path)
+        if asset is None or asset["sha256"] != expected_hash:
+            raise MatrixError(f"ai_complex current evidence hash drifted: {path}")
+    ai_original_rtl = ai_complex_runtime_audit["observable_contract"][
+        "original_rtl"
+    ]
+    original_rtl_asset = original_assets.get(ai_original_rtl["path"])
+    if (
+        original_rtl_asset is None
+        or original_rtl_asset["sha256"] != ai_original_rtl["sha256"]
+    ):
+        raise MatrixError("ai_complex frozen original RTL evidence drifted")
 
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
@@ -756,15 +912,18 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
             key=lambda item: item["path"],
         )
         scenario_id = "fixture." + fixture_id.removeprefix("xdebug.")
-        scenarios.append({
+        scenario = {
             "scenario_id": scenario_id,
             "kind": "fixture_semantic_surface",
             "p3_batch": candidate["batch"],
             "status": status,
-            "rationale": (
-                "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。"
-                if status == "partial" else
-                "当前没有同类 RTL/波形 fixture；相关公开语义必须在指定批次补齐或证明不可观察。"
+            "rationale": candidate.get(
+                "rationale",
+                (
+                    "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。"
+                    if status == "partial" else
+                    "当前没有同类 RTL/波形 fixture；相关公开语义必须在指定批次补齐或证明不可观察。"
+                ),
             ),
             "original": {
                 "fixture_id": fixture_id,
@@ -782,7 +941,23 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
             "public_action_contracts": {
                 action: contracts[action] for action in candidate["actions"]
             },
-        })
+        }
+        if fixture_id == "xdebug.ai_complex_wave":
+            verdict = ai_complex_runtime_audit["verdict"]
+            observable = ai_complex_runtime_audit["observable_contract"]
+            if sorted(candidate["actions"]) != observable["public_actions"]:
+                raise MatrixError("ai_complex audited public Action set drifted")
+            scenario["runtime_audit"] = {
+                "path": AI_COMPLEX_RUNTIME_AUDIT.as_posix(),
+                "sha256": ai_audit_asset["sha256"],
+                "status": verdict["status"],
+                "p3_batch": verdict["p3_batch"],
+                "same_locked_oracle_passed_both_sides":
+                    observable["same_locked_oracle_passed_both_sides"],
+                "remaining_observable_gap_count":
+                    verdict["remaining_observable_gap_count"],
+            }
+        scenarios.append(scenario)
 
     phase5_by_scene = {row["scene"]: row for row in phase5_report}
     group_ordinals = Counter()

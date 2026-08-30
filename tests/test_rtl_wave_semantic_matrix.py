@@ -98,7 +98,11 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "original_fixture_count": 23,
         "original_hdl_count": 103,
         "scenario_count": 88,
-        "status_counts": {"missing": 2, "partial": 86},
+        "status_counts": {
+            "missing": 2,
+            "partial": 85,
+            "semantic-equivalent": 1,
+        },
         "unclassified_count": 0,
         "unqueued_gap_count": 0,
     }
@@ -142,7 +146,8 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         item["scenario_id"] for item in scenarios
         if item["status"] in {"partial", "missing"}
     }
-    assert queued == gaps == ids
+    assert queued == gaps
+    assert ids - gaps == {"fixture.ai_complex_wave"}
 
 
 def test_matrix_evidence_is_relative_hashed_and_line_addressable() -> None:

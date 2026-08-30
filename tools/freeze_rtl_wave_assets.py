@@ -276,6 +276,46 @@ def fixture_ids_for_path(path: str, fixtures: Iterable[dict]) -> list[str]:
     return sorted(fixture_id for length, fixture_id in matches if length == longest)
 
 
+def fixture_ids_referenced_by_consumer(
+    text: str, fixtures: Iterable[dict],
+) -> list[str]:
+    """Resolve fixture references from IDs or constructed source paths.
+
+    Original runners commonly spell a fixture source as
+    ``os.path.join(ROOT, "testdata", "waveform", "name")`` instead of
+    embedding its registry ID.  Matching the final source components on one
+    line preserves that relationship without treating a generic ``out`` or
+    ``waves.fsdb`` token as fixture evidence.
+    """
+    fixture_list = list(fixtures)
+    known_ids = {fixture["id"] for fixture in fixture_list}
+    result = set()
+    imported_fixture_symbols = {
+        "NONAXI_FSDB": "xdebug.ai_complex_wave",
+    }
+    for marker, fixture_id in imported_fixture_symbols.items():
+        if marker in text and fixture_id in known_ids:
+            result.add(fixture_id)
+    for fixture in fixture_list:
+        fixture_id = fixture["id"]
+        if fixture_id in text:
+            result.add(fixture_id)
+            continue
+        source_dir = fixture.get("source_dir", "")
+        if not source_dir or source_dir == "xdebug":
+            continue
+        relative = source_dir.removeprefix("xdebug/")
+        components = Path(relative).parts[-3:]
+        if len(components) < 2:
+            continue
+        pattern = r"[^\n]{0,160}".join(
+            re.escape(component) for component in components
+        )
+        if re.search(pattern, text):
+            result.add(fixture_id)
+    return sorted(result)
+
+
 def asset_kind(path: str, roles: Iterable[str]) -> str:
     name = Path(path).name
     suffix = Path(path).suffix.lower()
@@ -380,7 +420,7 @@ def discover_original_assets(root: Path, fixtures: list[dict]) -> list[dict]:
             referenced = []
             try:
                 text = (root / path).read_text(encoding="utf-8", errors="replace")
-                referenced = sorted(fixture_id for fixture_id in fixture_ids if fixture_id in text)
+                referenced = fixture_ids_referenced_by_consumer(text, fixtures)
             except OSError:
                 pass
             matched_fixture_ids = referenced or ["original.cross_fixture"]

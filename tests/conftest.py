@@ -144,6 +144,11 @@ def counter_fst() -> Path:
 
 
 @pytest.fixture(scope="session")
+def ai_complex_fst() -> Path:
+    return _fix("ai_complex")
+
+
+@pytest.fixture(scope="session")
 def counter_design_db() -> Path:
     return FIXTURES / "counter" / "obj_dir"
 

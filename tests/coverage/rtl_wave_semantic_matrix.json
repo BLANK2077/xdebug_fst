@@ -4321,7 +4321,7 @@
         "fixture.stream_v1"
       ],
       "xdebug/tests/contract/test_action_contract.py": [
-        "cross_fixture.public_contract_consumers"
+        "fixture.stream_v1"
       ],
       "xdebug/tests/contract/test_session_lifecycle_internal_requests.py": [
         "cross_fixture.public_contract_consumers"
@@ -4493,10 +4493,11 @@
         "cross_fixture.public_contract_consumers"
       ],
       "xdebug/tests/waveform/run_complex_wave.py": [
-        "cross_fixture.public_contract_consumers"
+        "fixture.ai_complex_wave",
+        "fixture.axi_vip"
       ],
       "xdebug/tests/waveform/run_counter_statistics.py": [
-        "cross_fixture.public_contract_consumers"
+        "fixture.ai_complex_wave"
       ]
     },
     "original_fixtures": {
@@ -7074,7 +7075,7 @@
         ]
       },
       "fixture_ids": [
-        "original.cross_fixture"
+        "xdebug.stream_v1"
       ],
       "sha256": "fd17582e55d48386756172af2f0ff9ba1547c1704f063262dac6eb885d8114b8"
     },
@@ -9408,7 +9409,8 @@
         ]
       },
       "fixture_ids": [
-        "original.cross_fixture"
+        "xdebug.ai_complex_wave",
+        "xdebug.axi_vip"
       ],
       "sha256": "2518765beac6e173f2d97ad81c4c269be31ff41eb412188391f7fda8c861a192"
     },
@@ -9447,15 +9449,12 @@
         ]
       },
       "fixture_ids": [
-        "original.cross_fixture"
+        "xdebug.ai_complex_wave"
       ],
       "sha256": "fe0bafa4ff50d36d1fc283da07f915981ce613aae618341324edfb683c29ead5"
     }
   },
   "p3_queue": {
-    "P3-A": [
-      "fixture.ai_complex_wave"
-    ],
     "P3-B": [
       "fixture.active_driver",
       "fixture.active_semantics",
@@ -36379,7 +36378,6 @@
       "original": {
         "consumer_paths": [
           "xdebug/tests/combined/run_active_driver_fixture.py",
-          "xdebug/tests/contract/test_action_contract.py",
           "xdebug/tests/contract/test_session_lifecycle_internal_requests.py",
           "xdebug/tests/contract/test_time_output_contract.py",
           "xdebug/tests/contract/test_unified_runtime_contract.py",
@@ -36416,9 +36414,7 @@
           "xdebug/tests/unit/test_stream_manager.cpp",
           "xdebug/tests/unit/test_typed_waveform_action_adapter.cpp",
           "xdebug/tests/unit/test_value_collection.cpp",
-          "xdebug/tests/unit/test_versioned_json_store.cpp",
-          "xdebug/tests/waveform/run_complex_wave.py",
-          "xdebug/tests/waveform/run_counter_statistics.py"
+          "xdebug/tests/unit/test_versioned_json_store.cpp"
         ],
         "declared_waveform_outputs": [],
         "fixture_id": null,
@@ -38146,107 +38142,283 @@
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter",
-          "current.root"
+          "current.ai_complex"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
+              "apb": [
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                43,
+                44,
+                45,
+                46,
+                47,
+                49,
+                51,
+                52,
+                53,
+                60,
+                61,
+                62,
+                63,
+                64,
+                66,
+                68,
+                69,
+                91,
+                92,
+                93,
+                94,
+                95,
+                96
               ],
               "clock": [
-                2,
-                7
+                6,
+                36,
+                37,
+                42,
+                48,
+                50,
+                59,
+                65,
+                67,
+                98,
+                101,
+                107,
+                112,
+                117,
+                123,
+                131,
+                137,
+                140,
+                147,
+                149,
+                153,
+                156,
+                159,
+                166
+              ],
+              "delay": [
+                37,
+                128,
+                129
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                36,
+                45,
+                46,
+                47,
+                49,
+                51,
+                52,
+                53,
+                62,
+                63,
+                64,
+                66,
+                68,
+                69,
+                74,
+                75,
+                76,
+                77,
+                78,
+                79,
+                80,
+                81,
+                82,
+                83,
+                84,
+                85,
+                86,
+                87,
+                88,
+                89,
+                90,
+                91,
+                92,
+                93,
+                94,
+                95,
+                96,
+                99,
+                102,
+                103,
+                104,
+                105,
+                108,
+                109,
+                110,
+                113,
+                114,
+                115,
+                118,
+                119,
+                120,
+                121,
+                124,
+                125,
+                126,
+                128,
+                129,
+                132,
+                133,
+                134,
+                135,
+                138,
+                141,
+                142,
+                144,
+                145,
+                146,
+                148,
+                150,
+                151,
+                154,
+                157,
+                158,
+                160,
+                162,
+                163,
+                164
               ],
-              "if": [
-                8
+              "initial": [
+                35,
+                73
               ],
               "module": [
-                1
+                5
               ],
               "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
+                43,
+                44,
+                45,
+                46,
+                47,
+                49,
+                51,
+                52,
+                53,
+                60,
+                61,
+                62,
+                63,
+                64,
+                66,
+                68,
+                69,
+                99,
+                102,
+                103,
+                104,
+                105,
+                108,
+                109,
+                110,
+                113,
+                114,
+                115,
+                118,
+                119,
+                120,
+                121,
+                124,
+                125,
+                126,
+                128,
+                129,
+                132,
+                133,
+                134,
+                135,
+                138,
+                141,
+                142,
+                144,
+                145,
+                146,
+                148,
+                150,
+                151,
+                154,
+                157,
+                158,
+                160
               ],
-              "reset": [
-                3,
-                8
+              "task": [
+                40,
+                57
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.ai_complex"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 169,
+            "path": "testdata/fixtures/ai_complex/ai_complex_top.sv",
+            "sha256": "a045e6c40faab433546242f7e6e6511186ffc875ec22e996218099b3f4c6e047"
           },
           {
             "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
+              "current.ai_complex"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
-          },
-          {
-            "fixture_ids": [
-              "current.root"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/waves.fst",
-            "sha256": "103c2ac9fe96e41c446d27b658533b3fe34ec02e612001aed4ce08e73c0d3ea7"
+            "line_count": 18,
+            "path": "testdata/fixtures/ai_complex/waves.fst",
+            "sha256": "71218e2a72fb43567cc4b1fe6070caeb1d9319568412cfa2d05adffc44fcbea9"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "same locked original oracle on original FSDB and current FST; repository-local regression covers the closed differences",
         "test_evidence": [
           {
-            "line": 34,
-            "path": "tests/test_waveform.py",
-            "sha256": "7b25a1945131d543c72bfa4ef74a3b55a94dacd3522e0479c2f61481ea1c8ae1",
-            "test": "test_value_at_bus_signal"
+            "line": 43,
+            "path": "tests/test_ai_complex_wave.py",
+            "sha256": "97e070e2360b4da2d1ed3de7a60a2de24f694476074be3cb3066d9f23c67407d",
+            "test": "test_ai_complex_fixture_is_frozen_and_four_state"
           },
           {
-            "line": 308,
-            "path": "tests/test_waveform.py",
-            "sha256": "7b25a1945131d543c72bfa4ef74a3b55a94dacd3522e0479c2f61481ea1c8ae1",
-            "test": "test_signal_changes_preserves_same_time_string_deltas"
+            "line": 63,
+            "path": "tests/test_ai_complex_wave.py",
+            "sha256": "97e070e2360b4da2d1ed3de7a60a2de24f694476074be3cb3066d9f23c67407d",
+            "test": "test_ai_complex_scope_value_and_four_state_contract"
           },
           {
-            "line": 283,
-            "path": "tests/test_waveform.py",
-            "sha256": "7b25a1945131d543c72bfa4ef74a3b55a94dacd3522e0479c2f61481ea1c8ae1",
-            "test": "test_value_at_preserves_typed_real_value"
+            "line": 110,
+            "path": "tests/test_ai_complex_wave.py",
+            "sha256": "97e070e2360b4da2d1ed3de7a60a2de24f694476074be3cb3066d9f23c67407d",
+            "test": "test_ai_complex_event_reset_and_sampling_contract"
           },
           {
-            "line": 296,
-            "path": "tests/test_waveform.py",
-            "sha256": "7b25a1945131d543c72bfa4ef74a3b55a94dacd3522e0479c2f61481ea1c8ae1",
-            "test": "test_value_at_preserves_event_kind"
+            "line": 157,
+            "path": "tests/test_ai_complex_wave.py",
+            "sha256": "97e070e2360b4da2d1ed3de7a60a2de24f694476074be3cb3066d9f23c67407d",
+            "test": "test_ai_complex_stream_before_after_contract"
+          },
+          {
+            "line": 199,
+            "path": "tests/test_ai_complex_wave.py",
+            "sha256": "97e070e2360b4da2d1ed3de7a60a2de24f694476074be3cb3066d9f23c67407d",
+            "test": "test_ai_complex_expression_window_and_xz_contract"
+          },
+          {
+            "line": 262,
+            "path": "tests/test_ai_complex_wave.py",
+            "sha256": "97e070e2360b4da2d1ed3de7a60a2de24f694476074be3cb3066d9f23c67407d",
+            "test": "test_ai_complex_counter_statistics_contract"
+          },
+          {
+            "line": 332,
+            "path": "tests/test_ai_complex_wave.py",
+            "sha256": "97e070e2360b4da2d1ed3de7a60a2de24f694476074be3cb3066d9f23c67407d",
+            "test": "test_ai_complex_changes_statistics_anomaly_and_handshake_contract"
           }
         ]
       },
@@ -38267,7 +38439,9 @@
           "xdebug/tests/native_xout/test_native_xout_all.py",
           "xdebug/tests/session/test_session_lifecycle.py",
           "xdebug/tests/synthetic/test_counter_statistics.py",
-          "xdebug/tests/synthetic/test_existing_regressions.py"
+          "xdebug/tests/synthetic/test_existing_regressions.py",
+          "xdebug/tests/waveform/run_complex_wave.py",
+          "xdebug/tests/waveform/run_counter_statistics.py"
         ],
         "declared_waveform_outputs": [
           {
@@ -38287,22 +38461,54 @@
         "observed_public_actions": [
           "actions",
           "apb.config.load",
+          "axi.analysis",
+          "axi.channel_stall",
+          "axi.config.list",
           "axi.config.load",
+          "axi.export",
+          "axi.latency_outlier",
+          "axi.outstanding_timeline",
+          "axi.query",
+          "axi.request_response_pair",
+          "axi.statistics",
+          "axi.transaction.cursor",
           "counter.statistics",
+          "event.config.list",
           "event.config.load",
+          "event.export",
+          "event.find",
+          "expr.eval_at",
+          "list.add",
           "list.create",
+          "list.delete",
+          "list.export",
+          "list.first_change",
+          "list.load",
+          "list.show",
+          "list.validate",
+          "protocol.handshake.inspect",
           "schema",
+          "scope.list",
           "scope.roots",
           "session.close",
           "session.doctor",
           "session.gc",
           "session.list",
           "session.open",
+          "signal.anomaly.inspect",
+          "signal.changes",
+          "signal.sampled_pulse.inspect",
+          "signal.stability",
+          "signal.statistics",
+          "signal.xz_verify",
           "stream.config.load",
+          "stream.query",
           "trace.active_driver",
           "trace.driver",
           "value.at",
-          "waveform.cursor.set"
+          "verify.conditions",
+          "waveform.cursor.set",
+          "window.verify"
         ],
         "sources": [
           {
@@ -38526,6 +38732,49 @@
       },
       "p3_batch": "P3-A",
       "public_action_contracts": {
+        "counter.statistics": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/counter.statistics.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/counter.statistics.response.schema.json"
+        },
+        "event.config.list": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/event.config.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.config.list.response.schema.json"
+        },
+        "event.config.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/event.config.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.config.load.response.schema.json"
+        },
+        "event.export": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/event.export.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.export.response.schema.json"
+        },
         "event.find": {
           "completeness_fields": [
             "summary.analysis_complete",
@@ -38539,6 +38788,75 @@
           "request_example": "compat/xdebug-v1/examples/requests/event.find.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.find.response.schema.json"
         },
+        "expr.eval_at": {
+          "completeness_fields": [
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/expr.eval_at.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/expr.eval_at.response.schema.json"
+        },
+        "list.add": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.add.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.add.response.schema.json"
+        },
+        "list.create": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.create.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.create.response.schema.json"
+        },
+        "list.delete": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.delete.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.delete.response.schema.json"
+        },
+        "list.export": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/list.export.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.export.response.schema.json"
+        },
+        "list.first_change": {
+          "completeness_fields": [
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/list.first_change.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.first_change.response.schema.json"
+        },
+        "list.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.load.response.schema.json"
+        },
+        "list.show": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.show.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.show.response.schema.json"
+        },
+        "list.validate": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.validate.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.validate.response.schema.json"
+        },
+        "protocol.handshake.inspect": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/protocol.handshake.inspect.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/protocol.handshake.inspect.response.schema.json"
+        },
         "scope.list": {
           "completeness_fields": [
             "summary.analysis_complete",
@@ -38551,17 +38869,18 @@
           "request_example": "compat/xdebug-v1/examples/requests/scope.list.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.list.response.schema.json"
         },
-        "scope.roots": {
+        "signal.anomaly.inspect": {
           "completeness_fields": [
             "summary.analysis_complete",
             "summary.response_truncated",
             "summary.returned_count",
             "summary.scan_complete",
             "summary.total_count",
-            "summary.truncation_scopes"
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
           ],
-          "request_example": "compat/xdebug-v1/examples/requests/scope.roots.basic.json",
-          "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.roots.response.schema.json"
+          "request_example": "compat/xdebug-v1/examples/requests/signal.anomaly.inspect.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.anomaly.inspect.response.schema.json"
         },
         "signal.changes": {
           "completeness_fields": [
@@ -38576,6 +38895,32 @@
           "request_example": "compat/xdebug-v1/examples/requests/signal.changes.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.changes.response.schema.json"
         },
+        "signal.sampled_pulse.inspect": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.sampled_pulse.inspect.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.sampled_pulse.inspect.response.schema.json"
+        },
+        "signal.stability": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.stability.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.stability.response.schema.json"
+        },
         "signal.statistics": {
           "completeness_fields": [
             "summary.analysis_complete",
@@ -38589,12 +38934,55 @@
           "request_example": "compat/xdebug-v1/examples/requests/signal.statistics.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.statistics.response.schema.json"
         },
+        "signal.xz_verify": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.xz_verify.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.xz_verify.response.schema.json"
+        },
+        "stream.config.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.config.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.load.response.schema.json"
+        },
+        "stream.query": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.query.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.query.response.schema.json"
+        },
         "value.at": {
           "completeness_fields": [
             "summary.value_width_complete"
           ],
           "request_example": "compat/xdebug-v1/examples/requests/value.at.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/value.at.response.schema.json"
+        },
+        "verify.conditions": {
+          "completeness_fields": [
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/verify.conditions.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/verify.conditions.response.schema.json"
+        },
+        "waveform.cursor.set": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.set.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.set.response.schema.json"
         },
         "window.verify": {
           "completeness_fields": [
@@ -38610,9 +38998,17 @@
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/window.verify.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定 8eec runtime 的同一 nonaxi oracle 已分别在原版 FSDB 与当前四态 FST 上完整通过；当前仓库另有逐 Action 回归，格式差异不改变公开可观察语义。",
+      "runtime_audit": {
+        "p3_batch": "P3-A",
+        "path": "tests/data/rtl_wave_differential/ai_complex.runtime-audit.json",
+        "remaining_observable_gap_count": 0,
+        "same_locked_oracle_passed_both_sides": true,
+        "sha256": "1672f7637a09d7802d3e88b6b3a6d8f373441dd8ebb6ebca1bfdab188d009f24",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "fixture.ai_complex_wave",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -39595,7 +39991,8 @@
         "consumer_paths": [
           "xdebug/tests/benchmark/test_analysis_cache_baseline.py",
           "xdebug/tests/native_xout/test_native_xout_all.py",
-          "xdebug/tests/synthetic/test_axi_vip_real.py"
+          "xdebug/tests/synthetic/test_axi_vip_real.py",
+          "xdebug/tests/waveform/run_complex_wave.py"
         ],
         "declared_waveform_outputs": [
           {
@@ -39656,17 +40053,50 @@
           "actions",
           "apb.config.load",
           "apb.query",
+          "axi.analysis",
+          "axi.channel_stall",
+          "axi.config.list",
           "axi.config.load",
+          "axi.export",
+          "axi.latency_outlier",
+          "axi.outstanding_timeline",
           "axi.query",
+          "axi.request_response_pair",
+          "axi.statistics",
+          "axi.transaction.cursor",
+          "event.config.list",
           "event.config.load",
+          "event.export",
+          "event.find",
+          "expr.eval_at",
+          "list.add",
           "list.create",
+          "list.delete",
+          "list.export",
+          "list.first_change",
+          "list.load",
+          "list.show",
+          "list.validate",
+          "protocol.handshake.inspect",
           "schema",
+          "scope.list",
           "session.close",
+          "session.doctor",
+          "session.gc",
+          "session.list",
           "session.open",
+          "signal.anomaly.inspect",
+          "signal.changes",
+          "signal.sampled_pulse.inspect",
+          "signal.stability",
+          "signal.statistics",
+          "signal.xz_verify",
           "stream.config.load",
           "stream.query",
           "value.at",
-          "waveform.cursor.set"
+          "verify.conditions",
+          "waveform.cursor.set",
+          "window.verify"
         ],
         "sources": [
           {
@@ -40850,9 +41280,9 @@
         "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
         "test_evidence": [
           {
-            "line": 464,
+            "line": 480,
             "path": "tests/test_waveform.py",
-            "sha256": "7b25a1945131d543c72bfa4ef74a3b55a94dacd3522e0479c2f61481ea1c8ae1",
+            "sha256": "475805b2d441bf578682277374d048beffd5bdc2c5e28fbf85f8cc0f2fbf3196",
             "test": "test_scope_list"
           },
           {
@@ -43330,6 +43760,7 @@
         "consumer_paths": [
           "xdebug/tests/benchmark/test_analysis_cache_baseline.py",
           "xdebug/tests/conftest.py",
+          "xdebug/tests/contract/test_action_contract.py",
           "xdebug/tests/native_xout/test_native_xout_all.py",
           "xdebug/tests/synthetic/test_stream_v1_real_waveform.py"
         ],
@@ -43350,24 +43781,63 @@
         "fixture_source_dir": "xdebug/testdata/waveform/stream_v1",
         "observed_public_actions": [
           "actions",
+          "apb.config.list",
           "apb.config.load",
           "apb.query",
+          "apb.statistics",
+          "apb.transaction.cursor",
+          "apb.transfer_window",
+          "axi.analysis",
+          "axi.channel_stall",
+          "axi.config.list",
           "axi.config.load",
+          "axi.export",
+          "axi.latency_outlier",
+          "axi.outstanding_timeline",
           "axi.query",
+          "axi.request_response_pair",
+          "axi.statistics",
+          "axi.transaction.cursor",
           "batch",
+          "counter.statistics",
+          "event.config.list",
           "event.config.load",
+          "event.export",
+          "event.find",
+          "expr.eval_at",
+          "list.add",
           "list.create",
+          "list.delete",
+          "list.export",
+          "list.load",
+          "list.show",
+          "nwave.rc.generate",
+          "protocol.handshake.inspect",
           "schema",
+          "scope.list",
           "session.close",
+          "session.doctor",
+          "session.list",
           "session.open",
+          "signal.sampled_pulse.inspect",
+          "signal.stability",
+          "signal.statistics",
+          "signal.xz_verify",
+          "stream.config.get",
           "stream.config.list",
           "stream.config.load",
           "stream.describe",
           "stream.export",
           "stream.query",
           "stream.validate",
+          "trace.active_driver",
+          "trace.active_driver_chain",
+          "trace.driver",
+          "trace.load",
           "value.at",
-          "waveform.cursor.set"
+          "verify.conditions",
+          "waveform.cursor.set",
+          "window.verify"
         ],
         "sources": [
           {
@@ -43866,9 +44336,9 @@
         "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
         "test_evidence": [
           {
-            "line": 296,
+            "line": 312,
             "path": "tests/test_waveform.py",
-            "sha256": "7b25a1945131d543c72bfa4ef74a3b55a94dacd3522e0479c2f61481ea1c8ae1",
+            "sha256": "475805b2d441bf578682277374d048beffd5bdc2c5e28fbf85f8cc0f2fbf3196",
             "test": "test_value_at_preserves_event_kind"
           }
         ]
@@ -44163,7 +44633,8 @@
     "scenario_count": 88,
     "status_counts": {
       "missing": 2,
-      "partial": 86
+      "partial": 85,
+      "semantic-equivalent": 1
     },
     "unclassified_count": 0,
     "unqueued_gap_count": 0
