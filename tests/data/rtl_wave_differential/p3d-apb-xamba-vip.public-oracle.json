@@ -1,0 +1,4152 @@
+{
+  "action_authority": {
+    "apb_actions": [
+      "apb.config.list",
+      "apb.config.load",
+      "apb.query",
+      "apb.statistics",
+      "apb.transaction.cursor",
+      "apb.transfer_window"
+    ],
+    "catalog_action_count": 73,
+    "excluded_apb_export": {
+      "classification": "not-in-frozen-public-surface",
+      "dynamic_oracle_eligible": false,
+      "fallback_to_live_runtime_allowed": false,
+      "fixture_consumer_path": "xdebug/tests/synthetic/test_apb_xamba_vip_real.py",
+      "fixture_consumer_reference_count": 0,
+      "fixture_consumer_sha256": "2084050835591ff17c41f8d35e0d3f35207b6ac845ce805eeffa52839df29247",
+      "frozen_consumer_present": false,
+      "frozen_consumer_reference_count": null,
+      "frozen_consumer_sha256": null,
+      "response": {
+        "data": null,
+        "error": {
+          "available_values": [
+            "axi.export",
+            "apb.query",
+            "list.export"
+          ],
+          "code": "UNKNOWN_ACTION",
+          "error_layer": "handler",
+          "invalid_arg": "action",
+          "message": "unknown action: apb.export",
+          "received": "apb.export",
+          "recoverable": true
+        },
+        "ok": false,
+        "summary": {
+          "error_code": "UNKNOWN_ACTION",
+          "status": "error"
+        }
+      }
+    },
+    "guide_request": {
+      "data": null,
+      "error": {
+        "code": "INVALID_REQUEST",
+        "correct_example": {
+          "action": "actions",
+          "api_version": "xdebug.v1",
+          "args": {
+            "filter": {
+              "keyword": "schema"
+            }
+          }
+        },
+        "error_layer": "schema",
+        "expected": "no additional properties allowed",
+        "invalid_arg": "args.output.view",
+        "message": "invalid parameter args.output.view: validation failed for additional property 'view': instance invalid as per false-schema; expected no additional properties allowed",
+        "received_type": "string",
+        "recoverable": true,
+        "schema_path": "schemas/v1/actions/actions.request.schema.json"
+      },
+      "ok": false,
+      "summary": {
+        "error_code": "INVALID_REQUEST",
+        "status": "error"
+      }
+    },
+    "private_probe_fields": [
+      "access_sequence",
+      "build_bytes",
+      "entry_count",
+      "evictions",
+      "hits",
+      "index_count",
+      "key_summary",
+      "misses",
+      "resident_bytes",
+      "scanner_invocations"
+    ],
+    "private_probe_fields_in_public_request_schema": [],
+    "private_probe_fields_in_public_response_schema": [
+      "key_summary"
+    ],
+    "public_response_field_note": "key_summary is an opaque public hard-limit error identity; all other analysis probe counters remain private",
+    "schemas": [
+      {
+        "action": "apb.config.list",
+        "request": {
+          "canonical_sha256": "c5d67b52e174f9d177797eb7b654c8a0e2132592c896a52187ed95e0a5f4cc87",
+          "schema_id": "xdebug.apb.config.list.request.v1",
+          "schema_path": "schemas/v1/actions/apb.config.list.request.schema.json",
+          "schema_sha256": "03264fc8f6d84e0865de8fc05f463cbd97941efa39ea06fc800373de673f96b4"
+        },
+        "response": {
+          "canonical_sha256": "978815f90d8b8fa653a5119e61320513060c59c8f1c4353f7cd4f7d3d0395e3b",
+          "schema_id": "xdebug.apb.config.list.response.v1",
+          "schema_path": "schemas/v1/actions/apb.config.list.response.schema.json",
+          "schema_sha256": "f25872bad56e8e6071e979444a4e806aac1f0242f1e0e5612c0b166511857fe0"
+        }
+      },
+      {
+        "action": "apb.config.load",
+        "request": {
+          "canonical_sha256": "1f8bd2a9570a18f6f10d38d425ae0d29e07c6c65095a62c0f1ed5d94a65261e2",
+          "schema_id": "xdebug.apb.config.load.request.v1",
+          "schema_path": "schemas/v1/actions/apb.config.load.request.schema.json",
+          "schema_sha256": "91a6339a0a25524f9240fd7cebcdf1a73f0d05fdff0301485e9d0d032a44a3a6"
+        },
+        "response": {
+          "canonical_sha256": "4f345117c376bc70f19571337bc19652c797a247dc29bb47e1c189902c0b025e",
+          "schema_id": "xdebug.apb.config.load.response.v1",
+          "schema_path": "schemas/v1/actions/apb.config.load.response.schema.json",
+          "schema_sha256": "6dce8b31892c83dc623fbe5136c84544b0a16c66847d48af1fc09dadb9ebd8ed"
+        }
+      },
+      {
+        "action": "apb.query",
+        "request": {
+          "canonical_sha256": "d1ac389303b2e54080a55c945aaf8644688c5e29c551a3e4a861bf7f1f3e3ea9",
+          "schema_id": "xdebug.apb.query.request.v1",
+          "schema_path": "schemas/v1/actions/apb.query.request.schema.json",
+          "schema_sha256": "8a0f70b9e66cf1722a8ea1a327174b3acf1b535ff46f16dfa88fe2061a314c45"
+        },
+        "response": {
+          "canonical_sha256": "f44a5b5ab65c652ad377c18f6eaeb5caa2ad86f6639c4c900084d3aa073b7153",
+          "schema_id": "xdebug.apb.query.response.v1",
+          "schema_path": "schemas/v1/actions/apb.query.response.schema.json",
+          "schema_sha256": "a247fa5381ebe288581431522f6e424d7fe091fdb4bb8e7ae2c6d603b1c846a7"
+        }
+      },
+      {
+        "action": "apb.statistics",
+        "request": {
+          "canonical_sha256": "b66887aa4fcbb64167e3800b75525db6e38489b9b23e75635a34e8a927ef1a00",
+          "schema_id": "xdebug.apb.statistics.request.v1",
+          "schema_path": "schemas/v1/actions/apb.statistics.request.schema.json",
+          "schema_sha256": "bf3b591b6ef73a54ad08c51a7980ccbf61bbb53715750bc3762b2e050c34a661"
+        },
+        "response": {
+          "canonical_sha256": "591af0da897efb79a49ac12e398f52659e73bca66e2db9cf1ae5a9a6da38c4e5",
+          "schema_id": "xdebug.apb.statistics.response.v1",
+          "schema_path": "schemas/v1/actions/apb.statistics.response.schema.json",
+          "schema_sha256": "6161e386ad174be0f1262051b6e677fcb5a37cb3af7508c0aae18d8470e1a29a"
+        }
+      },
+      {
+        "action": "apb.transaction.cursor",
+        "request": {
+          "canonical_sha256": "b8eb6035e345f09db5c704fbffd8e0243c267a99f8c36c48865f2806d83dcb64",
+          "schema_id": "xdebug.apb.transaction.cursor.request.v1",
+          "schema_path": "schemas/v1/actions/apb.transaction.cursor.request.schema.json",
+          "schema_sha256": "c0a43f46838d7fe4286c02f08855b6a4ecce8d7a4d1d832ae9f18350157fcad9"
+        },
+        "response": {
+          "canonical_sha256": "9c1851c9459e11fa1206b25fdf50a08b4e914bbd8dfdd9fa8222d6b1058ba82f",
+          "schema_id": "xdebug.apb.transaction.cursor.response.v1",
+          "schema_path": "schemas/v1/actions/apb.transaction.cursor.response.schema.json",
+          "schema_sha256": "1b50211f661f8d6f159e8149356445d488df24bb81f86fcd82de6b4c60072e29"
+        }
+      },
+      {
+        "action": "apb.transfer_window",
+        "request": {
+          "canonical_sha256": "494e3040b188923f462b1aa8d881dbde476c2068b9d36dfc3738266b8257e289",
+          "schema_id": "xdebug.apb.transfer_window.request.v1",
+          "schema_path": "schemas/v1/actions/apb.transfer_window.request.schema.json",
+          "schema_sha256": "1effe988d50c0e614766040f1c14d749df31d2c8a2aa9140c3edc81322aded85"
+        },
+        "response": {
+          "canonical_sha256": "148d7c308b23f6b298ae56382a267ebe1914d93a299c7f67d2a05b59dc5bcc02",
+          "schema_id": "xdebug.apb.transfer_window.response.v1",
+          "schema_path": "schemas/v1/actions/apb.transfer_window.response.schema.json",
+          "schema_sha256": "9dca29a87f4239afd77b487a36bf754fdcac74a8cc0e530b2b22cb2990fc5088"
+        }
+      }
+    ]
+  },
+  "cache_contract": {
+    "base_hit_index": {
+      "private_probe": {
+        "event_counts": {
+          "build": 1,
+          "hit": 33,
+          "index_build": 1,
+          "invalidate": 1,
+          "miss": 2,
+          "scan": 1
+        },
+        "last": {
+          "access_sequence": 40,
+          "build_bytes": 0,
+          "entry_count": 0,
+          "evictions": 0,
+          "hits": 33,
+          "index_count": 0,
+          "key_summary": "b57b65a6b80e0a7a",
+          "misses": 2,
+          "resident_bytes": 0,
+          "scanner_invocations": 1
+        },
+        "row_count": 39
+      },
+      "private_probe_classification": "proven-unobservable"
+    },
+    "hard_limit": {
+      "allowed_current_projection": {
+        "error.key_summary": "opaque 16-hex cache identity may differ because the current fixture is native FST rather than the original FSDB"
+      },
+      "classification": "publicly-observable",
+      "hard_max_bytes": 1,
+      "private_probe": {
+        "event_counts": {
+          "build_failed": 1
+        },
+        "last": {
+          "access_sequence": 2,
+          "build_bytes": 0,
+          "entry_count": 0,
+          "evictions": 0,
+          "hits": 0,
+          "index_count": 0,
+          "key_summary": "6f9e1a4441fcfe54",
+          "misses": 0,
+          "resident_bytes": 0,
+          "scanner_invocations": 0
+        },
+        "row_count": 1
+      },
+      "public_observations": [
+        {
+          "action": "apb.config.load",
+          "observation_id": "config.load",
+          "request": {
+            "config": {
+              "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+              "edge": "posedge",
+              "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+              "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+              "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+              "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+              "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+              "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+              "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+              "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+              "reset": {
+                "polarity": "active_low",
+                "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+              }
+            },
+            "name": "apb0"
+          },
+          "response": {
+            "data": {
+              "config": {
+                "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+                "edge": "posedge",
+                "name": "apb0",
+                "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+                "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+                "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+                "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+                "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+                "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+                "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+                "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+                "reset": {
+                  "polarity": "active_low",
+                  "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+                },
+                "sample_point": "before",
+                "sampling_mode": "clock_edge"
+              },
+              "recommended_actions": [
+                {
+                  "action": "value.at",
+                  "purpose": "按一个或多个指定时间读取单信号、命名信号列表或接口配置维护的值。"
+                },
+                {
+                  "action": "apb.query",
+                  "purpose": "按方向以及 exact、range 或 mask 地址条件查询已完成 APB transfer。"
+                },
+                {
+                  "action": "apb.transaction.cursor",
+                  "purpose": "在 APB transfer 间移动游标。"
+                },
+                {
+                  "action": "apb.statistics",
+                  "purpose": "按方向和地址过滤统计已完成 APB 事务。"
+                },
+                {
+                  "action": "apb.transfer_window",
+                  "purpose": "实验性 APB 窗口分析。"
+                }
+              ]
+            },
+            "ok": true,
+            "summary": {
+              "name": "apb0",
+              "status": "loaded"
+            }
+          }
+        },
+        {
+          "action": "apb.query",
+          "observation_id": "query.write.rejected",
+          "request": {
+            "direction": "write",
+            "name": "apb0"
+          },
+          "response": {
+            "data": null,
+            "error": {
+              "code": "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+              "current_estimated_bytes": 0,
+              "error_layer": "handler",
+              "hard_max_bytes": 1,
+              "key_summary": "0ba78c3553fab81f",
+              "message": "analysis cache build exceeds the configured hard memory limit",
+              "next_actions": [
+                "For stream analysis, explicitly retry with cache_scope=range or a smaller time_range.",
+                "If range analysis still exceeds the limit, use x-npi for one-off offline analysis."
+              ],
+              "protocol": "apb",
+              "recoverable": true
+            },
+            "ok": false,
+            "summary": {
+              "error_code": "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+              "status": "error"
+            }
+          }
+        }
+      ],
+      "soft_max_bytes": 1
+    },
+    "soft_lru": {
+      "hard_max_bytes": 2147483648,
+      "private_eviction_classification": "proven-unobservable",
+      "private_probe": {
+        "event_counts": {
+          "build": 3,
+          "evict": 2,
+          "hit": 1,
+          "invalidate": 1,
+          "miss": 3,
+          "oversize_admitted": 3,
+          "scan": 3
+        },
+        "last": {
+          "access_sequence": 17,
+          "build_bytes": 0,
+          "entry_count": 0,
+          "evictions": 2,
+          "hits": 1,
+          "index_count": 0,
+          "key_summary": "90bbbc27efbee9e6",
+          "misses": 3,
+          "resident_bytes": 0,
+          "scanner_invocations": 3
+        },
+        "row_count": 16
+      },
+      "public_observations": [
+        {
+          "action": "apb.config.load",
+          "observation_id": "config.before",
+          "request": {
+            "config": {
+              "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+              "edge": "posedge",
+              "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+              "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+              "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+              "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+              "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+              "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+              "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+              "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+              "reset": {
+                "polarity": "active_low",
+                "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+              },
+              "sample_point": "before"
+            },
+            "name": "apb_before"
+          },
+          "response": {
+            "data": {
+              "config": {
+                "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+                "edge": "posedge",
+                "name": "apb_before",
+                "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+                "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+                "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+                "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+                "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+                "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+                "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+                "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+                "reset": {
+                  "polarity": "active_low",
+                  "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+                },
+                "sample_point": "before",
+                "sampling_mode": "clock_edge"
+              },
+              "recommended_actions": [
+                {
+                  "action": "value.at",
+                  "purpose": "按一个或多个指定时间读取单信号、命名信号列表或接口配置维护的值。"
+                },
+                {
+                  "action": "apb.query",
+                  "purpose": "按方向以及 exact、range 或 mask 地址条件查询已完成 APB transfer。"
+                },
+                {
+                  "action": "apb.transaction.cursor",
+                  "purpose": "在 APB transfer 间移动游标。"
+                },
+                {
+                  "action": "apb.statistics",
+                  "purpose": "按方向和地址过滤统计已完成 APB 事务。"
+                },
+                {
+                  "action": "apb.transfer_window",
+                  "purpose": "实验性 APB 窗口分析。"
+                }
+              ]
+            },
+            "ok": true,
+            "summary": {
+              "name": "apb_before",
+              "status": "loaded"
+            }
+          }
+        },
+        {
+          "action": "apb.config.load",
+          "observation_id": "config.after",
+          "request": {
+            "config": {
+              "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+              "edge": "posedge",
+              "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+              "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+              "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+              "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+              "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+              "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+              "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+              "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+              "reset": {
+                "polarity": "active_low",
+                "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+              },
+              "sample_point": "after"
+            },
+            "name": "apb_after"
+          },
+          "response": {
+            "data": {
+              "config": {
+                "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+                "edge": "posedge",
+                "name": "apb_after",
+                "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+                "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+                "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+                "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+                "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+                "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+                "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+                "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+                "reset": {
+                  "polarity": "active_low",
+                  "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+                },
+                "sample_point": "after",
+                "sampling_mode": "clock_edge"
+              },
+              "recommended_actions": [
+                {
+                  "action": "value.at",
+                  "purpose": "按一个或多个指定时间读取单信号、命名信号列表或接口配置维护的值。"
+                },
+                {
+                  "action": "apb.query",
+                  "purpose": "按方向以及 exact、range 或 mask 地址条件查询已完成 APB transfer。"
+                },
+                {
+                  "action": "apb.transaction.cursor",
+                  "purpose": "在 APB transfer 间移动游标。"
+                },
+                {
+                  "action": "apb.statistics",
+                  "purpose": "按方向和地址过滤统计已完成 APB 事务。"
+                },
+                {
+                  "action": "apb.transfer_window",
+                  "purpose": "实验性 APB 窗口分析。"
+                }
+              ]
+            },
+            "ok": true,
+            "summary": {
+              "name": "apb_after",
+              "status": "loaded"
+            }
+          }
+        },
+        {
+          "action": "apb.transaction.cursor",
+          "observation_id": "cursor.before.begin",
+          "request": {
+            "direction": "all",
+            "name": "apb_before",
+            "op": "begin"
+          },
+          "response": {
+            "data": {
+              "transaction": {
+                "addr": "32'h00001000",
+                "data": "32'ha5000000",
+                "has_error": true,
+                "is_write": true,
+                "time": "45ns"
+              }
+            },
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "at_begin": true,
+              "at_end": false,
+              "direction": "all",
+              "found": true,
+              "index": 1,
+              "index_base": 1,
+              "name": "apb_before",
+              "op": "begin",
+              "response_truncated": false,
+              "returned_count": 1,
+              "scan_complete": true,
+              "total_count": 64,
+              "truncation_scopes": [],
+              "value_width_complete": true,
+              "width_diagnostics": []
+            }
+          }
+        },
+        {
+          "action": "apb.transaction.cursor",
+          "observation_id": "cursor.before.next",
+          "request": {
+            "direction": "all",
+            "name": "apb_before",
+            "op": "next"
+          },
+          "response": {
+            "data": {
+              "transaction": {
+                "addr": "32'h00001004",
+                "data": "32'h5a000001",
+                "has_error": false,
+                "is_write": false,
+                "time": "85ns"
+              }
+            },
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "at_begin": false,
+              "at_end": false,
+              "direction": "all",
+              "found": true,
+              "index": 2,
+              "index_base": 1,
+              "name": "apb_before",
+              "op": "next",
+              "response_truncated": false,
+              "returned_count": 1,
+              "scan_complete": true,
+              "total_count": 64,
+              "truncation_scopes": [],
+              "value_width_complete": true,
+              "width_diagnostics": []
+            }
+          }
+        },
+        {
+          "action": "apb.query",
+          "observation_id": "query.after.write",
+          "request": {
+            "direction": "write",
+            "name": "apb_after"
+          },
+          "response": {
+            "data": {
+              "filter": {
+                "direction": "write"
+              }
+            },
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "direction": "write",
+              "name": "apb_after",
+              "query_mode": "count",
+              "response_truncated": false,
+              "returned_count": 0,
+              "scan_complete": true,
+              "total_count": 32,
+              "truncation_scopes": []
+            }
+          }
+        },
+        {
+          "action": "apb.transaction.cursor",
+          "observation_id": "cursor.before.resume",
+          "request": {
+            "direction": "all",
+            "name": "apb_before",
+            "op": "next"
+          },
+          "response": {
+            "data": {
+              "transaction": {
+                "addr": "32'h00001008",
+                "data": "32'ha5000002",
+                "has_error": false,
+                "is_write": true,
+                "time": "135ns"
+              }
+            },
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "at_begin": false,
+              "at_end": false,
+              "direction": "all",
+              "found": true,
+              "index": 3,
+              "index_base": 1,
+              "name": "apb_before",
+              "op": "next",
+              "response_truncated": false,
+              "returned_count": 1,
+              "scan_complete": true,
+              "total_count": 64,
+              "truncation_scopes": [],
+              "value_width_complete": true,
+              "width_diagnostics": []
+            }
+          }
+        }
+      ],
+      "soft_max_bytes": 1
+    }
+  },
+  "fixture_id": "xdebug.apb_xamba_vip",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "locked_runtime": {
+    "action_count": 73,
+    "binary_sha256": "0f54515fa1c7e80634cdba1e9455ed7cdc1acae26144c7c5a39200853becf46d",
+    "build_id": "8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "cache_reused": true,
+    "fixture_rebuilt": false,
+    "fixture_version": "05c16a52c99491286afecda1bd88dbcb992f340c627cbca5d6304985cc8a262e-prepare-xgy6zv8g",
+    "npi_version": "X-2025.06-SP1",
+    "runtime_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
+    "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "source_access": "read_only",
+    "wrapper_sha256": "c9569332281ccad39099e06d547075d33b35f9b50699e4d148203ad5645978e7"
+  },
+  "observation_count": 34,
+  "observations": [
+    {
+      "action": "apb.config.load",
+      "observation_id": "config.load",
+      "request": {
+        "config": {
+          "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+          "edge": "posedge",
+          "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+          "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+          "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+          "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+          "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+          "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+          "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+          "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+          "reset": {
+            "polarity": "active_low",
+            "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+          }
+        },
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "config": {
+            "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+            "edge": "posedge",
+            "name": "apb0",
+            "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+            "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+            "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+            "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+            "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+            "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+            "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+            "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+            "reset": {
+              "polarity": "active_low",
+              "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+            },
+            "sample_point": "before",
+            "sampling_mode": "clock_edge"
+          },
+          "recommended_actions": [
+            {
+              "action": "value.at",
+              "purpose": "按一个或多个指定时间读取单信号、命名信号列表或接口配置维护的值。"
+            },
+            {
+              "action": "apb.query",
+              "purpose": "按方向以及 exact、range 或 mask 地址条件查询已完成 APB transfer。"
+            },
+            {
+              "action": "apb.transaction.cursor",
+              "purpose": "在 APB transfer 间移动游标。"
+            },
+            {
+              "action": "apb.statistics",
+              "purpose": "按方向和地址过滤统计已完成 APB 事务。"
+            },
+            {
+              "action": "apb.transfer_window",
+              "purpose": "实验性 APB 窗口分析。"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "name": "apb0",
+          "status": "loaded"
+        }
+      }
+    },
+    {
+      "action": "apb.config.list",
+      "observation_id": "config.list.named",
+      "request": {
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "config": {
+            "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+            "edge": "posedge",
+            "name": "apb0",
+            "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+            "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+            "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+            "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+            "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+            "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+            "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+            "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+            "reset": {
+              "polarity": "active_low",
+              "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+            },
+            "sample_point": "before",
+            "sampling_mode": "clock_edge"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "name": "apb0",
+          "status": "found"
+        }
+      }
+    },
+    {
+      "action": "apb.config.list",
+      "observation_id": "config.list.all",
+      "request": {},
+      "response": {
+        "data": {
+          "configs": [
+            {
+              "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+              "edge": "posedge",
+              "name": "apb0",
+              "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+              "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+              "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+              "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+              "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+              "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+              "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+              "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+              "reset": {
+                "polarity": "active_low",
+                "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+              },
+              "sample_point": "before",
+              "sampling_mode": "clock_edge"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "count": 1
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.count.all",
+      "request": {
+        "direction": "all",
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "all"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "name": "apb0",
+          "query_mode": "count",
+          "response_truncated": false,
+          "returned_count": 0,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.count.write",
+      "request": {
+        "direction": "write",
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "write"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "write",
+          "name": "apb0",
+          "query_mode": "count",
+          "response_truncated": false,
+          "returned_count": 0,
+          "scan_complete": true,
+          "total_count": 32,
+          "truncation_scopes": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.count.read",
+      "request": {
+        "direction": "read",
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "read"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "read",
+          "name": "apb0",
+          "query_mode": "count",
+          "response_truncated": false,
+          "returned_count": 0,
+          "scan_complete": true,
+          "total_count": 32,
+          "truncation_scopes": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.full",
+      "request": {
+        "name": "apb0",
+        "query": {
+          "line_limit": 64
+        }
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "all"
+          },
+          "transactions": [
+            {
+              "addr": "32'h00001000",
+              "data": "32'ha5000000",
+              "has_error": true,
+              "is_write": true,
+              "time": "45ns"
+            },
+            {
+              "addr": "32'h00001004",
+              "data": "32'h5a000001",
+              "has_error": false,
+              "is_write": false,
+              "time": "85ns"
+            },
+            {
+              "addr": "32'h00001008",
+              "data": "32'ha5000002",
+              "has_error": false,
+              "is_write": true,
+              "time": "135ns"
+            },
+            {
+              "addr": "32'h0000100c",
+              "data": "32'h5a000003",
+              "has_error": false,
+              "is_write": false,
+              "time": "195ns"
+            },
+            {
+              "addr": "32'h00001010",
+              "data": "32'ha5000004",
+              "has_error": false,
+              "is_write": true,
+              "time": "225ns"
+            },
+            {
+              "addr": "32'h00001014",
+              "data": "32'h5a000005",
+              "has_error": false,
+              "is_write": false,
+              "time": "265ns"
+            },
+            {
+              "addr": "32'h00001018",
+              "data": "32'ha5000006",
+              "has_error": false,
+              "is_write": true,
+              "time": "315ns"
+            },
+            {
+              "addr": "32'h0000101c",
+              "data": "32'h5a000007",
+              "has_error": false,
+              "is_write": false,
+              "time": "375ns"
+            },
+            {
+              "addr": "32'h00001020",
+              "data": "32'ha5000008",
+              "has_error": false,
+              "is_write": true,
+              "time": "405ns"
+            },
+            {
+              "addr": "32'h00001024",
+              "data": "32'h5a000009",
+              "has_error": false,
+              "is_write": false,
+              "time": "445ns"
+            },
+            {
+              "addr": "32'h00001028",
+              "data": "32'ha500000a",
+              "has_error": false,
+              "is_write": true,
+              "time": "495ns"
+            },
+            {
+              "addr": "32'h0000102c",
+              "data": "32'h5a00000b",
+              "has_error": true,
+              "is_write": false,
+              "time": "555ns"
+            },
+            {
+              "addr": "32'h00001030",
+              "data": "32'ha500000c",
+              "has_error": false,
+              "is_write": true,
+              "time": "585ns"
+            },
+            {
+              "addr": "32'h00001034",
+              "data": "32'h5a00000d",
+              "has_error": false,
+              "is_write": false,
+              "time": "625ns"
+            },
+            {
+              "addr": "32'h00001038",
+              "data": "32'ha500000e",
+              "has_error": false,
+              "is_write": true,
+              "time": "675ns"
+            },
+            {
+              "addr": "32'h0000103c",
+              "data": "32'h5a00000f",
+              "has_error": false,
+              "is_write": false,
+              "time": "735ns"
+            },
+            {
+              "addr": "32'h00001040",
+              "data": "32'ha5000010",
+              "has_error": false,
+              "is_write": true,
+              "time": "765ns"
+            },
+            {
+              "addr": "32'h00001044",
+              "data": "32'h5a000011",
+              "has_error": false,
+              "is_write": false,
+              "time": "805ns"
+            },
+            {
+              "addr": "32'h00001048",
+              "data": "32'ha5000012",
+              "has_error": false,
+              "is_write": true,
+              "time": "855ns"
+            },
+            {
+              "addr": "32'h0000104c",
+              "data": "32'h5a000013",
+              "has_error": false,
+              "is_write": false,
+              "time": "915ns"
+            },
+            {
+              "addr": "32'h00001050",
+              "data": "32'ha5000014",
+              "has_error": false,
+              "is_write": true,
+              "time": "945ns"
+            },
+            {
+              "addr": "32'h00001054",
+              "data": "32'h5a000015",
+              "has_error": false,
+              "is_write": false,
+              "time": "985ns"
+            },
+            {
+              "addr": "32'h00001058",
+              "data": "32'ha5000016",
+              "has_error": true,
+              "is_write": true,
+              "time": "1035ns"
+            },
+            {
+              "addr": "32'h0000105c",
+              "data": "32'h5a000017",
+              "has_error": false,
+              "is_write": false,
+              "time": "1095ns"
+            },
+            {
+              "addr": "32'h00001060",
+              "data": "32'ha5000018",
+              "has_error": false,
+              "is_write": true,
+              "time": "1125ns"
+            },
+            {
+              "addr": "32'h00001064",
+              "data": "32'h5a000019",
+              "has_error": false,
+              "is_write": false,
+              "time": "1165ns"
+            },
+            {
+              "addr": "32'h00001068",
+              "data": "32'ha500001a",
+              "has_error": false,
+              "is_write": true,
+              "time": "1215ns"
+            },
+            {
+              "addr": "32'h0000106c",
+              "data": "32'h5a00001b",
+              "has_error": false,
+              "is_write": false,
+              "time": "1275ns"
+            },
+            {
+              "addr": "32'h00001070",
+              "data": "32'ha500001c",
+              "has_error": false,
+              "is_write": true,
+              "time": "1305ns"
+            },
+            {
+              "addr": "32'h00001074",
+              "data": "32'h5a00001d",
+              "has_error": false,
+              "is_write": false,
+              "time": "1345ns"
+            },
+            {
+              "addr": "32'h00001078",
+              "data": "32'ha500001e",
+              "has_error": false,
+              "is_write": true,
+              "time": "1395ns"
+            },
+            {
+              "addr": "32'h0000107c",
+              "data": "32'h5a00001f",
+              "has_error": false,
+              "is_write": false,
+              "time": "1455ns"
+            },
+            {
+              "addr": "32'h00001080",
+              "data": "32'ha5000020",
+              "has_error": false,
+              "is_write": true,
+              "time": "1485ns"
+            },
+            {
+              "addr": "32'h00001084",
+              "data": "32'h5a000021",
+              "has_error": true,
+              "is_write": false,
+              "time": "1525ns"
+            },
+            {
+              "addr": "32'h00001088",
+              "data": "32'ha5000022",
+              "has_error": false,
+              "is_write": true,
+              "time": "1575ns"
+            },
+            {
+              "addr": "32'h0000108c",
+              "data": "32'h5a000023",
+              "has_error": false,
+              "is_write": false,
+              "time": "1635ns"
+            },
+            {
+              "addr": "32'h00001090",
+              "data": "32'ha5000024",
+              "has_error": false,
+              "is_write": true,
+              "time": "1665ns"
+            },
+            {
+              "addr": "32'h00001094",
+              "data": "32'h5a000025",
+              "has_error": false,
+              "is_write": false,
+              "time": "1705ns"
+            },
+            {
+              "addr": "32'h00001098",
+              "data": "32'ha5000026",
+              "has_error": false,
+              "is_write": true,
+              "time": "1755ns"
+            },
+            {
+              "addr": "32'h0000109c",
+              "data": "32'h5a000027",
+              "has_error": false,
+              "is_write": false,
+              "time": "1815ns"
+            },
+            {
+              "addr": "32'h000010a0",
+              "data": "32'ha5000028",
+              "has_error": false,
+              "is_write": true,
+              "time": "1845ns"
+            },
+            {
+              "addr": "32'h000010a4",
+              "data": "32'h5a000029",
+              "has_error": false,
+              "is_write": false,
+              "time": "1885ns"
+            },
+            {
+              "addr": "32'h000010a8",
+              "data": "32'ha500002a",
+              "has_error": false,
+              "is_write": true,
+              "time": "1935ns"
+            },
+            {
+              "addr": "32'h000010ac",
+              "data": "32'h5a00002b",
+              "has_error": false,
+              "is_write": false,
+              "time": "1995ns"
+            },
+            {
+              "addr": "32'h000010b0",
+              "data": "32'ha500002c",
+              "has_error": true,
+              "is_write": true,
+              "time": "2025ns"
+            },
+            {
+              "addr": "32'h000010b4",
+              "data": "32'h5a00002d",
+              "has_error": false,
+              "is_write": false,
+              "time": "2065ns"
+            },
+            {
+              "addr": "32'h000010b8",
+              "data": "32'ha500002e",
+              "has_error": false,
+              "is_write": true,
+              "time": "2115ns"
+            },
+            {
+              "addr": "32'h000010bc",
+              "data": "32'h5a00002f",
+              "has_error": false,
+              "is_write": false,
+              "time": "2175ns"
+            },
+            {
+              "addr": "32'h000010c0",
+              "data": "32'ha5000030",
+              "has_error": false,
+              "is_write": true,
+              "time": "2205ns"
+            },
+            {
+              "addr": "32'h000010c4",
+              "data": "32'h5a000031",
+              "has_error": false,
+              "is_write": false,
+              "time": "2245ns"
+            },
+            {
+              "addr": "32'h000010c8",
+              "data": "32'ha5000032",
+              "has_error": false,
+              "is_write": true,
+              "time": "2295ns"
+            },
+            {
+              "addr": "32'h000010cc",
+              "data": "32'h5a000033",
+              "has_error": false,
+              "is_write": false,
+              "time": "2355ns"
+            },
+            {
+              "addr": "32'h000010d0",
+              "data": "32'ha5000034",
+              "has_error": false,
+              "is_write": true,
+              "time": "2385ns"
+            },
+            {
+              "addr": "32'h000010d4",
+              "data": "32'h5a000035",
+              "has_error": false,
+              "is_write": false,
+              "time": "2425ns"
+            },
+            {
+              "addr": "32'h000010d8",
+              "data": "32'ha5000036",
+              "has_error": false,
+              "is_write": true,
+              "time": "2475ns"
+            },
+            {
+              "addr": "32'h000010dc",
+              "data": "32'h5a000037",
+              "has_error": true,
+              "is_write": false,
+              "time": "2535ns"
+            },
+            {
+              "addr": "32'h000010e0",
+              "data": "32'ha5000038",
+              "has_error": false,
+              "is_write": true,
+              "time": "2565ns"
+            },
+            {
+              "addr": "32'h000010e4",
+              "data": "32'h5a000039",
+              "has_error": false,
+              "is_write": false,
+              "time": "2605ns"
+            },
+            {
+              "addr": "32'h000010e8",
+              "data": "32'ha500003a",
+              "has_error": false,
+              "is_write": true,
+              "time": "2655ns"
+            },
+            {
+              "addr": "32'h000010ec",
+              "data": "32'h5a00003b",
+              "has_error": false,
+              "is_write": false,
+              "time": "2715ns"
+            },
+            {
+              "addr": "32'h000010f0",
+              "data": "32'ha500003c",
+              "has_error": false,
+              "is_write": true,
+              "time": "2745ns"
+            },
+            {
+              "addr": "32'h000010f4",
+              "data": "32'h5a00003d",
+              "has_error": false,
+              "is_write": false,
+              "time": "2785ns"
+            },
+            {
+              "addr": "32'h000010f8",
+              "data": "32'ha500003e",
+              "has_error": false,
+              "is_write": true,
+              "time": "2835ns"
+            },
+            {
+              "addr": "32'h000010fc",
+              "data": "32'h5a00003f",
+              "has_error": false,
+              "is_write": false,
+              "time": "2895ns"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "name": "apb0",
+          "query_mode": "list",
+          "response_truncated": false,
+          "returned_count": 64,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.preview",
+      "request": {
+        "name": "apb0",
+        "query": {
+          "line_limit": 20
+        }
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "all"
+          },
+          "transactions": [
+            {
+              "addr": "32'h00001000",
+              "data": "32'ha5000000",
+              "has_error": true,
+              "is_write": true,
+              "time": "45ns"
+            },
+            {
+              "addr": "32'h00001004",
+              "data": "32'h5a000001",
+              "has_error": false,
+              "is_write": false,
+              "time": "85ns"
+            },
+            {
+              "addr": "32'h00001008",
+              "data": "32'ha5000002",
+              "has_error": false,
+              "is_write": true,
+              "time": "135ns"
+            },
+            {
+              "addr": "32'h0000100c",
+              "data": "32'h5a000003",
+              "has_error": false,
+              "is_write": false,
+              "time": "195ns"
+            },
+            {
+              "addr": "32'h00001010",
+              "data": "32'ha5000004",
+              "has_error": false,
+              "is_write": true,
+              "time": "225ns"
+            },
+            {
+              "addr": "32'h00001014",
+              "data": "32'h5a000005",
+              "has_error": false,
+              "is_write": false,
+              "time": "265ns"
+            },
+            {
+              "addr": "32'h00001018",
+              "data": "32'ha5000006",
+              "has_error": false,
+              "is_write": true,
+              "time": "315ns"
+            },
+            {
+              "addr": "32'h0000101c",
+              "data": "32'h5a000007",
+              "has_error": false,
+              "is_write": false,
+              "time": "375ns"
+            },
+            {
+              "addr": "32'h00001020",
+              "data": "32'ha5000008",
+              "has_error": false,
+              "is_write": true,
+              "time": "405ns"
+            },
+            {
+              "addr": "32'h00001024",
+              "data": "32'h5a000009",
+              "has_error": false,
+              "is_write": false,
+              "time": "445ns"
+            },
+            {
+              "addr": "32'h00001028",
+              "data": "32'ha500000a",
+              "has_error": false,
+              "is_write": true,
+              "time": "495ns"
+            },
+            {
+              "addr": "32'h0000102c",
+              "data": "32'h5a00000b",
+              "has_error": true,
+              "is_write": false,
+              "time": "555ns"
+            },
+            {
+              "addr": "32'h00001030",
+              "data": "32'ha500000c",
+              "has_error": false,
+              "is_write": true,
+              "time": "585ns"
+            },
+            {
+              "addr": "32'h00001034",
+              "data": "32'h5a00000d",
+              "has_error": false,
+              "is_write": false,
+              "time": "625ns"
+            },
+            {
+              "addr": "32'h00001038",
+              "data": "32'ha500000e",
+              "has_error": false,
+              "is_write": true,
+              "time": "675ns"
+            },
+            {
+              "addr": "32'h0000103c",
+              "data": "32'h5a00000f",
+              "has_error": false,
+              "is_write": false,
+              "time": "735ns"
+            },
+            {
+              "addr": "32'h00001040",
+              "data": "32'ha5000010",
+              "has_error": false,
+              "is_write": true,
+              "time": "765ns"
+            },
+            {
+              "addr": "32'h00001044",
+              "data": "32'h5a000011",
+              "has_error": false,
+              "is_write": false,
+              "time": "805ns"
+            },
+            {
+              "addr": "32'h00001048",
+              "data": "32'ha5000012",
+              "has_error": false,
+              "is_write": true,
+              "time": "855ns"
+            },
+            {
+              "addr": "32'h0000104c",
+              "data": "32'h5a000013",
+              "has_error": false,
+              "is_write": false,
+              "time": "915ns"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "name": "apb0",
+          "query_mode": "list",
+          "response_truncated": true,
+          "returned_count": 20,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [
+            "response_transactions"
+          ],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      },
+      "xout": "@xdebug.apb.query.v1\nsummary:\n  name              : apb0\n  direction         : all\n  query_mode        : list\n  scan_complete     : true\n  analysis_complete : true\n  response_truncated: true\n  total_count       : 64\n  returned_count    : 20\n\ntruncation_scopes:\n  response_transactions\n  value_width_complete: true\n  width_diagnostics   : [empty]\n\nfilter:\n  direction: all\n\ntransactions:\n  time   addr          data          is_write  has_error\n  45ns   32'h00001000  32'ha5000000  true      true\n  85ns   32'h00001004  32'h5a000001  false     false\n  135ns  32'h00001008  32'ha5000002  true      false\n  195ns  32'h0000100c  32'h5a000003  false     false\n  225ns  32'h00001010  32'ha5000004  true      false\n  265ns  32'h00001014  32'h5a000005  false     false\n  315ns  32'h00001018  32'ha5000006  true      false\n  375ns  32'h0000101c  32'h5a000007  false     false\n  405ns  32'h00001020  32'ha5000008  true      false\n  445ns  32'h00001024  32'h5a000009  false     false\n  495ns  32'h00001028  32'ha500000a  true      false\n  555ns  32'h0000102c  32'h5a00000b  false     true\n  585ns  32'h00001030  32'ha500000c  true      false\n  625ns  32'h00001034  32'h5a00000d  false     false\n  675ns  32'h00001038  32'ha500000e  true      false\n  735ns  32'h0000103c  32'h5a00000f  false     false\n  765ns  32'h00001040  32'ha5000010  true      false\n  805ns  32'h00001044  32'h5a000011  false     false\n  855ns  32'h00001048  32'ha5000012  true      false\n  915ns  32'h0000104c  32'h5a000013  false     false\n",
+      "xout_sha256": "42f36a7b1dbe152a405a0fd83fe648b8cfd2782a00b3c9821ba9a74f6018971e"
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.index.first",
+      "request": {
+        "name": "apb0",
+        "query": {
+          "index": 1
+        }
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "all"
+          },
+          "transaction": {
+            "addr": "32'h00001000",
+            "data": "32'ha5000000",
+            "has_error": true,
+            "is_write": true,
+            "time": "45ns"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "found": true,
+          "name": "apb0",
+          "query_mode": "index",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.index.middle",
+      "request": {
+        "name": "apb0",
+        "query": {
+          "index": 32
+        }
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "all"
+          },
+          "transaction": {
+            "addr": "32'h0000107c",
+            "data": "32'h5a00001f",
+            "has_error": false,
+            "is_write": false,
+            "time": "1455ns"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "found": true,
+          "name": "apb0",
+          "query_mode": "index",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.last",
+      "request": {
+        "last": true,
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "all"
+          },
+          "transaction": {
+            "addr": "32'h000010fc",
+            "data": "32'h5a00003f",
+            "has_error": false,
+            "is_write": false,
+            "time": "2895ns"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "found": true,
+          "name": "apb0",
+          "query_mode": "last",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.index.oob",
+      "request": {
+        "name": "apb0",
+        "query": {
+          "index": 65
+        }
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "all"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "found": false,
+          "name": "apb0",
+          "query_mode": "index",
+          "response_truncated": false,
+          "returned_count": 0,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.address.exact",
+      "request": {
+        "address": {
+          "mode": "exact",
+          "values": [
+            "32'h00001008"
+          ]
+        },
+        "name": "apb0",
+        "query": {
+          "line_limit": 64
+        }
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "address": {
+              "mode": "exact",
+              "values": [
+                "32'h00001008"
+              ]
+            },
+            "direction": "all"
+          },
+          "transactions": [
+            {
+              "addr": "32'h00001008",
+              "data": "32'ha5000002",
+              "has_error": false,
+              "is_write": true,
+              "time": "135ns"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "name": "apb0",
+          "query_mode": "list",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.address.range.write",
+      "request": {
+        "address": {
+          "begin": "32'h00001010",
+          "end": "32'h00001020",
+          "mode": "range"
+        },
+        "direction": "write",
+        "name": "apb0",
+        "query": {
+          "line_limit": 64
+        }
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "address": {
+              "begin": "32'h00001010",
+              "end": "32'h00001020",
+              "mode": "range"
+            },
+            "direction": "write"
+          },
+          "transactions": [
+            {
+              "addr": "32'h00001010",
+              "data": "32'ha5000004",
+              "has_error": false,
+              "is_write": true,
+              "time": "225ns"
+            },
+            {
+              "addr": "32'h00001018",
+              "data": "32'ha5000006",
+              "has_error": false,
+              "is_write": true,
+              "time": "315ns"
+            },
+            {
+              "addr": "32'h00001020",
+              "data": "32'ha5000008",
+              "has_error": false,
+              "is_write": true,
+              "time": "405ns"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "write",
+          "name": "apb0",
+          "query_mode": "list",
+          "response_truncated": false,
+          "returned_count": 3,
+          "scan_complete": true,
+          "total_count": 3,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.address.mask.read",
+      "request": {
+        "address": {
+          "mask": "32'h0000ffc0",
+          "mode": "mask",
+          "value": "32'h00001000"
+        },
+        "direction": "read",
+        "name": "apb0",
+        "query": {
+          "line_limit": 64
+        }
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "address": {
+              "mask": "32'h0000ffc0",
+              "mode": "mask",
+              "value": "32'h00001000"
+            },
+            "direction": "read"
+          },
+          "transactions": [
+            {
+              "addr": "32'h00001004",
+              "data": "32'h5a000001",
+              "has_error": false,
+              "is_write": false,
+              "time": "85ns"
+            },
+            {
+              "addr": "32'h0000100c",
+              "data": "32'h5a000003",
+              "has_error": false,
+              "is_write": false,
+              "time": "195ns"
+            },
+            {
+              "addr": "32'h00001014",
+              "data": "32'h5a000005",
+              "has_error": false,
+              "is_write": false,
+              "time": "265ns"
+            },
+            {
+              "addr": "32'h0000101c",
+              "data": "32'h5a000007",
+              "has_error": false,
+              "is_write": false,
+              "time": "375ns"
+            },
+            {
+              "addr": "32'h00001024",
+              "data": "32'h5a000009",
+              "has_error": false,
+              "is_write": false,
+              "time": "445ns"
+            },
+            {
+              "addr": "32'h0000102c",
+              "data": "32'h5a00000b",
+              "has_error": true,
+              "is_write": false,
+              "time": "555ns"
+            },
+            {
+              "addr": "32'h00001034",
+              "data": "32'h5a00000d",
+              "has_error": false,
+              "is_write": false,
+              "time": "625ns"
+            },
+            {
+              "addr": "32'h0000103c",
+              "data": "32'h5a00000f",
+              "has_error": false,
+              "is_write": false,
+              "time": "735ns"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "read",
+          "name": "apb0",
+          "query_mode": "list",
+          "response_truncated": false,
+          "returned_count": 8,
+          "scan_complete": true,
+          "total_count": 8,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.value.decimal",
+      "request": {
+        "address": {
+          "mode": "exact",
+          "values": [
+            "32'h00001008"
+          ]
+        },
+        "name": "apb0",
+        "query": {
+          "line_limit": 64
+        },
+        "value_format": "dec"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "address": {
+              "mode": "exact",
+              "values": [
+                "32'h00001008"
+              ]
+            },
+            "direction": "all"
+          },
+          "transactions": [
+            {
+              "addr": "32'd4104",
+              "data": "32'd2768240642",
+              "has_error": false,
+              "is_write": true,
+              "time": "135ns"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "name": "apb0",
+          "query_mode": "list",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.value.binary",
+      "request": {
+        "address": {
+          "mode": "exact",
+          "values": [
+            "32'h00001008"
+          ]
+        },
+        "name": "apb0",
+        "query": {
+          "line_limit": 64
+        },
+        "value_format": "bin"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "address": {
+              "mode": "exact",
+              "values": [
+                "32'h00001008"
+              ]
+            },
+            "direction": "all"
+          },
+          "transactions": [
+            {
+              "addr": "32'b00000000000000000001000000001000",
+              "data": "32'b10100101000000000000000000000010",
+              "has_error": false,
+              "is_write": true,
+              "time": "135ns"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "direction": "all",
+          "name": "apb0",
+          "query_mode": "list",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.statistics",
+      "observation_id": "statistics.all",
+      "request": {
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "all"
+          },
+          "notes": {
+            "unresolved_transaction_count": "因被引用的 address/ID 含 X/Z 或不可解析，导致无法判断是否匹配过滤条件的已完成事务数。"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "analysis_quality": "complete",
+          "filter_applied": false,
+          "full_scan_count": 1,
+          "matched_read_count": 32,
+          "matched_transaction_count": 64,
+          "matched_write_count": 32,
+          "name": "apb0",
+          "response_truncated": false,
+          "returned_count": 64,
+          "scan_complete": true,
+          "scanned_transaction_count": 64,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "unresolved_transaction_count": 0
+        }
+      },
+      "xout": "@xdebug.apb.statistics.v1\nsummary:\n  name                        : apb0\n  scanned_transaction_count   : 64\n  matched_transaction_count   : 64\n  matched_read_count          : 32\n  matched_write_count         : 32\n  unresolved_transaction_count: 0\n  filter_applied              : false\n  analysis_quality            : complete\n  full_scan_count             : 1\n  scan_complete               : true\n  analysis_complete           : true\n  response_truncated          : false\n  total_count                 : 64\n  returned_count              : 64\n\nfilter:\n  direction: all\n\nnotes:\n  unresolved_transaction_count: 因被引用的 address/ID 含 X/Z 或不可解析，导致无法判断是否匹配过滤条件的已完成事务数。\n",
+      "xout_sha256": "ed4c58663e8436d43c60d81fe332a56d345da15773f3690b98a2549096b470c3"
+    },
+    {
+      "action": "apb.statistics",
+      "observation_id": "statistics.write",
+      "request": {
+        "filter": {
+          "direction": "write"
+        },
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "direction": "write"
+          },
+          "notes": {
+            "unresolved_transaction_count": "因被引用的 address/ID 含 X/Z 或不可解析，导致无法判断是否匹配过滤条件的已完成事务数。"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "analysis_quality": "complete",
+          "filter_applied": true,
+          "full_scan_count": 1,
+          "matched_read_count": 0,
+          "matched_transaction_count": 32,
+          "matched_write_count": 32,
+          "name": "apb0",
+          "response_truncated": false,
+          "returned_count": 32,
+          "scan_complete": true,
+          "scanned_transaction_count": 64,
+          "total_count": 32,
+          "truncation_scopes": [],
+          "unresolved_transaction_count": 0
+        }
+      }
+    },
+    {
+      "action": "apb.statistics",
+      "observation_id": "statistics.address.exact",
+      "request": {
+        "filter": {
+          "address": {
+            "mode": "exact",
+            "values": [
+              "32'h00001008"
+            ]
+          }
+        },
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "address": {
+              "mode": "exact",
+              "values": [
+                "32'h00001008"
+              ]
+            },
+            "direction": "all"
+          },
+          "notes": {
+            "unresolved_transaction_count": "因被引用的 address/ID 含 X/Z 或不可解析，导致无法判断是否匹配过滤条件的已完成事务数。"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "analysis_quality": "complete",
+          "filter_applied": true,
+          "full_scan_count": 1,
+          "matched_read_count": 0,
+          "matched_transaction_count": 1,
+          "matched_write_count": 1,
+          "name": "apb0",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "scanned_transaction_count": 64,
+          "total_count": 1,
+          "truncation_scopes": [],
+          "unresolved_transaction_count": 0,
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.statistics",
+      "observation_id": "statistics.address.range",
+      "request": {
+        "filter": {
+          "address": {
+            "begin": "32'h00001010",
+            "end": "32'h00001020",
+            "mode": "range"
+          }
+        },
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "address": {
+              "begin": "32'h00001010",
+              "end": "32'h00001020",
+              "mode": "range"
+            },
+            "direction": "all"
+          },
+          "notes": {
+            "unresolved_transaction_count": "因被引用的 address/ID 含 X/Z 或不可解析，导致无法判断是否匹配过滤条件的已完成事务数。"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "analysis_quality": "complete",
+          "filter_applied": true,
+          "full_scan_count": 1,
+          "matched_read_count": 2,
+          "matched_transaction_count": 5,
+          "matched_write_count": 3,
+          "name": "apb0",
+          "response_truncated": false,
+          "returned_count": 5,
+          "scan_complete": true,
+          "scanned_transaction_count": 64,
+          "total_count": 5,
+          "truncation_scopes": [],
+          "unresolved_transaction_count": 0,
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.statistics",
+      "observation_id": "statistics.address.mask",
+      "request": {
+        "filter": {
+          "address": {
+            "mask": "32'h0000ffc0",
+            "mode": "mask",
+            "value": "32'h00001000"
+          }
+        },
+        "name": "apb0"
+      },
+      "response": {
+        "data": {
+          "filter": {
+            "address": {
+              "mask": "32'h0000ffc0",
+              "mode": "mask",
+              "value": "32'h00001000"
+            },
+            "direction": "all"
+          },
+          "notes": {
+            "unresolved_transaction_count": "因被引用的 address/ID 含 X/Z 或不可解析，导致无法判断是否匹配过滤条件的已完成事务数。"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "analysis_quality": "complete",
+          "filter_applied": true,
+          "full_scan_count": 1,
+          "matched_read_count": 8,
+          "matched_transaction_count": 16,
+          "matched_write_count": 8,
+          "name": "apb0",
+          "response_truncated": false,
+          "returned_count": 16,
+          "scan_complete": true,
+          "scanned_transaction_count": 64,
+          "total_count": 16,
+          "truncation_scopes": [],
+          "unresolved_transaction_count": 0,
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.transfer_window",
+      "observation_id": "window.full",
+      "request": {
+        "line_limit": 64,
+        "name": "apb0",
+        "time_range": {
+          "begin": "0ns",
+          "end": "20us"
+        }
+      },
+      "response": {
+        "data": {
+          "transactions": [
+            {
+              "addr": "32'h00001000",
+              "data": "32'ha5000000",
+              "has_error": true,
+              "time": "45ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001004",
+              "data": "32'h5a000001",
+              "has_error": false,
+              "time": "85ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001008",
+              "data": "32'ha5000002",
+              "has_error": false,
+              "time": "135ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000100c",
+              "data": "32'h5a000003",
+              "has_error": false,
+              "time": "195ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001010",
+              "data": "32'ha5000004",
+              "has_error": false,
+              "time": "225ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001014",
+              "data": "32'h5a000005",
+              "has_error": false,
+              "time": "265ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001018",
+              "data": "32'ha5000006",
+              "has_error": false,
+              "time": "315ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000101c",
+              "data": "32'h5a000007",
+              "has_error": false,
+              "time": "375ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001020",
+              "data": "32'ha5000008",
+              "has_error": false,
+              "time": "405ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001024",
+              "data": "32'h5a000009",
+              "has_error": false,
+              "time": "445ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001028",
+              "data": "32'ha500000a",
+              "has_error": false,
+              "time": "495ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000102c",
+              "data": "32'h5a00000b",
+              "has_error": true,
+              "time": "555ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001030",
+              "data": "32'ha500000c",
+              "has_error": false,
+              "time": "585ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001034",
+              "data": "32'h5a00000d",
+              "has_error": false,
+              "time": "625ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001038",
+              "data": "32'ha500000e",
+              "has_error": false,
+              "time": "675ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000103c",
+              "data": "32'h5a00000f",
+              "has_error": false,
+              "time": "735ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001040",
+              "data": "32'ha5000010",
+              "has_error": false,
+              "time": "765ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001044",
+              "data": "32'h5a000011",
+              "has_error": false,
+              "time": "805ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001048",
+              "data": "32'ha5000012",
+              "has_error": false,
+              "time": "855ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000104c",
+              "data": "32'h5a000013",
+              "has_error": false,
+              "time": "915ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001050",
+              "data": "32'ha5000014",
+              "has_error": false,
+              "time": "945ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001054",
+              "data": "32'h5a000015",
+              "has_error": false,
+              "time": "985ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001058",
+              "data": "32'ha5000016",
+              "has_error": true,
+              "time": "1035ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000105c",
+              "data": "32'h5a000017",
+              "has_error": false,
+              "time": "1095ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001060",
+              "data": "32'ha5000018",
+              "has_error": false,
+              "time": "1125ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001064",
+              "data": "32'h5a000019",
+              "has_error": false,
+              "time": "1165ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001068",
+              "data": "32'ha500001a",
+              "has_error": false,
+              "time": "1215ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000106c",
+              "data": "32'h5a00001b",
+              "has_error": false,
+              "time": "1275ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001070",
+              "data": "32'ha500001c",
+              "has_error": false,
+              "time": "1305ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001074",
+              "data": "32'h5a00001d",
+              "has_error": false,
+              "time": "1345ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001078",
+              "data": "32'ha500001e",
+              "has_error": false,
+              "time": "1395ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000107c",
+              "data": "32'h5a00001f",
+              "has_error": false,
+              "time": "1455ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001080",
+              "data": "32'ha5000020",
+              "has_error": false,
+              "time": "1485ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001084",
+              "data": "32'h5a000021",
+              "has_error": true,
+              "time": "1525ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001088",
+              "data": "32'ha5000022",
+              "has_error": false,
+              "time": "1575ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000108c",
+              "data": "32'h5a000023",
+              "has_error": false,
+              "time": "1635ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001090",
+              "data": "32'ha5000024",
+              "has_error": false,
+              "time": "1665ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001094",
+              "data": "32'h5a000025",
+              "has_error": false,
+              "time": "1705ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001098",
+              "data": "32'ha5000026",
+              "has_error": false,
+              "time": "1755ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h0000109c",
+              "data": "32'h5a000027",
+              "has_error": false,
+              "time": "1815ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010a0",
+              "data": "32'ha5000028",
+              "has_error": false,
+              "time": "1845ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010a4",
+              "data": "32'h5a000029",
+              "has_error": false,
+              "time": "1885ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010a8",
+              "data": "32'ha500002a",
+              "has_error": false,
+              "time": "1935ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010ac",
+              "data": "32'h5a00002b",
+              "has_error": false,
+              "time": "1995ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010b0",
+              "data": "32'ha500002c",
+              "has_error": true,
+              "time": "2025ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010b4",
+              "data": "32'h5a00002d",
+              "has_error": false,
+              "time": "2065ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010b8",
+              "data": "32'ha500002e",
+              "has_error": false,
+              "time": "2115ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010bc",
+              "data": "32'h5a00002f",
+              "has_error": false,
+              "time": "2175ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010c0",
+              "data": "32'ha5000030",
+              "has_error": false,
+              "time": "2205ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010c4",
+              "data": "32'h5a000031",
+              "has_error": false,
+              "time": "2245ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010c8",
+              "data": "32'ha5000032",
+              "has_error": false,
+              "time": "2295ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010cc",
+              "data": "32'h5a000033",
+              "has_error": false,
+              "time": "2355ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010d0",
+              "data": "32'ha5000034",
+              "has_error": false,
+              "time": "2385ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010d4",
+              "data": "32'h5a000035",
+              "has_error": false,
+              "time": "2425ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010d8",
+              "data": "32'ha5000036",
+              "has_error": false,
+              "time": "2475ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010dc",
+              "data": "32'h5a000037",
+              "has_error": true,
+              "time": "2535ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010e0",
+              "data": "32'ha5000038",
+              "has_error": false,
+              "time": "2565ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010e4",
+              "data": "32'h5a000039",
+              "has_error": false,
+              "time": "2605ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010e8",
+              "data": "32'ha500003a",
+              "has_error": false,
+              "time": "2655ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010ec",
+              "data": "32'h5a00003b",
+              "has_error": false,
+              "time": "2715ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010f0",
+              "data": "32'ha500003c",
+              "has_error": false,
+              "time": "2745ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010f4",
+              "data": "32'h5a00003d",
+              "has_error": false,
+              "time": "2785ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h000010f8",
+              "data": "32'ha500003e",
+              "has_error": false,
+              "time": "2835ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h000010fc",
+              "data": "32'h5a00003f",
+              "has_error": false,
+              "time": "2895ns",
+              "type": "RD"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "end": "20000ns",
+          "name": "apb0",
+          "response_truncated": false,
+          "returned_count": 64,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.transfer_window",
+      "observation_id": "window.preview",
+      "request": {
+        "line_limit": 3,
+        "name": "apb0",
+        "time_range": {
+          "begin": "0ns",
+          "end": "20us"
+        }
+      },
+      "response": {
+        "data": {
+          "transactions": [
+            {
+              "addr": "32'h00001000",
+              "data": "32'ha5000000",
+              "has_error": true,
+              "time": "45ns",
+              "type": "WR"
+            },
+            {
+              "addr": "32'h00001004",
+              "data": "32'h5a000001",
+              "has_error": false,
+              "time": "85ns",
+              "type": "RD"
+            },
+            {
+              "addr": "32'h00001008",
+              "data": "32'ha5000002",
+              "has_error": false,
+              "time": "135ns",
+              "type": "WR"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "end": "20000ns",
+          "name": "apb0",
+          "response_truncated": true,
+          "returned_count": 3,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [
+            "response_transactions"
+          ],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      },
+      "xout": "@xdebug.apb.transfer_window.v1\nsummary:\n  name                : apb0\n  begin               : 0ns\n  end                 : 20000ns\n  scan_complete       : true\n  analysis_complete   : true\n  response_truncated  : true\n  total_count         : 64\n  returned_count      : 3\n  value_width_complete: true\n\ntransactions:\n  time   type  addr          data          has_error\n  45ns   WR    32'h00001000  32'ha5000000  true\n  85ns   RD    32'h00001004  32'h5a000001  false\n  135ns  WR    32'h00001008  32'ha5000002  false\n",
+      "xout_sha256": "b7841f4c33a0dd58b2784509435eab4c9afc119f43b7eb104c076cf58b93ffbd"
+    },
+    {
+      "action": "apb.transfer_window",
+      "observation_id": "window.single_completion",
+      "request": {
+        "line_limit": 2,
+        "name": "apb0",
+        "time_range": {
+          "begin": "1485ns",
+          "end": "1485ns"
+        }
+      },
+      "response": {
+        "data": {
+          "transactions": [
+            {
+              "addr": "32'h00001080",
+              "data": "32'ha5000020",
+              "has_error": false,
+              "time": "1485ns",
+              "type": "WR"
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "1485ns",
+          "end": "1485ns",
+          "name": "apb0",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.transfer_window",
+      "observation_id": "window.invalid_range",
+      "request": {
+        "line_limit": 1,
+        "name": "apb0",
+        "time_range": {
+          "begin": "1us",
+          "end": "0ns"
+        }
+      },
+      "response": {
+        "data": null,
+        "error": {
+          "code": "TIME_RANGE_INVALID",
+          "correct_example": {
+            "action": "apb.transfer_window",
+            "api_version": "xdebug.v1",
+            "args": {
+              "name": "if0",
+              "time_range": {
+                "begin": "0ns",
+                "end": "100ns"
+              }
+            },
+            "target": {
+              "session_id": "case_a"
+            }
+          },
+          "error_layer": "handler",
+          "expected": "time_range.end must be greater than or equal to time_range.begin",
+          "invalid_arg": "args.time_range.end",
+          "message": "args.time_range.end is before args.time_range.begin",
+          "recoverable": true
+        },
+        "ok": false,
+        "summary": {
+          "error_code": "TIME_RANGE_INVALID",
+          "status": "error"
+        }
+      }
+    },
+    {
+      "action": "apb.transaction.cursor",
+      "observation_id": "cursor.begin",
+      "request": {
+        "direction": "all",
+        "name": "apb0",
+        "op": "begin"
+      },
+      "response": {
+        "data": {
+          "transaction": {
+            "addr": "32'h00001000",
+            "data": "32'ha5000000",
+            "has_error": true,
+            "is_write": true,
+            "time": "45ns"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "at_begin": true,
+          "at_end": false,
+          "direction": "all",
+          "found": true,
+          "index": 1,
+          "index_base": 1,
+          "name": "apb0",
+          "op": "begin",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      },
+      "xout": "@xdebug.apb.transaction.cursor.v1\nsummary:\n  name                : apb0\n  op                  : begin\n  direction           : all\n  found               : true\n  index               : 1\n  index_base          : 1\n  at_begin            : true\n  at_end              : false\n  scan_complete       : true\n  analysis_complete   : true\n  response_truncated  : false\n  total_count         : 64\n  returned_count      : 1\n  value_width_complete: true\n\ntransaction:\n  time     : 45ns\n  addr     : 32'h00001000\n  data     : 32'ha5000000\n  is_write : true\n  has_error: true\n",
+      "xout_sha256": "ea3b441ff4493a981200c708e1af111f5eb29247d6ff7a374aab8d969d073014"
+    },
+    {
+      "action": "apb.transaction.cursor",
+      "observation_id": "cursor.next",
+      "request": {
+        "direction": "all",
+        "name": "apb0",
+        "op": "next"
+      },
+      "response": {
+        "data": {
+          "transaction": {
+            "addr": "32'h00001004",
+            "data": "32'h5a000001",
+            "has_error": false,
+            "is_write": false,
+            "time": "85ns"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "at_begin": false,
+          "at_end": false,
+          "direction": "all",
+          "found": true,
+          "index": 2,
+          "index_base": 1,
+          "name": "apb0",
+          "op": "next",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.transaction.cursor",
+      "observation_id": "cursor.prev",
+      "request": {
+        "direction": "all",
+        "name": "apb0",
+        "op": "prev"
+      },
+      "response": {
+        "data": {
+          "transaction": {
+            "addr": "32'h00001000",
+            "data": "32'ha5000000",
+            "has_error": true,
+            "is_write": true,
+            "time": "45ns"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "at_begin": true,
+          "at_end": false,
+          "direction": "all",
+          "found": true,
+          "index": 1,
+          "index_base": 1,
+          "name": "apb0",
+          "op": "prev",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.transaction.cursor",
+      "observation_id": "cursor.pre.at_begin",
+      "request": {
+        "direction": "all",
+        "name": "apb0",
+        "op": "pre"
+      },
+      "response": {
+        "data": null,
+        "error": {
+          "code": "INTERNAL_RESPONSE_SCHEMA_VIOLATION",
+          "error_layer": "internal",
+          "message": "handler response violated its action-specific response schema",
+          "recoverable": false,
+          "schema_path": "schemas/v1/actions/apb.transaction.cursor.response.schema.json",
+          "validation": {
+            "issues": [
+              {
+                "message": "instance not found in required enum",
+                "path": "summary.op"
+              }
+            ]
+          }
+        },
+        "ok": false,
+        "summary": {
+          "error_code": "INTERNAL_RESPONSE_SCHEMA_VIOLATION",
+          "status": "error"
+        }
+      }
+    },
+    {
+      "action": "apb.transaction.cursor",
+      "observation_id": "cursor.last",
+      "request": {
+        "direction": "all",
+        "name": "apb0",
+        "op": "last"
+      },
+      "response": {
+        "data": {
+          "transaction": {
+            "addr": "32'h000010fc",
+            "data": "32'h5a00003f",
+            "has_error": false,
+            "is_write": false,
+            "time": "2895ns"
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "at_begin": false,
+          "at_end": true,
+          "direction": "all",
+          "found": true,
+          "index": 64,
+          "index_base": 1,
+          "name": "apb0",
+          "op": "last",
+          "response_truncated": false,
+          "returned_count": 1,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": [],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "apb.transaction.cursor",
+      "observation_id": "cursor.next.at_end",
+      "request": {
+        "direction": "all",
+        "name": "apb0",
+        "op": "next"
+      },
+      "response": {
+        "data": {},
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "at_begin": false,
+          "at_end": false,
+          "direction": "all",
+          "found": false,
+          "index": null,
+          "index_base": 1,
+          "name": "apb0",
+          "op": "next",
+          "response_truncated": false,
+          "returned_count": 0,
+          "scan_complete": true,
+          "total_count": 64,
+          "truncation_scopes": []
+        }
+      }
+    },
+    {
+      "action": "apb.query",
+      "observation_id": "query.missing_config",
+      "request": {
+        "name": "missing"
+      },
+      "response": {
+        "data": null,
+        "error": {
+          "code": "CONFIG_NOT_FOUND",
+          "correct_example": {
+            "action": "apb.query",
+            "api_version": "xdebug.v1",
+            "args": {
+              "direction": "all",
+              "name": "apb0",
+              "query": {
+                "line_limit": 8
+              }
+            },
+            "target": {
+              "session_id": "case_a"
+            }
+          },
+          "error_layer": "handler",
+          "example_note": "Example only; choose an existing config name or load this config before using it.",
+          "expected": "name of a previously loaded apb config",
+          "invalid_arg": "args.name",
+          "message": "apb config not found: missing",
+          "missing_name": "missing",
+          "missing_resource": "apb config",
+          "next_actions": [
+            "Call apb.config.list to inspect loaded configs.",
+            "Call apb.config.load before this action."
+          ],
+          "recoverable": true
+        },
+        "ok": false,
+        "summary": {
+          "error_code": "CONFIG_NOT_FOUND",
+          "status": "error"
+        }
+      }
+    },
+    {
+      "action": "apb.config.load",
+      "observation_id": "config.invalid_negedge_sample_point",
+      "request": {
+        "config": {
+          "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+          "edge": "negedge",
+          "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+          "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+          "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+          "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+          "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+          "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+          "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+          "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+          "reset": {
+            "polarity": "active_low",
+            "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+          },
+          "sample_point": "after"
+        },
+        "name": "invalid"
+      },
+      "response": {
+        "data": null,
+        "error": {
+          "code": "INVALID_ARGUMENT",
+          "correct_example": {
+            "action": "apb.config.load",
+            "api_version": "xdebug.v1",
+            "args": {
+              "config": {
+                "clock": "top.u.clk",
+                "paddr": "top.u.paddr",
+                "penable": "top.u.penable",
+                "prdata": "top.u.prdata",
+                "pready": "top.u.pready",
+                "psel": "top.u.psel",
+                "pslverr": "top.u.pslverr",
+                "pwdata": "top.u.pwdata",
+                "pwrite": "top.u.pwrite",
+                "reset": {
+                  "polarity": "active_low",
+                  "signal": "top.u.rst_n"
+                }
+              },
+              "name": "apb0"
+            },
+            "target": {
+              "session_id": "case_a"
+            }
+          },
+          "error_layer": "handler",
+          "example_note": "Example only; replace placeholders with active signal paths, names, and time values.",
+          "expected": "strict APB config with only canonical fields and non-empty signal paths",
+          "invalid_arg": "args.config",
+          "message": "APB config sample_point is only valid with edge:posedge or edge:dual",
+          "recoverable": true
+        },
+        "ok": false,
+        "summary": {
+          "error_code": "INVALID_ARGUMENT",
+          "status": "error"
+        }
+      }
+    }
+  ],
+  "original_fixture": {
+    "cache_manifest_sha256": "1bc0ba5d86d4b361a4f6c4c949382a24cf158dd0eab0638d299612fafd510e96",
+    "config": {
+      "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+      "edge": "posedge",
+      "paddr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.paddr",
+      "penable": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.penable",
+      "prdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.prdata",
+      "pready": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pready",
+      "psel": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.psel",
+      "pslverr": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pslverr",
+      "pwdata": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwdata",
+      "pwrite": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pwrite",
+      "reset": {
+        "polarity": "active_low",
+        "signal": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn"
+      }
+    },
+    "expected": {
+      "pass_marker": "XDEBUG_XAMBA_APB_FIXTURE_PASS",
+      "reads": 32,
+      "transactions": 64,
+      "writes": 32
+    },
+    "field_observability": {
+      "direct_transaction_fields": [
+        "time",
+        "is_write",
+        "addr",
+        "data",
+        "has_error"
+      ],
+      "indirect_source_fields": [
+        "pstrb",
+        "wait_cycles"
+      ],
+      "rule": "PSTRB/PPROT/PNSE/wait count are not direct fields of the six frozen APB Action responses; preserve them in the source stimulus contract and compare completion time/data/error.",
+      "xamba_source_only_fields": [
+        "pprot",
+        "pnse"
+      ]
+    },
+    "fsdb_path": "out/waves.fsdb",
+    "fsdb_sha256": "8f103264f3cbd45bf0155583e161946009856513bdfe2fa6b9c71e9b37b1f016",
+    "fsdb_size": 11087,
+    "interface": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if",
+    "manifest_sha256": "4f61a180bfbfa7468602ea43912e4d7babbb9803f438dc1f83975ce4d6a9fee0",
+    "resource_files": [
+      {
+        "path": "out/waves.fsdb",
+        "sha256": "8f103264f3cbd45bf0155583e161946009856513bdfe2fa6b9c71e9b37b1f016",
+        "size": 11087
+      },
+      {
+        "path": "out/sim.log",
+        "sha256": "d626da884bb7408dbe34686091f383029658d78d7b16091912f5f63538b7e701",
+        "size": 3035
+      },
+      {
+        "path": "out/xamba-run-manifest.txt",
+        "sha256": "46d06011d3dc64d7d3343cf7ca15bd39d578e92e37ec8e47e2a1c4333b886e65",
+        "size": 238
+      },
+      {
+        "path": "out/xamba-extra-sources.manifest",
+        "sha256": "377432375e120fb59e654ca532fa5fd5fda5cfee346a9441b245499fe891a7c2",
+        "size": 436
+      },
+      {
+        "path": "out/xamba-resolved.f",
+        "sha256": "acb771acf53f601b88ca7e71bd3591b6366fc3856c082c4da10906c31cf3f264",
+        "size": 513
+      }
+    ],
+    "seed": 11,
+    "source_dir": "xdebug/testdata/waveform/apb_xamba_vip_real",
+    "source_files": [
+      {
+        "path": "xdebug/testdata/waveform/apb_xamba_vip_real/Makefile",
+        "sha256": "95ce5eb5bbca0df415873bc7253a7400f5afde89cc7d45df7621ef33bd3cec00",
+        "size": 3365
+      },
+      {
+        "path": "xdebug/testdata/waveform/apb_xamba_vip_real/README.md",
+        "sha256": "f980c7d312e4d2a9bf682a000a23fbd7272079dad1e3e90c78117d51fff2929e",
+        "size": 1395
+      },
+      {
+        "path": "xdebug/testdata/waveform/apb_xamba_vip_real/manifest.json",
+        "sha256": "4f61a180bfbfa7468602ea43912e4d7babbb9803f438dc1f83975ce4d6a9fee0",
+        "size": 829
+      },
+      {
+        "path": "xdebug/testdata/waveform/apb_xamba_vip_real/tb/xdebug_apb_xamba_fixture_pkg.sv",
+        "sha256": "fc039da4a994ef49dd21600b021fe51b7da8d40627afa213b6263680523dc12f",
+        "size": 3195
+      },
+      {
+        "path": "xdebug/testdata/waveform/apb_xamba_vip_real/tb/xdebug_apb_xamba_fixture_top.sv",
+        "sha256": "fa8475957bb42b248e0beb8f82048c70811e6a5304ee825972a666bbc0a91420",
+        "size": 1887
+      }
+    ],
+    "stimulus_contract": [
+      {
+        "address": "32'h00001000",
+        "has_error": true,
+        "index": 0,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 0,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000000",
+        "read_data": "32'h5a000000",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000000"
+      },
+      {
+        "address": "32'h00001004",
+        "has_error": false,
+        "index": 1,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 1,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000001",
+        "read_data": "32'h5a000001",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000001"
+      },
+      {
+        "address": "32'h00001008",
+        "has_error": false,
+        "index": 2,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 2,
+        "pstrb": "4'h4",
+        "public_data": "32'ha5000002",
+        "read_data": "32'h5a000002",
+        "wait_cycles": 2,
+        "write_data": "32'ha5000002"
+      },
+      {
+        "address": "32'h0000100c",
+        "has_error": false,
+        "index": 3,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 3,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000003",
+        "read_data": "32'h5a000003",
+        "wait_cycles": 3,
+        "write_data": "32'ha5000003"
+      },
+      {
+        "address": "32'h00001010",
+        "has_error": false,
+        "index": 4,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 4,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000004",
+        "read_data": "32'h5a000004",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000004"
+      },
+      {
+        "address": "32'h00001014",
+        "has_error": false,
+        "index": 5,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 5,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000005",
+        "read_data": "32'h5a000005",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000005"
+      },
+      {
+        "address": "32'h00001018",
+        "has_error": false,
+        "index": 6,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 6,
+        "pstrb": "4'h4",
+        "public_data": "32'ha5000006",
+        "read_data": "32'h5a000006",
+        "wait_cycles": 2,
+        "write_data": "32'ha5000006"
+      },
+      {
+        "address": "32'h0000101c",
+        "has_error": false,
+        "index": 7,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 7,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000007",
+        "read_data": "32'h5a000007",
+        "wait_cycles": 3,
+        "write_data": "32'ha5000007"
+      },
+      {
+        "address": "32'h00001020",
+        "has_error": false,
+        "index": 8,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 0,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000008",
+        "read_data": "32'h5a000008",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000008"
+      },
+      {
+        "address": "32'h00001024",
+        "has_error": false,
+        "index": 9,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 1,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000009",
+        "read_data": "32'h5a000009",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000009"
+      },
+      {
+        "address": "32'h00001028",
+        "has_error": false,
+        "index": 10,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 2,
+        "pstrb": "4'h4",
+        "public_data": "32'ha500000a",
+        "read_data": "32'h5a00000a",
+        "wait_cycles": 2,
+        "write_data": "32'ha500000a"
+      },
+      {
+        "address": "32'h0000102c",
+        "has_error": true,
+        "index": 11,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 3,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00000b",
+        "read_data": "32'h5a00000b",
+        "wait_cycles": 3,
+        "write_data": "32'ha500000b"
+      },
+      {
+        "address": "32'h00001030",
+        "has_error": false,
+        "index": 12,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 4,
+        "pstrb": "4'h1",
+        "public_data": "32'ha500000c",
+        "read_data": "32'h5a00000c",
+        "wait_cycles": 0,
+        "write_data": "32'ha500000c"
+      },
+      {
+        "address": "32'h00001034",
+        "has_error": false,
+        "index": 13,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 5,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00000d",
+        "read_data": "32'h5a00000d",
+        "wait_cycles": 1,
+        "write_data": "32'ha500000d"
+      },
+      {
+        "address": "32'h00001038",
+        "has_error": false,
+        "index": 14,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 6,
+        "pstrb": "4'h4",
+        "public_data": "32'ha500000e",
+        "read_data": "32'h5a00000e",
+        "wait_cycles": 2,
+        "write_data": "32'ha500000e"
+      },
+      {
+        "address": "32'h0000103c",
+        "has_error": false,
+        "index": 15,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 7,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00000f",
+        "read_data": "32'h5a00000f",
+        "wait_cycles": 3,
+        "write_data": "32'ha500000f"
+      },
+      {
+        "address": "32'h00001040",
+        "has_error": false,
+        "index": 16,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 0,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000010",
+        "read_data": "32'h5a000010",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000010"
+      },
+      {
+        "address": "32'h00001044",
+        "has_error": false,
+        "index": 17,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 1,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000011",
+        "read_data": "32'h5a000011",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000011"
+      },
+      {
+        "address": "32'h00001048",
+        "has_error": false,
+        "index": 18,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 2,
+        "pstrb": "4'h4",
+        "public_data": "32'ha5000012",
+        "read_data": "32'h5a000012",
+        "wait_cycles": 2,
+        "write_data": "32'ha5000012"
+      },
+      {
+        "address": "32'h0000104c",
+        "has_error": false,
+        "index": 19,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 3,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000013",
+        "read_data": "32'h5a000013",
+        "wait_cycles": 3,
+        "write_data": "32'ha5000013"
+      },
+      {
+        "address": "32'h00001050",
+        "has_error": false,
+        "index": 20,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 4,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000014",
+        "read_data": "32'h5a000014",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000014"
+      },
+      {
+        "address": "32'h00001054",
+        "has_error": false,
+        "index": 21,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 5,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000015",
+        "read_data": "32'h5a000015",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000015"
+      },
+      {
+        "address": "32'h00001058",
+        "has_error": true,
+        "index": 22,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 6,
+        "pstrb": "4'h4",
+        "public_data": "32'ha5000016",
+        "read_data": "32'h5a000016",
+        "wait_cycles": 2,
+        "write_data": "32'ha5000016"
+      },
+      {
+        "address": "32'h0000105c",
+        "has_error": false,
+        "index": 23,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 7,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000017",
+        "read_data": "32'h5a000017",
+        "wait_cycles": 3,
+        "write_data": "32'ha5000017"
+      },
+      {
+        "address": "32'h00001060",
+        "has_error": false,
+        "index": 24,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 0,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000018",
+        "read_data": "32'h5a000018",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000018"
+      },
+      {
+        "address": "32'h00001064",
+        "has_error": false,
+        "index": 25,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 1,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000019",
+        "read_data": "32'h5a000019",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000019"
+      },
+      {
+        "address": "32'h00001068",
+        "has_error": false,
+        "index": 26,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 2,
+        "pstrb": "4'h4",
+        "public_data": "32'ha500001a",
+        "read_data": "32'h5a00001a",
+        "wait_cycles": 2,
+        "write_data": "32'ha500001a"
+      },
+      {
+        "address": "32'h0000106c",
+        "has_error": false,
+        "index": 27,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 3,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00001b",
+        "read_data": "32'h5a00001b",
+        "wait_cycles": 3,
+        "write_data": "32'ha500001b"
+      },
+      {
+        "address": "32'h00001070",
+        "has_error": false,
+        "index": 28,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 4,
+        "pstrb": "4'h1",
+        "public_data": "32'ha500001c",
+        "read_data": "32'h5a00001c",
+        "wait_cycles": 0,
+        "write_data": "32'ha500001c"
+      },
+      {
+        "address": "32'h00001074",
+        "has_error": false,
+        "index": 29,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 5,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00001d",
+        "read_data": "32'h5a00001d",
+        "wait_cycles": 1,
+        "write_data": "32'ha500001d"
+      },
+      {
+        "address": "32'h00001078",
+        "has_error": false,
+        "index": 30,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 6,
+        "pstrb": "4'h4",
+        "public_data": "32'ha500001e",
+        "read_data": "32'h5a00001e",
+        "wait_cycles": 2,
+        "write_data": "32'ha500001e"
+      },
+      {
+        "address": "32'h0000107c",
+        "has_error": false,
+        "index": 31,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 7,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00001f",
+        "read_data": "32'h5a00001f",
+        "wait_cycles": 3,
+        "write_data": "32'ha500001f"
+      },
+      {
+        "address": "32'h00001080",
+        "has_error": false,
+        "index": 32,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 0,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000020",
+        "read_data": "32'h5a000020",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000020"
+      },
+      {
+        "address": "32'h00001084",
+        "has_error": true,
+        "index": 33,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 1,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000021",
+        "read_data": "32'h5a000021",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000021"
+      },
+      {
+        "address": "32'h00001088",
+        "has_error": false,
+        "index": 34,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 2,
+        "pstrb": "4'h4",
+        "public_data": "32'ha5000022",
+        "read_data": "32'h5a000022",
+        "wait_cycles": 2,
+        "write_data": "32'ha5000022"
+      },
+      {
+        "address": "32'h0000108c",
+        "has_error": false,
+        "index": 35,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 3,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000023",
+        "read_data": "32'h5a000023",
+        "wait_cycles": 3,
+        "write_data": "32'ha5000023"
+      },
+      {
+        "address": "32'h00001090",
+        "has_error": false,
+        "index": 36,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 4,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000024",
+        "read_data": "32'h5a000024",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000024"
+      },
+      {
+        "address": "32'h00001094",
+        "has_error": false,
+        "index": 37,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 5,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000025",
+        "read_data": "32'h5a000025",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000025"
+      },
+      {
+        "address": "32'h00001098",
+        "has_error": false,
+        "index": 38,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 6,
+        "pstrb": "4'h4",
+        "public_data": "32'ha5000026",
+        "read_data": "32'h5a000026",
+        "wait_cycles": 2,
+        "write_data": "32'ha5000026"
+      },
+      {
+        "address": "32'h0000109c",
+        "has_error": false,
+        "index": 39,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 7,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000027",
+        "read_data": "32'h5a000027",
+        "wait_cycles": 3,
+        "write_data": "32'ha5000027"
+      },
+      {
+        "address": "32'h000010a0",
+        "has_error": false,
+        "index": 40,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 0,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000028",
+        "read_data": "32'h5a000028",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000028"
+      },
+      {
+        "address": "32'h000010a4",
+        "has_error": false,
+        "index": 41,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 1,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000029",
+        "read_data": "32'h5a000029",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000029"
+      },
+      {
+        "address": "32'h000010a8",
+        "has_error": false,
+        "index": 42,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 2,
+        "pstrb": "4'h4",
+        "public_data": "32'ha500002a",
+        "read_data": "32'h5a00002a",
+        "wait_cycles": 2,
+        "write_data": "32'ha500002a"
+      },
+      {
+        "address": "32'h000010ac",
+        "has_error": false,
+        "index": 43,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 3,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00002b",
+        "read_data": "32'h5a00002b",
+        "wait_cycles": 3,
+        "write_data": "32'ha500002b"
+      },
+      {
+        "address": "32'h000010b0",
+        "has_error": true,
+        "index": 44,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 4,
+        "pstrb": "4'h1",
+        "public_data": "32'ha500002c",
+        "read_data": "32'h5a00002c",
+        "wait_cycles": 0,
+        "write_data": "32'ha500002c"
+      },
+      {
+        "address": "32'h000010b4",
+        "has_error": false,
+        "index": 45,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 5,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00002d",
+        "read_data": "32'h5a00002d",
+        "wait_cycles": 1,
+        "write_data": "32'ha500002d"
+      },
+      {
+        "address": "32'h000010b8",
+        "has_error": false,
+        "index": 46,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 6,
+        "pstrb": "4'h4",
+        "public_data": "32'ha500002e",
+        "read_data": "32'h5a00002e",
+        "wait_cycles": 2,
+        "write_data": "32'ha500002e"
+      },
+      {
+        "address": "32'h000010bc",
+        "has_error": false,
+        "index": 47,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 7,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00002f",
+        "read_data": "32'h5a00002f",
+        "wait_cycles": 3,
+        "write_data": "32'ha500002f"
+      },
+      {
+        "address": "32'h000010c0",
+        "has_error": false,
+        "index": 48,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 0,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000030",
+        "read_data": "32'h5a000030",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000030"
+      },
+      {
+        "address": "32'h000010c4",
+        "has_error": false,
+        "index": 49,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 1,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000031",
+        "read_data": "32'h5a000031",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000031"
+      },
+      {
+        "address": "32'h000010c8",
+        "has_error": false,
+        "index": 50,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 2,
+        "pstrb": "4'h4",
+        "public_data": "32'ha5000032",
+        "read_data": "32'h5a000032",
+        "wait_cycles": 2,
+        "write_data": "32'ha5000032"
+      },
+      {
+        "address": "32'h000010cc",
+        "has_error": false,
+        "index": 51,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 3,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000033",
+        "read_data": "32'h5a000033",
+        "wait_cycles": 3,
+        "write_data": "32'ha5000033"
+      },
+      {
+        "address": "32'h000010d0",
+        "has_error": false,
+        "index": 52,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 4,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000034",
+        "read_data": "32'h5a000034",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000034"
+      },
+      {
+        "address": "32'h000010d4",
+        "has_error": false,
+        "index": 53,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 5,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000035",
+        "read_data": "32'h5a000035",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000035"
+      },
+      {
+        "address": "32'h000010d8",
+        "has_error": false,
+        "index": 54,
+        "is_write": true,
+        "pnse": 0,
+        "pprot": 6,
+        "pstrb": "4'h4",
+        "public_data": "32'ha5000036",
+        "read_data": "32'h5a000036",
+        "wait_cycles": 2,
+        "write_data": "32'ha5000036"
+      },
+      {
+        "address": "32'h000010dc",
+        "has_error": true,
+        "index": 55,
+        "is_write": false,
+        "pnse": 0,
+        "pprot": 7,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000037",
+        "read_data": "32'h5a000037",
+        "wait_cycles": 3,
+        "write_data": "32'ha5000037"
+      },
+      {
+        "address": "32'h000010e0",
+        "has_error": false,
+        "index": 56,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 0,
+        "pstrb": "4'h1",
+        "public_data": "32'ha5000038",
+        "read_data": "32'h5a000038",
+        "wait_cycles": 0,
+        "write_data": "32'ha5000038"
+      },
+      {
+        "address": "32'h000010e4",
+        "has_error": false,
+        "index": 57,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 1,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a000039",
+        "read_data": "32'h5a000039",
+        "wait_cycles": 1,
+        "write_data": "32'ha5000039"
+      },
+      {
+        "address": "32'h000010e8",
+        "has_error": false,
+        "index": 58,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 2,
+        "pstrb": "4'h4",
+        "public_data": "32'ha500003a",
+        "read_data": "32'h5a00003a",
+        "wait_cycles": 2,
+        "write_data": "32'ha500003a"
+      },
+      {
+        "address": "32'h000010ec",
+        "has_error": false,
+        "index": 59,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 3,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00003b",
+        "read_data": "32'h5a00003b",
+        "wait_cycles": 3,
+        "write_data": "32'ha500003b"
+      },
+      {
+        "address": "32'h000010f0",
+        "has_error": false,
+        "index": 60,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 4,
+        "pstrb": "4'h1",
+        "public_data": "32'ha500003c",
+        "read_data": "32'h5a00003c",
+        "wait_cycles": 0,
+        "write_data": "32'ha500003c"
+      },
+      {
+        "address": "32'h000010f4",
+        "has_error": false,
+        "index": 61,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 5,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00003d",
+        "read_data": "32'h5a00003d",
+        "wait_cycles": 1,
+        "write_data": "32'ha500003d"
+      },
+      {
+        "address": "32'h000010f8",
+        "has_error": false,
+        "index": 62,
+        "is_write": true,
+        "pnse": 1,
+        "pprot": 6,
+        "pstrb": "4'h4",
+        "public_data": "32'ha500003e",
+        "read_data": "32'h5a00003e",
+        "wait_cycles": 2,
+        "write_data": "32'ha500003e"
+      },
+      {
+        "address": "32'h000010fc",
+        "has_error": false,
+        "index": 63,
+        "is_write": false,
+        "pnse": 1,
+        "pprot": 7,
+        "pstrb": "4'h0",
+        "public_data": "32'h5a00003f",
+        "read_data": "32'h5a00003f",
+        "wait_cycles": 3,
+        "write_data": "32'ha500003f"
+      }
+    ],
+    "top": "xdebug_apb_xamba_fixture_top"
+  },
+  "producer_kind": "xamba",
+  "schema_version": "xdebug.p3d-apb-public-oracle.v1",
+  "session": {
+    "all_runtime_writes_repository_local": true,
+    "all_sessions_closed_gracefully": true,
+    "fallback_used": false,
+    "fixture_rebuilt": false,
+    "mode": "waveform",
+    "session_count": 3,
+    "source_access": "read_only",
+    "transport": "uds"
+  }
+}

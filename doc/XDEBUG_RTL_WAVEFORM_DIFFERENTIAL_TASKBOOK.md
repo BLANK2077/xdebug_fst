@@ -1204,22 +1204,26 @@ P3-D1 最终证据提交为 `925e3f5 测试：关闭 P3-D1 stream differential �
 
 ### D2-1：双 fixture 原版公开 oracle 与有效红灯
 
-- 使用冻结原版 runtime 对两份 FSDB 分别采集 `apb.config.load/list`、`apb.query` count/list/index/last、
-  exact/range/mask/direction/value-format、`apb.statistics`、`apb.export` preview/range/filter/CSV/TSV/meta、
-  `apb.transfer_window`、`apb.transaction.cursor` 以及非法 range。响应必须保留完整 transaction 值、
-  completion time、wait/error、宽度、scan/analysis/truncation 字段；XAMBA 必须覆盖全部 64 笔，不能只
-  沿用旧测试的前 20 行 preview。
+- 使用冻结原版 runtime 对两份 FSDB 分别采集冻结 surface 中实际存在的六项 APB Action：
+  `apb.config.load/list`、`apb.query` count/list/index/last 与 exact/range/mask/direction/value-format、
+  `apb.statistics`、`apb.transfer_window`、`apb.transaction.cursor` 以及非法 range。响应必须保留完整
+  transaction 值、completion time、error、宽度、scan/analysis/truncation 字段；XAMBA 必须覆盖全部
+  64 笔，不能只沿用旧测试的前 20 行 preview。
+- `PSTRB`、`PPROT`、`PNSE` 和 wait-count 不是这六项冻结 APB Action 的直接响应字段。它们必须在
+  原版源码刺激合同与当前 RTL/harness 中逐项锁定；其中 wait 通过 completion time 间接比较，SVT
+  strobe 还通过后续 read data 间接比较。不得伪造不存在的响应字段来宣称覆盖。
 - 单独冻结 cache base/hit/index、soft LRU 与 hard=1 公开错误边界。scanner/hit/miss/eviction 等私有
   probe 字段只有在 73 Action/request schema 无入口且源码合同锁定后才可有限判为不可观察；
   `ANALYSIS_MEMORY_LIMIT_EXCEEDED` 继续按公开响应比较。
-- 对可代表复杂 APB 结果的 query/statistics/export/window/cursor 同步保存 XOUT 语义审计；written
-  artifact 比较规范化路径后必须逐字节一致。guide 请求若冻结 runtime 不支持，记录
-  `INVALID_REQUEST`，不得改用未冻结 surface。
+- 对可代表复杂 APB 结果的 query/statistics/window/cursor 同步保存 XOUT 语义审计。冻结 runtime
+  不存在 `apb.export`，因此本批没有 APB written artifact 门禁；必须动态保存其 `UNKNOWN_ACTION`
+  结果并锁定六项 schema。guide 请求返回 `INVALID_REQUEST`，不得改用未冻结 surface。
 - 先提交 oracle 身份测试和当前侧精确断言；当前独立 fixture 尚不存在时必须形成有效红灯。环境、
   UDS 路径或依赖错误发生在业务断言前时不计入红灯，修正运行边界后重跑同一请求。
 
 门禁：oracle 两次独立采集规范 JSON 字节一致；零绝对路径/专有数据库提交；每个观察 ID 唯一；
-原版侧全绿、当前侧有可复现业务差异，禁止 skip/xfail/宽松字段白名单或只比较计数。
+原版侧全绿、当前侧有可复现业务差异；`apb.export` 不得借 live runtime、源码工作树或 AXI/stream
+export fallback 进入本批，禁止 skip/xfail/宽松字段白名单或只比较计数。
 
 ### D2-2：SVT 10 笔语义 fixture 转绿
 
@@ -1229,10 +1233,10 @@ P3-D1 最终证据提交为 `925e3f5 测试：关闭 P3-D1 stream differential �
 - FST 由当前 RTL/harness 直接生成，禁止读取或转换原版 FSDB，禁止导入 daidir/专有 VIP 代码或离线
   transaction 快照。manifest 锁定 source contract、tool revision/tree/fingerprint、seed、timescale、
   end time 和每个提交资产 SHA；两个全新仓库内 work-dir 必须生成字节相同 FST。
-- 若当前 APB Action 与原版响应有差异，先保留失败，再只修改当前 analyzer/action/export/cache 实现；
+- 若当前 APB Action 与原版响应有差异，先保留失败，再只修改当前 analyzer/action/cache 实现；
   不为通过测试改 oracle，不用现有 `current.apb` 的较弱值替换。
 
-门禁：SVT fixture 全公开观察、artifact/XOUT、cache/hard-limit 全绿；现有 APB/stream/协议相邻回归
+门禁：SVT fixture 全公开观察、XOUT、cache/hard-limit 全绿；现有 APB/stream/协议相邻回归
 保持全绿；只重建新增 SVT fixture 与受影响增量目标，不重建既有 fixture cache。
 
 ### D2-3：XAMBA 64 笔语义 fixture 转绿
@@ -1252,10 +1256,11 @@ P3-D1 最终证据提交为 `925e3f5 测试：关闭 P3-D1 stream differential �
 - manifest 必须发现两个新 current fixture 及 D2 oracle/collector/tests；matrix 分别把
   `fixture.apb_vip`、`fixture.apb_xamba_vip` 关联到自身 current fixture，状态只有在各自零差异后才改为
   `semantic-equivalent`。
-- validator 联合校验两套原版 cache/FSDB/source identity、当前 fixture lock、观察清单、artifact/XOUT、
+- validator 联合校验两套原版 cache/FSDB/source identity、当前 fixture lock、观察清单、XOUT、冻结
+  surface 排除项、
   cache 私有/公开边界、零 fallback/零重建/零绝对路径/零剩余 gap。mutation 至少拒绝 fixture 串用、
-  少一笔 transaction、completion time 漂移、丢失 error/wait、截断伪装完整、private probe 泄漏和
-  hard limit 被隐藏。
+  少一笔 transaction、completion time 漂移、丢失 error、源码 wait/strobe 公式漂移、截断伪装完整、
+  private probe 泄漏和 hard limit 被隐藏。
 - 生成器连续 write→check 稳定后更新 P3-D queue；本批只允许清除两项 APB，AXI 两项继续留在 D3。
 
 计划提交批次：
@@ -1268,3 +1273,26 @@ P3-D1 最终证据提交为 `925e3f5 测试：关闭 P3-D1 stream differential �
 最终 D2 门禁：两套 original/current focused、APB/stream/协议相邻回归、manifest/matrix、外部只读
 审计和 `git diff --check`；实现影响 analyzer/cache 时再加入 CTest 与 sanitizer 定向门禁。任何 EDA/NPI
 动作使用正式 host 工具链，但所有写入仍只能位于当前仓库。
+
+### 2026-08-31：D2-1 冻结 surface 校正与首轮原版证据
+
+- 计划提交 `971f828` 写入后，冻结 wrapper 的 73/73 Action catalog 与六对 request/response schema
+  复核确认 APB 只有 `config.list/load`、`query`、`statistics`、`transaction.cursor`、
+  `transfer_window`。直接请求 `apb.export` 稳定返回 `UNKNOWN_ACTION`；SVT 原版工作树 consumer 中
+  7 处 `apb.export` 调用属于冻结提交之后的源码变化，冻结提交 consumer 为 0 处；XAMBA consumer
+  在冻结提交中尚不存在。动态权威仍是 Goal 锁定 runtime/schema，禁止切换 live surface。
+- 新增 `tools/collect_p3d_apb_public_oracle.py`，分别从锁定只读 cache 采集 SVT 10 笔和 XAMBA 64 笔
+  全量 transaction；基础观察数为 36/34，每套均保存 query/statistics/window/cursor 四项 XOUT、
+  base hit/index、soft-LRU 和公开 hard-limit。SVT 两个全新 work-dir 重采字节一致；XAMBA亦两次
+  重采字节一致。collector 首轮曾因设置 `XVERIF_HOME` 混入 live schema 而在权威门禁失败，未生成
+  oracle；该覆盖已删除，冻结 wrapper/schema/binary 重新采集通过。
+- 冻结 surface 还暴露 `cursor op=pre` 的 request/response schema 不一致：request 接受 `pre`，响应
+  最终为 `INTERNAL_RESPONSE_SCHEMA_VIOLATION`。oracle 原样保存此公开失败，不删除场景、不放宽为
+  成功。hard-limit 的公开 error 保留 `key_summary`；其余 hit/miss/eviction/scanner/index 指标仍只作
+  私有边界证明，不进入公开等价字段。
+- SVT oracle SHA-256 为 `c99fd91e...`，XAMBA oracle SHA-256 为 `574c9890...`；两套均锁定 wrapper
+  `c9569332...`、binary `0f54515f...`、NPI `X-2025.06-SP1`，FSDB 分别为 `fea2e60f...`（21,054
+  bytes）和 `8f103264...`（11,087 bytes）。focused red gate 结果为 4 passed/2 failed；两个失败分别
+  精确停在 `testdata/fixtures/apb_vip/apb_vip_fixture_top.sv` 与
+  `testdata/fixtures/apb_xamba_vip/xdebug_apb_xamba_fixture_top.sv` 尚不存在，属于业务红灯，不是
+  环境、UDS、NPI、schema 或 oracle 失败。
