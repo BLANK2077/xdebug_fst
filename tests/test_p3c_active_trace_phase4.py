@@ -21,9 +21,16 @@ ORACLE_PATH = (
 )
 ORACLE = json.loads(ORACLE_PATH.read_text(encoding="utf-8"))
 ROWS = ORACLE["rows"]
+FULL_CHAIN_MAX_DEPTH = max(
+    row["native_result"]["total_hops"] - 1 for row in ROWS
+)
 CHAIN_SCHEMA = json.loads((
     ROOT / "compat/xdebug-v1/schemas/v1/actions/"
     "trace.active_driver_chain.response.schema.json"
+).read_text(encoding="utf-8"))
+CHAIN_REQUEST_SCHEMA = json.loads((
+    ROOT / "compat/xdebug-v1/schemas/v1/actions/"
+    "trace.active_driver_chain.request.schema.json"
 ).read_text(encoding="utf-8"))
 
 
@@ -137,6 +144,10 @@ def test_p3c_phase4_oracle_is_locked_complete_and_sanitized() -> None:
     hop_schema = CHAIN_SCHEMA["$defs"]["nonSamplingTraceHop"]
     assert hop_schema["properties"]["file"]["minLength"] == 1
     assert hop_schema["properties"]["line"]["minimum"] == 1
+    assert CHAIN_REQUEST_SCHEMA["properties"]["limits"]["properties"][
+        "max_depth"
+    ]["default"] == 8
+    assert FULL_CHAIN_MAX_DEPTH == 16
     assert sum(
         hop["file"] == "" and hop["line"] == 0
         for row in ROWS for hop in row["native_result"]["chain"]
@@ -203,9 +214,12 @@ def test_p3c_phase4_matches_locked_native_chain_semantics(
     assert opened["session"]["mode"] == "combined"
     request = row["request"]
     assert request["stop_on_temporal"] is False
+    # The native chain oracle disables its temporal stop and reaches 17 hops.
+    # Keep the frozen public default (8) intact and request the locked full
+    # comparison depth explicitly.
     response = loop_runner.request("trace.active_driver_chain", args={
         "signal": request["signal"], "time": request["time"],
-    })
+    }, limits={"max_depth": FULL_CHAIN_MAX_DEPTH})
     assert response.get("ok"), response
     summary = response["summary"]
     native = row["native_result"]

@@ -59,6 +59,8 @@ public:
         int64_t     target_loop_first = 0;
         int64_t     target_loop_last = 0;
         int         rhs_selector_signal = -1;  // consumer-only expression evidence
+        bool        has_rhs_numeric_selector = false;
+        int64_t     rhs_numeric_selector = 0;  // consumer-only elaborated bit
     };
 
     /// Number of driver entries for a signal.
