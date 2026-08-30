@@ -1077,3 +1077,47 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
   白名单或 completeness 放宽。
 - 本提交只关闭 `stream_v1` 主体和 export 实现。`stream_differential_tool` 私有 legacy comparator、
   cache probe 与矩阵状态仍保留在本批后续门禁，未在此处提前宣告 P3-D1 完成。
+
+### 2026-08-31：P3-D1 differential/cache 有限闭环红灯
+
+- 原版 `xdebug.stream_differential_tool` 已确认不是独立 RTL/波形 fixture：builder 仅执行
+  `make stream-differential-test-dist`，输出 frontend 与 engine 两个可执行文件，RTL 输入数和波形
+  输出数均为零；consumer 复用 `xdebug.stream_v1` FSDB，并导入原版 action matrix 与 cache contract
+  两项测试。因此矩阵不得把专用工具伪装成另一份当前 FST，也不得把它与 `stream_v1` 重复计数。
+- 复用只读 differential cache `d165237d...-prepare-jat8dddw`，frontend/engine/legacy object
+  SHA-256 分别为 `9a5467c8...`、`ac584ab5...`、`d8e3621c...`；build identity 固定为
+  `846edd6800bd/6ace27b2...`，Action 为 73/73，NPI 为 `X-2025.06-SP1`。engine strings 同时锁住
+  `legacy stream differential oracle failed` 与 `stream columnar differential mismatch` 两个失败哨兵，
+  三个公开 call site 则锁住 query/export/validate 均通过编译期 guard 调用 comparator。
+- 新增 `tools/collect_p3d_stream_differential_audit.py`：使用上述专用 binary 回放已经冻结的 58 个
+  query/config 观察和 6 个 export 观察；结果为 64/64 零差异、3/3 artifact 一致、3/3 XOUT 一致，
+  comparator 失败数为零。它同时查询三份 stream request schema，73 个 Action 和 schema 均不存在
+  differential/probe 公开入口。
+- cache consumer 被严格拆成公开与私有两层。13 个 base 公开观察、6-child batch 和三次 soft-budget
+  query 都有完整响应 oracle；`scanner_invocations/hits/misses/evictions/resident_bytes` 等十个字段只在
+  `XDEBUG_TEST_ANALYSIS_PROBE_PATH` 私有 JSONL 中出现，原版源码明确声明不属于 Action/schema/JSON/
+  XOUT，故只对冻结的私有 metric 作有限 `proven-unobservable` 裁决。hard=1 不可归入私有层：两个
+  batch child 都公开返回 `ANALYSIS_MEMORY_LIMIT_EXCEEDED`、handler layer、recoverable、protocol、
+  hard limit 和两条 next action，必须由当前实现通过门禁。
+- 两个全新的当前仓库工作目录 A2/B 独立执行全部采集，正式 audit 三份逐字节比较结果一致，SHA-256
+  为 `c606046efa26998c5be060f8e33658e0c56dcb475fa440c3a7c92a3d17770607`。唯一允许的当前表示投影是
+  hard error 中 16-hex `key_summary` 可因原版 FSDB 与当前原生 FST source identity 不同而变化；错误
+  结构和其余字段仍逐项严格比较。
+- 新增 `tests/test_p3d_stream_differential_closure.py`。有效红灯为 2 pass/2 fail：audit 身份边界以及
+  batch/soft-budget 全部公开结果先通过；base 在第一个 `dynamic=false` 静态 validate 处失败，唯一
+  差异是原版 `summary.scan_complete=true`、当前为 false；hard-limit 失败则是当前两个 child 均错误地
+  返回成功。此前一次长 UDS 路径导致 engine 启动失败、一次缺少 `--basetemp` 父目录，均发生在业务
+  断言前且已排除，不计入红灯。
+- 所有 HOME/TMP/cache/socket/session/audit/artifact 写入均位于当前仓库 `.tmp` 或正式测试目录；外部
+  原版源码、两份 fixture cache 和 FSDB 只读，没有重建 fixture/CMake cache，没有切换 runtime、
+  transport、surface 或 backend，也没有 fallback。
+
+### P3-D1 differential/cache 红灯门禁
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 专用 comparator 公开回放 | 已通过 | 58 query/config + 6 export；零差异 |
+| 私有 cache metric 边界 | 已冻结 | 73 Action/三份 schema 零泄漏；probe 源码与 object/hash 锁 |
+| 当前 base 公开 cache 语义 | 红灯 | static validate `scan_complete` 漂移 |
+| 当前 hard-limit 公开错误 | 红灯 | hard=1 两个 child 错误返回成功 |
+| 矩阵关闭 | 待办 | 两项当前门禁转绿后才允许更新候选分类 |

@@ -1,0 +1,2366 @@
+{
+  "cache_contract": {
+    "base_private_probe": {
+      "checkpoints": {
+        "final": {
+          "event_counts": {
+            "build": 5,
+            "hit": 3,
+            "invalidate": 4,
+            "miss": 5,
+            "scan": 5
+          },
+          "last": {
+            "access_sequence": 23,
+            "build_bytes": 0,
+            "entry_count": 1,
+            "evictions": 0,
+            "hits": 3,
+            "index_count": 0,
+            "key_summary": "f9510c7a3de6252b",
+            "misses": 5,
+            "resident_bytes": 10484607,
+            "scanner_invocations": 5
+          },
+          "row_count": 22
+        },
+        "full_build": {
+          "event_counts": {
+            "build": 3,
+            "hit": 2,
+            "invalidate": 2,
+            "miss": 3,
+            "scan": 3
+          },
+          "last": {
+            "access_sequence": 14,
+            "build_bytes": 0,
+            "entry_count": 1,
+            "evictions": 0,
+            "hits": 2,
+            "index_count": 0,
+            "key_summary": "1f84d146f7856462",
+            "misses": 3,
+            "resident_bytes": 10484607,
+            "scanner_invocations": 3
+          },
+          "row_count": 13
+        },
+        "two_ranges": {
+          "event_counts": {
+            "build": 2,
+            "hit": 2,
+            "miss": 2,
+            "scan": 2
+          },
+          "last": {
+            "access_sequence": 9,
+            "build_bytes": 0,
+            "entry_count": 2,
+            "evictions": 0,
+            "hits": 2,
+            "index_count": 0,
+            "key_summary": "a2b00c80d7cfb201",
+            "misses": 2,
+            "resident_bytes": 368038,
+            "scanner_invocations": 2
+          },
+          "row_count": 8
+        }
+      },
+      "classification": "proven-unobservable"
+    },
+    "batch": {
+      "private_probe": {
+        "event_counts": {
+          "build": 4,
+          "hit": 2,
+          "invalidate": 2,
+          "miss": 4,
+          "scan": 4
+        },
+        "last": {
+          "access_sequence": 17,
+          "build_bytes": 0,
+          "entry_count": 2,
+          "evictions": 0,
+          "hits": 2,
+          "index_count": 0,
+          "key_summary": "38b48b8f1ecce42c",
+          "misses": 4,
+          "resident_bytes": 10668895,
+          "scanner_invocations": 4
+        },
+        "row_count": 16
+      },
+      "public": {
+        "error": null,
+        "ok": true,
+        "results": [
+          {
+            "data": {},
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "clock": "clk",
+              "clock_edges": 500,
+              "complete_packet_count": 123,
+              "control_xz_count": 0,
+              "data_xz_count": 0,
+              "edge": "posedge",
+              "filter_applied": false,
+              "first_transfer_time": "65ns",
+              "handshake": "vld/rdy",
+              "last_transfer_time": "4995ns",
+              "packet_count_status": "ambiguous",
+              "packet_enabled": true,
+              "packet_stable_mismatch_count": 0,
+              "partial_packet_count": 1,
+              "query": "summary",
+              "ready_bp_conflict_count": 0,
+              "requested_range": {
+                "begin": "0ns",
+                "end": "5000ns"
+              },
+              "response_truncated": false,
+              "returned_count": 0,
+              "sample_point": "before",
+              "sample_time_semantics": "time is sample_time",
+              "sampling_mode": "clock_edge",
+              "scan_complete": true,
+              "scanned_range": {
+                "begin": "5ns",
+                "end": "4995ns"
+              },
+              "stall_cycles": 0,
+              "stall_windows": 0,
+              "stream": "ready_packet",
+              "total_count": 124,
+              "transfer_count": 494,
+              "truncation_scopes": [],
+              "vld_cycles": 494
+            }
+          },
+          {
+            "data": {
+              "preview": [
+                {
+                  "beat_count": 4,
+                  "beat_fields_preview": {
+                    "analysis_complete": true,
+                    "head": [
+                      {
+                        "beat_index": 0,
+                        "cycle": 6,
+                        "fields": {
+                          "data": {
+                            "bits": "01000000000000000000000000000000",
+                            "known": true,
+                            "value": "32'h40000000",
+                            "width": 32
+                          },
+                          "seq": {
+                            "bits": "0000000000000000",
+                            "known": true,
+                            "value": "16'h0000",
+                            "width": 16
+                          }
+                        },
+                        "time": "65ns"
+                      },
+                      {
+                        "beat_index": 1,
+                        "cycle": 7,
+                        "fields": {
+                          "data": {
+                            "bits": "01000000000000000000000000000001",
+                            "known": true,
+                            "value": "32'h40000001",
+                            "width": 32
+                          },
+                          "seq": {
+                            "bits": "0000000000000001",
+                            "known": true,
+                            "value": "16'h0001",
+                            "width": 16
+                          }
+                        },
+                        "time": "75ns"
+                      },
+                      {
+                        "beat_index": 2,
+                        "cycle": 8,
+                        "fields": {
+                          "data": {
+                            "bits": "01000000000000000000000000000010",
+                            "known": true,
+                            "value": "32'h40000002",
+                            "width": 32
+                          },
+                          "seq": {
+                            "bits": "0000000000000010",
+                            "known": true,
+                            "value": "16'h0002",
+                            "width": 16
+                          }
+                        },
+                        "time": "85ns"
+                      },
+                      {
+                        "beat_index": 3,
+                        "cycle": 9,
+                        "fields": {
+                          "data": {
+                            "bits": "01000000000000000000000000000011",
+                            "known": true,
+                            "value": "32'h40000003",
+                            "width": 32
+                          },
+                          "seq": {
+                            "bits": "0000000000000011",
+                            "known": true,
+                            "value": "16'h0003",
+                            "width": 16
+                          }
+                        },
+                        "time": "95ns"
+                      }
+                    ],
+                    "response_truncated": false,
+                    "returned_count": 4,
+                    "scan_complete": true,
+                    "tail": [],
+                    "total_count": 4,
+                    "truncation_scopes": []
+                  },
+                  "end_cycle": 9,
+                  "end_time": "95ns",
+                  "first_fields": {
+                    "data": {
+                      "bits": "01000000000000000000000000000000",
+                      "known": true,
+                      "value": "32'h40000000",
+                      "width": 32
+                    },
+                    "seq": {
+                      "bits": "0000000000000000",
+                      "known": true,
+                      "value": "16'h0000",
+                      "width": 16
+                    }
+                  },
+                  "last_fields": {
+                    "data": {
+                      "bits": "01000000000000000000000000000011",
+                      "known": true,
+                      "value": "32'h40000003",
+                      "width": 32
+                    },
+                    "seq": {
+                      "bits": "0000000000000011",
+                      "known": true,
+                      "value": "16'h0003",
+                      "width": 16
+                    }
+                  },
+                  "packet_index": 0,
+                  "packet_stable_fields": {
+                    "opcode": {
+                      "bits": "10100000",
+                      "known": true,
+                      "value": "8'ha0",
+                      "width": 8
+                    }
+                  },
+                  "packet_stable_mismatches": [],
+                  "partial_begin": false,
+                  "partial_end": false,
+                  "start_cycle": 6,
+                  "start_time": "65ns"
+                },
+                {
+                  "beat_count": 4,
+                  "beat_fields_preview": {
+                    "analysis_complete": true,
+                    "head": [
+                      {
+                        "beat_index": 0,
+                        "cycle": 10,
+                        "fields": {
+                          "data": {
+                            "bits": "01000000000000000000000000000100",
+                            "known": true,
+                            "value": "32'h40000004",
+                            "width": 32
+                          },
+                          "seq": {
+                            "bits": "0000000000000100",
+                            "known": true,
+                            "value": "16'h0004",
+                            "width": 16
+                          }
+                        },
+                        "time": "105ns"
+                      },
+                      {
+                        "beat_index": 1,
+                        "cycle": 11,
+                        "fields": {
+                          "data": {
+                            "bits": "01000000000000000000000000000101",
+                            "known": true,
+                            "value": "32'h40000005",
+                            "width": 32
+                          },
+                          "seq": {
+                            "bits": "0000000000000101",
+                            "known": true,
+                            "value": "16'h0005",
+                            "width": 16
+                          }
+                        },
+                        "time": "115ns"
+                      },
+                      {
+                        "beat_index": 2,
+                        "cycle": 12,
+                        "fields": {
+                          "data": {
+                            "bits": "01000000000000000000000000000110",
+                            "known": true,
+                            "value": "32'h40000006",
+                            "width": 32
+                          },
+                          "seq": {
+                            "bits": "0000000000000110",
+                            "known": true,
+                            "value": "16'h0006",
+                            "width": 16
+                          }
+                        },
+                        "time": "125ns"
+                      },
+                      {
+                        "beat_index": 3,
+                        "cycle": 13,
+                        "fields": {
+                          "data": {
+                            "bits": "01000000000000000000000000000111",
+                            "known": true,
+                            "value": "32'h40000007",
+                            "width": 32
+                          },
+                          "seq": {
+                            "bits": "0000000000000111",
+                            "known": true,
+                            "value": "16'h0007",
+                            "width": 16
+                          }
+                        },
+                        "time": "135ns"
+                      }
+                    ],
+                    "response_truncated": false,
+                    "returned_count": 4,
+                    "scan_complete": true,
+                    "tail": [],
+                    "total_count": 4,
+                    "truncation_scopes": []
+                  },
+                  "end_cycle": 13,
+                  "end_time": "135ns",
+                  "first_fields": {
+                    "data": {
+                      "bits": "01000000000000000000000000000100",
+                      "known": true,
+                      "value": "32'h40000004",
+                      "width": 32
+                    },
+                    "seq": {
+                      "bits": "0000000000000100",
+                      "known": true,
+                      "value": "16'h0004",
+                      "width": 16
+                    }
+                  },
+                  "last_fields": {
+                    "data": {
+                      "bits": "01000000000000000000000000000111",
+                      "known": true,
+                      "value": "32'h40000007",
+                      "width": 32
+                    },
+                    "seq": {
+                      "bits": "0000000000000111",
+                      "known": true,
+                      "value": "16'h0007",
+                      "width": 16
+                    }
+                  },
+                  "packet_index": 1,
+                  "packet_stable_fields": {
+                    "opcode": {
+                      "bits": "10100001",
+                      "known": true,
+                      "value": "8'ha1",
+                      "width": 8
+                    }
+                  },
+                  "packet_stable_mismatches": [],
+                  "partial_begin": false,
+                  "partial_end": false,
+                  "start_cycle": 10,
+                  "start_time": "105ns"
+                }
+              ]
+            },
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "clock": "clk",
+              "clock_edges": 500,
+              "complete_packet_count": 123,
+              "control_xz_count": 0,
+              "data_xz_count": 0,
+              "edge": "posedge",
+              "first_transfer_time": "65ns",
+              "handshake": "vld/rdy",
+              "kind": "packet",
+              "last_transfer_time": "4995ns",
+              "line_limit": 2,
+              "output_written": false,
+              "packet_count_status": "ambiguous",
+              "packet_enabled": true,
+              "packet_stable_mismatch_count": 0,
+              "partial_packet_count": 1,
+              "ready_bp_conflict_count": 0,
+              "requested_range": {
+                "begin": "0ns",
+                "end": "5000ns"
+              },
+              "response_truncated": true,
+              "returned_count": 2,
+              "row_count": 124,
+              "sample_point": "before",
+              "sample_time_semantics": "time is sample_time",
+              "sampling_mode": "clock_edge",
+              "scan_complete": true,
+              "scanned_range": {
+                "begin": "5ns",
+                "end": "4995ns"
+              },
+              "stall_cycles": 0,
+              "stall_windows": 0,
+              "status": "preview",
+              "stream": "ready_packet",
+              "total_count": 124,
+              "transfer_count": 494,
+              "truncation_scopes": [
+                "response_preview"
+              ],
+              "value_width_complete": true,
+              "vld_cycles": 494,
+              "width_diagnostics": []
+            }
+          },
+          {
+            "data": {
+              "dynamic": {
+                "clock": "clk",
+                "clock_edges": 500,
+                "complete_packet_count": 123,
+                "control_xz_count": 0,
+                "data_xz_count": 0,
+                "edge": "posedge",
+                "first_transfer_time": "65ns",
+                "handshake": "vld/rdy",
+                "last_transfer_time": "4995ns",
+                "packet_count_status": "ambiguous",
+                "packet_enabled": true,
+                "packet_stable_mismatch_count": 0,
+                "partial_packet_count": 1,
+                "ready_bp_conflict_count": 0,
+                "requested_range": {
+                  "begin": "0ns",
+                  "end": "5000ns"
+                },
+                "sample_point": "before",
+                "sample_time_semantics": "time is sample_time",
+                "sampling_mode": "clock_edge",
+                "scanned_range": {
+                  "begin": "5ns",
+                  "end": "4995ns"
+                },
+                "stall_cycles": 0,
+                "stall_windows": 0,
+                "stream": "ready_packet",
+                "transfer_count": 494,
+                "vld_cycles": 494
+              },
+              "issues": []
+            },
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "dynamic_requested": true,
+              "ok": true,
+              "response_truncated": false,
+              "returned_count": 0,
+              "scan_complete": true,
+              "static_validation_complete": true,
+              "stream": "ready_packet",
+              "total_count": 0,
+              "truncation_scopes": []
+            }
+          },
+          {
+            "data": {},
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "clock": "clk",
+              "clock_edges": 500,
+              "complete_packet_count": 124,
+              "control_xz_count": 0,
+              "data_xz_count": 0,
+              "edge": "posedge",
+              "filter_applied": false,
+              "first_transfer_time": "5005ns",
+              "handshake": "vld/rdy",
+              "last_transfer_time": "9995ns",
+              "packet_count_status": "ambiguous",
+              "packet_enabled": true,
+              "packet_stable_mismatch_count": 0,
+              "partial_packet_count": 2,
+              "query": "summary",
+              "ready_bp_conflict_count": 0,
+              "requested_range": {
+                "begin": "5000ns",
+                "end": "10000ns"
+              },
+              "response_truncated": false,
+              "returned_count": 0,
+              "sample_point": "before",
+              "sample_time_semantics": "time is sample_time",
+              "sampling_mode": "clock_edge",
+              "scan_complete": true,
+              "scanned_range": {
+                "begin": "5005ns",
+                "end": "9995ns"
+              },
+              "stall_cycles": 0,
+              "stall_windows": 0,
+              "stream": "ready_packet",
+              "total_count": 126,
+              "transfer_count": 500,
+              "truncation_scopes": [],
+              "vld_cycles": 500
+            }
+          },
+          {
+            "data": {},
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "clock": "clk",
+              "clock_edges": 500,
+              "complete_packet_count": 123,
+              "control_xz_count": 0,
+              "data_xz_count": 0,
+              "edge": "posedge",
+              "filter_applied": false,
+              "first_transfer_time": "65ns",
+              "handshake": "vld/rdy",
+              "last_transfer_time": "4995ns",
+              "packet_count_status": "ambiguous",
+              "packet_enabled": true,
+              "packet_stable_mismatch_count": 0,
+              "partial_packet_count": 1,
+              "query": "summary",
+              "ready_bp_conflict_count": 0,
+              "requested_range": {
+                "begin": "0ns",
+                "end": "5000ns"
+              },
+              "response_truncated": false,
+              "returned_count": 0,
+              "sample_point": "before",
+              "sample_time_semantics": "time is sample_time",
+              "sampling_mode": "clock_edge",
+              "scan_complete": true,
+              "scanned_range": {
+                "begin": "5ns",
+                "end": "4995ns"
+              },
+              "stall_cycles": 0,
+              "stall_windows": 0,
+              "stream": "ready_packet",
+              "total_count": 124,
+              "transfer_count": 494,
+              "truncation_scopes": [],
+              "vld_cycles": 494
+            }
+          },
+          {
+            "data": {},
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "clock": "clk",
+              "clock_edges": 500,
+              "complete_packet_count": 124,
+              "control_xz_count": 0,
+              "data_xz_count": 0,
+              "edge": "posedge",
+              "filter_applied": false,
+              "first_transfer_time": "5005ns",
+              "handshake": "vld/rdy",
+              "last_transfer_time": "9995ns",
+              "packet_count_status": "ambiguous",
+              "packet_enabled": true,
+              "packet_stable_mismatch_count": 0,
+              "partial_packet_count": 2,
+              "query": "summary",
+              "ready_bp_conflict_count": 0,
+              "requested_range": {
+                "begin": "5000ns",
+                "end": "10000ns"
+              },
+              "response_truncated": false,
+              "returned_count": 0,
+              "sample_point": "before",
+              "sample_time_semantics": "time is sample_time",
+              "sampling_mode": "clock_edge",
+              "scan_complete": true,
+              "scanned_range": {
+                "begin": "5005ns",
+                "end": "9995ns"
+              },
+              "stall_cycles": 0,
+              "stall_windows": 0,
+              "stream": "ready_packet",
+              "total_count": 126,
+              "transfer_count": 500,
+              "truncation_scopes": [],
+              "vld_cycles": 500
+            }
+          }
+        ],
+        "summary": {
+          "all_ok": true,
+          "count": 6,
+          "failed_codes": [],
+          "failed_count": 0,
+          "failed_indexes": [],
+          "failed_layers": []
+        }
+      }
+    },
+    "hard_limit": {
+      "allowed_current_projection": {
+        "error.key_summary": "opaque 16-hex cache identity may differ because the current fixture is native FST rather than the original FSDB"
+      },
+      "classification": "publicly-observable",
+      "hard_max_bytes": 1,
+      "private_probe": {
+        "event_counts": {
+          "build_failed": 2
+        },
+        "last": {
+          "access_sequence": 3,
+          "build_bytes": 0,
+          "entry_count": 0,
+          "evictions": 0,
+          "hits": 0,
+          "index_count": 0,
+          "key_summary": "0a3bbefb255b13e5",
+          "misses": 0,
+          "resident_bytes": 0,
+          "scanner_invocations": 0
+        },
+        "row_count": 2
+      },
+      "public": {
+        "error": null,
+        "ok": true,
+        "results": [
+          {
+            "data": null,
+            "error": {
+              "code": "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+              "current_estimated_bytes": 0,
+              "error_layer": "handler",
+              "hard_max_bytes": 1,
+              "key_summary": "5fd3bfc5d50267b4",
+              "message": "analysis cache build exceeds the configured hard memory limit",
+              "next_actions": [
+                "For stream analysis, explicitly retry with cache_scope=range or a smaller time_range.",
+                "If range analysis still exceeds the limit, use x-npi for one-off offline analysis."
+              ],
+              "protocol": "stream",
+              "recoverable": true
+            },
+            "ok": false,
+            "summary": {
+              "error_code": "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+              "status": "error"
+            }
+          },
+          {
+            "data": null,
+            "error": {
+              "code": "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+              "current_estimated_bytes": 0,
+              "error_layer": "handler",
+              "hard_max_bytes": 1,
+              "key_summary": "5fd3bfc5d50267b4",
+              "message": "analysis cache build exceeds the configured hard memory limit",
+              "next_actions": [
+                "For stream analysis, explicitly retry with cache_scope=range or a smaller time_range.",
+                "If range analysis still exceeds the limit, use x-npi for one-off offline analysis."
+              ],
+              "protocol": "stream",
+              "recoverable": true
+            },
+            "ok": false,
+            "summary": {
+              "error_code": "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+              "status": "error"
+            }
+          }
+        ],
+        "summary": {
+          "all_ok": false,
+          "count": 2,
+          "failed_codes": [
+            "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+            "ANALYSIS_MEMORY_LIMIT_EXCEEDED"
+          ],
+          "failed_count": 2,
+          "failed_indexes": [
+            0,
+            1
+          ],
+          "failed_layers": [
+            "handler",
+            "handler"
+          ]
+        }
+      },
+      "soft_max_bytes": 1
+    },
+    "public_observation_count": 13,
+    "public_observations": [
+      {
+        "action": "stream.validate",
+        "observation_id": "static_validate",
+        "request": {
+          "dynamic": false,
+          "stream": "ready_packet"
+        },
+        "response": {
+          "data": {
+            "dynamic": {},
+            "issues": []
+          },
+          "ok": true,
+          "summary": {
+            "analysis_complete": true,
+            "dynamic_requested": false,
+            "ok": true,
+            "response_truncated": false,
+            "returned_count": 0,
+            "scan_complete": true,
+            "static_validation_complete": true,
+            "stream": "ready_packet",
+            "total_count": 0,
+            "truncation_scopes": []
+          }
+        }
+      },
+      {
+        "action": "stream.query",
+        "observation_id": "range_a_query",
+        "request": {
+          "cache_scope": "range",
+          "query": "summary",
+          "stream": "ready_packet",
+          "time_range": {
+            "begin": "0ns",
+            "end": "5us"
+          }
+        },
+        "response": {
+          "data": {},
+          "ok": true,
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 500,
+            "complete_packet_count": 123,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "filter_applied": false,
+            "first_transfer_time": "65ns",
+            "handshake": "vld/rdy",
+            "last_transfer_time": "4995ns",
+            "packet_count_status": "ambiguous",
+            "packet_enabled": true,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 1,
+            "query": "summary",
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "0ns",
+              "end": "5000ns"
+            },
+            "response_truncated": false,
+            "returned_count": 0,
+            "sample_point": "before",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "5ns",
+              "end": "4995ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "stream": "ready_packet",
+            "total_count": 124,
+            "transfer_count": 494,
+            "truncation_scopes": [],
+            "vld_cycles": 494
+          }
+        }
+      },
+      {
+        "action": "stream.export",
+        "observation_id": "range_a_export",
+        "request": {
+          "cache_scope": "range",
+          "kind": "packet",
+          "line_limit": 2,
+          "stream": "ready_packet",
+          "time_range": {
+            "begin": "0ns",
+            "end": "5us"
+          }
+        },
+        "response": {
+          "data": {
+            "preview": [
+              {
+                "beat_count": 4,
+                "beat_fields_preview": {
+                  "analysis_complete": true,
+                  "head": [
+                    {
+                      "beat_index": 0,
+                      "cycle": 6,
+                      "fields": {
+                        "data": {
+                          "bits": "01000000000000000000000000000000",
+                          "known": true,
+                          "value": "32'h40000000",
+                          "width": 32
+                        },
+                        "seq": {
+                          "bits": "0000000000000000",
+                          "known": true,
+                          "value": "16'h0000",
+                          "width": 16
+                        }
+                      },
+                      "time": "65ns"
+                    },
+                    {
+                      "beat_index": 1,
+                      "cycle": 7,
+                      "fields": {
+                        "data": {
+                          "bits": "01000000000000000000000000000001",
+                          "known": true,
+                          "value": "32'h40000001",
+                          "width": 32
+                        },
+                        "seq": {
+                          "bits": "0000000000000001",
+                          "known": true,
+                          "value": "16'h0001",
+                          "width": 16
+                        }
+                      },
+                      "time": "75ns"
+                    },
+                    {
+                      "beat_index": 2,
+                      "cycle": 8,
+                      "fields": {
+                        "data": {
+                          "bits": "01000000000000000000000000000010",
+                          "known": true,
+                          "value": "32'h40000002",
+                          "width": 32
+                        },
+                        "seq": {
+                          "bits": "0000000000000010",
+                          "known": true,
+                          "value": "16'h0002",
+                          "width": 16
+                        }
+                      },
+                      "time": "85ns"
+                    },
+                    {
+                      "beat_index": 3,
+                      "cycle": 9,
+                      "fields": {
+                        "data": {
+                          "bits": "01000000000000000000000000000011",
+                          "known": true,
+                          "value": "32'h40000003",
+                          "width": 32
+                        },
+                        "seq": {
+                          "bits": "0000000000000011",
+                          "known": true,
+                          "value": "16'h0003",
+                          "width": 16
+                        }
+                      },
+                      "time": "95ns"
+                    }
+                  ],
+                  "response_truncated": false,
+                  "returned_count": 4,
+                  "scan_complete": true,
+                  "tail": [],
+                  "total_count": 4,
+                  "truncation_scopes": []
+                },
+                "end_cycle": 9,
+                "end_time": "95ns",
+                "first_fields": {
+                  "data": {
+                    "bits": "01000000000000000000000000000000",
+                    "known": true,
+                    "value": "32'h40000000",
+                    "width": 32
+                  },
+                  "seq": {
+                    "bits": "0000000000000000",
+                    "known": true,
+                    "value": "16'h0000",
+                    "width": 16
+                  }
+                },
+                "last_fields": {
+                  "data": {
+                    "bits": "01000000000000000000000000000011",
+                    "known": true,
+                    "value": "32'h40000003",
+                    "width": 32
+                  },
+                  "seq": {
+                    "bits": "0000000000000011",
+                    "known": true,
+                    "value": "16'h0003",
+                    "width": 16
+                  }
+                },
+                "packet_index": 0,
+                "packet_stable_fields": {
+                  "opcode": {
+                    "bits": "10100000",
+                    "known": true,
+                    "value": "8'ha0",
+                    "width": 8
+                  }
+                },
+                "packet_stable_mismatches": [],
+                "partial_begin": false,
+                "partial_end": false,
+                "start_cycle": 6,
+                "start_time": "65ns"
+              },
+              {
+                "beat_count": 4,
+                "beat_fields_preview": {
+                  "analysis_complete": true,
+                  "head": [
+                    {
+                      "beat_index": 0,
+                      "cycle": 10,
+                      "fields": {
+                        "data": {
+                          "bits": "01000000000000000000000000000100",
+                          "known": true,
+                          "value": "32'h40000004",
+                          "width": 32
+                        },
+                        "seq": {
+                          "bits": "0000000000000100",
+                          "known": true,
+                          "value": "16'h0004",
+                          "width": 16
+                        }
+                      },
+                      "time": "105ns"
+                    },
+                    {
+                      "beat_index": 1,
+                      "cycle": 11,
+                      "fields": {
+                        "data": {
+                          "bits": "01000000000000000000000000000101",
+                          "known": true,
+                          "value": "32'h40000005",
+                          "width": 32
+                        },
+                        "seq": {
+                          "bits": "0000000000000101",
+                          "known": true,
+                          "value": "16'h0005",
+                          "width": 16
+                        }
+                      },
+                      "time": "115ns"
+                    },
+                    {
+                      "beat_index": 2,
+                      "cycle": 12,
+                      "fields": {
+                        "data": {
+                          "bits": "01000000000000000000000000000110",
+                          "known": true,
+                          "value": "32'h40000006",
+                          "width": 32
+                        },
+                        "seq": {
+                          "bits": "0000000000000110",
+                          "known": true,
+                          "value": "16'h0006",
+                          "width": 16
+                        }
+                      },
+                      "time": "125ns"
+                    },
+                    {
+                      "beat_index": 3,
+                      "cycle": 13,
+                      "fields": {
+                        "data": {
+                          "bits": "01000000000000000000000000000111",
+                          "known": true,
+                          "value": "32'h40000007",
+                          "width": 32
+                        },
+                        "seq": {
+                          "bits": "0000000000000111",
+                          "known": true,
+                          "value": "16'h0007",
+                          "width": 16
+                        }
+                      },
+                      "time": "135ns"
+                    }
+                  ],
+                  "response_truncated": false,
+                  "returned_count": 4,
+                  "scan_complete": true,
+                  "tail": [],
+                  "total_count": 4,
+                  "truncation_scopes": []
+                },
+                "end_cycle": 13,
+                "end_time": "135ns",
+                "first_fields": {
+                  "data": {
+                    "bits": "01000000000000000000000000000100",
+                    "known": true,
+                    "value": "32'h40000004",
+                    "width": 32
+                  },
+                  "seq": {
+                    "bits": "0000000000000100",
+                    "known": true,
+                    "value": "16'h0004",
+                    "width": 16
+                  }
+                },
+                "last_fields": {
+                  "data": {
+                    "bits": "01000000000000000000000000000111",
+                    "known": true,
+                    "value": "32'h40000007",
+                    "width": 32
+                  },
+                  "seq": {
+                    "bits": "0000000000000111",
+                    "known": true,
+                    "value": "16'h0007",
+                    "width": 16
+                  }
+                },
+                "packet_index": 1,
+                "packet_stable_fields": {
+                  "opcode": {
+                    "bits": "10100001",
+                    "known": true,
+                    "value": "8'ha1",
+                    "width": 8
+                  }
+                },
+                "packet_stable_mismatches": [],
+                "partial_begin": false,
+                "partial_end": false,
+                "start_cycle": 10,
+                "start_time": "105ns"
+              }
+            ]
+          },
+          "ok": true,
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 500,
+            "complete_packet_count": 123,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "first_transfer_time": "65ns",
+            "handshake": "vld/rdy",
+            "kind": "packet",
+            "last_transfer_time": "4995ns",
+            "line_limit": 2,
+            "output_written": false,
+            "packet_count_status": "ambiguous",
+            "packet_enabled": true,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 1,
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "0ns",
+              "end": "5000ns"
+            },
+            "response_truncated": true,
+            "returned_count": 2,
+            "row_count": 124,
+            "sample_point": "before",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "5ns",
+              "end": "4995ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "status": "preview",
+            "stream": "ready_packet",
+            "total_count": 124,
+            "transfer_count": 494,
+            "truncation_scopes": [
+              "response_preview"
+            ],
+            "value_width_complete": true,
+            "vld_cycles": 494,
+            "width_diagnostics": []
+          }
+        }
+      },
+      {
+        "action": "stream.validate",
+        "observation_id": "range_a_validate",
+        "request": {
+          "cache_scope": "range",
+          "dynamic": true,
+          "stream": "ready_packet",
+          "time_range": {
+            "begin": "0ns",
+            "end": "5us"
+          }
+        },
+        "response": {
+          "data": {
+            "dynamic": {
+              "clock": "clk",
+              "clock_edges": 500,
+              "complete_packet_count": 123,
+              "control_xz_count": 0,
+              "data_xz_count": 0,
+              "edge": "posedge",
+              "first_transfer_time": "65ns",
+              "handshake": "vld/rdy",
+              "last_transfer_time": "4995ns",
+              "packet_count_status": "ambiguous",
+              "packet_enabled": true,
+              "packet_stable_mismatch_count": 0,
+              "partial_packet_count": 1,
+              "ready_bp_conflict_count": 0,
+              "requested_range": {
+                "begin": "0ns",
+                "end": "5000ns"
+              },
+              "sample_point": "before",
+              "sample_time_semantics": "time is sample_time",
+              "sampling_mode": "clock_edge",
+              "scanned_range": {
+                "begin": "5ns",
+                "end": "4995ns"
+              },
+              "stall_cycles": 0,
+              "stall_windows": 0,
+              "stream": "ready_packet",
+              "transfer_count": 494,
+              "vld_cycles": 494
+            },
+            "issues": []
+          },
+          "ok": true,
+          "summary": {
+            "analysis_complete": true,
+            "dynamic_requested": true,
+            "ok": true,
+            "response_truncated": false,
+            "returned_count": 0,
+            "scan_complete": true,
+            "static_validation_complete": true,
+            "stream": "ready_packet",
+            "total_count": 0,
+            "truncation_scopes": []
+          }
+        }
+      },
+      {
+        "action": "stream.query",
+        "observation_id": "range_b_query",
+        "request": {
+          "cache_scope": "range",
+          "query": "summary",
+          "stream": "ready_packet",
+          "time_range": {
+            "begin": "5us",
+            "end": "10us"
+          }
+        },
+        "response": {
+          "data": {},
+          "ok": true,
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 500,
+            "complete_packet_count": 124,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "filter_applied": false,
+            "first_transfer_time": "5005ns",
+            "handshake": "vld/rdy",
+            "last_transfer_time": "9995ns",
+            "packet_count_status": "ambiguous",
+            "packet_enabled": true,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 2,
+            "query": "summary",
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "5000ns",
+              "end": "10000ns"
+            },
+            "response_truncated": false,
+            "returned_count": 0,
+            "sample_point": "before",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "5005ns",
+              "end": "9995ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "stream": "ready_packet",
+            "total_count": 126,
+            "transfer_count": 500,
+            "truncation_scopes": [],
+            "vld_cycles": 500
+          }
+        }
+      },
+      {
+        "action": "stream.query",
+        "observation_id": "full_from_range",
+        "request": {
+          "cache_scope": "full",
+          "query": "summary",
+          "stream": "ready_packet",
+          "time_range": {
+            "begin": "0ns",
+            "end": "5us"
+          }
+        },
+        "response": {
+          "data": {},
+          "ok": true,
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 500,
+            "complete_packet_count": 123,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "filter_applied": false,
+            "first_transfer_time": "65ns",
+            "handshake": "vld/rdy",
+            "last_transfer_time": "4995ns",
+            "packet_count_status": "ambiguous",
+            "packet_enabled": true,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 1,
+            "query": "summary",
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "0ns",
+              "end": "5000ns"
+            },
+            "response_truncated": false,
+            "returned_count": 0,
+            "sample_point": "before",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "5ns",
+              "end": "4995ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "stream": "ready_packet",
+            "total_count": 124,
+            "transfer_count": 494,
+            "truncation_scopes": [],
+            "vld_cycles": 494
+          }
+        }
+      },
+      {
+        "action": "stream.query",
+        "observation_id": "derived_range",
+        "request": {
+          "cache_scope": "range",
+          "query": "summary",
+          "stream": "ready_packet",
+          "time_range": {
+            "begin": "5us",
+            "end": "10us"
+          }
+        },
+        "response": {
+          "data": {},
+          "ok": true,
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 500,
+            "complete_packet_count": 124,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "filter_applied": false,
+            "first_transfer_time": "5005ns",
+            "handshake": "vld/rdy",
+            "last_transfer_time": "9995ns",
+            "packet_count_status": "ambiguous",
+            "packet_enabled": true,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 2,
+            "query": "summary",
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "5000ns",
+              "end": "10000ns"
+            },
+            "response_truncated": false,
+            "returned_count": 0,
+            "sample_point": "before",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "5005ns",
+              "end": "9995ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "stream": "ready_packet",
+            "total_count": 126,
+            "transfer_count": 500,
+            "truncation_scopes": [],
+            "vld_cycles": 500
+          }
+        }
+      },
+      {
+        "action": "stream.config.load",
+        "observation_id": "description_load",
+        "request": {
+          "config": {
+            "streams": [
+              {
+                "beat_fields": {
+                  "data": "data",
+                  "seq": "seq"
+                },
+                "clock": "clk",
+                "description": "description-only replacement",
+                "edge": "posedge",
+                "eop": "eop",
+                "name": "ready_packet",
+                "packet_stable_fields": {
+                  "opcode": "opcode"
+                },
+                "rdy": "rdy",
+                "reset": {
+                  "polarity": "active_low",
+                  "signal": "stream_v1_top.rst_n"
+                },
+                "signals": {
+                  "clk": "stream_v1_top.clk",
+                  "data": "stream_v1_top.rpkt_data",
+                  "eop": "stream_v1_top.rpkt_eop",
+                  "opcode": "stream_v1_top.rpkt_opcode",
+                  "rdy": "stream_v1_top.rpkt_rdy",
+                  "seq": "stream_v1_top.rpkt_seq",
+                  "sop": "stream_v1_top.rpkt_sop",
+                  "vld": "stream_v1_top.rpkt_vld"
+                },
+                "sop": "sop",
+                "vld": "vld"
+              }
+            ]
+          },
+          "mode": "replace"
+        },
+        "response": {
+          "data": {
+            "issues": [],
+            "recommended_actions": [
+              {
+                "action": "value.at",
+                "purpose": "按一个或多个指定时间读取单信号、命名信号列表或接口配置维护的值。"
+              },
+              {
+                "action": "stream.describe",
+                "purpose": "显示 stream 定义和摘要。"
+              },
+              {
+                "action": "stream.validate",
+                "purpose": "验证 stream 配置；动态验证可显式选择 full 或 range 基础分析缓存范围。"
+              },
+              {
+                "action": "stream.query",
+                "purpose": "查询通用 valid-ready transfer、stall 或 packet，并对多个自定义字段执行 exact、range 或 mask 过滤。"
+              },
+              {
+                "action": "stream.export",
+                "purpose": "从显式 full 或 range 基础分析缓存范围导出 stream 查询结果。"
+              }
+            ],
+            "streams": [
+              "ready_packet"
+            ],
+            "validation": [
+              {
+                "packet_rules": {
+                  "allow_interleaving": false,
+                  "channel_id_valid": "every_beat",
+                  "packet_enabled": true
+                },
+                "sampling": {
+                  "clock": "clk",
+                  "edge": "posedge",
+                  "sample_point": "before"
+                },
+                "signals": [
+                  {
+                    "alias": "clk",
+                    "requested_path": "stream_v1_top.clk",
+                    "resolved_path": "stream_v1_top.clk",
+                    "status": "ok",
+                    "width": 1
+                  },
+                  {
+                    "alias": "data",
+                    "requested_path": "stream_v1_top.rpkt_data",
+                    "resolved_path": "stream_v1_top.rpkt_data",
+                    "status": "ok",
+                    "width": 32
+                  },
+                  {
+                    "alias": "eop",
+                    "requested_path": "stream_v1_top.rpkt_eop",
+                    "resolved_path": "stream_v1_top.rpkt_eop",
+                    "status": "ok",
+                    "width": 1
+                  },
+                  {
+                    "alias": "opcode",
+                    "requested_path": "stream_v1_top.rpkt_opcode",
+                    "resolved_path": "stream_v1_top.rpkt_opcode",
+                    "status": "ok",
+                    "width": 8
+                  },
+                  {
+                    "alias": "rdy",
+                    "requested_path": "stream_v1_top.rpkt_rdy",
+                    "resolved_path": "stream_v1_top.rpkt_rdy",
+                    "status": "ok",
+                    "width": 1
+                  },
+                  {
+                    "alias": "seq",
+                    "requested_path": "stream_v1_top.rpkt_seq",
+                    "resolved_path": "stream_v1_top.rpkt_seq",
+                    "status": "ok",
+                    "width": 16
+                  },
+                  {
+                    "alias": "sop",
+                    "requested_path": "stream_v1_top.rpkt_sop",
+                    "resolved_path": "stream_v1_top.rpkt_sop",
+                    "status": "ok",
+                    "width": 1
+                  },
+                  {
+                    "alias": "vld",
+                    "requested_path": "stream_v1_top.rpkt_vld",
+                    "resolved_path": "stream_v1_top.rpkt_vld",
+                    "status": "ok",
+                    "width": 1
+                  }
+                ],
+                "status": "ok",
+                "stream": "ready_packet"
+              }
+            ]
+          },
+          "ok": true,
+          "summary": {
+            "loaded": 1,
+            "mode": "replace"
+          }
+        }
+      },
+      {
+        "action": "stream.query",
+        "observation_id": "description_query",
+        "request": {
+          "cache_scope": "full",
+          "query": "summary",
+          "stream": "ready_packet",
+          "time_range": {
+            "begin": "0ns",
+            "end": "5us"
+          }
+        },
+        "response": {
+          "data": {},
+          "ok": true,
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 500,
+            "complete_packet_count": 123,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "filter_applied": false,
+            "first_transfer_time": "65ns",
+            "handshake": "vld/rdy",
+            "last_transfer_time": "4995ns",
+            "packet_count_status": "ambiguous",
+            "packet_enabled": true,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 1,
+            "query": "summary",
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "0ns",
+              "end": "5000ns"
+            },
+            "response_truncated": false,
+            "returned_count": 0,
+            "sample_point": "before",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "5ns",
+              "end": "4995ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "stream": "ready_packet",
+            "total_count": 124,
+            "transfer_count": 494,
+            "truncation_scopes": [],
+            "vld_cycles": 494
+          }
+        }
+      },
+      {
+        "action": "stream.config.load",
+        "observation_id": "semantic_load",
+        "request": {
+          "config": {
+            "streams": [
+              {
+                "beat_fields": {
+                  "data": "data",
+                  "seq": "seq"
+                },
+                "clock": "clk",
+                "description": "description-only replacement",
+                "edge": "posedge",
+                "eop": "eop",
+                "name": "ready_packet",
+                "packet_stable_fields": {
+                  "opcode": "opcode"
+                },
+                "rdy": "rdy",
+                "reset": {
+                  "polarity": "active_low",
+                  "signal": "stream_v1_top.rst_n"
+                },
+                "sample_point": "after",
+                "signals": {
+                  "clk": "stream_v1_top.clk",
+                  "data": "stream_v1_top.rpkt_data",
+                  "eop": "stream_v1_top.rpkt_eop",
+                  "opcode": "stream_v1_top.rpkt_opcode",
+                  "rdy": "stream_v1_top.rpkt_rdy",
+                  "seq": "stream_v1_top.rpkt_seq",
+                  "sop": "stream_v1_top.rpkt_sop",
+                  "vld": "stream_v1_top.rpkt_vld"
+                },
+                "sop": "sop",
+                "vld": "vld"
+              }
+            ]
+          },
+          "mode": "replace"
+        },
+        "response": {
+          "data": {
+            "issues": [],
+            "recommended_actions": [
+              {
+                "action": "value.at",
+                "purpose": "按一个或多个指定时间读取单信号、命名信号列表或接口配置维护的值。"
+              },
+              {
+                "action": "stream.describe",
+                "purpose": "显示 stream 定义和摘要。"
+              },
+              {
+                "action": "stream.validate",
+                "purpose": "验证 stream 配置；动态验证可显式选择 full 或 range 基础分析缓存范围。"
+              },
+              {
+                "action": "stream.query",
+                "purpose": "查询通用 valid-ready transfer、stall 或 packet，并对多个自定义字段执行 exact、range 或 mask 过滤。"
+              },
+              {
+                "action": "stream.export",
+                "purpose": "从显式 full 或 range 基础分析缓存范围导出 stream 查询结果。"
+              }
+            ],
+            "streams": [
+              "ready_packet"
+            ],
+            "validation": [
+              {
+                "packet_rules": {
+                  "allow_interleaving": false,
+                  "channel_id_valid": "every_beat",
+                  "packet_enabled": true
+                },
+                "sampling": {
+                  "clock": "clk",
+                  "edge": "posedge",
+                  "sample_point": "after"
+                },
+                "signals": [
+                  {
+                    "alias": "clk",
+                    "requested_path": "stream_v1_top.clk",
+                    "resolved_path": "stream_v1_top.clk",
+                    "status": "ok",
+                    "width": 1
+                  },
+                  {
+                    "alias": "data",
+                    "requested_path": "stream_v1_top.rpkt_data",
+                    "resolved_path": "stream_v1_top.rpkt_data",
+                    "status": "ok",
+                    "width": 32
+                  },
+                  {
+                    "alias": "eop",
+                    "requested_path": "stream_v1_top.rpkt_eop",
+                    "resolved_path": "stream_v1_top.rpkt_eop",
+                    "status": "ok",
+                    "width": 1
+                  },
+                  {
+                    "alias": "opcode",
+                    "requested_path": "stream_v1_top.rpkt_opcode",
+                    "resolved_path": "stream_v1_top.rpkt_opcode",
+                    "status": "ok",
+                    "width": 8
+                  },
+                  {
+                    "alias": "rdy",
+                    "requested_path": "stream_v1_top.rpkt_rdy",
+                    "resolved_path": "stream_v1_top.rpkt_rdy",
+                    "status": "ok",
+                    "width": 1
+                  },
+                  {
+                    "alias": "seq",
+                    "requested_path": "stream_v1_top.rpkt_seq",
+                    "resolved_path": "stream_v1_top.rpkt_seq",
+                    "status": "ok",
+                    "width": 16
+                  },
+                  {
+                    "alias": "sop",
+                    "requested_path": "stream_v1_top.rpkt_sop",
+                    "resolved_path": "stream_v1_top.rpkt_sop",
+                    "status": "ok",
+                    "width": 1
+                  },
+                  {
+                    "alias": "vld",
+                    "requested_path": "stream_v1_top.rpkt_vld",
+                    "resolved_path": "stream_v1_top.rpkt_vld",
+                    "status": "ok",
+                    "width": 1
+                  }
+                ],
+                "status": "ok",
+                "stream": "ready_packet"
+              }
+            ]
+          },
+          "ok": true,
+          "summary": {
+            "loaded": 1,
+            "mode": "replace"
+          }
+        }
+      },
+      {
+        "action": "stream.query",
+        "observation_id": "semantic_query",
+        "request": {
+          "cache_scope": "full",
+          "query": "summary",
+          "stream": "ready_packet",
+          "time_range": {
+            "begin": "0ns",
+            "end": "5us"
+          }
+        },
+        "response": {
+          "data": {},
+          "ok": true,
+          "summary": {
+            "analysis_complete": true,
+            "clock": "clk",
+            "clock_edges": 500,
+            "complete_packet_count": 123,
+            "control_xz_count": 0,
+            "data_xz_count": 0,
+            "edge": "posedge",
+            "filter_applied": false,
+            "first_transfer_time": "65ns",
+            "handshake": "vld/rdy",
+            "last_transfer_time": "4995ns",
+            "packet_count_status": "ambiguous",
+            "packet_enabled": true,
+            "packet_stable_mismatch_count": 0,
+            "partial_packet_count": 1,
+            "query": "summary",
+            "ready_bp_conflict_count": 0,
+            "requested_range": {
+              "begin": "0ns",
+              "end": "5000ns"
+            },
+            "response_truncated": false,
+            "returned_count": 0,
+            "sample_point": "after",
+            "sample_time_semantics": "time is sample_time",
+            "sampling_mode": "clock_edge",
+            "scan_complete": true,
+            "scanned_range": {
+              "begin": "5ns",
+              "end": "4995ns"
+            },
+            "stall_cycles": 0,
+            "stall_windows": 0,
+            "stream": "ready_packet",
+            "total_count": 124,
+            "transfer_count": 494,
+            "truncation_scopes": [],
+            "vld_cycles": 494
+          }
+        }
+      },
+      {
+        "action": "stream.query",
+        "observation_id": "invalid_range",
+        "request": {
+          "cache_scope": "range",
+          "query": "summary",
+          "stream": "ready_packet"
+        },
+        "response": {
+          "data": null,
+          "error": {
+            "code": "INVALID_REQUEST",
+            "correct_example": {
+              "action": "stream.query",
+              "api_version": "xdebug.v1",
+              "args": {
+                "cache_scope": "full",
+                "line_limit": 32,
+                "query": "summary",
+                "stream": "req_stream",
+                "time_range": {
+                  "begin": "0ns",
+                  "end": "1us"
+                }
+              },
+              "target": {
+                "session_id": "wave0"
+              }
+            },
+            "error_layer": "schema",
+            "expected": "type \"object\"",
+            "invalid_arg": "args.time_range",
+            "message": "invalid parameter args.time_range: at least one subschema has failed, but all of them are required to validate - required property 'time_range' not found in object; expected type \"object\"",
+            "received_type": "missing",
+            "recoverable": true,
+            "schema_path": "schemas/v1/actions/stream.query.request.schema.json",
+            "validation_issues": [
+              {
+                "message": "at least one subschema has failed, but all of them are required to validate - required property 'time_range' not found in object",
+                "path": "args"
+              },
+              {
+                "message": "[combination: allOf / case#0] required property 'time_range' not found in object",
+                "path": "args"
+              }
+            ]
+          },
+          "ok": false,
+          "summary": {
+            "error_code": "INVALID_REQUEST",
+            "status": "error"
+          }
+        }
+      },
+      {
+        "action": "stream.validate",
+        "observation_id": "invalid_static",
+        "request": {
+          "cache_scope": "full",
+          "dynamic": false,
+          "stream": "ready_packet"
+        },
+        "response": {
+          "data": null,
+          "error": {
+            "code": "INVALID_REQUEST",
+            "correct_example": {
+              "action": "stream.validate",
+              "api_version": "xdebug.v1",
+              "args": {
+                "cache_scope": "full",
+                "dynamic": true,
+                "line_limit": 256,
+                "stream": "req_stream",
+                "time_range": {
+                  "begin": "0ns",
+                  "end": "1us"
+                }
+              },
+              "target": {
+                "session_id": "wave0"
+              }
+            },
+            "error_layer": "schema",
+            "expected": "type \"object\"",
+            "invalid_arg": "args",
+            "message": "invalid parameter args: at least one subschema has failed, but all of them are required to validate - the subschema has succeeded, but it is required to not validate; expected type \"object\"",
+            "received_type": "object",
+            "recoverable": true,
+            "schema_path": "schemas/v1/actions/stream.validate.request.schema.json",
+            "validation_issues": [
+              {
+                "message": "at least one subschema has failed, but all of them are required to validate - the subschema has succeeded, but it is required to not validate",
+                "path": "args"
+              },
+              {
+                "message": "[combination: allOf / case#0] the subschema has succeeded, but it is required to not validate",
+                "path": "args"
+              }
+            ]
+          },
+          "ok": false,
+          "summary": {
+            "error_code": "INVALID_REQUEST",
+            "status": "error"
+          }
+        }
+      }
+    ],
+    "ready_packet_config": {
+      "beat_fields": {
+        "data": "data",
+        "seq": "seq"
+      },
+      "clock": "clk",
+      "description": "vld/rdy/sop/eop packet stream",
+      "edge": "posedge",
+      "eop": "eop",
+      "name": "ready_packet",
+      "packet_stable_fields": {
+        "opcode": "opcode"
+      },
+      "rdy": "rdy",
+      "reset": {
+        "polarity": "active_low",
+        "signal": "stream_v1_top.rst_n"
+      },
+      "signals": {
+        "clk": "stream_v1_top.clk",
+        "data": "stream_v1_top.rpkt_data",
+        "eop": "stream_v1_top.rpkt_eop",
+        "opcode": "stream_v1_top.rpkt_opcode",
+        "rdy": "stream_v1_top.rpkt_rdy",
+        "seq": "stream_v1_top.rpkt_seq",
+        "sop": "stream_v1_top.rpkt_sop",
+        "vld": "stream_v1_top.rpkt_vld"
+      },
+      "sop": "sop",
+      "vld": "vld"
+    },
+    "soft_lru": {
+      "private_eviction_classification": "proven-unobservable",
+      "private_probe": {
+        "event_counts": {
+          "build": 3,
+          "evict": 2,
+          "miss": 3,
+          "oversize_admitted": 3,
+          "scan": 3
+        },
+        "last": {
+          "access_sequence": 15,
+          "build_bytes": 0,
+          "entry_count": 1,
+          "evictions": 2,
+          "hits": 0,
+          "index_count": 0,
+          "key_summary": "56bf5f51feb61d90",
+          "misses": 3,
+          "resident_bytes": 183750,
+          "scanner_invocations": 3
+        },
+        "row_count": 14
+      },
+      "public_observations": [
+        {
+          "action": "stream.query",
+          "observation_id": "soft_range_0",
+          "request": {
+            "cache_scope": "range",
+            "query": "summary",
+            "stream": "ready_packet",
+            "time_range": {
+              "begin": "0ns",
+              "end": "5us"
+            }
+          },
+          "response": {
+            "data": {},
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "clock": "clk",
+              "clock_edges": 500,
+              "complete_packet_count": 123,
+              "control_xz_count": 0,
+              "data_xz_count": 0,
+              "edge": "posedge",
+              "filter_applied": false,
+              "first_transfer_time": "65ns",
+              "handshake": "vld/rdy",
+              "last_transfer_time": "4995ns",
+              "packet_count_status": "ambiguous",
+              "packet_enabled": true,
+              "packet_stable_mismatch_count": 0,
+              "partial_packet_count": 1,
+              "query": "summary",
+              "ready_bp_conflict_count": 0,
+              "requested_range": {
+                "begin": "0ns",
+                "end": "5000ns"
+              },
+              "response_truncated": false,
+              "returned_count": 0,
+              "sample_point": "before",
+              "sample_time_semantics": "time is sample_time",
+              "sampling_mode": "clock_edge",
+              "scan_complete": true,
+              "scanned_range": {
+                "begin": "5ns",
+                "end": "4995ns"
+              },
+              "stall_cycles": 0,
+              "stall_windows": 0,
+              "stream": "ready_packet",
+              "total_count": 124,
+              "transfer_count": 494,
+              "truncation_scopes": [],
+              "vld_cycles": 494
+            }
+          }
+        },
+        {
+          "action": "stream.query",
+          "observation_id": "soft_range_1",
+          "request": {
+            "cache_scope": "range",
+            "query": "summary",
+            "stream": "ready_packet",
+            "time_range": {
+              "begin": "5us",
+              "end": "10us"
+            }
+          },
+          "response": {
+            "data": {},
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "clock": "clk",
+              "clock_edges": 500,
+              "complete_packet_count": 124,
+              "control_xz_count": 0,
+              "data_xz_count": 0,
+              "edge": "posedge",
+              "filter_applied": false,
+              "first_transfer_time": "5005ns",
+              "handshake": "vld/rdy",
+              "last_transfer_time": "9995ns",
+              "packet_count_status": "ambiguous",
+              "packet_enabled": true,
+              "packet_stable_mismatch_count": 0,
+              "partial_packet_count": 2,
+              "query": "summary",
+              "ready_bp_conflict_count": 0,
+              "requested_range": {
+                "begin": "5000ns",
+                "end": "10000ns"
+              },
+              "response_truncated": false,
+              "returned_count": 0,
+              "sample_point": "before",
+              "sample_time_semantics": "time is sample_time",
+              "sampling_mode": "clock_edge",
+              "scan_complete": true,
+              "scanned_range": {
+                "begin": "5005ns",
+                "end": "9995ns"
+              },
+              "stall_cycles": 0,
+              "stall_windows": 0,
+              "stream": "ready_packet",
+              "total_count": 126,
+              "transfer_count": 500,
+              "truncation_scopes": [],
+              "vld_cycles": 500
+            }
+          }
+        },
+        {
+          "action": "stream.query",
+          "observation_id": "soft_range_2",
+          "request": {
+            "cache_scope": "range",
+            "query": "summary",
+            "stream": "ready_packet",
+            "time_range": {
+              "begin": "0ns",
+              "end": "5us"
+            }
+          },
+          "response": {
+            "data": {},
+            "ok": true,
+            "summary": {
+              "analysis_complete": true,
+              "clock": "clk",
+              "clock_edges": 500,
+              "complete_packet_count": 123,
+              "control_xz_count": 0,
+              "data_xz_count": 0,
+              "edge": "posedge",
+              "filter_applied": false,
+              "first_transfer_time": "65ns",
+              "handshake": "vld/rdy",
+              "last_transfer_time": "4995ns",
+              "packet_count_status": "ambiguous",
+              "packet_enabled": true,
+              "packet_stable_mismatch_count": 0,
+              "partial_packet_count": 1,
+              "query": "summary",
+              "ready_bp_conflict_count": 0,
+              "requested_range": {
+                "begin": "0ns",
+                "end": "5000ns"
+              },
+              "response_truncated": false,
+              "returned_count": 0,
+              "sample_point": "before",
+              "sample_time_semantics": "time is sample_time",
+              "sampling_mode": "clock_edge",
+              "scan_complete": true,
+              "scanned_range": {
+                "begin": "5ns",
+                "end": "4995ns"
+              },
+              "stall_cycles": 0,
+              "stall_windows": 0,
+              "stream": "ready_packet",
+              "total_count": 124,
+              "transfer_count": 494,
+              "truncation_scopes": [],
+              "vld_cycles": 494
+            }
+          }
+        }
+      ]
+    }
+  },
+  "classification": "proven-unobservable",
+  "closure": {
+    "differential_tool_classification_candidate": "proven-unobservable",
+    "private_cache_metrics_classification": "proven-unobservable",
+    "public_hard_limit_requires_current_gate": true,
+    "remaining_unmapped_public_observation_count": 0,
+    "stream_v1_classification_candidate": "semantic-equivalent"
+  },
+  "comparator": {
+    "compile_guard": "XDEBUG_STREAM_DIFFERENTIAL_TEST_BUILD",
+    "engine_failure_sentinels": [
+      "legacy stream differential oracle failed: ",
+      "stream columnar differential mismatch for "
+    ],
+    "interposed_actions": [
+      "stream.query",
+      "stream.export",
+      "stream.validate"
+    ],
+    "linked_object": "obj/tests/stream_differential/legacy_stream_oracle.o",
+    "public_action": false,
+    "public_replay": {
+      "artifact_check_count": 3,
+      "comparator_failure_count": 0,
+      "export_difference_count": 0,
+      "export_observation_count": 6,
+      "export_oracle_sha256": "66a9c58192c4f6ff95edc70ff67537425ddc1aaaa52ce32d667ec25b113b8c29",
+      "query_config_difference_count": 0,
+      "query_config_observation_count": 58,
+      "query_config_oracle_sha256": "8c40c3ecde23070d5879a0ed6e9160005ae6f6482f7b17ca9823a8d4f825c455",
+      "xout_check_count": 3
+    },
+    "remaining_public_difference_count": 0
+  },
+  "fixture_contract": {
+    "builder_argv": [
+      "make",
+      "stream-differential-test-dist",
+      "STREAM_DIFFERENTIAL_DIST={resources}/out"
+    ],
+    "outputs": [
+      {
+        "kind": "file",
+        "min_bytes": 1024,
+        "name": "frontend",
+        "path": "out/xdebug"
+      },
+      {
+        "kind": "file",
+        "min_bytes": 1024,
+        "name": "engine",
+        "path": "out/libexec/xdebug-engine"
+      }
+    ],
+    "reused_waveform_fixture_id": "xdebug.stream_v1",
+    "rtl_input_count": 0,
+    "source_dir": "xdebug",
+    "waveform_output_count": 0
+  },
+  "fixture_id": "xdebug.stream_differential_tool",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "locked_runtime": {
+    "action_count": 73,
+    "build_id": "846edd6800bd-6ace27b232adefe5a896cb4222f9ea539e6127e600baf1761e560ec103872574",
+    "cache_fingerprint": "d165237d0fd3e6e89fcd9eb15cb8e146bd09fe46895952e86729f79c026dddf1",
+    "cache_manifest_sha256": "dc5271fac8753dfcc2a82dcb135dc134fa7f4136da4c07588efef51b81ac576d",
+    "cache_reused": true,
+    "engine_sha256": "ac584ab512aac9122d2ebf656b3920da571edd224b7dc5692f25a6bd6e5683a0",
+    "fixture_rebuilt": false,
+    "fixture_version": "d165237d0fd3e6e89fcd9eb15cb8e146bd09fe46895952e86729f79c026dddf1-prepare-jat8dddw",
+    "frontend_sha256": "9a5467c8d1d15c20b30c5baf1065a1d79d902cf53784ed256fc7ef93009f0bba",
+    "legacy_object_sha256": "d8e3621cc1e13e929ac1b341634c1bb3284f34e62ddd9c470d96184be138ca14",
+    "npi_version": "X-2025.06-SP1",
+    "runtime_revision": "846edd6800bd",
+    "schema_revision": "6ace27b232adefe5a896cb4222f9ea539e6127e600baf1761e560ec103872574",
+    "source_access": "read_only",
+    "stream_fixture_version": "5eca27af24084f076f68c6a77c6fe0cb9e0a152332912dbf074cabc3b4600ede-prepare-c54cyr7t"
+  },
+  "public_boundary": {
+    "action_count": 73,
+    "private_action_count": 0,
+    "private_probe_fields": [
+      "access_sequence",
+      "build_bytes",
+      "entry_count",
+      "evictions",
+      "hits",
+      "index_count",
+      "key_summary",
+      "misses",
+      "resident_bytes",
+      "scanner_invocations"
+    ],
+    "private_probe_fields_in_public_schema": [],
+    "public_cache_error_code": "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+    "request_schemas": [
+      {
+        "action": "stream.query",
+        "schema_id": "xdebug.stream.query.request.v1",
+        "schema_path": "schemas/v1/actions/stream.query.request.schema.json",
+        "schema_sha256": "d78f86c4f2ec68cc3280a0d98a8b476bac8d8197d956cbe1bc78131d7d5780d8"
+      },
+      {
+        "action": "stream.export",
+        "schema_id": "xdebug.stream.export.request.v1",
+        "schema_path": "schemas/v1/actions/stream.export.request.schema.json",
+        "schema_sha256": "1486ffb99691e37549bb748bc6c0772e61d01428854da963f01d728d9fbccd16"
+      },
+      {
+        "action": "stream.validate",
+        "schema_id": "xdebug.stream.validate.request.v1",
+        "schema_path": "schemas/v1/actions/stream.validate.request.schema.json",
+        "schema_sha256": "e1e857f6ff57024be10c140d4913eb0878a6fe707283b843c291d58e0b339c2c"
+      }
+    ]
+  },
+  "schema_version": "xdebug.p3d-stream-differential-closure-audit.v1",
+  "session": {
+    "all_runtime_writes_repository_local": true,
+    "fallback_used": false,
+    "fixture_rebuilt": false,
+    "mode": "waveform",
+    "source_access": "read_only",
+    "transport": "uds"
+  },
+  "source_files": [
+    {
+      "path": "testinfra/fixtures.v1.yaml",
+      "sha256": "94fa39c04fdbcd51c052589194bb185ffaf44b71eb55d9c4a6d8a9785fe69de2",
+      "size": 25960
+    },
+    {
+      "path": "testinfra/catalog.v1.yaml",
+      "sha256": "93802cceb105db13fc78c10bf0fbc13b9b457461dfe27c5ec7987f97753156c2",
+      "size": 27308
+    },
+    {
+      "path": "xdebug/Makefile",
+      "sha256": "cc74e2aa4dcc6e443652cff882761f99ded226c83f3a77c2bb9b1686a5d559de",
+      "size": 21982
+    },
+    {
+      "path": "xdebug/tests/stream_differential/test_stream_differential.py",
+      "sha256": "fec752ffa8db5f1dcc79f2f591569928719852f13a92fbebbbd618178235417b",
+      "size": 1896
+    },
+    {
+      "path": "xdebug/tests/stream_differential/legacy_stream_oracle.h",
+      "sha256": "adf360f00b1bb4c3b7f0adf559e8fb2f08f54689537d9454af7dcb0d8a88cf2e",
+      "size": 621
+    },
+    {
+      "path": "xdebug/tests/stream_differential/legacy_stream_oracle.cpp",
+      "sha256": "6c8b05bcfe7ac03a2c82c75bb8b9da037973a7eb2cbfc3e4251ed41879a423e4",
+      "size": 4040
+    },
+    {
+      "path": "xdebug/tests/synthetic/test_stream_v1_real_waveform.py",
+      "sha256": "630cd72714450acd54da88e1439db2f507231543c478c83855b9d978292ec418",
+      "size": 50250
+    },
+    {
+      "path": "xdebug/src/engine/service/actions/stream/stream_query.cpp",
+      "sha256": "4191d584e0aef7f9c22fd4990150d115fbf3c0ebb77c0afd3bd9b67e6476ca16",
+      "size": 27513
+    },
+    {
+      "path": "xdebug/src/engine/service/actions/stream/stream_export.cpp",
+      "sha256": "0812f125a9f56f9e20a6436bc798d3f29ce5d5319e963b07f8e2024132819609",
+      "size": 14491
+    },
+    {
+      "path": "xdebug/src/engine/service/actions/stream/stream_validate.cpp",
+      "sha256": "7a2d2b08f6e8c407902baa4cdaee090f5461696aaadf03fa8969b83bfc1182e5",
+      "size": 12785
+    },
+    {
+      "path": "xdebug/src/waveform/cache/analysis_probe.h",
+      "sha256": "35252d34e8b15e1eed2ca8f68f35343b6092b7076a37932f139212cd2c785351",
+      "size": 1842
+    },
+    {
+      "path": "xdebug/src/waveform/cache/analysis_probe.cpp",
+      "sha256": "14adb48c77750cdb0223db9c49959c382477b244ba8db75570f29beda3fdb3ef",
+      "size": 4503
+    },
+    {
+      "path": "xdebug/src/waveform/cache/analysis_repository.cpp",
+      "sha256": "b0979f9676e9eca199cadd4a7b02329806aab2f83edcd0b8e5e19a8aadd401ee",
+      "size": 55448
+    },
+    {
+      "path": "xdebug/src/waveform/stream/stream_analyzer.cpp",
+      "sha256": "547cc6b118171386431416510e6b1ac65046bbe86d6118d31ba7e957772da083",
+      "size": 73269
+    },
+    {
+      "path": "xdebug/src/waveform/stream/stream_analyzer.h",
+      "sha256": "4cfb7cb0c185f197b5fe3122f900fc072b739ab9f02a41705dc03e50e891110f",
+      "size": 8188
+    }
+  ]
+}
