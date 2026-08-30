@@ -857,11 +857,25 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
   limits 边界全部失败。当前实现仍混入特殊分支 statement，把 S1 错判为两候选/七个 RHS，
   native flattened leaf 的局部端口映射、RHS 稳定排序、after evidence time 和 summary 宽度字段
   也尚未对齐。失败发生在业务断言内，不是 UDS、fixture、NPI 或环境失败。
+- 随后的通用实现修复没有使用 Phase5 case、fixture 路径或 oracle 常量。duplicate-top 公共路径
+  现在能区分 materialized unpacked element 与 packed selection，并用内部 base 绑定 loop selector；
+  已绑定用户选择器的 procedural loop 保留可表示的 statement/RHS 证据，不再误投影成无源码
+  endpoint。表达式临时量展开后重新执行唯一局部端口映射，普通 RHS 与 `rhs_loop_selected` 标记
+  同步映射；native dependency group 排除 target loop index，但保留 `mask_a[ln]`/`mask_b[ln]`。
+- 歧义响应按投影后的公共信号名稳定排序，before 仍指向前一真实变化，after 的 `value_time` 明确
+  使用 evidence active time；绑定 loop selection 的证据使用目标实际活动时刻。精确 materialized
+  loop element 不套用“唯一变化 RHS”消歧，packed selection 仍按完整 selector domain 评估。
+  `trace.active_driver_chain` 还显式发布 `value_width_complete=true,width_diagnostics=[]`，反映当前
+  FST/DesignDB 的精确宽度事实。
+- Phase5 专项从 2 pass/11 fail 转为 13/13 通过；P0 14、composite 42、Phase4 42、timing 26、
+  Phase5 13、combined 85 的联合相邻回归共 222/222 通过。`runtime-schema-validator`、
+  `xdd-design-backend`、`wellen-fst-backend` CTest 3/3 通过，增量构建和 `git diff --check` 通过；
+  未重建 fixture 或 CMake cache。
 - 红灯执行使用既有 `.conda-xverif` pytest 解释器，只禁用与本地单测无关的自动编排插件；
   `XVERIF_TEST_TMPDIR` 与 `--basetemp` 均显式指向当前仓库。整个批次遵守 Goal 唯一可写根
   `${REPO_ROOT}`（仅解析为本任务当前仓库根），未修改原版/依赖仓库，未发起 PR 或 push。
 
-### Phase5 红灯当前状态
+### Phase5 实现当前状态
 
 | 项 | 状态 | 证据 |
 | --- | --- | --- |
@@ -869,13 +883,15 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | 两份 RTL 与当前 fixture | 已完成 | RTL 逐字节相同；FST/XDD 连续两轮确定 |
 | red 门禁 | 已完成 | 2 pass/11 fail；11 项均为目标语义差异 |
 | runtime 写边界/fallback | 已通过 | 写入仅当前仓库；外部只读；零 fallback |
-| 通用实现修复 | 未开始 | 下一批提交，不与红灯基线混合 |
+| 通用实现修复 | 已完成 | Phase5 13/13；联合相邻回归 222/222 |
+| CTest | 已通过 | 关键 CTest 3/3 |
 | Phase5 矩阵关闭 | 未完成 | 仍保留 10 个 partial；P3-C queue=12 |
 
 ### 下一步
 
-1. 在通用 DesignDB/FST 路径修复 native flattened leaf 的 loop selector 与局部端口映射，并对齐
-   RHS 顺序、evidence time 和宽度完整性字段；Phase5 13 项须全部转绿，再运行 P3-C 相邻回归。
+1. 把十项完整公开响应、允许的 NPI→FST 表示投影和 Phase5 fixture/consumer 逐行写入语义矩阵，
+   运行 manifest/matrix 连续 write/check 稳定门禁后，才把十项 partial 升级为
+   semantic-equivalent；实现转绿本身不能提前关闭矩阵。
 2. 单独裁决 `fixture.active_trace_runner` 与 p0_4 declared-only orphan。p0_4 没有冻结 RTL/catalog
    request 时不得编造原版 fixture；只能补成有权威来源的动态合同，或给出受 schema/资产哈希约束
    的有限 proven-unobservable 证明。

@@ -335,6 +335,26 @@ SelectedDesignSignal resolve_selected_design_signal(
         signal,selected.base,selected.selector);
     if (selected.index<0&&selected.has_numeric_selector)
         selected.index=design.resolve(selected.base.c_str());
+    if (selected.index>=0&&selected.has_numeric_selector&&!selected.exact) {
+        // A duplicate HDL top is intentionally hidden from the public path.
+        // Treat an already materialized DesignDB element as exact when only
+        // that compatibility projection differs; a packed vector selection
+        // still resolves to an unselected base and therefore stays inexact.
+        const std::string resolved=signal_name(design,selected.index);
+        std::string resolved_base;
+        int64_t resolved_selector=0;
+        std::string canonical_request=signal;
+        if (canonical_request.rfind("TOP.",0)==0)
+            canonical_request="top."+canonical_request.substr(4);
+        if (final_numeric_selector(
+                resolved,resolved_base,resolved_selector)&&
+            resolved_selector==selected.selector&&
+            public_signal_name(resolved,canonical_request,true)==
+                canonical_request) {
+            selected.exact=true;
+            selected.base=std::move(resolved_base);
+        }
+    }
     return selected;
 }
 
@@ -619,13 +639,16 @@ bool select_native_flattened_leaf_facts(
     }
     std::map<int,size_t> next_selector;
     for (auto& driver : leaf_drivers) {
-        if (driver.dependency_role!="rhs") continue;
+        const bool data_dependency=driver.dependency_role=="rhs";
+        const bool loop_selected_marker=
+            driver.dependency_role=="rhs_loop_selected";
+        if (!data_dependency&&!loop_selected_marker) continue;
         const int flattened_source=driver.src_signal;
         const auto mapped=mapped_sources.find(driver.src_signal);
         if (mapped==mapped_sources.end()) continue;
         driver.src_signal=mapped->second;
         const int width=design.signal_width(leaf_target);
-        if (width>1&&rhs_occurrences[flattened_source]==
+        if (data_dependency&&width>1&&rhs_occurrences[flattened_source]==
                         static_cast<size_t>(width)&&
             design.signal_width(driver.src_signal)==width) {
             driver.has_rhs_numeric_selector=true;
@@ -648,7 +671,11 @@ void map_native_local_input_ports(
     const std::string target_scope=signal_scope(signal_name(design,target));
     if (target_scope.empty()) return;
     for (auto& driver : drivers) {
-        if (driver.dependency_role!="rhs"||driver.src_signal<0) continue;
+        if ((driver.dependency_role!="rhs"&&
+             driver.dependency_role!="rhs_loop_selected")||
+            driver.src_signal<0) {
+            continue;
+        }
         const std::string source=signal_name(design,driver.src_signal);
         if (source.empty()||signal_scope(source)==target_scope||
             is_scope_ancestor(target_scope,source)) {
@@ -684,6 +711,7 @@ std::vector<StatementGroup> native_dependency_groups(
         group.predicate="1";
         group.has_event_time=statement.has_event_time;
         group.event_time=statement.event_time;
+        group.target_loop_ranges=statement.target_loop_ranges;
         merged.push_back(std::move(group));
     }
     for (const auto& driver : drivers) {
@@ -696,6 +724,10 @@ std::vector<StatementGroup> native_dependency_groups(
         const auto found=positions.find(key);
         if (found==positions.end()) continue;
         auto& group=merged[found->second];
+        if (data_dependency&&
+            group.target_loop_ranges.count(driver.src_signal)>0) {
+            continue;
+        }
         group.records.push_back(driver);
         if (std::none_of(group.rhs.begin(),group.rhs.end(),
                 [&](const auto& item) {
@@ -2121,12 +2153,15 @@ bool known_bits(const std::string& bits) {
 
 Json ambiguity_value(const Sample& sample,IWaveformBackend& waveform,
                      TimeRenderUnit unit,ValueRenderFormat format,
-                     const char* missing_status="missing_value") {
+                     const char* missing_status="missing_value",
+                     bool override_value_time=false,
+                     uint64_t value_time=0) {
     if (!sample.ok) return {{"status",missing_status},{"value",nullptr},
         {"known",nullptr},{"value_time",nullptr}};
     return {{"status","ok"},{"value",logic_string(sample,format)},
         {"known",known_bits(sample.bits)},
-        {"value_time",waveform.format_time(sample.active_time,unit)}};
+        {"value_time",waveform.format_time(
+            override_value_time?value_time:sample.active_time,unit)}};
 }
 
 Json ambiguity_evidence(const std::string& kind,const std::string& signal,
@@ -2141,7 +2176,21 @@ Json ambiguity_evidence(const std::string& kind,const std::string& signal,
     size_t rhs_count=0,returned=0;
     for (const auto& group : groups) {
         Json samples=Json::array();
-        for (const auto& driver : group.rhs) {
+        std::vector<const IDesignBackend::DriverRecord*> ordered_rhs;
+        ordered_rhs.reserve(group.rhs.size());
+        for (const auto& driver : group.rhs) ordered_rhs.push_back(&driver);
+        std::stable_sort(ordered_rhs.begin(),ordered_rhs.end(),
+            [&](const auto* left,const auto* right) {
+                const std::string left_name=public_signal_name(
+                    driver_source_name(design,*left),requested_root,
+                    compatibility_projection);
+                const std::string right_name=public_signal_name(
+                    driver_source_name(design,*right),requested_root,
+                    compatibility_projection);
+                return left_name<right_name;
+            });
+        for (const auto* driver_ptr : ordered_rhs) {
+            const auto& driver=*driver_ptr;
             ++rhs_count;
             if (returned>=max_trace_signals) continue;
             const std::string source=driver_source_name(design,driver);
@@ -2158,7 +2207,7 @@ Json ambiguity_evidence(const std::string& kind,const std::string& signal,
             Json before_json=ambiguity_value(
                 before,waveform,unit,format,missing_status);
             Json after_json=ambiguity_value(
-                after,waveform,unit,format,missing_status);
+                after,waveform,unit,format,missing_status,true,active_time);
             Json changed=nullptr;
             if (before.ok&&after.ok) changed=before.bits!=after.bits;
             samples.push_back({{"signal",public_source},{"before",before_json},
@@ -2430,10 +2479,14 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 select_root_input_parent_driver_facts(
                     design,waveform,index,drivers,driver_index,
                     root_input_parent);
+            bool bound_loop_selection=false;
+            bool bound_exact_loop_selection=false;
             if (native_flattened_output) {
                 has_loop_selection_context=false;
             } else if (has_loop_selection_context&&bind_target_loop_indices(
                     design,loop_selection_context,drivers)) {
+                bound_loop_selection=true;
+                bound_exact_loop_selection=loop_selection_context.exact;
                 has_loop_selection_context=false;
             }
             if (duplicate_top_projection)
@@ -2441,10 +2494,18 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             annotate_output_instance_identities(design,driver_index,drivers);
             if (!native_flattened_output)
                 expand_expression_temporaries(design,waveform,drivers);
+            if (duplicate_top_projection) {
+                // Expression expansion can expose parent nets that were hidden
+                // behind compiler temporaries during the first mapping pass.
+                // Re-apply the same unique exact-scope rule to those new RHS
+                // facts so native-visible evidence remains instance-local.
+                map_native_local_input_ports(design,index,drivers);
+            }
             if (duplicate_top_projection)
                 annotate_native_source_loop_ranges(design,drivers);
             annotate_loop_selected_rhs(drivers);
             const bool native_loop_boundary=duplicate_top_projection&&
+                !bound_loop_selection&&
                 has_native_loop_selection_boundary(drivers);
             bool self_hold_backtrack_limited=false;
             auto evaluated=active_statement_groups_skipping_self_hold(
@@ -2528,7 +2589,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 ambiguity_kind="multiple_active_candidates";
             } else if (groups.size()==1&&groups[0].rhs.size()>1) {
                 ambiguity_kind="multiple_rhs_sources";
-                if (duplicate_top_projection) {
+                if (duplicate_top_projection&&!bound_exact_loop_selection) {
                     const NativeCandidateChange changes=native_candidate_changes(
                         groups[0],root,current_time,design,waveform);
                     if (changes.sampled_count==changes.candidate_count) {
@@ -2868,7 +2929,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     ?evaluated.unresolved:groups;
                 const size_t ambiguity_hop_index=stops_before_current_hop
                     ?hops.size():hops.size()-1;
-                const uint64_t evidence_time=duplicate_top_projection
+                const uint64_t evidence_time=
+                    duplicate_top_projection&&!bound_loop_selection
                     ?current_time:sample.active_time;
                 ambiguity=ambiguity_evidence(ambiguity_kind,current,root,
                     compatibility_projection,evidence_time,
@@ -2972,7 +3034,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             {"termination",termination},{"termination_detail",detail},
             {"scan_complete",complete},{"analysis_complete",complete},
             {"response_truncated",false},{"total_count",hops.size()},
-            {"returned_count",hops.size()},{"truncation_scopes",truncation}};
+            {"returned_count",hops.size()},{"truncation_scopes",truncation},
+            {"value_width_complete",true},{"width_diagnostics",Json::array()}};
         return {{"ok",true},{"summary",summary},{"data",data}};
     }
 
