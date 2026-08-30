@@ -9519,18 +9519,6 @@
       "active.phase5.08",
       "active.phase5.09",
       "active.phase5.10",
-      "active.timing.01",
-      "active.timing.02",
-      "active.timing.03",
-      "active.timing.04",
-      "active.timing.05",
-      "active.timing.06",
-      "active.timing.07",
-      "active.timing.08",
-      "active.timing.09",
-      "active.timing.10",
-      "active.timing.11",
-      "active.timing.12",
       "fixture.active_trace_runner"
     ],
     "P3-D": [
@@ -34201,84 +34189,140 @@
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_01/tb.sv",
+            "sha256": "a82c990363024f8bd2ff0668a24f3202f743362cae51bc0818cf2c51b19e6597"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 21,
+            "path": "testdata/fixtures/active_trace/timing/case_01/waves.fst",
+            "sha256": "b9f3de074ec7cebd6beb52439697fe2aacb3ea55a7d9828cee2f4078c8163f75"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -34340,6 +34384,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "c563473e02b4ff334d3823ee9be1d307290dab8e76facd995953460f2cb88cd6",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.01",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -34464,93 +34517,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.01",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.01",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_02/tb.sv",
+            "sha256": "a82c990363024f8bd2ff0668a24f3202f743362cae51bc0818cf2c51b19e6597"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 21,
+            "path": "testdata/fixtures/active_trace/timing/case_02/waves.fst",
+            "sha256": "b9f3de074ec7cebd6beb52439697fe2aacb3ea55a7d9828cee2f4078c8163f75"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -34612,6 +34750,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "c0151f776be4c70a308112b1132edf49e7b5a78e39c2e8ee23e6fadb0bc33489",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.02",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -34736,93 +34883,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "35ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.02",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.02",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_03/tb.sv",
+            "sha256": "c4325afdfec37aad0706594bf1e643d71cc874cdcc7d872b790653e8dcb63404"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 27,
+            "path": "testdata/fixtures/active_trace/timing/case_03/waves.fst",
+            "sha256": "dcf0a44a89f3776d08f4af279e1881304677f80c1a1af597c36aec3b3ce1446a"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -34884,6 +35116,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "8418396a3be21c9d06c8fc9982c7ffce78c88a56607d131c728dbf6384508b5f",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.03",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -35008,93 +35249,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.03",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.03",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_04/tb.sv",
+            "sha256": "5f06140ce705b1cdf8dc82891611e2db580ce26d9190f1e934243010aa81b8a3"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 29,
+            "path": "testdata/fixtures/active_trace/timing/case_04/waves.fst",
+            "sha256": "d735709fba52112e333a3684813dcc6701ebaed680cb78bae3eea986499da1e5"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -35156,6 +35482,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "3734bf001493570bbccc96e3567a704c910c50967881b347efe7a27d03d93708",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.04",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -35280,93 +35615,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.04",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.04",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_05/tb.sv",
+            "sha256": "e165cf3bfa19b9ad1810e66674493f87f45e6e42e37781ee2756ccd2a8db18b3"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 22,
+            "path": "testdata/fixtures/active_trace/timing/case_05/waves.fst",
+            "sha256": "9ac027dbd3f5ab7486294167781c2ce6dcab9c5bcc68441131ec175d282d2d7c"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -35428,6 +35848,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "9e766ebffd68e9abc9ed26b4e5695f720dbbfe086893afa32d7e35626e432709",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.05",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -35552,93 +35981,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.05",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.05",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_06/tb.sv",
+            "sha256": "002a9e0a218d8a16f5d23dbf89ed1d613d878472d32943f5c8f114e699d039bd"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 22,
+            "path": "testdata/fixtures/active_trace/timing/case_06/waves.fst",
+            "sha256": "3799e7b88bb58622491e3070bf05685a96d2231f87f32f1f1978ff9f5e2340a3"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -35700,6 +36214,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "b7cce73667db4a57897648c41e98a1fbb9d0ec3dc1e1bf00971dca6f9bd76c97",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.06",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -35824,93 +36347,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.06",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.06",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_07/tb.sv",
+            "sha256": "ef07545e538edaa6bb6311a6b78506fb26950da00430a09ca8790e68b5abe57b"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 21,
+            "path": "testdata/fixtures/active_trace/timing/case_07/waves.fst",
+            "sha256": "6b94b8a2ae2ee25d2778f5603f52f2e9fe2febc27105d1ce284cfb351695063d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -35972,6 +36580,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "347c4ea1e46a0eb7503a904f1894f3bf3b0d8bc48b80c943a55003ceffec3582",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.07",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -36096,93 +36713,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.07",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.07",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_08/tb.sv",
+            "sha256": "89c1eb42baa68a8848655adc064f517af34ae3a8200cd733850cb9f2b5e164b4"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 16,
+            "path": "testdata/fixtures/active_trace/timing/case_08/waves.fst",
+            "sha256": "1d9d6782dc664b9f42665fa53fd0c0581b4720eeb6a3c20c449221f18fe300f5"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -36244,6 +36946,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "ac3502fe869363990852178690a649bfc7de59464533eccbc6f405cd5ffb2798",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.08",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -36368,93 +37079,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.08",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.08",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_09/tb.sv",
+            "sha256": "6d7abbaadca5cded96983ee2b7962dc3e119c42f49b2f5f05b5b8da1de056bd0"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
             "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "path": "testdata/fixtures/active_trace/timing/case_09/waves.fst",
+            "sha256": "b91c92529f94b385d00b564b49fa8cd1b04b05e00d659ddc6862828db69c97fe"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -36516,6 +37312,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "5435991f6db057320eae86a9a14a61d69486b8daf15eb97ad2157e1e60295ac5",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.09",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -36640,93 +37445,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.09",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.09",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_10/tb.sv",
+            "sha256": "a82c990363024f8bd2ff0668a24f3202f743362cae51bc0818cf2c51b19e6597"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 21,
+            "path": "testdata/fixtures/active_trace/timing/case_10/waves.fst",
+            "sha256": "b9f3de074ec7cebd6beb52439697fe2aacb3ea55a7d9828cee2f4078c8163f75"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -36788,6 +37678,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "4c58ae2d6cd2430a978702e0df3231ff569e05557d2e1afe24cbc5012381d4a4",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.10",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -36912,93 +37811,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "15ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.10",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.10",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_11/tb.sv",
+            "sha256": "a690716150cb0212cffb5368fbde3f25f3d94ef334880d62d20f129a94e4191d"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 27,
+            "path": "testdata/fixtures/active_trace/timing/case_11/waves.fst",
+            "sha256": "bbb4589affcfa51e2a8ca581b0dd91082614513541ea093582f1c0b30a7b096f"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -37060,6 +38044,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "a39a3d7e251c12e039bf5a6ec0cca336503ae8309473d8fe0d10ad39cf3f7d31",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.11",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -37184,93 +38177,178 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.11",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.11",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                7
-              ],
               "clock": [
-                2,
-                7
+                4,
+                9,
+                11
+              ],
+              "delay": [
+                7,
+                11,
+                15,
+                16,
+                17,
+                18
               ],
               "four_state_literal": [
-                9,
-                10,
-                12,
-                13
+                11,
+                14,
+                15,
+                16,
+                17
               ],
-              "if": [
-                8
+              "initial": [
+                11,
+                13
               ],
               "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
+                3
               ]
             },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "rtl",
             "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
+            "line_count": 20,
+            "path": "testdata/fixtures/active_trace/rtl/timing/case_12/tb.sv",
+            "sha256": "214d7d281d60dcdc21a92dc0656e8ef8f31cf69b581543a6bb4a137320166c3c"
           },
           {
+            "construct_lines": {
+              "always": [
+                29
+              ],
+              "clock": [
+                11,
+                29
+              ],
+              "continuous_assign": [
+                19,
+                22,
+                24,
+                36,
+                39,
+                41,
+                44
+              ],
+              "delay": [
+                5
+              ],
+              "four_state_literal": [
+                22,
+                30,
+                39
+              ],
+              "generate": [
+                20,
+                37
+              ],
+              "if": [
+                21,
+                30,
+                38
+              ],
+              "module": [
+                5
+              ],
+              "nonblocking_assignment": [
+                30,
+                31
+              ],
+              "procedural_for": [
+                20,
+                37
+              ]
+            },
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
+            "kind": "rtl",
+            "line_anchor": 5,
+            "line_count": 45,
+            "path": "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv",
+            "sha256": "29dd009c6a454aa544843d14467d1ee9475126a36fd3bc4663a5940dca261e83"
           },
           {
             "fixture_ids": [
-              "current.counter"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 23,
+            "path": "testdata/fixtures/active_trace/timing/case_12/waves.fst",
+            "sha256": "d938fda9828a9b293bdf7602ead64821ff7fa0362bc15c9b080330de99c35cb4"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为当前完整公开链的首跳前缀，不扩展冻结公开 schema",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 81,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 403,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_uses_changed_event_time"
+            "line": 156,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 203,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_matches_locked_native_temporal_prefix_semantics"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3c_active_trace_timing.py",
+            "sha256": "d053eeaa836e64238b52c0639a8eca8d8d2946623b164583bbd474bb83f184c0",
+            "test": "test_p3c_timing_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -37332,6 +38410,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_timing",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "960503b881df80709ba2514461461f93a91825e4c5684b0d150b77d92c31244b",
+          "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+          "scenario_id": "active.timing.12",
+          "temporal_boundaries": 1,
+          "termination": "temporal_boundary",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.data_out",
@@ -37456,11 +38543,40 @@
         "args": {
           "signal": "top.data_out",
           "time": "75ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "temporal_boundary",
+        "locked_temporal_boundaries": 1,
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.timing.12",
+        "scheduler_projection": {
+          "current_observation": "Verilator FST can collapse the output propagation into the source NBA slot",
+          "kind": "same_slot_nba_active_time_projection",
+          "native_observation": "VCS FSDB exposes staged array propagation at the next matching NBA sensitivity edge",
+          "public_resolution": "project only when the DesignDB continuous-driver graph, same-array propagation, unique NBA event and next matching edge gates all succeed; otherwise fail closed",
+          "raw_waveforms_declared_exact": false
+        },
+        "schema_projections": [
+          {
+            "kind": "native_stop_on_temporal_prefix",
+            "native_shape": "private stop_on_temporal=true returns one temporal_boundary hop",
+            "public_shape": "frozen v1 has no stop_on_temporal; exact native hop is gated as the prefix of a complete untruncated public chain"
+          }
+        ],
+        "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.timing.12",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -45630,9 +46746,9 @@
     "scenario_count": 88,
     "status_counts": {
       "missing": 2,
-      "partial": 31,
+      "partial": 19,
       "proven-unobservable": 2,
-      "semantic-equivalent": 53
+      "semantic-equivalent": 65
     },
     "unclassified_count": 0,
     "unqueued_gap_count": 0

@@ -743,7 +743,7 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | 外部零写入/零 fallback | 已通过 | 完整外部 snapshot 与 Phase4 结束态一致 |
 | composite 测试/证据 commit | 已完成 | `ad19d52` / 本批当前提交 |
 
-### 下一步
+### composite 批次结束时的下一步（已由 timing 批次推进）
 
 1. P3-C 保持进行中，下一批逐项处理 timing 12、phase5 10，以及
    `fixture.active_trace_runner` 和 p0_4 declared-only orphan，共 24 项；共享 DUT 不能替代每个
@@ -751,3 +751,85 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 2. Phase5 必须单独关闭完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
    statement 和源码证据。p0_4 若无法建立原版动态 oracle，必须按冻结资产/schema 给出受限的
    proven-unobservable 证明，不能编造原版 fixture。
+
+### 2026-08-30：P3-C timing 十二场景补测
+
+- 红灯提交 `ad6f5f3` 逐项镜像 `case_01`～`case_12` 和共享
+  `timing_boundary_dut.sv`，13 份 RTL 均与原版逐字节相同。每个 case 提交独立原始 FST、
+  binary-v1 XDD、manifest 和覆盖 case RTL、共享 RTL、dump probe、FST、XDD、manifest 六个
+  传递输入的 `fixture.sha256`。选择性生成器连续构建两轮，12 组 FST/XDD 的大小和 SHA-256
+  逐项相同；没有用单个波形或共享 DUT 结果代替其余参数/时间组合。
+- 原版只读 cache 指纹为
+  `1042c712bf8a59877d837e55ffd4e986a62eefc16aba01eaec2d6e459eca5fb5`，复用实例后缀
+  `prepare-d9oyxhx2`；native runner SHA-256 为
+  `f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237`，NPI 为
+  `X-2025.06-SP1`。oracle
+  `tests/data/rtl_wave_differential/p3c-timing.original-oracle.json` 的 SHA-256 为
+  `2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c`；12 行均
+  `fixture_rebuilt=false`、`fallback_used=false`、`truncated=false`、limitations 为空。
+- 锁定原版 12 行均为 `temporal_boundary/1 hop`，driver 是共享 DUT 第 44 行的
+  `cont_assign`，且 `temporal_boundary_stops=1`。活动时刻依次为
+  `55ns, 25ns, 55ns×6, 45ns, 0, 55ns×2`；case 02 的值为 `A5`，case 10 保留 native
+  `value_known=true` 但 value 空串，其余为 `5A`。case 10 不臆测原版空串，而用当前 FST 在
+  原版活动时刻的 `value.at` 锁住投影后的实际已知值。
+- 有效红灯共 26 项，结果为 15 pass/11 fail：oracle、13 份 RTL、12 组 fixture 哈希和 limits
+  先通过；除 `NUM_PRE=0` 的 case 09 外，11 个动态 case 只在首 hop `active_time` 失败。原始
+  Verilator FST 会把分级 unpacked-array 传播折叠到源 NBA 同槽，常见根变化为 15/45ns；VCS
+  FSDB 在下一匹配敏感边沿观测为 25/55ns。case 09 没有前级数组传播，双方原始时刻同为 45ns。
+  这项差异被明确记录为 simulator scheduling projection，没有宣称原始 FSDB/FST transition
+  逐点相同。
+- 实现提交 `31bdddf` 只使用通用 DesignDB/FST 事实：先确认重复 HDL top 兼容投影，沿连续
+  driver 图识别同一 unpacked-array base 的传播负载，要求原始变化槽只有唯一 active NBA，并
+  要求末端数组元素在同槽真实变化，再扫描下一匹配 sensitivity edge。所有结构门同时成立才把
+  root 活动时刻投影到原版边界；不完整、歧义或 `max_nodes` 用尽即 fail closed。查询窗口在下一
+  边沿前结束的 case 10 回退到前一 root transition 及其值，`NUM_PRE=0` 的 case 09 保持原始
+  45ns。生产代码没有 case 名、fixture 路径、oracle 常量或工具后端特判。
+- 原版 runner 的 `stop_on_temporal=true` 是私有采集开关，冻结公开 v1 request schema 明确
+  `additionalProperties=false` 且没有该字段。当前不扩展 schema，而把原版单跳停止结果严格作为
+  完整、非截断公开链的首 hop 前缀；矩阵逐行记录
+  `native_stop_on_temporal_prefix` 和 `same_slot_nba_active_time_projection`，公开请求只保留
+  signal/time，并显式使用 `max_depth=64,max_nodes=64`。limits 独立用例仍要求 1 节点/1 深度返回
+  analysis boundary，不把限制当 response truncation 或 fallback。
+- timing 正式门禁 26/26 通过；P0+composite+Phase4+timing+combined 聚焦回归 209/209 通过；
+  manifest/matrix/P3-B/producer 静态门禁 37/37 通过；`runtime-schema-validator`、
+  `xdd-design-backend`、`wellen-fst-backend` CTest 3/3 通过，`git diff --check` 通过。一次 bare
+  pytest 被锁定解释器内自动加载的外部 xverif 编排插件拒绝，一次未设置短临时根导致所有动态项
+  在业务断言前统一 UDS 启动失败；最终只禁用该无关 pytest 插件，并设置当前仓库内
+  `XVERIF_TEST_TMPDIR=.tmp/socket` 后，用同一 binary、UDS、fixture、backend 和断言全部转绿，
+  不是语义 fallback。
+- manifest 更新为原版 359 assets/103 RTL/23 fixture/260 consumer/25 outputs，当前 520 assets/
+  77 RTL/74 FST/1 VCD/67 consumer；零 missing asset、零未归属原版 HDL。manifest SHA-256 为
+  `2117e51ce13742dbc3caa70314da893828e0c7f3fd76cf049270ca60a37e015a`；矩阵 SHA-256 为
+  `27af6e7594d39574bb924c938819a49d28d3c1097e2c972437cb5afafe29e455`。两者按
+  manifest write→matrix write→manifest write→matrix check→manifest check 到达可重复稳定点。
+- 十二项 timing 从 partial 升级为 semantic-equivalent，矩阵变为
+  `semantic-equivalent=65, proven-unobservable=2, partial=19, missing=2`；P3-C 队列从 24
+  降为 12，只剩 Phase5 十项、`fixture.active_trace_runner` 和 p0_4 declared-only orphan。
+  每行只绑定本 case RTL、共享 timing DUT 和本 case FST，未顺带关闭其余缺口。
+- 本批前后 manifest 结构化外部审计的排序 JSON SHA-256 均为
+  `b36b1c254efbe860544f135e0fd964b9cd6fedd0cbb1bb32c7b3aae5de8c4bcb`：xverif 保持
+  HEAD `5110099482b...` 和 18 个既有 dirty/untracked 条目逐路径、状态、大小、内容不变；Wellen
+  `afab0abd...`、Verilator `bf01d667...` 均 clean。所有 HOME/TMP/socket/build/session 输出均在
+  当前仓库；没有越过 Goal 的唯一可写根，没有 fixture fallback、PR 或 push。
+
+### P3-C timing 当前状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 十二份 case RTL/共享 RTL | 已完成 | 13 份逐字节相同；12 个 fixture、72 条传递哈希锁 |
+| 锁定原版 native oracle | 已完成 | 12/12；只读 cache；oracle `2a67dd92...` |
+| timing 精确差分 | 已通过 | 26/26；私有停止前缀、活动时刻、值与 limits |
+| 实现/聚焦回归 | 已通过 | `31bdddf`；209/209 |
+| CTest | 已通过 | 关键 CTest 3/3 |
+| manifest/matrix 门禁 | 已通过 | 静态联合 37/37；连续 write/check 稳定 |
+| timing 矩阵关闭 | 已完成 | 12 semantic-equivalent；剩余 P3-C queue=12 |
+| 外部零写入/零 fallback | 已通过 | 前后 audit snapshot `b36b1c25...` 相同 |
+| timing red/green/证据 commit | 已完成 | `ad6f5f3` / `31bdddf` / 本批当前提交 |
+
+### 下一步
+
+1. P3-C 继续处理 Phase5 十个场景，逐项关闭 width、RHS 顺序、statement、源码证据和完整响应；
+   已有 termination/ambiguity 子集门禁不能替代完整差分。
+2. 单独裁决 `fixture.active_trace_runner` 与 p0_4 declared-only orphan。p0_4 没有冻结 RTL/catalog
+   request 时不得编造原版 fixture；只能补成有权威来源的动态合同，或给出受 schema/资产哈希约束
+   的有限 proven-unobservable 证明。

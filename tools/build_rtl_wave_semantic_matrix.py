@@ -48,6 +48,9 @@ P3C_COMPOSITE_ORACLE = Path(
 P3C_PHASE4_ORACLE = Path(
     "tests/data/rtl_wave_differential/p3c-phase4.original-oracle.json"
 )
+P3C_TIMING_ORACLE = Path(
+    "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json"
+)
 AI_COMPLEX_RUNNER_SHA256 = (
     "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724"
 )
@@ -68,6 +71,10 @@ P3C_COMPOSITE_FIXTURE_VERSION = (
 P3C_PHASE4_FIXTURE_VERSION = (
     "6a9d0fea1e9c68057e2ef12906dfd23f73a8a14622fc09b3be9798ee859b09ae-"
     "prepare-m3d4_3z7"
+)
+P3C_TIMING_FIXTURE_VERSION = (
+    "1042c712bf8a59877d837e55ffd4e986a62eefc16aba01eaec2d6e459eca5fb5-"
+    "prepare-d9oyxhx2"
 )
 
 ALLOWED_STATUSES = {
@@ -381,11 +388,17 @@ ACTIVE_CANDIDATES = {
         ),
     },
     "timing": {
-        "fixtures": ["current.counter"],
+        "fixtures": ["current.active_trace"],
         "tests": [
-            "test_trace_active_driver_chain_propagates_through_nba_active_time",
-            "test_trace_active_driver_chain_uses_changed_event_time",
+            "test_p3c_timing_oracle_is_locked_complete_and_sanitized",
+            "test_p3c_timing_exact_rtl_and_generated_fixture_hashes",
+            "test_p3c_timing_matches_locked_native_temporal_prefix_semantics",
+            "test_p3c_timing_limits_are_explicit_analysis_boundaries",
         ],
+        "evidence_scope": (
+            "十二份原版 case RTL 与共享 timing DUT 字节相同；锁定 native NPI "
+            "stop-on-temporal oracle 与当前完整公开链按首个时序边界逐项通过"
+        ),
     },
     "phase4": {
         "fixtures": ["current.active_trace"],
@@ -954,6 +967,218 @@ def validate_p3c_composite_oracle(
 
     if source_less_hops != 5:
         raise MatrixError("P3-C composite source-less endpoint count drifted")
+    return result
+
+
+def validate_p3c_timing_oracle(
+    oracle: dict,
+    repo_root: Path,
+    original_assets: dict[str, dict],
+    current_assets: dict[str, dict],
+) -> dict[str, dict]:
+    if oracle.get("schema_version") != \
+            "xdebug.p3c-original-active-trace-oracle.v1":
+        raise MatrixError("P3-C timing oracle has the wrong schema_version")
+    if oracle.get("goal_id") != GOAL_ID or oracle.get("group") != "timing":
+        raise MatrixError("P3-C timing oracle belongs to a different Goal/group")
+    if oracle.get("locked_runtime") != {
+        "cache_reused": True,
+        "fixture_rebuilt": False,
+        "fixture_version": P3C_TIMING_FIXTURE_VERSION,
+        "npi_version": "X-2025.06-SP1",
+        "runner_sha256": P3C_P0_RUNNER_SHA256,
+        "source_access": "read_only",
+    }:
+        raise MatrixError("P3-C timing locked native runtime/cache identity drifted")
+    if oracle.get("session") != {
+        "all_runtime_writes_repository_local": True,
+        "fallback_used": False,
+        "mode": "native_chain_test",
+    }:
+        raise MatrixError("P3-C timing write/fallback boundary is not proven")
+
+    catalog_asset = original_assets.get(ACTIVE_CATALOG.as_posix())
+    mirrored_catalog = current_assets.get(
+        "testdata/fixtures/active_trace/original-cases.v1.yaml"
+    )
+    catalog = oracle.get("catalog", {})
+    if (
+        catalog_asset is None
+        or mirrored_catalog is None
+        or catalog.get("schema_version") != "xdebug-active-trace-cases.v1"
+        or catalog.get("row_count") != 12
+        or catalog.get("sha256") != catalog_asset["sha256"]
+        or mirrored_catalog["sha256"] != catalog_asset["sha256"]
+    ):
+        raise MatrixError("P3-C timing catalog identity drifted")
+
+    rows = oracle.get("rows")
+    if not isinstance(rows, list) or len(rows) != 12:
+        raise MatrixError("P3-C timing oracle must contain exactly twelve rows")
+
+    expected_request_times = [
+        "75ns", "35ns", "75ns", "75ns", "75ns", "75ns",
+        "75ns", "75ns", "75ns", "15ns", "75ns", "75ns",
+    ]
+    expected_active_times = [
+        "55.0n", "25.0n", "55.0n", "55.0n", "55.0n", "55.0n",
+        "55.0n", "55.0n", "45.0n", "0.00", "55.0n", "55.0n",
+    ]
+    expected_values = [
+        "01011010", "10100101", "01011010", "01011010",
+        "01011010", "01011010", "01011010", "01011010",
+        "01011010", "", "01011010", "01011010",
+    ]
+    digest_pattern = re.compile(r"[0-9a-f]{64}")
+    shared_original = (
+        "xdebug/tests/active_trace_chain/timing/timing_boundary_dut.sv"
+    )
+    shared_current = (
+        "testdata/fixtures/active_trace/rtl/timing/timing_boundary_dut.sv"
+    )
+    result = {}
+    for ordinal, (row, request_time, active_time, expected_value) in enumerate(
+            zip(rows, expected_request_times, expected_active_times,
+                expected_values), 1):
+        scenario_id = f"active.timing.{ordinal:02d}"
+        case = f"case_{ordinal:02d}"
+        if (
+            row.get("scenario_id") != scenario_id
+            or row.get("catalog_index") != ordinal
+            or row.get("case") != case
+        ):
+            raise MatrixError(f"P3-C timing row identity drifted: {scenario_id}")
+
+        case_original = (
+            f"xdebug/tests/active_trace_chain/timing/{case}/tb.sv"
+        )
+        case_current = (
+            f"testdata/fixtures/active_trace/rtl/timing/{case}/tb.sv"
+        )
+        mirror_paths = [
+            (case_original, case_current),
+            (shared_original, shared_current),
+        ]
+        mirrors = row.get("rtl_mirrors")
+        if not isinstance(mirrors, list) or len(mirrors) != 2:
+            raise MatrixError(
+                f"P3-C timing RTL mirror inventory drifted: {scenario_id}"
+            )
+        by_paths = {
+            (mirror.get("original_path"), mirror.get("current_path")): mirror
+            for mirror in mirrors
+        }
+        for original_path, current_path in mirror_paths:
+            mirror = by_paths.get((original_path, current_path), {})
+            original_asset = original_assets.get(original_path)
+            current_asset = current_assets.get(current_path)
+            if (
+                mirror.get("byte_identical") is not True
+                or original_asset is None
+                or current_asset is None
+                or mirror.get("sha256") != original_asset["sha256"]
+                or current_asset["sha256"] != original_asset["sha256"]
+                or mirror.get("size") != original_asset["size_bytes"]
+                or current_asset["size_bytes"] != original_asset["size_bytes"]
+            ):
+                raise MatrixError(
+                    f"P3-C timing RTL mirror drifted: {scenario_id}"
+                )
+
+        fixture_root = f"testdata/fixtures/active_trace/timing/{case}"
+        lock_path = f"{fixture_root}/fixture.sha256"
+        lock_asset = current_assets.get(lock_path)
+        if lock_asset is None:
+            raise MatrixError(
+                f"P3-C timing fixture lock is missing: {scenario_id}"
+            )
+        recorded = {}
+        lock_text = validate_frozen_file(repo_root, lock_asset).decode("utf-8")
+        for line in lock_text.splitlines():
+            checksum, path = line.split(maxsplit=1)
+            recorded[path] = checksum
+        expected_paths = {
+            case_current,
+            shared_current,
+            "testdata/fixtures/active_trace/dump_probe.sv",
+            f"{fixture_root}/waves.fst",
+            f"{fixture_root}/design_db/Vactive_trace__DesignDb.xddb",
+            f"{fixture_root}/design_db/xdebug-design-db.json",
+        }
+        if set(recorded) != expected_paths:
+            raise MatrixError(
+                f"P3-C timing fixture lock inventory drifted: {scenario_id}"
+            )
+        for path, checksum in recorded.items():
+            asset = current_assets.get(path)
+            if (
+                asset is None
+                or not digest_pattern.fullmatch(checksum)
+                or asset["sha256"] != checksum
+            ):
+                raise MatrixError(
+                    f"P3-C timing fixture evidence drifted: {scenario_id}: {path}"
+                )
+
+        request = row.get("request", {})
+        if request != {
+            "signal": "top.data_out",
+            "stop_on_temporal": True,
+            "time": request_time,
+        }:
+            raise MatrixError(f"P3-C timing request drifted: {scenario_id}")
+        original_fixture = row.get("fixture", {})
+        if (
+            not digest_pattern.fullmatch(original_fixture.get("fsdb_sha256", ""))
+            or original_fixture.get("fsdb_size", 0) <= 0
+        ):
+            raise MatrixError(
+                f"P3-C timing original fixture proof drifted: {scenario_id}"
+            )
+
+        native = row.get("native_result", {})
+        chain = native.get("chain")
+        if (
+            native.get("termination") != "temporal_boundary"
+            or native.get("total_hops") != 1
+            or native.get("active_trace_calls") != 1
+            or native.get("temporal_boundaries") != 1
+            or native.get("temporal_boundary_stops") != 1
+            or native.get("edgecheck_direct_count") != 1
+            or native.get("fallback_0_5ns_count") != 0
+            or native.get("truncated") is not False
+            or native.get("limitations") != []
+            or native.get("branch_evidence") != []
+            or not isinstance(chain, list)
+            or len(chain) != 1
+            or row.get("catalog_expectation") != {}
+        ):
+            raise MatrixError(
+                f"P3-C timing native result is incomplete: {scenario_id}"
+            )
+        hop = chain[0]
+        if (
+            hop.get("hop") != 0
+            or hop.get("hop_type") != "temporal_boundary"
+            or hop.get("driver_kind") != "cont_assign"
+            or hop.get("signal") != "top.data_out"
+            or hop.get("requested_time") != request_time
+            or hop.get("file") != shared_original
+            or hop.get("line") != 44
+            or hop.get("value_known") is not True
+            or hop.get("value") != expected_value
+        ):
+            raise MatrixError(
+                f"P3-C timing native hop drifted: {scenario_id}"
+            )
+        if (
+            hop.get("active_time") != active_time
+            or hop.get("next_time") != active_time
+        ):
+            raise MatrixError(
+                f"P3-C timing temporal boundary drifted: {scenario_id}"
+            )
+        result[scenario_id] = row
     return result
 
 
@@ -1954,6 +2179,22 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         original_assets,
         current_assets,
     )
+    p3c_timing_oracle_asset = current_assets.get(
+        P3C_TIMING_ORACLE.as_posix()
+    )
+    if p3c_timing_oracle_asset is None:
+        raise MatrixError("P0 manifest does not freeze the P3-C timing oracle")
+    p3c_timing_oracle = json.loads(
+        validate_frozen_file(
+            repo_root, p3c_timing_oracle_asset
+        ).decode("utf-8")
+    )
+    p3c_timing_rows = validate_p3c_timing_oracle(
+        p3c_timing_oracle,
+        repo_root,
+        original_assets,
+        current_assets,
+    )
     p3c_phase4_oracle_asset = current_assets.get(
         P3C_PHASE4_ORACLE.as_posix()
     )
@@ -2123,6 +2364,7 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         rationale = "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。"
         p0_runtime_row = None
         composite_runtime_row = None
+        timing_runtime_row = None
         phase4_runtime_row = None
         if group == "p0":
             p0_runtime_row = p3c_p0_rows[scenario_id]
@@ -2179,6 +2421,37 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                 "原版 case RTL 与共享 DUT 均和当前镜像逐字节相同；锁定 native NPI "
                 "oracle 和当前原始 FST/binary-v1 DesignDB 已按完整复合链、时间边界、"
                 "源码行、值、generate 逐位候选、termination 与完整性逐项通过。"
+            )
+        if group == "timing":
+            timing_runtime_row = p3c_timing_rows[scenario_id]
+            if (
+                timing_runtime_row["case"] != row["case"]
+                or timing_runtime_row["request"]["signal"] !=
+                    original["query"]["signal"]
+                or timing_runtime_row["request"]["time"] !=
+                    original["query"]["time"]
+            ):
+                raise MatrixError(
+                    f"P3-C timing oracle differs from frozen catalog: "
+                    f"{scenario_id}"
+                )
+            native = timing_runtime_row["native_result"]
+            original["locked_native_oracle"] = {
+                "path": P3C_TIMING_ORACLE.as_posix(),
+                "scenario_id": scenario_id,
+                "termination": native["termination"],
+                "total_hops": native["total_hops"],
+                "temporal_boundaries": native["temporal_boundaries"],
+                "truncated": native["truncated"],
+                "original_fsdb_sha256":
+                    timing_runtime_row["fixture"]["fsdb_sha256"],
+            }
+            status = "semantic-equivalent"
+            rationale = (
+                "原版 case RTL 与共享 timing DUT 均和当前镜像逐字节相同；锁定 "
+                "native stop-on-temporal 单跳 oracle 是当前完整公开链的精确首跳前缀。"
+                "同槽 NBA 调度差异仅在结构门控条件成立时投影到原版活动边界，并由十二"
+                "场景逐项门禁约束，未宣称原始 FSDB/FST 转换时刻逐点相同。"
             )
         if group == "phase4":
             phase4_runtime_row = p3c_phase4_rows[scenario_id]
@@ -2356,6 +2629,75 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                 "time": composite_runtime_row["request"]["time"],
             }
             public_limits = {"max_depth": 11}
+        elif group == "timing":
+            native = timing_runtime_row["native_result"]
+            exact_current_paths = {
+                *(mirror["current_path"]
+                  for mirror in timing_runtime_row["rtl_mirrors"]),
+                (
+                    "testdata/fixtures/active_trace/timing/"
+                    f"{timing_runtime_row['case']}/waves.fst"
+                ),
+            }
+            current["candidate_sources"] = [
+                source for source in current["candidate_sources"]
+                if source["path"] in exact_current_paths
+            ]
+            if {
+                source["path"] for source in current["candidate_sources"]
+            } != exact_current_paths:
+                raise MatrixError(
+                    f"P3-C timing exact current fixture evidence is missing: "
+                    f"{scenario_id}"
+                )
+            current["evidence_scope"] = (
+                "P3-C timing 十二场景逐项差分已通过；native 私有停止点只作为"
+                "当前完整公开链的首跳前缀，不扩展冻结公开 schema"
+            )
+            runtime_evidence = {
+                "path": P3C_TIMING_ORACLE.as_posix(),
+                "sha256": p3c_timing_oracle_asset["sha256"],
+                "scenario_id": scenario_id,
+                "status": "semantic-equivalent",
+                "p3_batch": "P3-C",
+                "locked_native_termination": native["termination"],
+                "locked_native_hop_count": native["total_hops"],
+                "locked_temporal_boundaries": native["temporal_boundaries"],
+                "remaining_observable_gap_count": 0,
+                "schema_projections": [{
+                    "kind": "native_stop_on_temporal_prefix",
+                    "native_shape": (
+                        "private stop_on_temporal=true returns one "
+                        "temporal_boundary hop"
+                    ),
+                    "public_shape": (
+                        "frozen v1 has no stop_on_temporal; exact native hop is "
+                        "gated as the prefix of a complete untruncated public chain"
+                    ),
+                }],
+                "scheduler_projection": {
+                    "kind": "same_slot_nba_active_time_projection",
+                    "raw_waveforms_declared_exact": False,
+                    "native_observation": (
+                        "VCS FSDB exposes staged array propagation at the next "
+                        "matching NBA sensitivity edge"
+                    ),
+                    "current_observation": (
+                        "Verilator FST can collapse the output propagation into "
+                        "the source NBA slot"
+                    ),
+                    "public_resolution": (
+                        "project only when the DesignDB continuous-driver graph, "
+                        "same-array propagation, unique NBA event and next matching "
+                        "edge gates all succeed; otherwise fail closed"
+                    ),
+                },
+            }
+            public_args = {
+                "signal": timing_runtime_row["request"]["signal"],
+                "time": timing_runtime_row["request"]["time"],
+            }
+            public_limits = {"max_depth": 64, "max_nodes": 64}
         elif group == "phase4":
             native = phase4_runtime_row["native_result"]
             exact_current_paths = {
