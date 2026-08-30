@@ -6499,6 +6499,126 @@
       "exists": true,
       "file_type": "file",
       "fixture_ids": [
+        "current.stream_v1"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/stream_v1/fixture.manifest.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "3f77e029d140c46bd1f8eb44b12aa24dbdc0abc84aa30a6d6596c66962b8d165",
+      "side": "current",
+      "size_bytes": 1807
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.stream_v1"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/stream_v1/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "358d5ae03eed266575eec771bc35e94a6770e125923e6e8e905f82d9b92d544b",
+      "side": "current",
+      "size_bytes": 586
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.stream_v1"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/stream_v1/stream_expected.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "ed649e5524766275200c10067ff8c81ad573e681f964218644f35e8b62c6c132",
+      "side": "current",
+      "size_bytes": 522
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.stream_v1"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/stream_v1/stream_v1_top.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "4e9a24d992ceb1d58f5b300cbca46345c70f9da9d1ad13648475711342357438",
+      "side": "current",
+      "size_bytes": 7485
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.stream_v1"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/stream_v1/streams.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "22269ed6fc9bedf16be4370f7cbc9374980a9e52414a49d2b436b3d62a3dd22a",
+      "side": "current",
+      "size_bytes": 5220
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.stream_v1"
+      ],
+      "kind": "testbench",
+      "path": "testdata/fixtures/stream_v1/tb_stream_v1.cpp",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "83ed62fd8fd25dc3755ff1b92fa10dfd7f363f545cba085f884e571b4e94d532",
+      "side": "current",
+      "size_bytes": 1252
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.stream_v1"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/stream_v1/verilator-no-fsdb.patch",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "08d760d3e831a095f2a07219ef7eedd7b404a4bca9c1e698285787c055a97b6d",
+      "side": "current",
+      "size_bytes": 255
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.stream_v1"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/stream_v1/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "ead0ce4e385c32bbc7cc4683e51c3707e0d03b8ccc5817eb7f1f84e0b6b561d5",
+      "side": "current",
+      "size_bytes": 1398608
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
         "current.root"
       ],
       "kind": "waveform_fst",
@@ -6881,9 +7001,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "7a8a21ab9c8071641f00b26e083e6bd91f016da88f3b5aa47f79954242062c56",
+      "sha256": "aafae9b8df1a93bd5fbf4ab0b64c849b19686fb208b39c5eaecbef1d30755b24",
       "side": "current",
-      "size_bytes": 1503346
+      "size_bytes": 1515296
     },
     {
       "exists": true,
@@ -7154,6 +7274,51 @@
       "sha256": "2a67dd929d5fdc5d2459a4d2579c30e2441b9282c64aeebd63f0be50ca8dd36c",
       "side": "current",
       "size_bytes": 27576
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/p3d-stream-differential-closure.audit.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "c606046efa26998c5be060f8e33658e0c56dcb475fa440c3a7c92a3d17770607",
+      "side": "current",
+      "size_bytes": 80113
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/p3d-stream-v1.export-oracle.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "66a9c58192c4f6ff95edc70ff67537425ddc1aaaa52ce32d667ec25b113b8c29",
+      "side": "current",
+      "size_bytes": 34121
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/p3d-stream-v1.public-oracle.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "8c40c3ecde23070d5879a0ed6e9160005ae6f6482f7b17ca9823a8d4f825c455",
+      "side": "current",
+      "size_bytes": 288716
     },
     {
       "exists": true,
@@ -7642,6 +7807,51 @@
         "current.cross_fixture"
       ],
       "kind": "test_consumer",
+      "path": "tests/test_p3d_stream_differential_closure.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "1c33cd41c145dd27656519198f71ccfe24036fcd8c4baecffd238dc42cefe053",
+      "side": "current",
+      "size_bytes": 15123
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/test_p3d_stream_v1.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "9f8cc3931bae69c227e9b18961c44297de8212b1f9ab65f560a0a17b223d4fd1",
+      "side": "current",
+      "size_bytes": 8571
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/test_p3d_stream_v1_export.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "5fef640d352a0e2707bb53ddd8406394e1b61a29ee3783c52967428a08be8f7b",
+      "side": "current",
+      "size_bytes": 7709
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
       "path": "tests/test_p6_capability_applicability.py",
       "roles": [
         "test_consumer"
@@ -7781,9 +7991,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "d570a30409f04e449d8ef83885ab08ad6f1022e6a19682e71e5224235e363311",
+      "sha256": "876ce64e12c54cef79ec76483536ddca9b16dab9958e4c6240bc584bc7b8a6cf",
       "side": "current",
-      "size_bytes": 33769
+      "size_bytes": 35875
     },
     {
       "exists": true,
@@ -7841,9 +8051,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "4e0d5d49267855cc1129d612904e0c6f719fe8a405c6133d1c19b8e2a27bc023",
+      "sha256": "feb39d69a541cf2ff9a8e3e528a45e6eae8f889f7b4252abcf198a3b58f3c605",
       "side": "current",
-      "size_bytes": 19726
+      "size_bytes": 19889
     },
     {
       "exists": true,
@@ -7916,9 +8126,9 @@
       "roles": [
         "generator"
       ],
-      "sha256": "d2e0f28c23d4c184b40cc94885b6fe42719a67a83ec9435791518206bee2ceea",
+      "sha256": "91cd038e6e791dd9650730fb851deb50ae842e7044019bdf3d7e7c028f17eedb",
       "side": "current",
-      "size_bytes": 161497
+      "size_bytes": 194422
     },
     {
       "exists": true,
@@ -7961,9 +8171,9 @@
       "roles": [
         "generator"
       ],
-      "sha256": "c92bb00a5f4338249f5b098b9e031e9b06399ea1194d1498db43b453d0ffb92a",
+      "sha256": "f8d1beb01d3e8ea186339164391889beac06ee2ecc6831028edf9c29480d69c4",
       "side": "current",
-      "size_bytes": 30406
+      "size_bytes": 31995
     },
     {
       "exists": true,
@@ -8028,6 +8238,132 @@
       "sha256": "4dde8f037d33f124ede4d302b934c7f2b9fafa674a7e849c65ca48752a627e12",
       "side": "original",
       "size_bytes": 2773
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [],
+      "git_state": "tracked_dirty: M",
+      "kind": "build_or_stimulus",
+      "path": "xdebug/Makefile",
+      "roles": [
+        "audit_source"
+      ],
+      "sha256": "cc74e2aa4dcc6e443652cff882761f99ded226c83f3a77c2bb9b1686a5d559de",
+      "side": "original",
+      "size_bytes": 21982
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [],
+      "git_state": "tracked_clean",
+      "kind": "fixture_support",
+      "path": "xdebug/src/engine/service/actions/stream/stream_export.cpp",
+      "roles": [
+        "audit_source"
+      ],
+      "sha256": "0812f125a9f56f9e20a6436bc798d3f29ce5d5319e963b07f8e2024132819609",
+      "side": "original",
+      "size_bytes": 14491
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [],
+      "git_state": "tracked_clean",
+      "kind": "fixture_support",
+      "path": "xdebug/src/engine/service/actions/stream/stream_query.cpp",
+      "roles": [
+        "audit_source"
+      ],
+      "sha256": "4191d584e0aef7f9c22fd4990150d115fbf3c0ebb77c0afd3bd9b67e6476ca16",
+      "side": "original",
+      "size_bytes": 27513
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [],
+      "git_state": "tracked_clean",
+      "kind": "fixture_support",
+      "path": "xdebug/src/engine/service/actions/stream/stream_validate.cpp",
+      "roles": [
+        "audit_source"
+      ],
+      "sha256": "7a2d2b08f6e8c407902baa4cdaee090f5461696aaadf03fa8969b83bfc1182e5",
+      "side": "original",
+      "size_bytes": 12785
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [],
+      "git_state": "tracked_clean",
+      "kind": "fixture_support",
+      "path": "xdebug/src/waveform/cache/analysis_probe.cpp",
+      "roles": [
+        "audit_source"
+      ],
+      "sha256": "14adb48c77750cdb0223db9c49959c382477b244ba8db75570f29beda3fdb3ef",
+      "side": "original",
+      "size_bytes": 4503
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [],
+      "git_state": "tracked_clean",
+      "kind": "fixture_support",
+      "path": "xdebug/src/waveform/cache/analysis_probe.h",
+      "roles": [
+        "audit_source"
+      ],
+      "sha256": "35252d34e8b15e1eed2ca8f68f35343b6092b7076a37932f139212cd2c785351",
+      "side": "original",
+      "size_bytes": 1842
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [],
+      "git_state": "tracked_clean",
+      "kind": "fixture_support",
+      "path": "xdebug/src/waveform/cache/analysis_repository.cpp",
+      "roles": [
+        "audit_source"
+      ],
+      "sha256": "b0979f9676e9eca199cadd4a7b02329806aab2f83edcd0b8e5e19a8aadd401ee",
+      "side": "original",
+      "size_bytes": 55448
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [],
+      "git_state": "tracked_clean",
+      "kind": "fixture_support",
+      "path": "xdebug/src/waveform/stream/stream_analyzer.cpp",
+      "roles": [
+        "audit_source"
+      ],
+      "sha256": "547cc6b118171386431416510e6b1ac65046bbe86d6118d31ba7e957772da083",
+      "side": "original",
+      "size_bytes": 73269
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [],
+      "git_state": "tracked_clean",
+      "kind": "fixture_support",
+      "path": "xdebug/src/waveform/stream/stream_analyzer.h",
+      "roles": [
+        "audit_source"
+      ],
+      "sha256": "4cfb7cb0c185f197b5fe3122f900fc072b739ab9f02a41705dc03e50e891110f",
+      "side": "original",
+      "size_bytes": 8188
     },
     {
       "exists": true,
@@ -13967,6 +14303,17 @@
     "current_consumers": "all text/source files below tests",
     "current_fixture_prefix": "testdata/fixtures/",
     "generated_or_ignored_outputs": "excluded unless tracked",
+    "original_audit_sources": [
+      "xdebug/Makefile",
+      "xdebug/src/engine/service/actions/stream/stream_export.cpp",
+      "xdebug/src/engine/service/actions/stream/stream_query.cpp",
+      "xdebug/src/engine/service/actions/stream/stream_validate.cpp",
+      "xdebug/src/waveform/cache/analysis_probe.cpp",
+      "xdebug/src/waveform/cache/analysis_probe.h",
+      "xdebug/src/waveform/cache/analysis_repository.cpp",
+      "xdebug/src/waveform/stream/stream_analyzer.cpp",
+      "xdebug/src/waveform/stream/stream_analyzer.h"
+    ],
     "original_consumers": [
       ".fsdb",
       "active_trace",
@@ -16231,15 +16578,15 @@
   "schema_version": "xdebug-rtl-wave-assets.v1",
   "summary": {
     "current": {
-      "asset_count": 532,
-      "fst_count": 75,
-      "rtl_count": 79,
-      "test_consumer_count": 71,
+      "asset_count": 546,
+      "fst_count": 76,
+      "rtl_count": 80,
+      "test_consumer_count": 77,
       "vcd_count": 1
     },
     "missing_assets": [],
     "original": {
-      "asset_count": 359,
+      "asset_count": 368,
       "declared_waveform_output_count": 25,
       "fixture_count": 23,
       "rtl_count": 103,

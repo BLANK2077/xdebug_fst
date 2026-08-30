@@ -9511,9 +9511,7 @@
       "fixture.apb_vip",
       "fixture.apb_xamba_vip",
       "fixture.axi_vip",
-      "fixture.axi_xamba_vip",
-      "fixture.stream_differential_tool",
-      "fixture.stream_v1"
+      "fixture.axi_xamba_vip"
     ],
     "P3-E": [
       "cross_fixture.public_contract_consumers",
@@ -46660,82 +46658,33 @@
     },
     {
       "current": {
-        "candidate_fixture_ids": [
-          "current.stream"
-        ],
-        "candidate_sources": [
-          {
-            "construct_lines": {
-              "always": [
-                20
-              ],
-              "clock": [
-                3,
-                20
-              ],
-              "continuous_assign": [
-                17,
-                18,
-                19
-              ],
-              "if": [
-                21,
-                24,
-                29
-              ],
-              "module": [
-                2
-              ],
-              "nonblocking_assignment": [
-                22,
-                25,
-                26,
-                27,
-                30,
-                31
-              ],
-              "reset": [
-                4,
-                21
-              ]
-            },
-            "fixture_ids": [
-              "current.stream"
-            ],
-            "kind": "rtl",
-            "line_anchor": 2,
-            "line_count": 35,
-            "path": "testdata/fixtures/stream/stream_top.sv",
-            "sha256": "514a8d191515e97fae4617eb5c06687bc76b636ed16bd6e749a129d53840a6ac"
-          },
-          {
-            "fixture_ids": [
-              "current.stream"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 39,
-            "path": "testdata/fixtures/stream/tb_stream.cpp",
-            "sha256": "ff4c99820f22d097aa898bd6b0136b2517ffde35f65c11a80e13ef329faf2b9b"
-          },
-          {
-            "fixture_ids": [
-              "current.stream"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 24,
-            "path": "testdata/fixtures/stream/waves.fst",
-            "sha256": "625f13d9730c504b18b9ac751511115573064e34165585d9e85f8e03e6eb0508"
-          }
-        ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "candidate_fixture_ids": [],
+        "candidate_sources": [],
+        "evidence_scope": "有限证明仅覆盖冻结 comparator build、stream.query/export/validate 拦截点、公开 cache 响应及私有 probe 字段；hard memory limit 仍按公开错误单独验收",
         "test_evidence": [
           {
-            "line": 248,
-            "path": "tests/test_stream.py",
-            "sha256": "4e0d5d49267855cc1129d612904e0c6f719fe8a405c6133d1c19b8e2a27bc023",
-            "test": "test_stream_all_query_kinds"
+            "line": 162,
+            "path": "tests/test_p3d_stream_differential_closure.py",
+            "sha256": "1c33cd41c145dd27656519198f71ccfe24036fcd8c4baecffd238dc42cefe053",
+            "test": "test_differential_audit_locks_bounded_original_contract"
+          },
+          {
+            "line": 323,
+            "path": "tests/test_p3d_stream_differential_closure.py",
+            "sha256": "1c33cd41c145dd27656519198f71ccfe24036fcd8c4baecffd238dc42cefe053",
+            "test": "test_current_matches_all_public_base_cache_observations"
+          },
+          {
+            "line": 345,
+            "path": "tests/test_p3d_stream_differential_closure.py",
+            "sha256": "1c33cd41c145dd27656519198f71ccfe24036fcd8c4baecffd238dc42cefe053",
+            "test": "test_current_matches_public_batch_and_soft_budget_results"
+          },
+          {
+            "line": 387,
+            "path": "tests/test_p3d_stream_differential_closure.py",
+            "sha256": "1c33cd41c145dd27656519198f71ccfe24036fcd8c4baecffd238dc42cefe053",
+            "test": "test_current_exposes_locked_public_hard_limit_error"
           }
         ]
       },
@@ -46748,9 +46697,112 @@
           "xdebug/tests/stream_differential/test_stream_differential.py"
         ],
         "declared_waveform_outputs": [],
+        "direct_helper_public_actions": [],
         "fixture_id": "xdebug.stream_differential_tool",
         "fixture_source_dir": "xdebug",
         "observed_public_actions": [],
+        "private_helper": {
+          "builder_argv": [
+            "make",
+            "stream-differential-test-dist",
+            "STREAM_DIFFERENTIAL_DIST={resources}/out"
+          ],
+          "outputs": [
+            {
+              "kind": "file",
+              "min_bytes": 1024,
+              "name": "frontend",
+              "path": "out/xdebug"
+            },
+            {
+              "kind": "file",
+              "min_bytes": 1024,
+              "name": "engine",
+              "path": "out/libexec/xdebug-engine"
+            }
+          ],
+          "reused_waveform_fixture_id": "xdebug.stream_v1",
+          "rtl_input_count": 0,
+          "source_dir": "xdebug",
+          "waveform_output_count": 0
+        },
+        "source_assets": [
+          {
+            "path": "testinfra/fixtures.v1.yaml",
+            "sha256": "94fa39c04fdbcd51c052589194bb185ffaf44b71eb55d9c4a6d8a9785fe69de2",
+            "size": 25960
+          },
+          {
+            "path": "testinfra/catalog.v1.yaml",
+            "sha256": "93802cceb105db13fc78c10bf0fbc13b9b457461dfe27c5ec7987f97753156c2",
+            "size": 27308
+          },
+          {
+            "path": "xdebug/Makefile",
+            "sha256": "cc74e2aa4dcc6e443652cff882761f99ded226c83f3a77c2bb9b1686a5d559de",
+            "size": 21982
+          },
+          {
+            "path": "xdebug/tests/stream_differential/test_stream_differential.py",
+            "sha256": "fec752ffa8db5f1dcc79f2f591569928719852f13a92fbebbbd618178235417b",
+            "size": 1896
+          },
+          {
+            "path": "xdebug/tests/stream_differential/legacy_stream_oracle.h",
+            "sha256": "adf360f00b1bb4c3b7f0adf559e8fb2f08f54689537d9454af7dcb0d8a88cf2e",
+            "size": 621
+          },
+          {
+            "path": "xdebug/tests/stream_differential/legacy_stream_oracle.cpp",
+            "sha256": "6c8b05bcfe7ac03a2c82c75bb8b9da037973a7eb2cbfc3e4251ed41879a423e4",
+            "size": 4040
+          },
+          {
+            "path": "xdebug/tests/synthetic/test_stream_v1_real_waveform.py",
+            "sha256": "630cd72714450acd54da88e1439db2f507231543c478c83855b9d978292ec418",
+            "size": 50250
+          },
+          {
+            "path": "xdebug/src/engine/service/actions/stream/stream_query.cpp",
+            "sha256": "4191d584e0aef7f9c22fd4990150d115fbf3c0ebb77c0afd3bd9b67e6476ca16",
+            "size": 27513
+          },
+          {
+            "path": "xdebug/src/engine/service/actions/stream/stream_export.cpp",
+            "sha256": "0812f125a9f56f9e20a6436bc798d3f29ce5d5319e963b07f8e2024132819609",
+            "size": 14491
+          },
+          {
+            "path": "xdebug/src/engine/service/actions/stream/stream_validate.cpp",
+            "sha256": "7a2d2b08f6e8c407902baa4cdaee090f5461696aaadf03fa8969b83bfc1182e5",
+            "size": 12785
+          },
+          {
+            "path": "xdebug/src/waveform/cache/analysis_probe.h",
+            "sha256": "35252d34e8b15e1eed2ca8f68f35343b6092b7076a37932f139212cd2c785351",
+            "size": 1842
+          },
+          {
+            "path": "xdebug/src/waveform/cache/analysis_probe.cpp",
+            "sha256": "14adb48c77750cdb0223db9c49959c382477b244ba8db75570f29beda3fdb3ef",
+            "size": 4503
+          },
+          {
+            "path": "xdebug/src/waveform/cache/analysis_repository.cpp",
+            "sha256": "b0979f9676e9eca199cadd4a7b02329806aab2f83edcd0b8e5e19a8aadd401ee",
+            "size": 55448
+          },
+          {
+            "path": "xdebug/src/waveform/stream/stream_analyzer.cpp",
+            "sha256": "547cc6b118171386431416510e6b1ac65046bbe86d6118d31ba7e957772da083",
+            "size": 73269
+          },
+          {
+            "path": "xdebug/src/waveform/stream/stream_analyzer.h",
+            "sha256": "4cfb7cb0c185f197b5fe3122f900fc072b739ab9f02a41705dc03e50e891110f",
+            "size": 8188
+          }
+        ],
         "sources": []
       },
       "p3_batch": "P3-D",
@@ -46780,102 +46832,290 @@
           ],
           "request_example": "compat/xdebug-v1/examples/requests/stream.query.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.query.response.schema.json"
+        },
+        "stream.validate": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.validate.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.validate.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "原版 differential 产物是无 RTL/波形输出的私有 comparator build；冻结 73 Action/schema 不暴露 comparator 或 cache probe，全部公开回放已由 stream_v1 门禁关闭。",
       "scenario_id": "fixture.stream_differential_tool",
-      "status": "partial"
+      "status": "proven-unobservable",
+      "unobservable_proof": {
+        "classification": "proven-unobservable",
+        "compile_guard": "XDEBUG_STREAM_DIFFERENTIAL_TEST_BUILD",
+        "interposed_actions": [
+          "stream.query",
+          "stream.export",
+          "stream.validate"
+        ],
+        "linked_object": "obj/tests/stream_differential/legacy_stream_oracle.o",
+        "path": "tests/data/rtl_wave_differential/p3d-stream-differential-closure.audit.json",
+        "private_action_count": 0,
+        "private_cache_metrics_classification": "proven-unobservable",
+        "private_probe_fields": [
+          "access_sequence",
+          "build_bytes",
+          "entry_count",
+          "evictions",
+          "hits",
+          "index_count",
+          "key_summary",
+          "misses",
+          "resident_bytes",
+          "scanner_invocations"
+        ],
+        "private_probe_fields_in_public_schema": [],
+        "proof_scope": "有限证明仅覆盖冻结 comparator build、stream.query/export/validate 拦截点、公开 cache 响应及私有 probe 字段；hard memory limit 仍按公开错误单独验收",
+        "public_action": false,
+        "public_action_count": 73,
+        "public_hard_limit_requires_current_gate": true,
+        "public_replay": {
+          "artifact_check_count": 3,
+          "comparator_failure_count": 0,
+          "export_difference_count": 0,
+          "export_observation_count": 6,
+          "export_oracle_sha256": "66a9c58192c4f6ff95edc70ff67537425ddc1aaaa52ce32d667ec25b113b8c29",
+          "query_config_difference_count": 0,
+          "query_config_observation_count": 58,
+          "query_config_oracle_sha256": "8c40c3ecde23070d5879a0ed6e9160005ae6f6482f7b17ca9823a8d4f825c455",
+          "xout_check_count": 3
+        },
+        "remaining_public_difference_count": 0,
+        "remaining_unmapped_public_observation_count": 0,
+        "reused_waveform_fixture_id": "xdebug.stream_v1",
+        "sha256": "c606046efa26998c5be060f8e33658e0c56dcb475fa440c3a7c92a3d17770607"
+      }
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.stream"
+          "current.stream_v1"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                20
-              ],
               "clock": [
-                3,
-                20
+                6,
+                77,
+                78,
+                173,
+                174,
+                182,
+                236,
+                250,
+                263,
+                272,
+                280
               ],
-              "continuous_assign": [
-                17,
-                18,
-                19
+              "delay": [
+                78
+              ],
+              "four_state_literal": [
+                77,
+                88,
+                89,
+                90,
+                91,
+                92,
+                93,
+                94,
+                95,
+                96,
+                97,
+                98,
+                99,
+                100,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                107,
+                108,
+                109,
+                110,
+                111,
+                112,
+                113,
+                114,
+                115,
+                116,
+                117,
+                118,
+                119,
+                120,
+                121,
+                122,
+                123,
+                124,
+                125,
+                126,
+                127,
+                128,
+                129,
+                130,
+                154,
+                175,
+                180,
+                183,
+                184,
+                187,
+                190,
+                191,
+                192,
+                193,
+                198,
+                200,
+                204,
+                205,
+                208,
+                210,
+                214,
+                215,
+                220,
+                224,
+                225,
+                229,
+                231,
+                237,
+                238,
+                239,
+                240,
+                241,
+                242,
+                248,
+                251,
+                252,
+                253,
+                258,
+                264,
+                265,
+                266,
+                267,
+                268,
+                269,
+                273,
+                274
               ],
               "if": [
-                21,
-                24,
-                29
+                195,
+                196,
+                201,
+                202,
+                212,
+                222,
+                233,
+                260
+              ],
+              "initial": [
+                76,
+                81,
+                153,
+                178,
+                246,
+                278
               ],
               "module": [
-                2
+                3
               ],
-              "nonblocking_assignment": [
-                22,
-                25,
-                26,
-                27,
-                30,
-                31
+              "procedural_for": [
+                181,
+                249
               ],
-              "reset": [
-                4,
-                21
+              "task": [
+                86,
+                134
               ]
             },
             "fixture_ids": [
-              "current.stream"
+              "current.stream_v1"
             ],
             "kind": "rtl",
-            "line_anchor": 2,
-            "line_count": 35,
-            "path": "testdata/fixtures/stream/stream_top.sv",
-            "sha256": "514a8d191515e97fae4617eb5c06687bc76b636ed16bd6e749a129d53840a6ac"
+            "line_anchor": 1,
+            "line_count": 284,
+            "path": "testdata/fixtures/stream_v1/stream_v1_top.sv",
+            "sha256": "4e9a24d992ceb1d58f5b300cbca46345c70f9da9d1ad13648475711342357438"
           },
           {
             "fixture_ids": [
-              "current.stream"
+              "current.stream_v1"
             ],
             "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 39,
-            "path": "testdata/fixtures/stream/tb_stream.cpp",
-            "sha256": "ff4c99820f22d097aa898bd6b0136b2517ffde35f65c11a80e13ef329faf2b9b"
+            "line_anchor": 4,
+            "line_count": 50,
+            "path": "testdata/fixtures/stream_v1/tb_stream_v1.cpp",
+            "sha256": "83ed62fd8fd25dc3755ff1b92fa10dfd7f363f545cba085f884e571b4e94d532"
           },
           {
             "fixture_ids": [
-              "current.stream"
+              "current.stream_v1"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 24,
-            "path": "testdata/fixtures/stream/waves.fst",
-            "sha256": "625f13d9730c504b18b9ac751511115573064e34165585d9e85f8e03e6eb0508"
+            "line_count": 38365,
+            "path": "testdata/fixtures/stream_v1/waves.fst",
+            "sha256": "ead0ce4e385c32bbc7cc4683e51c3707e0d03b8ccc5817eb7f1f84e0b6b561d5"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-D1 只关闭冻结 stream_v1 刺激、时间、公开响应、artifact/XOUT 与 cache 边界；原版 FSDB 与当前 FST 的二进制格式差异不作为语义等价证据",
         "test_evidence": [
           {
-            "line": 104,
-            "path": "tests/test_stream.py",
-            "sha256": "4e0d5d49267855cc1129d612904e0c6f719fe8a405c6133d1c19b8e2a27bc023",
-            "test": "test_stream_query"
+            "line": 55,
+            "path": "tests/test_p3d_stream_v1.py",
+            "sha256": "9f8cc3931bae69c227e9b18961c44297de8212b1f9ab65f560a0a17b223d4fd1",
+            "test": "test_stream_v1_oracle_locks_runtime_fixture_and_observation_set"
           },
           {
-            "line": 189,
-            "path": "tests/test_stream.py",
-            "sha256": "4e0d5d49267855cc1129d612904e0c6f719fe8a405c6133d1c19b8e2a27bc023",
-            "test": "test_stream_query_stall_window"
+            "line": 132,
+            "path": "tests/test_p3d_stream_v1.py",
+            "sha256": "9f8cc3931bae69c227e9b18961c44297de8212b1f9ab65f560a0a17b223d4fd1",
+            "test": "test_stream_v1_current_fst_matches_all_locked_public_observations"
           },
           {
-            "line": 377,
-            "path": "tests/test_stream.py",
-            "sha256": "4e0d5d49267855cc1129d612904e0c6f719fe8a405c6133d1c19b8e2a27bc023",
-            "test": "test_stream_validate_packet_dynamic"
+            "line": 168,
+            "path": "tests/test_p3d_stream_v1.py",
+            "sha256": "9f8cc3931bae69c227e9b18961c44297de8212b1f9ab65f560a0a17b223d4fd1",
+            "test": "test_stream_v1_current_fixture_locks_tool_seed_and_deterministic_fst"
+          },
+          {
+            "line": 53,
+            "path": "tests/test_p3d_stream_v1_export.py",
+            "sha256": "5fef640d352a0e2707bb53ddd8406394e1b61a29ee3783c52967428a08be8f7b",
+            "test": "test_stream_v1_export_oracle_locks_runtime_schema_and_xout"
+          },
+          {
+            "line": 134,
+            "path": "tests/test_p3d_stream_v1_export.py",
+            "sha256": "5fef640d352a0e2707bb53ddd8406394e1b61a29ee3783c52967428a08be8f7b",
+            "test": "test_stream_v1_current_export_matches_locked_json_artifacts_and_xout"
+          },
+          {
+            "line": 323,
+            "path": "tests/test_p3d_stream_differential_closure.py",
+            "sha256": "1c33cd41c145dd27656519198f71ccfe24036fcd8c4baecffd238dc42cefe053",
+            "test": "test_current_matches_all_public_base_cache_observations"
+          },
+          {
+            "line": 345,
+            "path": "tests/test_p3d_stream_differential_closure.py",
+            "sha256": "1c33cd41c145dd27656519198f71ccfe24036fcd8c4baecffd238dc42cefe053",
+            "test": "test_current_matches_public_batch_and_soft_budget_results"
+          },
+          {
+            "line": 387,
+            "path": "tests/test_p3d_stream_differential_closure.py",
+            "sha256": "1c33cd41c145dd27656519198f71ccfe24036fcd8c4baecffd238dc42cefe053",
+            "test": "test_current_exposes_locked_public_hard_limit_error"
           }
         ]
       },
@@ -46911,6 +47151,18 @@
         ],
         "fixture_id": "xdebug.stream_v1",
         "fixture_source_dir": "xdebug/testdata/waveform/stream_v1",
+        "locked_public_oracles": [
+          {
+            "observation_count": 58,
+            "path": "tests/data/rtl_wave_differential/p3d-stream-v1.public-oracle.json",
+            "sha256": "8c40c3ecde23070d5879a0ed6e9160005ae6f6482f7b17ca9823a8d4f825c455"
+          },
+          {
+            "observation_count": 6,
+            "path": "tests/data/rtl_wave_differential/p3d-stream-v1.export-oracle.json",
+            "sha256": "66a9c58192c4f6ff95edc70ff67537425ddc1aaaa52ce32d667ec25b113b8c29"
+          }
+        ],
         "observed_public_actions": [
           "actions",
           "apb.config.list",
@@ -47117,6 +47369,27 @@
       },
       "p3_batch": "P3-D",
       "public_action_contracts": {
+        "batch": {
+          "completeness_fields": [
+            "analysis_complete",
+            "complete",
+            "response_truncated",
+            "returned_count",
+            "scan_complete",
+            "scan_status.analysis_complete",
+            "statements.complete",
+            "termination",
+            "termination_detail",
+            "total_count"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/batch.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/batch.response.schema.json"
+        },
+        "stream.config.list": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.config.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.list.response.schema.json"
+        },
         "stream.config.load": {
           "completeness_fields": [],
           "request_example": "compat/xdebug-v1/examples/requests/stream.config.load.basic.json",
@@ -47166,9 +47439,27 @@
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.validate.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "原版 RTL/config 与当前镜像逐字节相同；锁定原版 FSDB 的 58 个查询/配置、6 个 export、3 个 artifact 和 cache 公开边界已在确定性原生 FST 上逐项通过。",
+      "runtime_audit": {
+        "artifact_check_count": 3,
+        "export_difference_count": 0,
+        "export_observation_count": 6,
+        "hard_limit_allowed_projection": {
+          "error.key_summary": "opaque 16-hex cache identity may differ because the current fixture is native FST rather than the original FSDB"
+        },
+        "hard_limit_classification": "publicly-observable",
+        "p3_batch": "P3-D1",
+        "path": "tests/data/rtl_wave_differential/p3d-stream-differential-closure.audit.json",
+        "public_cache_observation_count": 13,
+        "query_config_difference_count": 0,
+        "query_config_observation_count": 58,
+        "remaining_observable_gap_count": 0,
+        "sha256": "c606046efa26998c5be060f8e33658e0c56dcb475fa440c3a7c92a3d17770607",
+        "status": "semantic-equivalent",
+        "xout_check_count": 3
+      },
       "scenario_id": "fixture.stream_v1",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -47799,9 +48090,9 @@
     "scenario_count": 88,
     "status_counts": {
       "missing": 1,
-      "partial": 8,
-      "proven-unobservable": 4,
-      "semantic-equivalent": 75
+      "partial": 6,
+      "proven-unobservable": 5,
+      "semantic-equivalent": 76
     },
     "unclassified_count": 0,
     "unqueued_gap_count": 0

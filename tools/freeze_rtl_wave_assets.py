@@ -42,6 +42,17 @@ ORIGINAL_REGISTRY_PATHS = {
     "testinfra/fixtures.v1.yaml",
     "testinfra/leaf/prepare_active_trace.py",
 }
+ORIGINAL_AUDIT_SOURCE_PATHS = {
+    "xdebug/Makefile",
+    "xdebug/src/engine/service/actions/stream/stream_export.cpp",
+    "xdebug/src/engine/service/actions/stream/stream_query.cpp",
+    "xdebug/src/engine/service/actions/stream/stream_validate.cpp",
+    "xdebug/src/waveform/cache/analysis_probe.cpp",
+    "xdebug/src/waveform/cache/analysis_probe.h",
+    "xdebug/src/waveform/cache/analysis_repository.cpp",
+    "xdebug/src/waveform/stream/stream_analyzer.cpp",
+    "xdebug/src/waveform/stream/stream_analyzer.h",
+}
 CURRENT_GENERATOR_MARKERS = (
     "testdata/fixtures",
     "fixture_build_env",
@@ -411,6 +422,8 @@ def discover_original_assets(root: Path, fixtures: list[dict]) -> list[dict]:
             roles.append("fixture_source")
         if path in ORIGINAL_REGISTRY_PATHS:
             roles.append("registry")
+        if path in ORIGINAL_AUDIT_SOURCE_PATHS:
+            roles.append("audit_source")
         if path.startswith("xdebug/tests/"):
             if path.startswith("xdebug/tests/active_trace_chain/"):
                 roles.append("test_consumer")
@@ -526,22 +539,51 @@ def verify_frozen_original_content(
             "frozen original test asset content drifted; baseline replacement is forbidden: "
             + preview
         )
+    goal_start = frozen_manifest.get(
+        "external_read_only_goal_start_snapshot",
+        frozen_manifest.get("external_read_only_snapshot", []),
+    )
+    original_snapshot = next(
+        (
+            item for item in goal_start
+            if item.get("repository") == "original_xverif"
+        ),
+        {},
+    )
+    goal_start_status = {
+        item["path"]: item
+        for item in original_snapshot.get("status_entries", [])
+    }
     for path in additions:
-        if path not in ORIGINAL_TRANSITIVE_CONSUMERS:
+        if (
+            path not in ORIGINAL_TRANSITIVE_CONSUMERS
+            and path not in ORIGINAL_AUDIT_SOURCE_PATHS
+        ):
             raise InventoryError(
                 "new original asset is not an explicitly reviewed transitive consumer: "
                 + path
             )
-        baseline = git_bytes(root, "show", f"{ORIGINAL_BASELINE_HEAD}:{path}")
-        baseline_record = (
-            True,
-            "file",
-            sha256_bytes(baseline),
-            len(baseline),
-        )
+        status_record = goal_start_status.get(path)
+        if status_record is not None:
+            baseline_record = (
+                status_record["exists"],
+                status_record["file_type"],
+                status_record["sha256"],
+                status_record["size_bytes"],
+            )
+        else:
+            baseline = git_bytes(
+                root, "show", f"{ORIGINAL_BASELINE_HEAD}:{path}"
+            )
+            baseline_record = (
+                True,
+                "file",
+                sha256_bytes(baseline),
+                len(baseline),
+            )
         if live[path] != baseline_record:
             raise InventoryError(
-                "new transitive consumer does not match the Goal-start Git object: "
+                "new original evidence does not match the Goal-start snapshot: "
                 + path
             )
 
@@ -673,6 +715,7 @@ def build_manifest(
             "original_untracked_policy": "include non-ignored untracked fixture files",
             "original_consumers": list(ORIGINAL_CONSUMER_MARKERS),
             "original_transitive_consumers": ORIGINAL_TRANSITIVE_CONSUMERS,
+            "original_audit_sources": sorted(ORIGINAL_AUDIT_SOURCE_PATHS),
             "current_fixture_prefix": CURRENT_ASSET_PREFIX,
             "current_consumers": "all text/source files below tests",
             "generated_or_ignored_outputs": "excluded unless tracked",

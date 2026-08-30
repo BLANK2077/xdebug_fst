@@ -106,9 +106,9 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "scenario_count": 88,
         "status_counts": {
             "missing": 1,
-            "partial": 8,
-            "proven-unobservable": 4,
-            "semantic-equivalent": 75,
+            "partial": 6,
+            "proven-unobservable": 5,
+            "semantic-equivalent": 76,
         },
         "unclassified_count": 0,
         "unqueued_gap_count": 0,
@@ -165,6 +165,8 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "fixture.design_p3",
         "fixture.design_hierarchy",
         "fixture.active_trace_runner",
+        "fixture.stream_v1",
+        "fixture.stream_differential_tool",
         "active.p0.declared_only_p0_4",
         *{f"active.p0.{index:02d}" for index in range(1, 7)},
         *{f"active.composite.{index:02d}" for index in range(1, 21)},
@@ -172,6 +174,49 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         *{f"active.phase4.{index:02d}" for index in range(1, 21)},
         *{f"active.phase5.{index:02d}" for index in range(1, 11)},
     }
+
+
+def test_p3d_stream_and_private_differential_tool_are_closed_separately() -> None:
+    scenarios = {
+        item["scenario_id"]: item for item in load_matrix()["scenarios"]
+    }
+    stream = scenarios["fixture.stream_v1"]
+    differential = scenarios["fixture.stream_differential_tool"]
+
+    assert stream["status"] == "semantic-equivalent"
+    assert stream["current"]["candidate_fixture_ids"] == [
+        "current.stream_v1"
+    ]
+    assert {
+        item["path"] for item in stream["current"]["candidate_sources"]
+    } >= {
+        "testdata/fixtures/stream_v1/stream_v1_top.sv",
+        "testdata/fixtures/stream_v1/waves.fst",
+    }
+    assert stream["runtime_audit"]["query_config_observation_count"] == 58
+    assert stream["runtime_audit"]["query_config_difference_count"] == 0
+    assert stream["runtime_audit"]["export_observation_count"] == 6
+    assert stream["runtime_audit"]["export_difference_count"] == 0
+    assert stream["runtime_audit"]["artifact_check_count"] == 3
+    assert stream["runtime_audit"]["xout_check_count"] == 3
+    assert stream["runtime_audit"]["hard_limit_classification"] == \
+        "publicly-observable"
+    assert stream["runtime_audit"]["remaining_observable_gap_count"] == 0
+
+    assert differential["status"] == "proven-unobservable"
+    assert differential["current"]["candidate_fixture_ids"] == []
+    assert differential["current"]["candidate_sources"] == []
+    proof = differential["unobservable_proof"]
+    assert proof["classification"] == "proven-unobservable"
+    assert proof["public_action_count"] == 73
+    assert proof["private_action_count"] == 0
+    assert proof["private_probe_fields_in_public_schema"] == []
+    assert proof["reused_waveform_fixture_id"] == "xdebug.stream_v1"
+    assert proof["remaining_public_difference_count"] == 0
+    assert proof["private_cache_metrics_classification"] == \
+        "proven-unobservable"
+    assert proof["public_hard_limit_requires_current_gate"] is True
+    assert proof["remaining_unmapped_public_observation_count"] == 0
 
 
 def test_matrix_evidence_is_relative_hashed_and_line_addressable() -> None:

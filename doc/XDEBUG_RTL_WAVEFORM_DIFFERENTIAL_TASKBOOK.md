@@ -1141,3 +1141,43 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 - 本提交只完成实现转绿；matrix/manifest 仍未更新。只有下一证据提交把 `fixture.stream_v1` 关闭为
   `semantic-equivalent`、把无独立观察面的 `fixture.stream_differential_tool` 关闭为有限
   `proven-unobservable`，并通过生成器/静态门禁后，P3-D1 才算最终完成。
+
+### 2026-08-31：P3-D1 manifest/matrix 证据闭环
+
+- `fixture.stream_v1` 已以独立 `current.stream_v1` 资产关闭为 `semantic-equivalent`。矩阵只列入当前
+  `stream_v1_top.sv`、原生 `waves.fst` 和对应公开门禁，不再借用早期代表性 `current.stream`。
+  runtime evidence 锁住 58 个 query/config、6 个 export、3 个 artifact、3 个 XOUT、13 个 base cache
+  观察以及公开 hard-limit 错误；query/export difference 和 remaining observable gap 均为零。
+- `fixture.stream_differential_tool` 已关闭为有限 `proven-unobservable`，但没有为它虚构当前 RTL/FST：
+  `candidate_fixture_ids` 与 `candidate_sources` 均为空，proof 明确记录它只生成 frontend/engine、复用
+  `xdebug.stream_v1` 波形、私有 comparator 不属于公开 Action。cache scanner/hit/miss/eviction 等指标
+  只在冻结私有 probe 范围内不可观察；hard=1 仍保持 `publicly-observable` 并由当前错误门禁验收。
+- 新增 fail-closed matrix validator。它联合校验 Goal/schema、只读/零 fallback/零 fixture rebuild、
+  differential build identity、linked object 与失败哨兵、64 个公开回放、artifact/XOUT、73 Action、
+  三份 request schema、当前 fixture 全清单与逐文件 hash lock、原版/当前 RTL/config 字节一致、cache
+  base/batch/soft/hard 边界及零剩余观察点。六类 mutation 会分别拒绝 fallback、公开回放差异、私有
+  字段泄漏、把 hard limit 隐藏为不可观察、未映射观察点和伪造 waveform output。
+- 闭环过程中发现 9 个 differential/cache 原版实现文件已在 audit 中使用、却未被 P0 manifest 收录。
+  冻结工具新增显式 `original_audit_sources`，不扩大到整个 `xdebug/src`。其中修改态 `xdebug/Makefile`
+  必须匹配 Goal-start 只读快照，另外 8 个文件必须匹配 Goal-start Git 对象；九项随后全部进入 manifest
+  并由 matrix fail closed。外部仓库审计快照未变化，未使用
+  `--accept-audited-external-drift`，也没有外部写入。
+- 正式 focused 门禁使用仓库规定的 xverif Python 环境、当前 `build/xdebug-fst`、原生 FST 和 UDS；
+  pytest HOME/basetemp/socket 分别位于当前仓库 `.tmp/p`、`.tmp/p`、`.tmp/s`，26/26 通过。第一次未带
+  仓库内 basetemp 的 3 项拒绝发生在测试业务前；第二次未设短 `XVERIF_TEST_TMPDIR` 的 4 项在 engine
+  发布 UDS 前退出，均按强写边界排除且没有切换 transport/backend。最终 manifest write→check、matrix
+  write→check、`git diff --check` 全部稳定通过。
+- 矩阵保持 88 个场景、零未分类、零未入队 gap；状态更新为 `semantic-equivalent=76`、
+  `proven-unobservable=5`、`partial=6`、`missing=1`。P3-D queue 只剩 APB 原生/xamba 和 AXI 原生/xamba
+  四项，下一批进入 P3-D2 APB，不把 P3-D1 的 stream 证据泛化到其他协议。
+
+### P3-D1 最终门禁
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| stream_v1 同 stimulus 公开差分 | 已通过 | 58 query/config + 6 export；3 artifact + 3 XOUT；零差异 |
+| cache 公开边界 | 已通过 | 13 base、6-child batch、3 soft、2 hard child 全部匹配 |
+| differential 私有边界 | 已通过 | 73 Action/三份 schema 零泄漏；无独立 RTL/波形输出 |
+| mutation/fail-closed | 已通过 | 六类边界篡改全部拒绝 |
+| focused + matrix/manifest | 已通过 | pytest 26/26；两生成器 write→check；diff-check 通过 |
+| P3-D1 分类 | 已关闭 | stream_v1=`semantic-equivalent`；differential=`proven-unobservable` |

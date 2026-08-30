@@ -8,8 +8,16 @@ from pathlib import Path
 import re
 from typing import Any
 
+import pytest
+
 from conftest import _base_env, open_session
 from runner import StdioLoopRunner
+from tools.build_rtl_wave_semantic_matrix import (
+    MatrixError,
+    asset_lookup,
+    canonical_json,
+    validate_p3d_stream_differential_closure_audit,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -23,6 +31,7 @@ AUDIT_SHA256 = (
     "c606046efa26998c5be060f8e33658e0c56dcb475fa440c3a7c92a3d17770607"
 )
 AUDIT = json.loads(AUDIT_PATH.read_text(encoding="utf-8"))
+MANIFEST_PATH = REPO_ROOT / "compat/xdebug-v1/rtl-wave-assets.manifest.json"
 RANGE_A = {"begin": "0ns", "end": "5us"}
 RANGE_B = {"begin": "5us", "end": "10us"}
 
@@ -248,6 +257,67 @@ def test_differential_audit_locks_bounded_original_contract() -> None:
         "remaining_unmapped_public_observation_count": 0,
     }
     assert "/home/" not in json.dumps(AUDIT, ensure_ascii=False)
+
+
+def test_matrix_validator_rejects_p3d_closure_boundary_mutations() -> None:
+    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    validate_p3d_stream_differential_closure_audit(
+        AUDIT,
+        REPO_ROOT,
+        manifest,
+        asset_lookup(manifest, "original"),
+        asset_lookup(manifest, "current"),
+    )
+
+    def reject(document: dict[str, Any]) -> None:
+        mutated_manifest = copy.deepcopy(manifest)
+        payload = canonical_json(document).encode("utf-8")
+        audit_asset = next(
+            item for item in mutated_manifest["assets"]
+            if item["side"] == "current"
+            and item["path"] == AUDIT_PATH.relative_to(REPO_ROOT).as_posix()
+        )
+        audit_asset["sha256"] = hashlib.sha256(payload).hexdigest()
+        audit_asset["size_bytes"] = len(payload)
+        with pytest.raises(MatrixError):
+            validate_p3d_stream_differential_closure_audit(
+                document,
+                REPO_ROOT,
+                mutated_manifest,
+                asset_lookup(mutated_manifest, "original"),
+                asset_lookup(mutated_manifest, "current"),
+            )
+
+    mutations = []
+    fallback = copy.deepcopy(AUDIT)
+    fallback["session"]["fallback_used"] = True
+    mutations.append(fallback)
+    replay_gap = copy.deepcopy(AUDIT)
+    replay_gap["comparator"]["public_replay"][
+        "query_config_difference_count"
+    ] = 1
+    mutations.append(replay_gap)
+    leaked_probe = copy.deepcopy(AUDIT)
+    leaked_probe["public_boundary"][
+        "private_probe_fields_in_public_schema"
+    ] = ["hits"]
+    mutations.append(leaked_probe)
+    hidden_hard_limit = copy.deepcopy(AUDIT)
+    hidden_hard_limit["cache_contract"]["hard_limit"][
+        "classification"
+    ] = "proven-unobservable"
+    mutations.append(hidden_hard_limit)
+    unmapped_public = copy.deepcopy(AUDIT)
+    unmapped_public["closure"][
+        "remaining_unmapped_public_observation_count"
+    ] = 1
+    mutations.append(unmapped_public)
+    invented_waveform = copy.deepcopy(AUDIT)
+    invented_waveform["fixture_contract"]["waveform_output_count"] = 1
+    mutations.append(invented_waveform)
+
+    for document in mutations:
+        reject(document)
 
 
 def test_current_matches_all_public_base_cache_observations(

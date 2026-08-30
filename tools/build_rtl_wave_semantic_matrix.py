@@ -58,6 +58,16 @@ P3C_ACTIVE_TRACE_CLOSURE_AUDIT = Path(
     "tests/data/rtl_wave_differential/"
     "p3c-active-trace-closure.audit.json"
 )
+P3D_STREAM_PUBLIC_ORACLE = Path(
+    "tests/data/rtl_wave_differential/p3d-stream-v1.public-oracle.json"
+)
+P3D_STREAM_EXPORT_ORACLE = Path(
+    "tests/data/rtl_wave_differential/p3d-stream-v1.export-oracle.json"
+)
+P3D_STREAM_DIFFERENTIAL_CLOSURE_AUDIT = Path(
+    "tests/data/rtl_wave_differential/"
+    "p3d-stream-differential-closure.audit.json"
+)
 AI_COMPLEX_RUNNER_SHA256 = (
     "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724"
 )
@@ -257,23 +267,52 @@ FIXTURE_CANDIDATES = {
         ),
     },
     "xdebug.stream_v1": {
-        "fixtures": ["current.stream"],
+        "fixtures": ["current.stream_v1"],
         "tests": [
-            "test_stream_query",
-            "test_stream_query_stall_window",
-            "test_stream_validate_packet_dynamic",
+            "test_stream_v1_oracle_locks_runtime_fixture_and_observation_set",
+            "test_stream_v1_current_fst_matches_all_locked_public_observations",
+            "test_stream_v1_current_fixture_locks_tool_seed_and_deterministic_fst",
+            "test_stream_v1_export_oracle_locks_runtime_schema_and_xout",
+            "test_stream_v1_current_export_matches_locked_json_artifacts_and_xout",
+            "test_current_matches_all_public_base_cache_observations",
+            "test_current_matches_public_batch_and_soft_budget_results",
+            "test_current_exposes_locked_public_hard_limit_error",
         ],
         "actions": [
-            "stream.config.load", "stream.describe", "stream.query",
-            "stream.validate", "stream.export",
+            "batch", "stream.config.list", "stream.config.load",
+            "stream.describe", "stream.export", "stream.query",
+            "stream.validate",
         ],
         "batch": "P3-D",
+        "status": "semantic-equivalent",
+        "rationale": (
+            "原版 RTL/config 与当前镜像逐字节相同；锁定原版 FSDB 的 58 个查询/配置、"
+            "6 个 export、3 个 artifact 和 cache 公开边界已在确定性原生 FST 上逐项通过。"
+        ),
+        "evidence_scope": (
+            "P3-D1 只关闭冻结 stream_v1 刺激、时间、公开响应、artifact/XOUT 与 cache "
+            "边界；原版 FSDB 与当前 FST 的二进制格式差异不作为语义等价证据"
+        ),
     },
     "xdebug.stream_differential_tool": {
-        "fixtures": ["current.stream"],
-        "tests": ["test_stream_all_query_kinds"],
-        "actions": ["stream.query", "stream.export"],
+        "fixtures": [],
+        "tests": [
+            "test_differential_audit_locks_bounded_original_contract",
+            "test_current_matches_all_public_base_cache_observations",
+            "test_current_matches_public_batch_and_soft_budget_results",
+            "test_current_exposes_locked_public_hard_limit_error",
+        ],
+        "actions": ["stream.export", "stream.query", "stream.validate"],
         "batch": "P3-D",
+        "status": "proven-unobservable",
+        "rationale": (
+            "原版 differential 产物是无 RTL/波形输出的私有 comparator build；冻结 73 Action/"
+            "schema 不暴露 comparator 或 cache probe，全部公开回放已由 stream_v1 门禁关闭。"
+        ),
+        "evidence_scope": (
+            "有限证明仅覆盖冻结 comparator build、stream.query/export/validate 拦截点、"
+            "公开 cache 响应及私有 probe 字段；hard memory limit 仍按公开错误单独验收"
+        ),
     },
     "xdebug.npi_fsdb_sva": {
         "fixtures": [],
@@ -873,6 +912,659 @@ def validate_p3c_active_trace_closure_audit(
         or not orphan.get("proof_scope")
     ):
         raise MatrixError("P3-C declared-only orphan proof drifted")
+    return audit
+
+
+def validate_p3d_stream_differential_closure_audit(
+    audit: dict,
+    repo_root: Path,
+    manifest: dict,
+    original_assets: dict[str, dict],
+    current_assets: dict[str, dict],
+) -> dict:
+    """Fail closed on the bounded P3-D1 stream/comparator/cache proof."""
+
+    audit_asset = current_assets.get(
+        P3D_STREAM_DIFFERENTIAL_CLOSURE_AUDIT.as_posix()
+    )
+    canonical_audit = canonical_json(audit).encode("utf-8")
+    if (
+        audit_asset is None
+        or sha256_bytes(canonical_audit) != audit_asset.get("sha256")
+        or len(canonical_audit) != audit_asset.get("size_bytes")
+    ):
+        raise MatrixError(
+            "P3-D1 stream differential audit is not manifest-anchored"
+        )
+    if (
+        audit.get("schema_version") !=
+            "xdebug.p3d-stream-differential-closure-audit.v1"
+        or audit.get("goal_id") != GOAL_ID
+        or audit.get("fixture_id") != "xdebug.stream_differential_tool"
+        or audit.get("classification") != "proven-unobservable"
+    ):
+        raise MatrixError(
+            "P3-D1 stream differential audit belongs to another Goal/schema"
+        )
+    if audit.get("session") != {
+        "all_runtime_writes_repository_local": True,
+        "fallback_used": False,
+        "fixture_rebuilt": False,
+        "mode": "waveform",
+        "source_access": "read_only",
+        "transport": "uds",
+    }:
+        raise MatrixError(
+            "P3-D1 stream differential write/cache/fallback boundary drifted"
+        )
+
+    def strings(value: object) -> Iterable[str]:
+        if isinstance(value, str):
+            yield value
+        elif isinstance(value, list):
+            for item in value:
+                yield from strings(item)
+        elif isinstance(value, dict):
+            for key, item in value.items():
+                yield from strings(key)
+                yield from strings(item)
+
+    if any(
+            value.startswith("/") or "/home/" in value
+            for value in strings(audit)):
+        raise MatrixError(
+            "P3-D1 stream differential audit contains an absolute path"
+        )
+
+    fixture_map = {
+        item["id"]: item for item in manifest.get("original_fixtures", [])
+    }
+    differential_fixture = fixture_map.get(
+        "xdebug.stream_differential_tool"
+    )
+    stream_fixture = fixture_map.get("xdebug.stream_v1")
+    if differential_fixture is None or stream_fixture is None:
+        raise MatrixError("P3-D1 original stream fixture contract is missing")
+    expected_fixture_contract = {
+        "builder_argv": differential_fixture["builder_argv"],
+        "outputs": differential_fixture["outputs"],
+        "reused_waveform_fixture_id": "xdebug.stream_v1",
+        "rtl_input_count": 0,
+        "source_dir": differential_fixture["source_dir"],
+        "waveform_output_count": 0,
+    }
+    if audit.get("fixture_contract") != expected_fixture_contract:
+        raise MatrixError(
+            "P3-D1 differential fixture/output/reuse contract drifted"
+        )
+    if any(
+        item["fixture_id"] == "xdebug.stream_differential_tool"
+        for item in manifest["original_declared_waveform_outputs"]
+    ):
+        raise MatrixError(
+            "P3-D1 differential tool unexpectedly declares a waveform output"
+        )
+    if not any(
+        item["fixture_id"] == "xdebug.stream_v1"
+        and item["path"] == "out/waves.fsdb"
+        for item in manifest["original_declared_waveform_outputs"]
+    ):
+        raise MatrixError("P3-D1 reused stream_v1 FSDB contract is missing")
+
+    current_fixture_paths = sorted(
+        asset["path"] for asset in current_assets.values()
+        if "current.stream_v1" in asset.get("fixture_ids", [])
+    )
+    expected_current_fixture_paths = sorted([
+        "testdata/fixtures/stream_v1/fixture.manifest.json",
+        "testdata/fixtures/stream_v1/fixture.sha256",
+        "testdata/fixtures/stream_v1/stream_expected.json",
+        "testdata/fixtures/stream_v1/stream_v1_top.sv",
+        "testdata/fixtures/stream_v1/streams.json",
+        "testdata/fixtures/stream_v1/tb_stream_v1.cpp",
+        "testdata/fixtures/stream_v1/verilator-no-fsdb.patch",
+        "testdata/fixtures/stream_v1/waves.fst",
+    ])
+    if current_fixture_paths != expected_current_fixture_paths:
+        raise MatrixError("P3-D1 current stream_v1 fixture inventory drifted")
+    for path in current_fixture_paths:
+        validate_frozen_file(repo_root, current_assets[path])
+
+    lock_path = "testdata/fixtures/stream_v1/fixture.sha256"
+    lock_text = validate_frozen_file(
+        repo_root, current_assets[lock_path]
+    ).decode("utf-8")
+    locked_names = [
+        "stream_v1_top.sv",
+        "streams.json",
+        "stream_expected.json",
+        "verilator-no-fsdb.patch",
+        "tb_stream_v1.cpp",
+        "fixture.manifest.json",
+        "waves.fst",
+    ]
+    locked_hashes: dict[str, str] = {}
+    for line in lock_text.splitlines():
+        try:
+            digest, name = line.split("  ", 1)
+        except ValueError as error:
+            raise MatrixError(
+                "P3-D1 current stream_v1 fixture lock is malformed"
+            ) from error
+        if name in locked_hashes or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise MatrixError(
+                "P3-D1 current stream_v1 fixture lock identity drifted"
+            )
+        locked_hashes[name] = digest
+    if list(locked_hashes) != locked_names:
+        raise MatrixError("P3-D1 current stream_v1 fixture lock order drifted")
+    for name, digest in locked_hashes.items():
+        path = f"testdata/fixtures/stream_v1/{name}"
+        if current_assets[path]["sha256"] != digest:
+            raise MatrixError(f"P3-D1 current fixture asset drifted: {path}")
+
+    original_rtl_path = (
+        "xdebug/testdata/waveform/stream_v1/tb/stream_v1_top.sv"
+    )
+    original_config_path = (
+        "xdebug/testdata/waveform/stream_v1/config/streams.json"
+    )
+    original_rtl = original_assets.get(original_rtl_path)
+    original_config = original_assets.get(original_config_path)
+    if (
+        original_rtl is None
+        or original_config is None
+        or locked_hashes["stream_v1_top.sv"] != original_rtl["sha256"]
+        or locked_hashes["streams.json"] != original_config["sha256"]
+    ):
+        raise MatrixError(
+            "P3-D1 current RTL/config is not byte-identical to the original"
+        )
+
+    oracle_documents: dict[str, tuple[dict, dict]] = {}
+    for path in (P3D_STREAM_PUBLIC_ORACLE, P3D_STREAM_EXPORT_ORACLE):
+        asset = current_assets.get(path.as_posix())
+        if asset is None:
+            raise MatrixError(f"P3-D1 stream oracle is not frozen: {path}")
+        document = json.loads(
+            validate_frozen_file(repo_root, asset).decode("utf-8")
+        )
+        oracle_documents[path.as_posix()] = (document, asset)
+    public_oracle, public_oracle_asset = oracle_documents[
+        P3D_STREAM_PUBLIC_ORACLE.as_posix()
+    ]
+    export_oracle, export_oracle_asset = oracle_documents[
+        P3D_STREAM_EXPORT_ORACLE.as_posix()
+    ]
+    runtime_baseline = manifest["baselines"]["original_runtime"]
+    stream_fixture_version = (
+        "5eca27af24084f076f68c6a77c6fe0cb9e0a152332912dbf074cabc3b4600ede-"
+        "prepare-c54cyr7t"
+    )
+    expected_original_runtime = {
+        "action_count": 73,
+        "binary_sha256": P3C_PHASE5_BINARY_SHA256,
+        "build_id": (
+            f"{runtime_baseline['runtime_revision'][:12]}-"
+            f"{runtime_baseline['schema_revision']}"
+        ),
+        "cache_reused": True,
+        "fixture_rebuilt": False,
+        "fixture_version": stream_fixture_version,
+        "npi_version": "X-2025.06-SP1",
+        "runtime_revision": runtime_baseline["runtime_revision"],
+        "schema_revision": runtime_baseline["schema_revision"],
+        "source_access": "read_only",
+        "wrapper_sha256": P3C_PHASE5_WRAPPER_SHA256,
+    }
+    expected_oracle_session = {
+        "all_runtime_writes_repository_local": True,
+        "closed_gracefully": True,
+        "fallback_used": False,
+        "mode": "waveform",
+        "opened": True,
+        "transport": "uds",
+    }
+    for name, document, schema, count in (
+        (
+            "public", public_oracle,
+            "xdebug.p3d-stream-v1-public-oracle.v1", 58,
+        ),
+        (
+            "export", export_oracle,
+            "xdebug.p3d-stream-v1-export-oracle.v1", 6,
+        ),
+    ):
+        observations = document.get("observations")
+        if (
+            document.get("schema_version") != schema
+            or document.get("goal_id") != GOAL_ID
+            or document.get("fixture_id") != "xdebug.stream_v1"
+            or document.get("locked_runtime") != expected_original_runtime
+            or document.get("session") != expected_oracle_session
+            or document.get("observation_count") != count
+            or not isinstance(observations, list)
+            or len(observations) != count
+            or len({row.get("observation_id") for row in observations}) != count
+        ):
+            raise MatrixError(f"P3-D1 {name} stream oracle identity drifted")
+    public_fixture = public_oracle.get("original_fixture", {})
+    if (
+        public_fixture.get("rtl_path") != original_rtl_path
+        or public_fixture.get("rtl_sha256") != original_rtl["sha256"]
+        or public_fixture.get("config_path") != original_config_path
+        or public_fixture.get("config_sha256") != original_config["sha256"]
+        or public_fixture.get("expected_sha256") !=
+            locked_hashes["stream_expected.json"]
+        or public_fixture.get("fsdb_sha256") !=
+            "0507c9c05c067f70d75037b3fdedd7bc8c4464d527df9b5eb0ffddfd811280d0"
+        or public_fixture.get("fsdb_size") != 60524
+    ):
+        raise MatrixError("P3-D1 original stream_v1 fixture identity drifted")
+    if {
+        row.get("action") for row in public_oracle["observations"]
+    } != {
+        "stream.config.list", "stream.config.load", "stream.describe",
+        "stream.query", "stream.validate",
+    }:
+        raise MatrixError("P3-D1 public stream Action coverage drifted")
+    if export_oracle.get("action_discovery") != {
+        "catalog_action_count": 73,
+        "guide_error_code": "INVALID_REQUEST",
+        "guide_invalid_arg": "args.output.view",
+        "guide_request_supported": False,
+        "request_schema_id": "xdebug.stream.export.request.v1",
+        "request_schema_path": (
+            "schemas/v1/actions/stream.export.request.schema.json"
+        ),
+    }:
+        raise MatrixError("P3-D1 stream.export discovery boundary drifted")
+    if [
+        row.get("observation_id") for row in export_oracle["observations"]
+    ] != [
+        "transfer_preview", "packet_preview", "packet_beats_preview",
+        "transfer_written", "packet_written", "packet_beats_written",
+    ]:
+        raise MatrixError("P3-D1 stream.export observation coverage drifted")
+
+    expected_runtime = {
+        "action_count": 73,
+        "build_id": (
+            "846edd6800bd-"
+            "6ace27b232adefe5a896cb4222f9ea539e6127e600baf1761e560ec103872574"
+        ),
+        "cache_fingerprint": (
+            "d165237d0fd3e6e89fcd9eb15cb8e146bd09fe46895952e86729f79c026dddf1"
+        ),
+        "cache_manifest_sha256": (
+            "dc5271fac8753dfcc2a82dcb135dc134fa7f4136da4c07588efef51b81ac576d"
+        ),
+        "cache_reused": True,
+        "engine_sha256": (
+            "ac584ab512aac9122d2ebf656b3920da571edd224b7dc5692f25a6bd6e5683a0"
+        ),
+        "fixture_rebuilt": False,
+        "fixture_version": (
+            "d165237d0fd3e6e89fcd9eb15cb8e146bd09fe46895952e86729f79c026dddf1-"
+            "prepare-jat8dddw"
+        ),
+        "frontend_sha256": (
+            "9a5467c8d1d15c20b30c5baf1065a1d79d902cf53784ed256fc7ef93009f0bba"
+        ),
+        "legacy_object_sha256": (
+            "d8e3621cc1e13e929ac1b341634c1bb3284f34e62ddd9c470d96184be138ca14"
+        ),
+        "npi_version": "X-2025.06-SP1",
+        "runtime_revision": "846edd6800bd",
+        "schema_revision": (
+            "6ace27b232adefe5a896cb4222f9ea539e6127e600baf1761e560ec103872574"
+        ),
+        "source_access": "read_only",
+        "stream_fixture_version": stream_fixture_version,
+    }
+    if audit.get("locked_runtime") != expected_runtime:
+        raise MatrixError("P3-D1 differential runtime/cache identity drifted")
+
+    expected_replay = {
+        "artifact_check_count": 3,
+        "comparator_failure_count": 0,
+        "export_difference_count": 0,
+        "export_observation_count": 6,
+        "export_oracle_sha256": export_oracle_asset["sha256"],
+        "query_config_difference_count": 0,
+        "query_config_observation_count": 58,
+        "query_config_oracle_sha256": public_oracle_asset["sha256"],
+        "xout_check_count": 3,
+    }
+    if audit.get("comparator") != {
+        "compile_guard": "XDEBUG_STREAM_DIFFERENTIAL_TEST_BUILD",
+        "engine_failure_sentinels": [
+            "legacy stream differential oracle failed: ",
+            "stream columnar differential mismatch for ",
+        ],
+        "interposed_actions": [
+            "stream.query", "stream.export", "stream.validate",
+        ],
+        "linked_object": "obj/tests/stream_differential/legacy_stream_oracle.o",
+        "public_action": False,
+        "public_replay": expected_replay,
+        "remaining_public_difference_count": 0,
+    }:
+        raise MatrixError("P3-D1 differential comparator/replay proof drifted")
+
+    source_paths = [
+        "testinfra/fixtures.v1.yaml",
+        "testinfra/catalog.v1.yaml",
+        "xdebug/Makefile",
+        "xdebug/tests/stream_differential/test_stream_differential.py",
+        "xdebug/tests/stream_differential/legacy_stream_oracle.h",
+        "xdebug/tests/stream_differential/legacy_stream_oracle.cpp",
+        "xdebug/tests/synthetic/test_stream_v1_real_waveform.py",
+        "xdebug/src/engine/service/actions/stream/stream_query.cpp",
+        "xdebug/src/engine/service/actions/stream/stream_export.cpp",
+        "xdebug/src/engine/service/actions/stream/stream_validate.cpp",
+        "xdebug/src/waveform/cache/analysis_probe.h",
+        "xdebug/src/waveform/cache/analysis_probe.cpp",
+        "xdebug/src/waveform/cache/analysis_repository.cpp",
+        "xdebug/src/waveform/stream/stream_analyzer.cpp",
+        "xdebug/src/waveform/stream/stream_analyzer.h",
+    ]
+    expected_sources = []
+    for path in source_paths:
+        asset = original_assets.get(path)
+        if asset is None:
+            raise MatrixError(f"P3-D1 original source is not frozen: {path}")
+        expected_sources.append({
+            "path": path,
+            "sha256": asset["sha256"],
+            "size": asset["size_bytes"],
+        })
+    if audit.get("source_files") != expected_sources:
+        raise MatrixError("P3-D1 differential source identity drifted")
+
+    private_fields = [
+        "access_sequence", "build_bytes", "entry_count", "evictions",
+        "hits", "index_count", "key_summary", "misses",
+        "resident_bytes", "scanner_invocations",
+    ]
+    schema_records = []
+    for action in ("stream.query", "stream.export", "stream.validate"):
+        relative = f"schemas/v1/actions/{action}.request.schema.json"
+        path = repo_root / "compat/xdebug-v1" / relative
+        if not path.is_file():
+            raise MatrixError(f"P3-D1 request schema is missing: {relative}")
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        serialized = json.dumps(
+            schema, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
+        if any(field in serialized for field in private_fields):
+            raise MatrixError(
+                f"P3-D1 private cache field leaked into {action} schema"
+            )
+        schema_records.append({
+            "action": action,
+            "schema_id": schema.get("$id"),
+            "schema_path": relative,
+            "schema_sha256": sha256_bytes(serialized.encode("utf-8")),
+        })
+    action_names = public_actions(repo_root)
+    if any(
+        "differential" in action or "probe" in action
+        for action in action_names
+    ):
+        raise MatrixError("P3-D1 private comparator/probe leaked as an Action")
+    if audit.get("public_boundary") != {
+        "action_count": 73,
+        "private_action_count": 0,
+        "private_probe_fields": private_fields,
+        "private_probe_fields_in_public_schema": [],
+        "public_cache_error_code": "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+        "request_schemas": schema_records,
+    }:
+        raise MatrixError("P3-D1 public Action/schema boundary drifted")
+
+    cache = audit.get("cache_contract", {})
+    stream_config = json.loads(
+        (repo_root / "testdata/fixtures/stream_v1/streams.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    ready_packet = next(
+        (
+            item for item in stream_config.get("streams", [])
+            if item.get("name") == "ready_packet"
+        ),
+        None,
+    )
+    if ready_packet is None or cache.get("ready_packet_config") != ready_packet:
+        raise MatrixError("P3-D1 cache stream configuration drifted")
+    base_observations = cache.get("public_observations")
+    expected_base_ids = [
+        "static_validate", "range_a_query", "range_a_export",
+        "range_a_validate", "range_b_query", "full_from_range",
+        "derived_range", "description_load", "description_query",
+        "semantic_load", "semantic_query", "invalid_range",
+        "invalid_static",
+    ]
+    if (
+        cache.get("public_observation_count") != 13
+        or not isinstance(base_observations, list)
+        or [row.get("observation_id") for row in base_observations] !=
+            expected_base_ids
+        or any(
+            row.get("action") not in {
+                "stream.config.load", "stream.export", "stream.query",
+                "stream.validate",
+            }
+            for row in base_observations
+        )
+    ):
+        raise MatrixError("P3-D1 public cache observation coverage drifted")
+    static_summary = base_observations[0].get("response", {}).get(
+        "summary", {}
+    )
+    if (
+        static_summary.get("scan_complete") is not True
+        or static_summary.get("analysis_complete") is not True
+        or static_summary.get("response_truncated") is not False
+    ):
+        raise MatrixError("P3-D1 static stream.validate completion drifted")
+
+    def validate_probe(
+        name: str,
+        probe: object,
+        *,
+        row_count: int,
+        scanners: int,
+        evictions: int,
+        events: dict[str, int],
+    ) -> None:
+        if not isinstance(probe, dict) or set(probe) != {
+            "event_counts", "last", "row_count",
+        }:
+            raise MatrixError(f"P3-D1 {name} private probe shape drifted")
+        last = probe.get("last")
+        event_counts = probe.get("event_counts")
+        if (
+            probe.get("row_count") != row_count
+            or not isinstance(last, dict)
+            or set(last) != set(private_fields)
+            or not isinstance(event_counts, dict)
+            or any(event_counts.get(key) != value for key, value in events.items())
+            or last.get("scanner_invocations") != scanners
+            or last.get("evictions") != evictions
+            or not re.fullmatch(r"[0-9a-f]{16}", last.get("key_summary", ""))
+            or any(
+                not isinstance(value, int) or value < 0
+                for key, value in last.items() if key != "key_summary"
+            )
+        ):
+            raise MatrixError(f"P3-D1 {name} private probe metrics drifted")
+
+    base_probe = cache.get("base_private_probe", {})
+    if (
+        base_probe.get("classification") != "proven-unobservable"
+        or set(base_probe.get("checkpoints", {})) != {
+            "two_ranges", "full_build", "final",
+        }
+    ):
+        raise MatrixError("P3-D1 base cache private classification drifted")
+    checkpoints = base_probe["checkpoints"]
+    validate_probe(
+        "two-range cache", checkpoints["two_ranges"],
+        row_count=8, scanners=2, evictions=0,
+        events={"build": 2, "hit": 2, "miss": 2, "scan": 2},
+    )
+    validate_probe(
+        "full cache", checkpoints["full_build"],
+        row_count=13, scanners=3, evictions=0,
+        events={
+            "build": 3, "hit": 2, "invalidate": 2, "miss": 3,
+            "scan": 3,
+        },
+    )
+    validate_probe(
+        "final cache", checkpoints["final"],
+        row_count=22, scanners=5, evictions=0,
+        events={
+            "build": 5, "hit": 3, "invalidate": 4, "miss": 5,
+            "scan": 5,
+        },
+    )
+
+    batch = cache.get("batch", {})
+    batch_public = batch.get("public", {})
+    if (
+        batch_public.get("ok") is not True
+        or batch_public.get("error") is not None
+        or batch_public.get("summary") != {
+            "all_ok": True,
+            "count": 6,
+            "failed_codes": [],
+            "failed_count": 0,
+            "failed_indexes": [],
+            "failed_layers": [],
+        }
+        or len(batch_public.get("results", [])) != 6
+        or any(
+            result.get("ok") is not True
+            for result in batch_public.get("results", [])
+        )
+    ):
+        raise MatrixError("P3-D1 public batch cache contract drifted")
+    validate_probe(
+        "batch cache", batch.get("private_probe"),
+        row_count=16, scanners=4, evictions=0,
+        events={
+            "build": 4, "hit": 2, "invalidate": 2, "miss": 4,
+            "scan": 4,
+        },
+    )
+
+    soft = cache.get("soft_lru", {})
+    soft_observations = soft.get("public_observations")
+    if (
+        soft.get("private_eviction_classification") !=
+            "proven-unobservable"
+        or not isinstance(soft_observations, list)
+        or [row.get("observation_id") for row in soft_observations] != [
+            "soft_range_0", "soft_range_1", "soft_range_2",
+        ]
+        or any(
+            row.get("response", {}).get("ok") is not True
+            for row in soft_observations
+        )
+    ):
+        raise MatrixError("P3-D1 soft-LRU public/private boundary drifted")
+    validate_probe(
+        "soft-LRU cache", soft.get("private_probe"),
+        row_count=14, scanners=3, evictions=2,
+        events={
+            "build": 3, "evict": 2, "miss": 3,
+            "oversize_admitted": 3, "scan": 3,
+        },
+    )
+
+    hard = cache.get("hard_limit", {})
+    allowed_projection = {
+        "error.key_summary": (
+            "opaque 16-hex cache identity may differ because the current fixture "
+            "is native FST rather than the original FSDB"
+        )
+    }
+    hard_public = hard.get("public", {})
+    expected_hard_summary = {
+        "all_ok": False,
+        "count": 2,
+        "failed_codes": [
+            "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+            "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+        ],
+        "failed_count": 2,
+        "failed_indexes": [0, 1],
+        "failed_layers": ["handler", "handler"],
+    }
+    if (
+        hard.get("classification") != "publicly-observable"
+        or hard.get("allowed_current_projection") != allowed_projection
+        or hard.get("soft_max_bytes") != 1
+        or hard.get("hard_max_bytes") != 1
+        or hard_public.get("ok") is not True
+        or hard_public.get("error") is not None
+        or hard_public.get("summary") != expected_hard_summary
+        or len(hard_public.get("results", [])) != 2
+    ):
+        raise MatrixError("P3-D1 public hard-limit boundary drifted")
+    hard_keys = set()
+    for result in hard_public["results"]:
+        error = result.get("error", {})
+        key_summary = error.get("key_summary", "")
+        hard_keys.add(key_summary)
+        if (
+            result.get("ok") is not False
+            or result.get("data") is not None
+            or result.get("summary") != {
+                "error_code": "ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+                "status": "error",
+            }
+            or error.get("code") != "ANALYSIS_MEMORY_LIMIT_EXCEEDED"
+            or error.get("current_estimated_bytes") != 0
+            or error.get("error_layer") != "handler"
+            or error.get("hard_max_bytes") != 1
+            or error.get("protocol") != "stream"
+            or error.get("recoverable") is not True
+            or error.get("message") != (
+                "analysis cache build exceeds the configured hard memory limit"
+            )
+            or error.get("next_actions") != [
+                (
+                    "For stream analysis, explicitly retry with "
+                    "cache_scope=range or a smaller time_range."
+                ),
+                (
+                    "If range analysis still exceeds the limit, use x-npi "
+                    "for one-off offline analysis."
+                ),
+            ]
+            or not re.fullmatch(r"[0-9a-f]{16}", key_summary)
+        ):
+            raise MatrixError("P3-D1 hard-limit public error contract drifted")
+    if len(hard_keys) != 1:
+        raise MatrixError("P3-D1 hard-limit cache identity is inconsistent")
+    validate_probe(
+        "hard-limit cache", hard.get("private_probe"),
+        row_count=2, scanners=0, evictions=0,
+        events={"build_failed": 2},
+    )
+
+    if audit.get("closure") != {
+        "differential_tool_classification_candidate": "proven-unobservable",
+        "private_cache_metrics_classification": "proven-unobservable",
+        "public_hard_limit_requires_current_gate": True,
+        "remaining_unmapped_public_observation_count": 0,
+        "stream_v1_classification_candidate": "semantic-equivalent",
+    }:
+        raise MatrixError("P3-D1 closure classification/gap count drifted")
     return audit
 
 
@@ -2882,6 +3574,25 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         original_assets,
         current_assets,
     )
+    p3d_closure_audit_asset = current_assets.get(
+        P3D_STREAM_DIFFERENTIAL_CLOSURE_AUDIT.as_posix()
+    )
+    if p3d_closure_audit_asset is None:
+        raise MatrixError(
+            "P0 manifest does not freeze the P3-D1 stream closure audit"
+        )
+    p3d_closure_audit = json.loads(
+        validate_frozen_file(
+            repo_root, p3d_closure_audit_asset
+        ).decode("utf-8")
+    )
+    validate_p3d_stream_differential_closure_audit(
+        p3d_closure_audit,
+        repo_root,
+        manifest,
+        original_assets,
+        current_assets,
+    )
 
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
@@ -3000,6 +3711,96 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                 "comparison_method": comparison["comparison_method"],
                 "remaining_observable_gap_count":
                     comparison["remaining_observable_gap_count"],
+            }
+        if fixture_id == "xdebug.stream_v1":
+            replay = p3d_closure_audit["comparator"]["public_replay"]
+            hard_limit = p3d_closure_audit["cache_contract"]["hard_limit"]
+            scenario["original"]["locked_public_oracles"] = [
+                {
+                    "path": P3D_STREAM_PUBLIC_ORACLE.as_posix(),
+                    "sha256": replay["query_config_oracle_sha256"],
+                    "observation_count": replay[
+                        "query_config_observation_count"
+                    ],
+                },
+                {
+                    "path": P3D_STREAM_EXPORT_ORACLE.as_posix(),
+                    "sha256": replay["export_oracle_sha256"],
+                    "observation_count": replay[
+                        "export_observation_count"
+                    ],
+                },
+            ]
+            scenario["runtime_audit"] = {
+                "path": P3D_STREAM_DIFFERENTIAL_CLOSURE_AUDIT.as_posix(),
+                "sha256": p3d_closure_audit_asset["sha256"],
+                "status": "semantic-equivalent",
+                "p3_batch": "P3-D1",
+                "query_config_observation_count": replay[
+                    "query_config_observation_count"
+                ],
+                "query_config_difference_count": replay[
+                    "query_config_difference_count"
+                ],
+                "export_observation_count": replay[
+                    "export_observation_count"
+                ],
+                "export_difference_count": replay[
+                    "export_difference_count"
+                ],
+                "artifact_check_count": replay["artifact_check_count"],
+                "xout_check_count": replay["xout_check_count"],
+                "public_cache_observation_count": p3d_closure_audit[
+                    "cache_contract"
+                ]["public_observation_count"],
+                "hard_limit_classification": hard_limit["classification"],
+                "hard_limit_allowed_projection": hard_limit[
+                    "allowed_current_projection"
+                ],
+                "remaining_observable_gap_count": 0,
+            }
+        if fixture_id == "xdebug.stream_differential_tool":
+            comparator = p3d_closure_audit["comparator"]
+            boundary = p3d_closure_audit["public_boundary"]
+            closure = p3d_closure_audit["closure"]
+            scenario["original"]["private_helper"] = p3d_closure_audit[
+                "fixture_contract"
+            ]
+            scenario["original"]["source_assets"] = p3d_closure_audit[
+                "source_files"
+            ]
+            scenario["original"]["direct_helper_public_actions"] = []
+            scenario["unobservable_proof"] = {
+                "path": P3D_STREAM_DIFFERENTIAL_CLOSURE_AUDIT.as_posix(),
+                "sha256": p3d_closure_audit_asset["sha256"],
+                "classification": p3d_closure_audit["classification"],
+                "compile_guard": comparator["compile_guard"],
+                "linked_object": comparator["linked_object"],
+                "interposed_actions": comparator["interposed_actions"],
+                "public_action": comparator["public_action"],
+                "public_replay": comparator["public_replay"],
+                "remaining_public_difference_count": comparator[
+                    "remaining_public_difference_count"
+                ],
+                "public_action_count": boundary["action_count"],
+                "private_action_count": boundary["private_action_count"],
+                "private_probe_fields": boundary["private_probe_fields"],
+                "private_probe_fields_in_public_schema": boundary[
+                    "private_probe_fields_in_public_schema"
+                ],
+                "reused_waveform_fixture_id": p3d_closure_audit[
+                    "fixture_contract"
+                ]["reused_waveform_fixture_id"],
+                "private_cache_metrics_classification": closure[
+                    "private_cache_metrics_classification"
+                ],
+                "public_hard_limit_requires_current_gate": closure[
+                    "public_hard_limit_requires_current_gate"
+                ],
+                "remaining_unmapped_public_observation_count": closure[
+                    "remaining_unmapped_public_observation_count"
+                ],
+                "proof_scope": candidate["evidence_scope"],
             }
         if fixture_id == "xdebug.active_trace_runner":
             runner_proof = p3c_closure_audit["runner"]
