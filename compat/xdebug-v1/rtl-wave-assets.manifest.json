@@ -2062,6 +2062,21 @@
         "current.cross_fixture"
       ],
       "kind": "test_consumer",
+      "path": "tests/coverage/rtl_wave_semantic_matrix.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "a5485bb78f04cbed98b83e317032287a03f246db3d9d4a5f8b9b81c757468f72",
+      "side": "current",
+      "size_bytes": 1362121
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
       "path": "tests/cpp/test_runtime_schema_validator.cpp",
       "roles": [
         "test_consumer"
@@ -2579,6 +2594,21 @@
       "sha256": "c6a7494414b4fe8f5a65f431ef41abd1b642fd0f9a724b7bb775851b5ed06638",
       "side": "current",
       "size_bytes": 7116
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/test_rtl_wave_semantic_matrix.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "1129927776ba64f2050682daac233f21b38a55d70c18fc11c4a57c984980b6d4",
+      "side": "current",
+      "size_bytes": 8965
     },
     {
       "exists": true,
@@ -10922,10 +10952,10 @@
   "schema_version": "xdebug-rtl-wave-assets.v1",
   "summary": {
     "current": {
-      "asset_count": 180,
+      "asset_count": 182,
       "fst_count": 12,
       "rtl_count": 11,
-      "test_consumer_count": 45,
+      "test_consumer_count": 47,
       "vcd_count": 1
     },
     "missing_assets": [],

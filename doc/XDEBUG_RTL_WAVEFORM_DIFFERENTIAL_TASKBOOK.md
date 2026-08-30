@@ -346,9 +346,45 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | 重复 live check | 已通过 | 连续两次通过，manifest SHA-256 `8700147784993e4e4e38ca6f199398691359cf9fb3721e9661d53350bfc24fa6` |
 | 相邻静态门禁 | 已通过 | manifest/compat/path 11/11；compat baseline OK；local path audit OK |
 | 外部批后零写入复核 | 已通过 | live check 通过；三仓 HEAD/status/hash 与最新审计态一致 |
-| P0 中文详细 commit | 待提交 | 计划标题见第六节 |
+| P0 中文详细 commit | 已完成 | `994bc5d 文档：冻结原版 RTL 与波形测试资产基线` |
+
+### 2026-08-30：P1 RTL 场景语义矩阵
+
+- 新增 `tools/build_rtl_wave_semantic_matrix.py`，所有原版输入先对照 P0 manifest 做逐文件
+  SHA-256 校验；输出路径经过 realpath 边界检查，只能写入当前仓库。
+- 解析冻结 `cases.v1.yaml` 得到 68 个 active trace catalog case，并另外登记 README 声明、
+  但目录仅有 `.gitignore` 且 YAML 无条目的 `p0_4_interface_modport` declared-only orphan。
+- 生成 `tests/coverage/rtl_wave_semantic_matrix.json`：88 个场景完整反向覆盖 23 fixture、103 HDL、
+  25 个声明波形输出和 259 consumer；每个原版 HDL 保存 SHA-256、construct 分类及精确行号。
+- 73 个公开 Action 全部链接冻结 request example、response schema 和完整性字段。当前候选测试只
+  标记“相关能力”，在 P2 用同一请求完成双波形比较前不得升级为等价。
+- Phase5 的 DUT 和 S1～S13 刺激在当前 fixture 中近似复现，但现有
+  `test_trace_active_driver_chain_matches_original_phase5_public_semantics` 把多个 scene 统一断言为
+  `ambiguous`，与原版逐 scene oracle 不同，不能再由测试名宣称完整匹配。
+- 原版自身还存在两个冻结冲突：S6 的 YAML 为 `ambiguous`、报告为 `control_only`；S8 的 YAML
+  为 `primary_input`、报告为 `control_only`。矩阵同时保留两值，排入 P2 runtime 实测裁决。
+- P1 初始状态为 `partial=86`、`missing=2`、`unclassified=0`、`unqueued_gap=0`；88 个未关闭项
+  已全部分配到 P3-A～E，当前阶段没有以能力族代表测试静默关闭具体场景。
+- 新增 6 项矩阵门禁，连同 P0 资产及 compat/path 相邻门禁共 21/21 通过；覆盖
+  parser/construct、软链接写逃逸、全量反向索引、证据哈希与行号、73 Action 合同、Phase5
+  冲突和 p0_4 孤儿；独立 compat baseline 与 local path audit 也通过。
+
+### P1 当前状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 68 个 active catalog case | 已映射 | matrix `active.*` |
+| p0_4 declared-only orphan | 已显式登记 missing | `active.p0.declared_only_p0_4` |
+| 103 HDL / 23 fixture / 25 wave output | 100% 可反查 | matrix `coverage` |
+| 259 consumer | 100% 可反查 | matrix `coverage.original_consumers` |
+| 73 Action request/schema/完整性字段 | 已链接 | matrix `action_contracts` |
+| 缺口队列 | 已完成 | P3-A 1、P3-B 8、P3-C 70、P3-D 6、P3-E 3 |
+| P1 focused/adjacent gate | 已通过 | 21/21；compat baseline OK；local path audit OK |
+| P1 中文详细 commit | 待提交 | `测试：建立原版 RTL 场景语义映射矩阵` |
 
 ### 下一步
 
-1. 完成 P0 独立中文详细 commit。
-2. 进入 P1，先生成 103 HDL 到 feature/scenario 的机器矩阵骨架，再逐组填证据。
+1. 更新 P0 manifest，把 P1 新增的当前仓库资产纳入 current-side 发现结果，并重复 live check。
+2. 完成 P1 独立中文详细 commit。
+3. 进入 P2，建立只比较公开 Action 归一化 JSON 的 FSDB/FST 差分设施；先用合成正负例锁定
+   signal/type/width/XZ/time-delta/value/completeness 差异，再运行受控原版查询。
