@@ -1,10 +1,12 @@
 // scope_list.cpp — scope.list and scope.roots actions (BSD-3-Clause)
 #include "engine/engine_action_handler.h"
 #include "engine/engine_globals.h"
+#include "engine/trace_source_context.h"
 #include "protocol/domain_xout_renderer.h"
 
 #include <fnmatch.h>
 #include <algorithm>
+#include <cctype>
 #include <map>
 #include <set>
 #include <string>
@@ -34,6 +36,17 @@ std::string public_wave_path(const std::string& path) {
     return path;
 }
 
+bool matches_scope_path(const std::string& requested,
+                        const std::string& waveform_path) {
+    if (requested == waveform_path || requested == public_wave_path(waveform_path))
+        return true;
+    if (waveform_path.rfind("TOP.", 0) == 0)
+        return requested == waveform_path.substr(4);
+    if (waveform_path.rfind("top.", 0) == 0)
+        return requested == waveform_path.substr(4);
+    return false;
+}
+
 Json wave_root(const std::string& path) {
     return Json{{"path", path}, {"name", local_name(path)},
                 {"full_name", path}, {"def_name", local_name(path)},
@@ -45,6 +58,47 @@ Json design_root(const std::string& path) {
                 {"full_name", path}, {"def_name", local_name(path)},
                 {"kind", "module"}, {"discovery", "npi_top"},
                 {"traceable", true}};
+}
+
+std::string source_module_name(const std::string& text) {
+    size_t begin = 0;
+    while (begin < text.size() && std::isspace(
+               static_cast<unsigned char>(text[begin]))) ++begin;
+    static const std::string keyword = "module";
+    if (text.compare(begin, keyword.size(), keyword) != 0) return {};
+    begin += keyword.size();
+    if (begin >= text.size() || !std::isspace(
+            static_cast<unsigned char>(text[begin]))) return {};
+    while (begin < text.size() && std::isspace(
+               static_cast<unsigned char>(text[begin]))) ++begin;
+    size_t end = begin;
+    while (end < text.size()) {
+        const unsigned char byte = static_cast<unsigned char>(text[end]);
+        if (!(std::isalnum(byte) || text[end] == '_' || text[end] == '$' ||
+              text[end] == '\\')) break;
+        ++end;
+    }
+    return text.substr(begin, end - begin);
+}
+
+std::string design_scope_component(IDesignBackend& design,
+                                   const std::string& waveform_scope) {
+    std::string scope = public_wave_path(waveform_scope);
+    if (scope.rfind("top.", 0) != 0) scope = "top." + scope;
+    const std::string prefix = scope + ".";
+    for (int index = 0; index < design.signal_count(); ++index) {
+        const char* name = design.signal_name(index);
+        if (!name || std::string(name).rfind(prefix, 0) != 0) continue;
+        const char* file = design.signal_file(index);
+        const int line = design.signal_line(index);
+        if (!file || !*file || line <= 0) continue;
+        for (const auto& row : trace_source_context(file, line)) {
+            const std::string module = source_module_name(
+                row.value("text", std::string()));
+            if (!module.empty()) return module;
+        }
+    }
+    return {};
 }
 
 struct ScopeRootsHandler final : EngineActionHandler {
@@ -61,6 +115,41 @@ struct ScopeRootsHandler final : EngineActionHandler {
         const bool wave_available = globals.has_waveform && globals.waveform;
         const bool design_available = globals.has_design && globals.design;
 
+        // Verilator FST places an implementation-only `top` wrapper above a
+        // testbench module.  The original FSDB/NPI view exposes that unique
+        // stateful child as the public root.  Collapse the wrapper only when
+        // the DesignDB proves the child contains internal (non-port) state;
+        // a port-only DUT such as counter_top keeps the existing `top` root.
+        std::map<std::string, std::string> public_root_overrides;
+        if (wave_available && design_available) {
+            for (uint32_t i = 0; i < globals.waveform->root_scope_count(); ++i) {
+                const uint32_t root = globals.waveform->root_scope_at(i);
+                const char* root_full = root
+                    ? globals.waveform->scope_full_name(root) : nullptr;
+                if (!root_full || public_wave_path(root_full) != "top" ||
+                    globals.waveform->scope_child_count(root) != 1) {
+                    continue;
+                }
+                const uint32_t child = globals.waveform->scope_child_at(root, 0);
+                const char* child_name_ptr = child
+                    ? globals.waveform->scope_name(child) : nullptr;
+                if (!child_name_ptr || !*child_name_ptr) continue;
+                const std::string child_name = child_name_ptr;
+                const std::string design_prefix = "top." + child_name + ".";
+                bool has_internal_state = false;
+                for (int signal = 0; signal < globals.design->signal_count(); ++signal) {
+                    const char* name = globals.design->signal_name(signal);
+                    if (name && std::string(name).rfind(design_prefix, 0) == 0 &&
+                        globals.design->signal_direction(signal) == 0) {
+                        has_internal_state = true;
+                        break;
+                    }
+                }
+                if (has_internal_state)
+                    public_root_overrides["top"] = child_name;
+            }
+        }
+
         std::set<std::string> wave_names;
         Json wave_roots = Json::array();
         if (select_wave && wave_available) {
@@ -68,7 +157,10 @@ struct ScopeRootsHandler final : EngineActionHandler {
                 const uint32_t ref = globals.waveform->root_scope_at(i);
                 const char* name = ref ? globals.waveform->scope_full_name(ref) : nullptr;
                 if (!name || !*name) continue;
-                const std::string path = public_wave_path(name);
+                std::string path = public_wave_path(name);
+                const auto override = public_root_overrides.find(path);
+                if (override != public_root_overrides.end())
+                    path = override->second;
                 if (!wave_names.insert(path).second) continue;
                 wave_roots.push_back(wave_root(path));
             }
@@ -80,7 +172,10 @@ struct ScopeRootsHandler final : EngineActionHandler {
             for (int i = 0; i < globals.design->signal_count(); ++i) {
                 const char* name = globals.design->signal_name(i);
                 if (!name || !*name) continue;
-                const std::string root = first_component(name);
+                std::string root = first_component(name);
+                const auto override = public_root_overrides.find(root);
+                if (override != public_root_overrides.end())
+                    root = override->second;
                 if (!root.empty() && design_names.insert(root).second)
                     design_roots.push_back(design_root(root));
             }
@@ -238,7 +333,7 @@ struct ScopeListHandler final : EngineActionHandler {
             for (uint32_t i = 0; i < waveform.scope_count(); ++i) {
                 const uint32_t ref = waveform.scope_at(i);
                 const char* full = ref ? waveform.scope_full_name(ref) : nullptr;
-                if (full && (path == full || path == public_wave_path(full))) {
+                if (full && matches_scope_path(path, full)) {
                     base = ref;
                     break;
                 }
@@ -257,8 +352,36 @@ struct ScopeListHandler final : EngineActionHandler {
                 if (!name || !*name) continue;
                 const std::string relative = prefix.empty()
                     ? name : prefix + "." + name;
-                all_modules.push_back({{"name", relative},
-                                       {"module_name", std::string(name)}});
+                if (waveform.scope_kind(child)==
+                        IWaveformBackend::ScopeKind::Interface) {
+                    const char* full = waveform.scope_full_name(child);
+                    std::string design_name = full ? public_wave_path(full) : "";
+                    if (!design_name.empty()&&design_name.rfind("top.",0)!=0)
+                        design_name="top."+design_name;
+                    const int design_index=globals.has_design&&globals.design
+                        ?globals.design->resolve(design_name.c_str()):-1;
+                    if (design_index>=0&&
+                        globals.design->signal_direction(design_index)!=0) {
+                        all_ports.push_back({{"name",relative},
+                            {"direction","interface"},{"width",nullptr}});
+                    } else {
+                        all_signals.push_back({{"name",relative},
+                            {"width",nullptr}});
+                    }
+                } else {
+                    const char* component = waveform.scope_component(child);
+                    std::string module_name = component && *component
+                        ? std::string(component) : std::string();
+                    if (module_name.empty() && globals.has_design && globals.design) {
+                        const char* full = waveform.scope_full_name(child);
+                        if (full && *full)
+                            module_name = design_scope_component(
+                                *globals.design, full);
+                    }
+                    if (module_name.empty()) module_name = name;
+                    all_modules.push_back({{"name", relative},
+                                           {"module_name", module_name}});
+                }
             }
             for (uint32_t i = 0; i < waveform.scope_var_count(scope_ref); ++i) {
                 const uint32_t var = waveform.scope_var_at(scope_ref, i);

@@ -48,6 +48,14 @@ pub enum WellenSignalEncoding {
 }
 
 #[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WellenScopeKind {
+    Other = 0,
+    Module = 1,
+    Interface = 2,
+}
+
+#[repr(C)]
 pub struct WellenSignalInfo {
     pub signal_ref: u32,
     pub encoding: WellenSignalEncoding,
@@ -373,6 +381,53 @@ pub extern "C" fn wellen_scope_full_name(db: *mut WellenDb, scope_ref: u32) -> *
         .entry(scope.index() | 0x8000_0000)
         .or_insert_with(|| CString::new(name).unwrap_or_default())
         .as_ptr()
+}
+
+/// Get the component/module definition name. Valid until wellen_close.
+#[unsafe(no_mangle)]
+pub extern "C" fn wellen_scope_component(
+    db: *mut WellenDb,
+    scope_ref: u32,
+) -> *const c_char {
+    if db.is_null() {
+        return std::ptr::null();
+    }
+    let db = unsafe { &mut *db };
+    let hierarchy = db.wave.hierarchy();
+    let scope = match scope_from_u32(scope_ref) {
+        Some(scope) => scope,
+        None => return std::ptr::null(),
+    };
+    let component = match hierarchy[scope].component(hierarchy) {
+        Some(component) if !component.is_empty() => component.to_string(),
+        _ => return std::ptr::null(),
+    };
+    db.scope_names
+        .entry(scope.index() | 0x4000_0000)
+        .or_insert_with(|| CString::new(component).unwrap_or_default())
+        .as_ptr()
+}
+
+/// Get the public scope category used by the C++ hierarchy projection.
+#[unsafe(no_mangle)]
+pub extern "C" fn wellen_scope_kind(
+    db: *const WellenDb,
+    scope_ref: u32,
+) -> WellenScopeKind {
+    if db.is_null() {
+        return WellenScopeKind::Other;
+    }
+    let db = unsafe { &*db };
+    let hierarchy = db.wave.hierarchy();
+    let scope = match scope_from_u32(scope_ref) {
+        Some(scope) => scope,
+        None => return WellenScopeKind::Other,
+    };
+    match hierarchy[scope].scope_type() {
+        ScopeType::Module => WellenScopeKind::Module,
+        ScopeType::Interface => WellenScopeKind::Interface,
+        _ => WellenScopeKind::Other,
+    }
 }
 
 /// Get var local name. Valid until wellen_close.

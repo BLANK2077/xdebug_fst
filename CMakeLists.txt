@@ -185,6 +185,60 @@ if(BUILD_TESTING)
         tests/cpp/xdd_v1_bundle.cpp
     )
 
+    set(P3B_ACTIVE_DRIVER_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/active_driver/obj_dir")
+    file(MAKE_DIRECTORY "${P3B_ACTIVE_DRIVER_XDD_BUNDLE_DIR}")
+    add_library(test-p3b-active-driver-xdd-bundle SHARED
+        testdata/fixtures/active_driver/Vactive_driver_tb__DesignDb.cpp
+    )
+    target_include_directories(test-p3b-active-driver-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    set_target_properties(test-p3b-active-driver-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vactive_driver_tb__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${P3B_ACTIVE_DRIVER_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${P3B_ACTIVE_DRIVER_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVactive_driver_tb__DesignDb.so\"\n}\n"
+    )
+
+    set(P3B_INTERFACE_ROOT_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/interface_port_root/obj_dir")
+    file(MAKE_DIRECTORY "${P3B_INTERFACE_ROOT_XDD_BUNDLE_DIR}")
+    add_library(test-p3b-interface-root-xdd-bundle SHARED
+        testdata/fixtures/interface_port_root/Vif_root_tb__DesignDb.cpp
+    )
+    target_include_directories(test-p3b-interface-root-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    set_target_properties(test-p3b-interface-root-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vif_root_tb__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${P3B_INTERFACE_ROOT_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${P3B_INTERFACE_ROOT_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVif_root_tb__DesignDb.so\"\n}\n"
+    )
+
+    set(P3B_ACTIVE_ZERO_XDD_BUNDLE_DIR
+        "${CMAKE_BINARY_DIR}/testdata/fixtures/active_zero_evidence/obj_dir")
+    file(MAKE_DIRECTORY "${P3B_ACTIVE_ZERO_XDD_BUNDLE_DIR}")
+    add_library(test-p3b-active-zero-xdd-bundle SHARED
+        testdata/fixtures/active_zero_evidence/Vactive_zero_evidence_tb__DesignDb.cpp
+    )
+    target_include_directories(test-p3b-active-zero-xdd-bundle PRIVATE
+        ${VERILATOR_REPOSITORY_DIR}/include
+    )
+    set_target_properties(test-p3b-active-zero-xdd-bundle PROPERTIES
+        OUTPUT_NAME "Vactive_zero_evidence_tb__DesignDb"
+        LIBRARY_OUTPUT_DIRECTORY "${P3B_ACTIVE_ZERO_XDD_BUNDLE_DIR}"
+    )
+    file(GENERATE
+        OUTPUT "${P3B_ACTIVE_ZERO_XDD_BUNDLE_DIR}/xdebug-design-db.json"
+        CONTENT "{\n  \"schema_version\": \"xdebug.design-db-bundle.v1\",\n  \"library\": \"libVactive_zero_evidence_tb__DesignDb.so\"\n}\n"
+    )
+
     set(XORIGIN_XDD_BUNDLE_DIR
         "${CMAKE_BINARY_DIR}/testdata/fixtures/gcd_xorigin/obj_dir")
     file(MAKE_DIRECTORY "${XORIGIN_XDD_BUNDLE_DIR}")

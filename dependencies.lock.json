@@ -14,7 +14,7 @@
     "tree": "23d2914ffbee8e293e254d70255d1c4e1d64c073",
     "workspace_patch": "patches/wellen/xdebug-workspace.patch",
     "workspace_patch_sha256": "077b73c0109e2e27a5bfdfc0c3f955f1a2c398497af5b5f21f7327a47eeb5dfd",
-    "capi_header_sha256": "04f85d034f2d91b78da87d10440d3c4cf099a926b1b4366a8f7722980d5513fe",
+    "capi_header_sha256": "b0c9f98c33459b2e1ffbfca51c9d5dfd1497f1c8599b9dbbcf380d3adeea0738",
     "signal_reference_base": 1
   },
   "wellenx_capi": {
@@ -29,10 +29,10 @@
     "version": "v5.050-109-gc3be3c805",
     "revision": "c3be3c80501bec8d4c3b7f5256890332df62d410",
     "tree": "8e247c8b90237517f84fbda98a594318b16ca998",
-    "patchset_version": "xdebug-design-db-v3-production-bundle",
+    "patchset_version": "xdebug-design-db-v4-deterministic-fst",
     "patchset_source_revision": "bf01d667c8b27f2f7cee456bb35a84e5372434df",
     "patch": "patches/verilator/xdebug-design-db.patch",
-    "patch_sha256": "7c8bde1a66917b0d96498d7d191d05c9042914d44e0c998c2c5c0c9f3ecdca65",
+    "patch_sha256": "8d7b76516ee66c0e1715e52545e25811a343dc2010e1f2c48ff97767e2c222e0",
     "xdd_header_sha256": "33afa1e6e173a1ecfe6ebe1fe5f44303f60368f328b0b52677b4544c0be6bba1"
   },
   "original_xdebug": {

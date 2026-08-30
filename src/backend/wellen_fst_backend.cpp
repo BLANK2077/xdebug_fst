@@ -223,6 +223,22 @@ const char* WellenFstBackend::scope_full_name(uint32_t scope_ref) {
     return value.c_str();
 }
 
+const char* WellenFstBackend::scope_component(uint32_t scope_ref) {
+    const uint32_t key = scope_ref | 0x20000000;
+    auto& value = name_cache_[key];
+    if (value.empty()) {
+        const char* component = wellen_scope_component(db_, scope_ref);
+        value = component ? component : "";
+    }
+    return value.c_str();
+}
+
+IWaveformBackend::ScopeKind WellenFstBackend::scope_kind(
+    uint32_t scope_ref) const {
+    return static_cast<IWaveformBackend::ScopeKind>(
+        wellen_scope_kind(db_, scope_ref));
+}
+
 const char* WellenFstBackend::var_name(uint32_t var_ref) {
     uint32_t key = var_ref | 0x80000000;
     auto& s = name_cache_[key];

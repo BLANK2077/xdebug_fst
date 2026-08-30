@@ -21,6 +21,12 @@ typedef enum {
     WELLEN_ENCODING_EVENT     = 3,
 } WellenSignalEncoding;
 
+typedef enum {
+    WELLEN_SCOPE_OTHER     = 0,
+    WELLEN_SCOPE_MODULE    = 1,
+    WELLEN_SCOPE_INTERFACE = 2,
+} WellenScopeKind;
+
 // ── Structs ──
 typedef struct {
     uint32_t signal_ref;
@@ -94,6 +100,12 @@ const char* wellen_scope_name(WellenDb* db, uint32_t scope_ref);
 
 /// Get the full hierarchical scope name (valid until wellen_close).
 const char* wellen_scope_full_name(WellenDb* db, uint32_t scope_ref);
+
+/// Get the component/module definition name, or NULL when unavailable.
+const char* wellen_scope_component(WellenDb* db, uint32_t scope_ref);
+
+/// Get the scope category needed for stable module/interface classification.
+WellenScopeKind wellen_scope_kind(const WellenDb* db, uint32_t scope_ref);
 
 /// Get var local name.
 const char* wellen_var_name(WellenDb* db, uint32_t var_ref);

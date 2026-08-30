@@ -91,6 +91,14 @@ public:
     /// Get full hierarchical scope name.
     virtual const char* scope_full_name(uint32_t scope_ref) = 0;
 
+    /// Get the waveform-native component/module definition name when present.
+    virtual const char* scope_component(uint32_t scope_ref) = 0;
+
+    enum class ScopeKind { Other = 0, Module = 1, Interface = 2 };
+
+    /// Return the waveform-native scope category without guessing from names.
+    virtual ScopeKind scope_kind(uint32_t scope_ref) const = 0;
+
     /// Get variable local name.
     virtual const char* var_name(uint32_t var_ref) = 0;
 

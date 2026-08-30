@@ -198,6 +198,23 @@ std::string signal_name(IDesignBackend& design, int index) {
     return name?std::string(name):std::string();
 }
 
+std::string public_signal_name(const std::string& signal,
+                               const std::string& requested_root) {
+    const bool explicit_top=requested_root=="top"||
+        requested_root.rfind("top.",0)==0||
+        requested_root=="TOP"||requested_root.rfind("TOP.",0)==0;
+    if (!explicit_top&&signal.rfind("top.",0)==0)
+        return signal.substr(4);
+    if (!explicit_top&&signal.rfind("TOP.",0)==0)
+        return signal.substr(4);
+    return signal;
+}
+
+bool has_explicit_top_root(const std::string& signal) {
+    return signal=="top"||signal.rfind("top.",0)==0||
+        signal=="TOP"||signal.rfind("TOP.",0)==0;
+}
+
 bool final_numeric_selector(const std::string& signal,std::string& base,
                             int64_t& value) {
     if (signal.empty()||signal.back()!=']') return false;
@@ -431,6 +448,88 @@ std::vector<StatementGroup> statement_groups(
     return statements;
 }
 
+std::string active_source_line(const StatementGroup& statement);
+
+void suppress_predicate_rhs_sources(StatementGroup& statement,
+                                    IDesignBackend& design) {
+    if (statement.rhs.empty()) return;
+    const auto leaf_name=[](const std::string& signal) {
+        const size_t dot=signal.rfind('.');
+        return dot==std::string::npos?signal:signal.substr(dot+1);
+    };
+
+    // Flattened DesignDB records may publish a branch predicate as an RHS
+    // source of the selected assignment.  Prefer the actual source-line RHS
+    // when it is parseable; this preserves every real expression operand and
+    // drops only the extra predicate signal.
+    std::string text=active_source_line(statement);
+    const size_t comment=text.find("//");
+    if (comment!=std::string::npos) text.erase(comment);
+    size_t assignment=text.find("<=");
+    size_t operator_size=2;
+    if (assignment==std::string::npos) {
+        operator_size=1;
+        for (size_t index=0;index<text.size();++index) {
+            if (text[index]!='=') continue;
+            const char before=index==0?'\0':text[index-1];
+            const char after=index+1<text.size()?text[index+1]:'\0';
+            if (before=='='||before=='!'||before=='<'||before=='>'||
+                after=='=') continue;
+            assignment=index;
+            break;
+        }
+    }
+    std::set<std::string> source_rhs_signals;
+    if (assignment!=std::string::npos) {
+        std::string rhs=text.substr(assignment+operator_size);
+        const size_t semicolon=rhs.find(';');
+        if (semicolon!=std::string::npos) rhs.erase(semicolon);
+        std::string error;
+        std::unique_ptr<ExprNode> expression(parse_expression(rhs,error));
+        if (expression) {
+            for (const auto& signal : expression_signals(expression.get())) {
+                source_rhs_signals.insert(signal);
+                source_rhs_signals.insert(leaf_name(signal));
+            }
+        }
+    }
+    if (!source_rhs_signals.empty()) {
+        const bool matched=std::any_of(
+            statement.rhs.begin(),statement.rhs.end(),[&](const auto& driver) {
+                const std::string source=signal_name(design,driver.src_signal);
+                return source_rhs_signals.count(source)>0||
+                    source_rhs_signals.count(leaf_name(source))>0;
+            });
+        if (matched) {
+            statement.rhs.erase(std::remove_if(
+                statement.rhs.begin(),statement.rhs.end(),[&](const auto& driver) {
+                    const std::string source=signal_name(design,driver.src_signal);
+                    return source_rhs_signals.count(source)==0&&
+                        source_rhs_signals.count(leaf_name(source))==0;
+                }),statement.rhs.end());
+        }
+    }
+
+    if (statement.predicate.empty()) return;
+    std::string error;
+    std::unique_ptr<ExprNode> predicate(
+        parse_expression(statement.predicate,error));
+    if (!predicate) return;
+    const std::vector<std::string> predicate_signals=
+        expression_signals(predicate.get());
+    std::set<std::string> predicate_set;
+    for (const auto& signal : predicate_signals) {
+        predicate_set.insert(signal);
+        predicate_set.insert(leaf_name(signal));
+    }
+    statement.rhs.erase(std::remove_if(
+        statement.rhs.begin(),statement.rhs.end(),[&](const auto& driver) {
+            const std::string source=signal_name(design,driver.src_signal);
+            return !source.empty()&&(predicate_set.count(source)>0||
+                predicate_set.count(leaf_name(source))>0);
+        }),statement.rhs.end());
+}
+
 // Keep a four-state waveform result separate from missing static/runtime
 // evidence.  X-origin may trace the former; every consumer must fail closed
 // on the latter.
@@ -536,10 +635,11 @@ bool select_flattened_output_driver_facts(
     const std::string flattened=signal_name(design,flattened_index);
     const std::string waveform_signal=signal_name(design,waveform_index);
     if (flattened.empty()||waveform_signal.empty()||
-        design.signal_direction(flattened_index)!=2||
         hierarchy_depth(flattened)>=hierarchy_depth(waveform_signal)||
         (!allow_sampleable_flattened&&
-         waveform.find_signal(flattened)!=IWaveformBackend::kInvalidSignalRef)) {
+         (design.signal_direction(flattened_index)!=2||
+          waveform.find_signal(flattened)!=
+              IWaveformBackend::kInvalidSignalRef))) {
         return false;
     }
 
@@ -561,6 +661,63 @@ bool select_flattened_output_driver_facts(
     drivers=std::move(flattened_drivers);
     driver_index=flattened_index;
     return true;
+}
+
+bool select_root_input_parent_driver_facts(
+    IDesignBackend& design,IWaveformBackend& waveform,int waveform_index,
+    std::vector<IDesignBackend::DriverRecord>& drivers,int& driver_index,
+    std::string& parent_signal) {
+    if (design.signal_direction(waveform_index)!=1) return false;
+    const std::string waveform_signal=signal_name(design,waveform_index);
+    if (waveform_signal.empty()) return false;
+
+    std::vector<int> candidates;
+    std::vector<IDesignBackend::PortConnection> connections;
+    design.port_connections(waveform_index,connections);
+    for (const auto& connection : connections) {
+        const int other=connection.port_signal==waveform_index
+            ?connection.connected_signal:connection.port_signal;
+        const std::string candidate=signal_name(design,other);
+        if (other<0||candidate.empty()||candidate==waveform_signal||
+            hierarchy_depth(candidate)>=hierarchy_depth(waveform_signal)) {
+            continue;
+        }
+        auto parent_drivers=drivers_for(design,other);
+        const bool has_clocked_assignment=std::any_of(
+            parent_drivers.begin(),parent_drivers.end(),[](const auto& driver) {
+                return driver.kind=="nba"||
+                    driver.dependency_role.rfind("event_",0)==0;
+            });
+        if (has_clocked_assignment) candidates.push_back(other);
+    }
+    std::sort(candidates.begin(),candidates.end());
+    candidates.erase(std::unique(candidates.begin(),candidates.end()),
+                     candidates.end());
+    if (candidates.size()!=1) return false;
+
+    driver_index=candidates.front();
+    parent_signal=signal_name(design,driver_index);
+    drivers=drivers_for(design,driver_index);
+    map_driver_waveform_aliases(design,waveform,drivers);
+    return !drivers.empty();
+}
+
+bool is_external_primary_input(IDesignBackend& design,int signal_index) {
+    if (signal_index<0||design.signal_direction(signal_index)!=1) return false;
+    const std::string current=signal_name(design,signal_index);
+    std::vector<IDesignBackend::PortConnection> connections;
+    design.port_connections(signal_index,connections);
+    for (const auto& connection : connections) {
+        const int other=connection.port_signal==signal_index
+            ?connection.connected_signal:connection.port_signal;
+        const std::string candidate=signal_name(design,other);
+        if (other>=0&&design.signal_direction(other)==1&&
+            !candidate.empty()&&candidate!=current&&
+            hierarchy_depth(candidate)<hierarchy_depth(current)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool is_verilator_expression_temporary(const std::string& signal) {
@@ -888,6 +1045,44 @@ void apply_unique_nba_priority(EvaluatedStatements& statements) {
     statements.unresolved.clear();
 }
 
+// A statement-only force emitted by DesignDB has no runtime predicate.  FST
+// cannot expose the simulator's active-force handle directly, so reject that
+// static force while the ordinary single-RHS assignment still explains the
+// observed target value.  Once the target diverges from every such assignment,
+// the force is the only published explanation and remains active until a later
+// ordinary assignment becomes observable again.
+void suppress_unobserved_statement_only_force(
+    EvaluatedStatements& statements,const Sample& target,
+    IDesignBackend& design,IWaveformBackend& waveform) {
+    const bool has_statement_only_force=std::any_of(
+        statements.active.begin(),statements.active.end(),
+        [](const StatementGroup& statement) {
+            return statement.kind=="force"&&statement.rhs.empty()&&
+                statement.predicate=="1";
+        });
+    if (!has_statement_only_force) return;
+
+    const bool ordinary_assignment_explains_value=std::any_of(
+        statements.active.begin(),statements.active.end(),
+        [&](const StatementGroup& statement) {
+            if (statement.kind=="force"||statement.rhs.size()!=1) return false;
+            const std::string source=signal_name(
+                design,statement.rhs.front().src_signal);
+            if (source.empty()) return false;
+            const Sample source_sample=sample_at(
+                waveform,source,target.active_time);
+            return source_sample.ok&&source_sample.bits==target.bits;
+        });
+    if (!ordinary_assignment_explains_value) return;
+
+    statements.active.erase(std::remove_if(
+        statements.active.begin(),statements.active.end(),
+        [](const StatementGroup& statement) {
+            return statement.kind=="force"&&statement.rhs.empty()&&
+                statement.predicate=="1";
+        }),statements.active.end());
+}
+
 EvaluatedStatements active_statement_groups(
     const std::vector<IDesignBackend::DriverRecord>& drivers,
     IDesignBackend& design,IWaveformBackend& waveform,uint64_t active_time,
@@ -910,6 +1105,37 @@ EvaluatedStatements active_statement_groups(
             result.unresolved.push_back(std::move(statement));
     }
     return result;
+}
+
+void suppress_non_source_rhs(EvaluatedStatements& statements,
+                             IDesignBackend& design) {
+    for (auto& statement : statements.active)
+        suppress_predicate_rhs_sources(statement,design);
+    for (auto& statement : statements.unresolved)
+        suppress_predicate_rhs_sources(statement,design);
+}
+
+bool suppress_initialization_only_event_evidence(
+    EvaluatedStatements& statements,const Sample& target,
+    IWaveformBackend& waveform) {
+    if (target.active_time!=waveform.min_time()||
+        target.query_time<=target.active_time) {
+        return false;
+    }
+    const auto event_driven=[](const StatementGroup& statement) {
+        return std::any_of(
+            statement.records.begin(),statement.records.end(),[](const auto& record) {
+                return record.dependency_role.rfind("event_",0)==0;
+            });
+    };
+    const size_t before=statements.active.size()+statements.unresolved.size();
+    statements.active.erase(std::remove_if(
+        statements.active.begin(),statements.active.end(),event_driven),
+        statements.active.end());
+    statements.unresolved.erase(std::remove_if(
+        statements.unresolved.begin(),statements.unresolved.end(),event_driven),
+        statements.unresolved.end());
+    return before!=statements.active.size()+statements.unresolved.size();
 }
 
 bool is_pure_self_hold(const StatementGroup& statement,int target_signal) {
@@ -992,6 +1218,165 @@ const IDesignBackend::DriverRecord* representative_driver(
         [](const auto& driver){return driver.dependency_role=="control";});
     return control==statement.records.end()
         ?(statement.records.empty()?nullptr:&statement.records.front()):&*control;
+}
+
+std::string trim_copy(const std::string& value) {
+    size_t begin=0,end=value.size();
+    while (begin<end&&std::isspace(
+            static_cast<unsigned char>(value[begin]))) ++begin;
+    while (end>begin&&std::isspace(
+            static_cast<unsigned char>(value[end-1]))) --end;
+    return value.substr(begin,end-begin);
+}
+
+std::string active_source_line(const StatementGroup& statement) {
+    for (const auto& row : trace_source_context(
+             statement.file,statement.line)) {
+        if (row.value("active",false)&&row.contains("text")&&
+            row.at("text").is_string()) {
+            return row.at("text").get<std::string>();
+        }
+    }
+    return {};
+}
+
+bool balanced_outer_parentheses(const std::string& value) {
+    if (value.size()<2||value.front()!='('||value.back()!=')') return false;
+    int depth=0;
+    for (size_t index=0;index<value.size();++index) {
+        if (value[index]=='(') ++depth;
+        else if (value[index]==')') --depth;
+        if (depth==0&&index+1<value.size()) return false;
+        if (depth<0) return false;
+    }
+    return depth==0;
+}
+
+bool direct_signal_syntax(const std::string& expression) {
+    std::string value=trim_copy(expression);
+    while (balanced_outer_parentheses(value))
+        value=trim_copy(value.substr(1,value.size()-2));
+    if (value.empty()) return false;
+    const unsigned char first=static_cast<unsigned char>(value.front());
+    if (!(std::isalpha(first)||value.front()=='_'||value.front()=='$'||
+          value.front()=='\\')) return false;
+    int bracket_depth=0;
+    for (char ch : value) {
+        if (ch=='[') {
+            ++bracket_depth;
+            continue;
+        }
+        if (ch==']') {
+            if (bracket_depth==0) return false;
+            --bracket_depth;
+            continue;
+        }
+        if (bracket_depth>0) {
+            if (ch=='?'||ch=='{'||ch=='}'||ch=='|'||ch=='&'||ch=='^'||
+                ch=='!'||ch=='~'||ch=='*'||ch=='/'||ch=='%'||ch=='='||
+                ch==',') return false;
+            continue;
+        }
+        const unsigned char byte=static_cast<unsigned char>(ch);
+        if (!(std::isalnum(byte)||ch=='_'||ch=='$'||ch=='.'||ch=='\\'))
+            return false;
+    }
+    return bracket_depth==0;
+}
+
+bool statement_has_direct_rhs(const StatementGroup& statement) {
+    if (statement.rhs.size()!=1) return false;
+    std::string text=active_source_line(statement);
+    if (text.empty()) return true;
+    const size_t comment=text.find("//");
+    if (comment!=std::string::npos) text.erase(comment);
+
+    size_t assignment=text.find("<=");
+    size_t operator_size=2;
+    if (assignment==std::string::npos) {
+        operator_size=1;
+        for (size_t index=0;index<text.size();++index) {
+            if (text[index]!='=') continue;
+            const char before=index==0?'\0':text[index-1];
+            const char after=index+1<text.size()?text[index+1]:'\0';
+            if (before=='='||before=='!'||before=='<'||before=='>'||
+                after=='=') continue;
+            assignment=index;
+            break;
+        }
+    }
+    if (assignment==std::string::npos) return true;
+    std::string rhs=trim_copy(text.substr(assignment+operator_size));
+    while (!rhs.empty()&&(rhs.back()==';'||rhs.back()==',')) {
+        rhs.pop_back();
+        rhs=trim_copy(rhs);
+    }
+    return direct_signal_syntax(rhs);
+}
+
+void append_unique_signal(Json& path,const std::string& signal) {
+    if (signal.empty()) return;
+    if (std::none_of(path.begin(),path.end(),[&](const Json& item) {
+            return item.is_string()&&item.get<std::string>()==signal;
+        })) {
+        path.push_back(signal);
+    }
+}
+
+void append_flattened_statement_context_paths(
+    Json& paths,const StatementGroup& statement,const std::string& target,
+    IDesignBackend& design) {
+    if (statement.kind!="nba") return;
+    int control_line=0,event_line=0;
+    for (int offset=1;offset<=16&&event_line==0;++offset) {
+        const int candidate=statement.line-offset;
+        if (candidate<=0) break;
+        for (const auto& row : trace_source_context(
+                 statement.file,candidate)) {
+            if (!row.value("active",false)) continue;
+            const std::string text=trim_copy(
+                row.value("text",std::string()));
+            if (control_line==0&&(text.rfind("if",0)==0||
+                                  text.rfind("else if",0)==0))
+                control_line=candidate;
+            if (text.rfind("always",0)==0) {
+                event_line=candidate;
+                break;
+            }
+        }
+    }
+
+    if (control_line>0) {
+        Json signal_path=Json::array();
+        std::string error;
+        std::unique_ptr<ExprNode> expression(
+            parse_expression(statement.predicate,error));
+        if (expression) {
+            for (const auto& signal : expression_signals(expression.get()))
+                append_unique_signal(
+                    signal_path,public_signal_name(signal,target));
+        }
+        append_unique_signal(signal_path,target);
+        paths.push_back({{"file",statement.file},{"line",control_line},
+            {"source_context",trace_source_context(
+                statement.file,control_line)},
+            {"signal_path",signal_path}});
+    }
+    if (event_line>0) {
+        Json signal_path=Json::array();
+        for (const auto& record : statement.records) {
+            if (record.src_signal>=0&&
+                record.dependency_role.rfind("event_",0)==0) {
+                append_unique_signal(
+                    signal_path,public_signal_name(
+                        signal_name(design,record.src_signal),target));
+            }
+        }
+        append_unique_signal(signal_path,target);
+        paths.push_back({{"file",statement.file},{"line",event_line},
+            {"source_context",trace_source_context(statement.file,event_line)},
+            {"signal_path",signal_path}});
+    }
 }
 
 Sample sample_before(IWaveformBackend& waveform,const std::string& signal,
@@ -1097,6 +1482,8 @@ Json x_hop(size_t index, const std::string& chain_id,
         {"signal_path",Json::array({signal})}};
 }
 
+Json run_active_driver_chain_projection(const Json& request);
+
 } // namespace
 
 struct TraceActiveDriverHandler : public EngineActionHandler {
@@ -1116,43 +1503,129 @@ struct TraceActiveDriverHandler : public EngineActionHandler {
         if (!target.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST");
         const Json limits=request.value("limits",Json::object());
         const size_t max_results=limits.value("max_results",10u);
+        const bool compatibility_projection=!has_explicit_top_root(signal);
+        if (compatibility_projection&&is_external_primary_input(design,index)) {
+            const std::string file=design.signal_file(index)
+                ?design.signal_file(index):"<unknown>";
+            const int line=std::max(1,design.signal_line(index));
+            Json path{{"file",file},{"line",line},
+                {"source_context",trace_source_context(file,line)},
+                {"signal_path",Json::array({signal})}};
+            Json summary{{"signal",signal},
+                {"time",waveform.format_time(time,unit)},
+                {"active_time",waveform.format_time(target.active_time,unit)},
+                {"termination","primary_input"},
+                {"termination_detail","primary_input"},
+                {"scan_complete",true},{"analysis_complete",true},
+                {"response_truncated",false},{"total_count",1},
+                {"returned_count",1},{"truncation_scopes",Json::array()}};
+            return {{"ok",true},{"summary",summary},
+                    {"data",{{"paths",Json::array({path})}}}};
+        }
         Json paths=Json::array();
         auto drivers=drivers_for(design,index);
-        annotate_output_instance_identities(design,index,drivers);
+        int driver_index=index;
+        const bool flattened_output=select_flattened_output_driver_facts(
+            design,waveform,index,compatibility_projection,
+            drivers,driver_index);
+        annotate_output_instance_identities(design,driver_index,drivers);
         auto evaluated=active_statement_groups(
-            drivers,design,waveform,target.active_time);
+            drivers,design,waveform,target.active_time,
+            compatibility_projection?target.active_time:0);
+        if (compatibility_projection)
+            suppress_non_source_rhs(evaluated,design);
+        const bool initialization_only=compatibility_projection&&
+            flattened_output&&
+            suppress_initialization_only_event_evidence(
+                evaluated,target,waveform);
+        suppress_unobserved_statement_only_force(
+            evaluated,target,design,waveform);
         apply_unique_nba_priority(evaluated);
         const bool has_active_force=std::any_of(
             evaluated.active.begin(),evaluated.active.end(),
             [](const auto& statement) { return statement.kind=="force"; });
-        std::vector<IDesignBackend::DriverRecord> active_drivers;
         for (const auto& statement : evaluated.active) {
             if (has_active_force&&statement.kind!="force") continue;
             const auto* driver=representative_driver(statement);
-            if (driver&&driver->line>0&&!driver->file.empty())
-                active_drivers.push_back(*driver);
+            if (!driver||driver->line<=0||driver->file.empty()) continue;
+            const std::string source=public_signal_name(
+                signal_name(design,driver->src_signal),signal);
+            paths.push_back(source_path(*driver,source,signal));
+            if (flattened_output)
+                append_flattened_statement_context_paths(
+                    paths,statement,signal,design);
         }
-        for (const auto& driver : active_drivers) {
-            if (paths.size()>=max_results) break;
-            const std::string source=signal_name(design,driver.src_signal);
-            paths.push_back(source_path(driver,source,signal));
+
+        const bool transparent_boundary=std::any_of(
+            evaluated.active.begin(),evaluated.active.end(),
+            [](const StatementGroup& statement) {
+                return statement.kind=="cont_assign";
+            });
+        const bool has_analysis_limit=limits.contains("max_nodes")||
+            limits.contains("max_depth")||limits.contains("max_time_steps");
+        Json chain_response=nullptr;
+        if (transparent_boundary||flattened_output||has_analysis_limit)
+            chain_response=run_active_driver_chain_projection(request);
+
+        if ((transparent_boundary||flattened_output)&&
+            chain_response.value("ok",false)) {
+            std::set<std::tuple<std::string,int,std::string>> seen;
+            for (const auto& path : paths) {
+                const std::string path_signal=path.at("signal_path").empty()
+                    ?std::string():path.at("signal_path").back().get<std::string>();
+                seen.emplace(path.value("file",""),path.value("line",0),path_signal);
+            }
+            for (const auto& hop : chain_response.value("data",Json::object())
+                                             .value("hops",Json::array())) {
+                const std::string hop_signal=hop.value("signal","");
+                const auto key=std::make_tuple(
+                    hop.value("file",""),hop.value("line",0),hop_signal);
+                if (!seen.insert(key).second) continue;
+                paths.push_back({{"file",hop.value("file","<unknown>")},
+                    {"line",std::max(1,hop.value("line",1))},
+                    {"source_context",hop.value(
+                        "source_context",Json::array())},
+                    {"signal_path",hop.value(
+                        "signal_path",Json::array({hop_signal}))}});
+            }
         }
-        const size_t total=active_drivers.size();
+
+        bool analysis_limited=false;
+        std::string limit_detail;
+        if (has_analysis_limit&&chain_response.value("ok",false)) {
+            const Json chain_summary=chain_response.value(
+                "summary",Json::object());
+            analysis_limited=!chain_summary.value("analysis_complete",true);
+            if (analysis_limited)
+                limit_detail=chain_summary.value("termination_detail","limit");
+        }
+        const size_t total=paths.size();
+        if (paths.size()>max_results)
+            paths.erase(paths.begin()+max_results,paths.end());
         const bool truncated=paths.size()<total;
         const std::string rendered_time=waveform.format_time(time,unit);
         const std::string active_time=waveform.format_time(target.active_time,unit);
+        const bool no_active_evidence=paths.empty()&&
+            (initialization_only||!drivers.empty());
         Json summary{{"signal",signal},{"time",rendered_time},{"active_time",active_time},
-            {"termination",has_active_force?"force":
+            {"termination",analysis_limited?"limit":has_active_force?"force":
                 (!evaluated.unresolved.empty()?"unresolved":
-                    (paths.empty()?"no_driver":"assignment"))},
-            {"termination_detail",has_active_force?"force":
+                    (paths.empty()?(no_active_evidence?"unresolved":"no_driver"):
+                        "assignment"))},
+            {"termination_detail",analysis_limited?limit_detail:
+                has_active_force?"force":
                 (!evaluated.unresolved.empty()?"predicate_unresolved":
-                    (paths.empty()?"no_driver":"assignment"))},
-            {"scan_complete",has_active_force||evaluated.unresolved.empty()},
-            {"analysis_complete",has_active_force||evaluated.unresolved.empty()},
+                    (paths.empty()?(no_active_evidence?"unresolved":"no_driver"):
+                        "assignment"))},
+            {"scan_complete",!analysis_limited&&
+                (has_active_force||evaluated.unresolved.empty())},
+            {"analysis_complete",!analysis_limited&&
+                (has_active_force||evaluated.unresolved.empty())},
             {"response_truncated",truncated},{"total_count",total},
             {"returned_count",paths.size()},
-            {"truncation_scopes",truncated?Json::array({"response_paths"}):Json::array()}};
+            {"truncation_scopes",analysis_limited
+                ?Json::array({"analysis_trace"})
+                :(truncated?Json::array({"response_paths"}):Json::array())}};
         return {{"ok",true},{"summary",summary},{"data",{{"paths",paths}}}};
     }
 
@@ -1186,6 +1659,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         bool limited=false,ambiguity_limited=false,ambiguity_incomplete=false;
         std::string frontier_signal; Sample frontier_sample;
         Json ambiguity=nullptr;
+        const bool compatibility_projection=!has_explicit_top_root(root);
         for (size_t depth=0;;++depth) {
             const std::string visit_key=current+"\x1f"+std::to_string(current_time);
             if (!visited.insert(visit_key).second) {
@@ -1201,12 +1675,28 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             if (index<0) return action_error("SIGNAL_NOT_FOUND","signal not found in design: "+current);
             Sample sample=sample_at(waveform,current,current_time);
             if (!sample.ok) return action_error("VALUE_NOT_AVAILABLE","signal value not available in FST: "+current);
+            if (compatibility_projection&&depth==0&&
+                is_external_primary_input(design,index)) {
+                hops.push_back(trace_hop(depth,current,sample,"root",nullptr,
+                    design,index,waveform,unit,format));
+                termination="primary_input";
+                detail="primary_input";
+                break;
+            }
             auto drivers=drivers_for(design,index);
             int driver_index=index;
-            select_flattened_output_driver_facts(
+            const bool flattened_output=select_flattened_output_driver_facts(
                 design,waveform,index,
-                selected_signal.has_numeric_selector&&!selected_signal.exact,
+                compatibility_projection||
+                    (selected_signal.has_numeric_selector&&
+                     !selected_signal.exact),
                 drivers,driver_index);
+            std::string root_input_parent;
+            const bool projected_root_input=compatibility_projection&&
+                depth==0&&
+                select_root_input_parent_driver_facts(
+                    design,waveform,index,drivers,driver_index,
+                    root_input_parent);
             if (has_loop_selection_context&&bind_target_loop_indices(
                     design,loop_selection_context,drivers)) {
                 has_loop_selection_context=false;
@@ -1216,10 +1706,12 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             annotate_loop_selected_rhs(drivers);
             bool self_hold_backtrack_limited=false;
             auto evaluated=active_statement_groups_skipping_self_hold(
-                drivers,design,waveform,driver_index,sample.active_time,current_time,
+                drivers,design,waveform,driver_index,sample.active_time,
+                compatibility_projection?sample.active_time:current_time,
                 max_nodes,&self_hold_backtrack_limited);
             if (self_hold_backtrack_limited) {
-                hops.push_back(trace_hop(depth,current,sample,
+                hops.push_back(trace_hop(depth,
+                    public_signal_name(current,root),sample,
                     depth==0?"root":"driver",nullptr,design,index,waveform,
                     unit,format));
                 limited=true;
@@ -1227,6 +1719,21 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 detail="max_nodes";
                 break;
             }
+            if (compatibility_projection)
+                suppress_non_source_rhs(evaluated,design);
+            const bool initialization_only=compatibility_projection&&
+                flattened_output&&
+                suppress_initialization_only_event_evidence(
+                    evaluated,sample,waveform);
+            if (initialization_only&&evaluated.active.empty()&&
+                evaluated.unresolved.empty()) {
+                termination="unresolved";
+                detail="unresolved";
+                break;
+            }
+            suppress_unobserved_statement_only_force(
+                evaluated,sample,design,waveform);
+            apply_unique_nba_priority(evaluated);
             std::vector<StatementGroup> groups;
             for (const auto& statement : evaluated.active) {
                 const bool has_control=std::any_of(
@@ -1234,7 +1741,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     [](const auto& driver) {
                         return driver.dependency_role=="control";
                     });
-                if (!statement.rhs.empty()||statement.kind=="nba"||has_control)
+                if (!statement.rhs.empty()||statement.kind=="nba"||
+                    statement.kind=="force"||has_control)
                     groups.push_back(statement);
             }
             const bool has_active_force=std::any_of(
@@ -1308,7 +1816,18 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             // through another child output connected to the same alias net.
             const bool arrived_from_ref=previous_index>=0&&
                 design.signal_direction(previous_index)==3;
-            if (direction==0&&!arrived_from_ref&&
+            bool arrived_from_output=false;
+            if (previous_index>=0&&design.signal_direction(previous_index)==2) {
+                std::vector<IDesignBackend::PortConnection> connections;
+                design.port_connections(previous_index,connections);
+                arrived_from_output=std::any_of(
+                    connections.begin(),connections.end(),[&](const auto& item) {
+                        const int other=item.port_signal==previous_index
+                            ?item.connected_signal:item.port_signal;
+                        return other==index;
+                    });
+            }
+            if (direction==0&&!arrived_from_ref&&!arrived_from_output&&
                 evaluated.unresolved.empty()&&groups.size()==1) {
                 std::vector<int> output_ports=ports_connected_to(design,index,2);
                 output_ports.erase(std::remove_if(output_ports.begin(),output_ports.end(),
@@ -1331,7 +1850,10 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 const int parent_index=design.resolve(previous.c_str());
                 auto parent_evaluated=active_statement_groups(
                     drivers_for(design,parent_index),design,waveform,
-                    sample.active_time,current_time);
+                    sample.active_time,compatibility_projection
+                        ?sample.active_time:current_time);
+                if (compatibility_projection)
+                    suppress_non_source_rhs(parent_evaluated,design);
                 apply_unique_nba_priority(parent_evaluated);
                 if (parent_evaluated.unresolved.empty()&&
                     parent_evaluated.active.size()==1) {
@@ -1424,6 +1946,20 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 }
             }
 
+            bool non_direct_rhs=false;
+            if (compatibility_projection&&ambiguity_kind.empty()&&
+                groups.size()==1&&
+                groups[0].kind!="force"&&!upstream.empty()&&
+                !statement_has_direct_rhs(groups[0])) {
+                upstream.clear();
+                non_direct_rhs=true;
+            }
+            if (ambiguity_kind.empty()&&projected_root_input&&
+                !root_input_parent.empty()) {
+                upstream=root_input_parent;
+                non_direct_rhs=false;
+            }
+
             // FST records value changes, while an NBA executes on every
             // matching sensitivity event.  Refine a sequential hop from its
             // DesignDB event dependency, and propagate that causal time across
@@ -1449,9 +1985,20 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             // before constructing a node.  Other ambiguity kinds are found
             // only after the current node exists and therefore keep the hop.
             if (!stops_before_current_hop) {
-                hops.push_back(trace_hop(depth,current,sample,
+                Json hop=trace_hop(depth,public_signal_name(current,root),sample,
                     depth==0?"root":"driver",selected,design,index,waveform,
-                    unit,format));
+                    unit,format);
+                Json signal_path=Json::array();
+                if (projected_root_input&&!root_input_parent.empty())
+                    append_unique_signal(signal_path,
+                        public_signal_name(root_input_parent,root));
+                else if (!upstream.empty())
+                    append_unique_signal(signal_path,
+                        public_signal_name(upstream,root));
+                append_unique_signal(
+                    signal_path,public_signal_name(current,root));
+                hop["signal_path"]=std::move(signal_path);
+                hops.push_back(std::move(hop));
             }
 
             if (!ambiguity_kind.empty()) {
@@ -1510,8 +2057,9 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 }
             }
             if (upstream.empty()) {
-                detail=termination=="assignment"
-                    ?"constant_or_no_rhs_signal":termination;
+                detail=non_direct_rhs?"non_direct_rhs_expression":
+                    (termination=="assignment"
+                        ?"constant_or_no_rhs_signal":termination);
                 break;
             }
 
@@ -1567,6 +2115,15 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         return render_active_driver_chain_xout(response);
     }
 };
+
+namespace {
+
+Json run_active_driver_chain_projection(const Json& request) {
+    TraceActiveDriverChainHandler handler;
+    return handler.run(request);
+}
+
+} // namespace
 
 struct TraceXOriginHandler : public EngineActionHandler {
     const char* action_name() const override { return "trace.x_origin"; }
@@ -1710,6 +2267,8 @@ struct TraceXOriginHandler : public EngineActionHandler {
             expand_expression_temporaries(design,waveform,all_drivers);
             auto evaluated=active_statement_groups(
                 all_drivers,design,waveform,sample.active_time);
+            suppress_unobserved_statement_only_force(
+                evaluated,sample,design,waveform);
             apply_unique_nba_priority(evaluated);
             const auto force_statement=std::find_if(
                 evaluated.active.begin(),evaluated.active.end(),

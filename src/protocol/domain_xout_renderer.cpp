@@ -460,33 +460,38 @@ std::string render_stream_xout(const std::string& action,
 std::string render_scope_roots_xout(const Json& response) {
     TextResponseBuilder out("xdebug");
     out.emit_header("scope.roots");
-    emit_summary(out, response);
+    const Json summary = response.value("summary", Json::object());
+    out.emit_section("summary");
+    const Json recommended = summary.value("recommended_root", Json(nullptr));
+    out.emit_kv("recommended", recommended.is_null()
+        ? "none (" + summary.value(
+            "recommended_reason", std::string("unknown")) + ")"
+        : recommended.get<std::string>());
+    out.emit_kv("source", summary.value("source", std::string("auto")));
+    out.emit_kv("roots", summary.value("root_count", 0));
+    out.emit_kv("matched", summary.value("matched_count", 0));
+    out.emit_kv("wave", summary.value("wave_count", 0));
+    out.emit_kv("design", summary.value("design_count", 0));
     const Json data = response.value("data", Json::object());
     const Json roots = data.value("roots", Json::array());
-    if (!roots.empty()) {
-        std::vector<std::vector<std::string>> rows;
-        for (const auto& root : roots) {
-            const Json design = root.contains("design") &&
-                    root["design"].is_object()
-                ? root["design"] : Json::object();
-            const Json wave = root.contains("wave") && root["wave"].is_object()
-                ? root["wave"] : Json::object();
-            rows.push_back({
-                root.value("path", std::string()),
-                root.value("status", std::string()),
-                json_to_xout_value(root.value("sources", Json::array())),
-                design.value("kind", std::string()),
-                design.value("def_name", std::string()),
-                json_to_xout_value(design.value("traceable", Json())),
-                json_to_xout_value(wave.value("type", Json())),
-                json_to_xout_value(wave.value("queryable", Json())),
-            });
+    std::vector<std::vector<std::string>> rows;
+    for (const auto& root : roots) {
+        std::ostringstream sources;
+        const Json source_list = root.value("sources", Json::array());
+        for (size_t index = 0; index < source_list.size(); ++index) {
+            if (index) sources << ',';
+            sources << source_list[index].get<std::string>();
         }
-        out.emit_section("roots");
-        out.emit_table({"path", "status", "sources", "design_kind",
-                        "design_def", "traceable", "wave_type", "queryable"},
-                       rows);
+        const Json wave = root.value("wave", Json());
+        const Json design = root.value("design", Json());
+        rows.push_back({root.value("path", std::string()),
+            root.value("status", std::string()),sources.str(),
+            wave.is_object()?wave.value("full_name",std::string()):"",
+            design.is_object()?design.value("full_name",std::string()):""});
     }
+    if (rows.empty()) rows.push_back({"[empty]", "", "", "", ""});
+    out.emit_section("roots");
+    out.emit_table({"path", "status", "sources", "wave", "design"}, rows);
     const Json limitations = data.value("limitations", Json::array());
     if (!limitations.empty()) {
         out.emit_section("limitations");

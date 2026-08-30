@@ -124,7 +124,24 @@ int XddDesignBackend::signal_count() const {
 }
 
 int XddDesignBackend::resolve(const char* name) const {
-    return fn_resolve_ ? fn_resolve_(db_, name) : -1;
+    if (!fn_resolve_ || !name || !*name) return -1;
+    const int exact = fn_resolve_(db_, name);
+    if (exact >= 0) return exact;
+
+    const std::string query(name);
+    if (query.rfind("TOP.", 0) == 0) {
+        const std::string canonical = "top." + query.substr(4);
+        return fn_resolve_(db_, canonical.c_str());
+    }
+    if (query.rfind("top.", 0) != 0) {
+        const std::string canonical = "top." + query;
+        const int prefixed = fn_resolve_(db_, canonical.c_str());
+        if (prefixed >= 0) return prefixed;
+    } else {
+        const int unprefixed = fn_resolve_(db_, query.substr(4).c_str());
+        if (unprefixed >= 0) return unprefixed;
+    }
+    return -1;
 }
 
 // ── Metadata ──

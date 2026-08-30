@@ -149,6 +149,36 @@ def ai_complex_fst() -> Path:
 
 
 @pytest.fixture(scope="session")
+def active_driver_fst() -> Path:
+    return _fix("active_driver")
+
+
+@pytest.fixture(scope="session")
+def active_driver_design_db(xfst_bin: Path) -> Path:
+    return xfst_bin.parent / "testdata/fixtures/active_driver/obj_dir"
+
+
+@pytest.fixture(scope="session")
+def interface_port_root_fst() -> Path:
+    return _fix("interface_port_root")
+
+
+@pytest.fixture(scope="session")
+def interface_port_root_design_db(xfst_bin: Path) -> Path:
+    return xfst_bin.parent / "testdata/fixtures/interface_port_root/obj_dir"
+
+
+@pytest.fixture(scope="session")
+def active_zero_evidence_fst() -> Path:
+    return _fix("active_zero_evidence")
+
+
+@pytest.fixture(scope="session")
+def active_zero_evidence_design_db(xfst_bin: Path) -> Path:
+    return xfst_bin.parent / "testdata/fixtures/active_zero_evidence/obj_dir"
+
+
+@pytest.fixture(scope="session")
 def counter_design_db() -> Path:
     return FIXTURES / "counter" / "obj_dir"
 

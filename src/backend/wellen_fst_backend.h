@@ -49,6 +49,8 @@ public:
     uint32_t scope_var_at(uint32_t scope_ref, uint32_t idx) const override;
     const char* scope_name(uint32_t scope_ref) override;
     const char* scope_full_name(uint32_t scope_ref) override;
+    const char* scope_component(uint32_t scope_ref) override;
+    ScopeKind scope_kind(uint32_t scope_ref) const override;
     const char* var_name(uint32_t var_ref) override;
     const char* var_full_name(uint32_t var_ref) override;
     uint32_t var_signal_ref(uint32_t var_ref) const override;
