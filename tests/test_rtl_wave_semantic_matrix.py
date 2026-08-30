@@ -17,6 +17,7 @@ from tools.build_rtl_wave_semantic_matrix import (
     parse_inline_mapping,
     scan_constructs,
     validate_p3c_p0_oracle,
+    validate_p3c_phase4_oracle,
 )
 
 
@@ -102,9 +103,9 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "scenario_count": 88,
         "status_counts": {
             "missing": 2,
-            "partial": 71,
+            "partial": 51,
             "proven-unobservable": 2,
-            "semantic-equivalent": 13,
+            "semantic-equivalent": 33,
         },
         "unclassified_count": 0,
         "unqueued_gap_count": 0,
@@ -161,6 +162,7 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "fixture.design_p3",
         "fixture.design_hierarchy",
         *{f"active.p0.{index:02d}" for index in range(1, 7)},
+        *{f"active.phase4.{index:02d}" for index in range(1, 21)},
     }
 
 
@@ -360,4 +362,125 @@ def test_p3c_p0_matrix_gate_rejects_oracle_and_schema_boundary_drift() -> None:
     with pytest.raises(MatrixError, match="representability boundaries disappeared"):
         validate_p3c_p0_oracle(
             missing_boundaries, ROOT, original_assets, current_assets
+        )
+
+
+def test_p3c_phase4_cases_are_closed_individually_with_locked_evidence() -> None:
+    matrix = load_matrix()
+    scenarios = {item["scenario_id"]: item for item in matrix["scenarios"]}
+    phase4 = [
+        scenarios[f"active.phase4.{index:02d}"] for index in range(1, 21)
+    ]
+    assert [item["status"] for item in phase4] == \
+        ["semantic-equivalent"] * 20
+    assert [
+        item["original"]["locked_native_oracle"]["termination"]
+        for item in phase4
+    ] == [
+        "primary_input", "primary_input", "primary_input", "primary_input",
+        "primary_input", "ambiguous", "ambiguous", "ambiguous",
+        "ambiguous", "ambiguous", "ambiguous", "ambiguous", "ambiguous",
+        "ambiguous", "primary_input", "primary_input", "ambiguous",
+        "primary_input", "primary_input", "primary_input",
+    ]
+    assert [
+        item["original"]["locked_native_oracle"]["total_hops"]
+        for item in phase4
+    ] == [16, 16, 16, 17, 16, 11, 11, 11, 10, 11,
+          11, 11, 11, 12, 11, 11, 11, 12, 12, 11]
+    assert all(
+        item["runtime_audit"]["path"] ==
+        "tests/data/rtl_wave_differential/p3c-phase4.original-oracle.json"
+        and SHA256.fullmatch(item["runtime_audit"]["sha256"])
+        and item["runtime_audit"]["locked_temporal_boundaries"] == 2
+        and item["runtime_audit"]["remaining_observable_gap_count"] == 0
+        and item["current"]["candidate_fixture_ids"] ==
+        ["current.active_trace"]
+        and item["public_request"]["limits"] == {"max_depth": 16}
+        and set(item["public_request"]["args"]) == {"signal", "time"}
+        for item in phase4
+    )
+    assert [
+        [projection["kind"] for projection in
+         item["runtime_audit"]["schema_projections"]]
+        for item in phase4
+    ] == [
+        *([[]] * 14), ["source_location_sentinel"],
+        ["source_location_sentinel"], [],
+        ["source_location_sentinel"], ["source_location_sentinel"],
+        ["source_location_sentinel"],
+    ]
+    required_tests = {
+        "test_p3c_phase4_oracle_is_locked_complete_and_sanitized",
+        "test_p3c_phase4_exact_rtl_and_generated_fixture_hashes",
+        "test_p3c_phase4_matches_locked_native_chain_semantics",
+        "test_p3c_phase4_limits_are_explicit_analysis_boundaries",
+    }
+    for index, item in enumerate(phase4, 1):
+        case = f"case_{index:02d}"
+        assert {
+            source["path"] for source in item["current"]["candidate_sources"]
+        } == {
+            f"testdata/fixtures/active_trace/rtl/phase4/{case}/tb.sv",
+            "testdata/fixtures/active_trace/rtl/phase4/phase4_dut.sv",
+            "testdata/fixtures/active_trace/rtl/composite/chain_dut.sv",
+            f"testdata/fixtures/active_trace/phase4/{case}/waves.fst",
+        }
+        assert {
+            evidence["test"] for evidence in
+            item["current"]["test_evidence"]
+        } == required_tests
+        assert item["scenario_id"] not in matrix["p3_queue"]["P3-C"]
+
+
+def test_p3c_phase4_matrix_gate_rejects_oracle_boundary_drift() -> None:
+    manifest = load_assets()
+    original_assets = {
+        asset["path"]: asset for asset in manifest["assets"]
+        if asset["side"] == "original"
+    }
+    current_assets = {
+        asset["path"]: asset for asset in manifest["assets"]
+        if asset["side"] == "current"
+    }
+    oracle = json.loads((
+        ROOT / "tests/data/rtl_wave_differential/"
+        "p3c-phase4.original-oracle.json"
+    ).read_text(encoding="utf-8"))
+    assert set(validate_p3c_phase4_oracle(
+        oracle, ROOT, original_assets, current_assets
+    )) == {f"active.phase4.{index:02d}" for index in range(1, 21)}
+
+    wrong_goal = deepcopy(oracle)
+    wrong_goal["goal_id"] = "wrong-goal"
+    with pytest.raises(MatrixError, match="different Goal/group"):
+        validate_p3c_phase4_oracle(
+            wrong_goal, ROOT, original_assets, current_assets
+        )
+
+    wrong_result = deepcopy(oracle)
+    wrong_result["rows"][0]["native_result"]["temporal_boundaries"] = 1
+    with pytest.raises(MatrixError, match="native result is incomplete"):
+        validate_p3c_phase4_oracle(
+            wrong_result, ROOT, original_assets, current_assets
+        )
+
+    wrong_branch = deepcopy(oracle)
+    del wrong_branch["rows"][5]["native_result"][
+        "branch_evidence"
+    ][0]["candidates"][-1]
+    with pytest.raises(MatrixError, match="branch evidence drifted"):
+        validate_p3c_phase4_oracle(
+            wrong_branch, ROOT, original_assets, current_assets
+        )
+
+    missing_endpoints = deepcopy(oracle)
+    for row in missing_endpoints["rows"]:
+        for hop in row["native_result"]["chain"]:
+            if hop["file"] == "" and hop["line"] == 0:
+                hop["file"] = "source.sv"
+                hop["line"] = 1
+    with pytest.raises(MatrixError, match="source-less endpoint count drifted"):
+        validate_p3c_phase4_oracle(
+            missing_endpoints, ROOT, original_assets, current_assets
         )

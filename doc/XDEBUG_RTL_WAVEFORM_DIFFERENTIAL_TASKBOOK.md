@@ -609,10 +609,78 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | 顶层路径 red/green commit | 已完成 | `28fbdeb` / `e3c268a` |
 | P0 六场景 red/green commit | 已完成 | `a523096` / `2b65e5c` |
 
+### 2026-08-30：P3-C Phase4 二十场景补测
+
+- 红灯提交 `1a3d152` 逐项镜像 `case_01`～`case_20`、`phase4_dut.sv` 和共享
+  `composite/chain_dut.sv`，共 22 份 RTL；全部与原版逐字节相同。每个 case 都有独立原始 FST、
+  binary-v1 XDD、manifest 和覆盖 7 个传递输入的 `fixture.sha256`，没有用一个共享波形代表二十种
+  参数/刺激组合。选择性生成器以 `--group phase4 --jobs 4 --repeat 2` 连续构建两次，20 组
+  FST/XDD 全部确定；本次 green 没有修改 fixture 输入，因此没有重建缓存。
+- 原版只读 cache 指纹为
+  `6a9d0fea1e9c68057e2ef12906dfd23f73a8a14622fc09b3be9798ee859b09ae`，复用实例后缀
+  `prepare-m3d4_3z7`；native runner SHA-256 为
+  `f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237`，NPI 为
+  `X-2025.06-SP1`。oracle
+  `tests/data/rtl_wave_differential/p3c-phase4.original-oracle.json` 的 SHA-256 为
+  `08e729d6370a48fde04611acb479c66c2458e5e7f193fd7747268a0d56b69368`；20 行均
+  `fixture_rebuilt=false`、`fallback_used=false`、`truncated=false`、limitations 为空。
+- 锁定原版结果为 10 个 `primary_input`、10 个 `ambiguous`；hop 分布为
+  `10:1, 11:11, 12:3, 16:4, 17:1`。每行恰有两个 temporal boundary；十个 generate 场景各
+  锁定 `in[0]`～`in[7]` 八个逐 bit 候选及 `4/8` 同时切换，五个 interface 场景锁定
+  `file="", line=0` 的 sink modport endpoint。所有 hop 值均已知且非空。
+- 红灯门禁共 42 项：22 项 oracle/RTL/fixture/边界锁通过，20 项精确语义测试失败；二十项都先在
+  `termination` 处显示当前 `control_only`，并且只有一个时序边界。失败证据在修复前独立提交，
+  没有 `xfail`、skip、放宽断言或修复后补写“曾经失败”。
+- 实现提交 `829b0ed` 只使用 DesignDB/FST 通用事实：抑制已在子 scope 内 RHS 的输出端口反射；
+  module output 直接恢复实例 input；sink modport 保留无源码 endpoint；仅在重复 driver 数、目标宽度
+  和端口宽度同时相等时恢复 generate-for 静态 bit selector；仅解析常量递增、单位步长的受限
+  procedural-for 域，其余继续 fail closed；NBA 只保留数据 RHS，并在 duplicate-top 投影中禁止
+  同值重写越过最后真实 transition。生产代码没有 case 名、fixture 路径或 oracle 值特判。
+- 完整原版链最长 17 hops，而冻结公开 request schema 的 `max_depth` 默认值为 8。产品默认值保持
+  不变；精确差分显式请求从锁定 oracle 推导的 `max_depth=16`，并由独立 limits 用例继续验证
+  `max_depth=1`、`max_nodes=1` 都返回可见 analysis boundary。这是公开合同内的显式请求，不是
+  backend、数据、层级或工具 fallback。
+- Phase4 正式门禁 42/42 通过；Phase4+P0 联合门禁 56/56 通过。实现聚焦回归 129/129 通过：
+  P0 14、combined 85、original-active 18、binary DesignDB production E2E 2、binary backend 10。
+  首轮 combined 抓到 4 个非 duplicate-top alias/NBA 时间回归，收窄条件后定向 46/46 和最终
+  129/129 均通过。`runtime-schema-validator`、`xdd-design-backend`、`wellen-fst-backend`
+  CTest 3/3 通过，完整 CMake build 通过。
+- P3-B/producer 相邻门禁首轮 11/12：唯一失败是 P3-B 测试重复硬编码其阶段结束时的全局矩阵
+  `7/77` 计数，已与先前 P0 的合法 `13/71` 升级冲突。精确全局计数仍由 matrix 专属门禁锁定；
+  P3-B 测试改为验证自身逐行证据、状态全集、总数守恒和 P3-B 零队列，从而允许后续批次合法关闭
+  gap。manifest/matrix/P3-B/producer 联合门禁随后 33/33 通过，不是删除失败断言。
+- manifest 更新为原版 359 assets/103 RTL/23 fixture/260 consumer/25 outputs，当前 355 assets/
+  44 RTL/42 FST/1 VCD/63 consumer；零 missing asset、零未归属原版 HDL。manifest SHA-256 为
+  `0acafb12f4925c2dc32c5b221cc38ae6eaff23786869aac920764cc3c27ce280`；write→matrix
+  write→manifest write 后，manifest 与 matrix `--check` 连续通过。
+- 二十项 Phase4 从 partial 升级为 semantic-equivalent，矩阵变为 `semantic-equivalent=33,
+  proven-unobservable=2, partial=51, missing=2`；P3-C 队列从 64 降为 44。矩阵 SHA-256 为
+  `7f35032d2e54ded260bbd68eaac8b72359ad02cfbd04c64910eb91f207590a64`，每行只保留本 case
+  的三份精确 RTL 和一份 FST 作为当前证据，且公开请求明确记录 `limits.max_depth=16`。
+- Phase4 前后外部审计快照 SHA-256 均为
+  `bf6fb878395c0dee2167f415a059e7559542ee9c0dc0dc1efb55a8b562ed1b86`：xverif 保持
+  HEAD `5110099482b...` 和 18 个既有 dirty/untracked 条目逐路径/状态/大小/内容不变；Wellen
+  `afab0abd...`、Verilator `bf01d667...` 均 clean。所有 HOME/TMP/cache/session/build 输出均在
+  当前仓库；没有外部写入、fixture fallback、PR 或 push。
+
+### P3-C Phase4 当前状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 二十份 case RTL/两份共享 RTL | 已完成 | 22 份逐字节相同；20 个 fixture 传递哈希锁 |
+| 锁定原版 native oracle | 已完成 | 20/20；只读 cache；oracle `08e729d6...` |
+| Phase4 精确差分 | 已通过 | 42/42；完整链、两次时序边界、generate/interface 证据 |
+| 实现/相邻回归 | 已通过 | 129/129；P3-B/producer 联合门禁已转绿 |
+| CMake build / CTest | 已通过 | build 完成；关键 CTest 3/3 |
+| manifest/matrix 门禁 | 已通过 | 联合 33/33；连续 write/check 稳定 |
+| Phase4 矩阵关闭 | 已完成 | 20 semantic-equivalent；剩余 P3-C queue=44 |
+| 外部零写入/零 fallback | 已通过 | 前后 audit snapshot `bf6fb878...` 相同 |
+| Phase4 red/green commit | 已完成 | `1a3d152` / `829b0ed`；证据为当前提交 |
+
 ### 下一步
 
-1. P3-C 保持进行中，下一批逐项处理 phase4 20、composite 20、timing 12、phase5 10，以及
-   `fixture.active_trace_runner` 和 p0_4 declared-only orphan，共 64 项；共享 DUT 不能替代每个
+1. P3-C 保持进行中，下一批逐项处理 composite 20、timing 12、phase5 10，以及
+   `fixture.active_trace_runner` 和 p0_4 declared-only orphan，共 44 项；共享 DUT 不能替代每个
    case 的控制、时间和完整响应证据。
 2. Phase5 必须单独关闭完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
    statement 和源码证据。p0_4 若无法建立原版动态 oracle，必须按冻结资产/schema 给出受限的

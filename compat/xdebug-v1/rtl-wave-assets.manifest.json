@@ -486,6 +486,1221 @@
       "fixture_ids": [
         "current.active_trace"
       ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_01/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "f5d23e30d87e5d958dfee7aac2cfb5e9feddbfa783e356e1b1d208b314e78a97",
+      "side": "current",
+      "size_bytes": 5896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_01/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_01/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "10eb351cadce62dce048269c10bcec3bcdcec79e05fcb77101bdcc8f2822c9a2",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_01/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "41dc126396a9ff22e9c2c5a904b634bdfcb10c0dc3748e192395fb896031fe38",
+      "side": "current",
+      "size_bytes": 982
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_02/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "ebd6a1b8a8b727626c4525cd7898239eaa1e315ce2e32f47278a0e199cbbd71e",
+      "side": "current",
+      "size_bytes": 5896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_02/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_02/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "3538d39e0734b5f15f22a7e1f8e89ccb6bdea1eeca22ccca93b3ca42cc1b0238",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_02/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "41dc126396a9ff22e9c2c5a904b634bdfcb10c0dc3748e192395fb896031fe38",
+      "side": "current",
+      "size_bytes": 982
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_03/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "4b34b216bc1349ecf1ca69e77b48d036ee327231d879f820dace27254796a39d",
+      "side": "current",
+      "size_bytes": 5896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_03/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_03/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "40132daf241a05b2ca93f204114d0b5e27320bccad31fb07a7db606cc2ba5c5a",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_03/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "999ecc637d615b08f202f4ee5582a6cdf2205363a7c6c2fb79ea340519092bfe",
+      "side": "current",
+      "size_bytes": 973
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_04/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "b1c7d54ade091a506bb88c90a98e4c9c02b9e2fc509673123fa094cf7de00895",
+      "side": "current",
+      "size_bytes": 6239
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_04/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_04/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "ab34ad5c6e781e6d3d0b70ae0fdffb121f917f1bbcad6d0867c19c41c30c0979",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_04/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "2d71bfa8a5681f91ab975ae60c073ec2f70bdc65a3a9cdee831424a1d510649e",
+      "side": "current",
+      "size_bytes": 1017
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_05/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "3ac2ba2ff903c9535973e2a8813bed86f50c011936e9062d663c7be8c01fa2e4",
+      "side": "current",
+      "size_bytes": 6239
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_05/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_05/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "44a6a9f6038b6109ce700df7a1e1bb4c986b41e6853a2083399c3c4546590a82",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_05/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "138ea59bb94208153fb4f8281aca6c5150e1a0980bb409adf438d6364f83c777",
+      "side": "current",
+      "size_bytes": 1017
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_06/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "6f90063fe0f137b533d293ae8037a0fa07061e11602e58c757bd08de26f02462",
+      "side": "current",
+      "size_bytes": 6667
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_06/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_06/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "7e88c6cfa440a4cb474bb96a05069fb3b0e4b5548c11d32750d02901dd06807b",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_06/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "1e18e5a070f40865e2cb3abf848d32f1be2a03bc0d6b42c13a39ad802d8a956b",
+      "side": "current",
+      "size_bytes": 1033
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_07/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "e23ee79c70be51969e3399f9b551bf23d3eea4c620f8b7f3897fee11fa6f4cce",
+      "side": "current",
+      "size_bytes": 7010
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_07/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_07/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "a5bb2f7d91684e1ad54d9cbefa9ff34488544804bf1a03a143167f9a5dbbb4d3",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_07/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "5a3a2ac356b0690cc4662293ae670dda5cb2b8017c66d30afa379f09d8d0ef05",
+      "side": "current",
+      "size_bytes": 1040
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_08/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "63671db394a210bc213098bf96d6448d894edb005b39211f5f228a51bcc88760",
+      "side": "current",
+      "size_bytes": 7010
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_08/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_08/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "e928541b2ca554917cb0091f749c494b10985958ed065cb6ee6f02e1253ec68c",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_08/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "5a3a2ac356b0690cc4662293ae670dda5cb2b8017c66d30afa379f09d8d0ef05",
+      "side": "current",
+      "size_bytes": 1040
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_09/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "5d78afbe28203a497f7058355d945ee331096ce2765316c8f5b615153adbb440",
+      "side": "current",
+      "size_bytes": 7010
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_09/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_09/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "3c5e56afc0ed62ee65a50b6cf94ac9ae1e4c6db111071fd9e4225c1b0716c7a9",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_09/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "3243ec98477379ffec6387392440d049463e0cc3c0b53a0729e1dd5e7fc8733b",
+      "side": "current",
+      "size_bytes": 1040
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_10/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "6f4e695711d49dc140c46b1863fc93a2bcb06ab571f32f07e7adbbc18dd84cb0",
+      "side": "current",
+      "size_bytes": 7010
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_10/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_10/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "0e06b3e677073614d764839f4b42d526b6532b15fbaee828e262032d6b7f5a6f",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_10/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "5a3a2ac356b0690cc4662293ae670dda5cb2b8017c66d30afa379f09d8d0ef05",
+      "side": "current",
+      "size_bytes": 1040
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_11/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "b863b7f5caf7edc3e56134024186d6919373d91078038ada51b5923969768981",
+      "side": "current",
+      "size_bytes": 7010
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_11/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_11/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "812b4b5cb99caae74af85de6a777cc0fbb6c25dae77943c2b9ff6839807bd2b8",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_11/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "5a3a2ac356b0690cc4662293ae670dda5cb2b8017c66d30afa379f09d8d0ef05",
+      "side": "current",
+      "size_bytes": 1040
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_12/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "4e07e47acfed8bdb5010a8dced89133b0946cd8f148f9e319ff8196a60ab7cfa",
+      "side": "current",
+      "size_bytes": 7010
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_12/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_12/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "2a551693221b8b312f30ea35db37c0bfc7cf30e072a8e03eb58e081a4d6e0ce5",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_12/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "5a3a2ac356b0690cc4662293ae670dda5cb2b8017c66d30afa379f09d8d0ef05",
+      "side": "current",
+      "size_bytes": 1040
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_13/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "d146e31906797798f8794154c41e730236a5f9ee860a5e528f2cd368de79c837",
+      "side": "current",
+      "size_bytes": 7149
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_13/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_13/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "b423b2eb8f4fe04548fc2ec75b9f95fa11e89cd556cc29e6a1717760cbf2d91e",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_13/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "0a567d5ef2e61c60e33fd9269beb416862a5cae32885ca110cb542762c86019e",
+      "side": "current",
+      "size_bytes": 1054
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_14/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "f60b365108dad89ddfea213e28d0bc943181a54a1ad91e9dc296663e92767e05",
+      "side": "current",
+      "size_bytes": 7387
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_14/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_14/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "f8c370a808c95289ba11048a9a2531ff128ca034694d32f1ec53f121e7a42d62",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_14/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "6a8772616b9f1db27e0e67aa111177417666c1f3d572d431b4f0b4f8e95efb33",
+      "side": "current",
+      "size_bytes": 1055
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_15/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "8bd871181f2fff8c29a1b3e32e605cbb6a6750ac79e47941ea5d69c2a93f3550",
+      "side": "current",
+      "size_bytes": 8084
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_15/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_15/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "e80af8bc19968ab057ec0ff3ef0cf06287476b417595830c93a3825d0e1f244c",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_15/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "f2f215bf3fad2c93c1d7fa8ef7123dbff20ebb63bdb845ef98dd6e9c58d414ed",
+      "side": "current",
+      "size_bytes": 1086
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_16/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "d29d6b321fd6fda7378144e05fc81c12934f412990ac8302e2b37b9eaef60fc3",
+      "side": "current",
+      "size_bytes": 8223
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_16/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_16/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "15c95b69fab4b9d37a9672e61dd37894fac88d456cf0bee598ff982f2436f302",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_16/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "0a3d753430173b0e40ff3df9032a66e2adf24f4df26dd81413039da85d07c7db",
+      "side": "current",
+      "size_bytes": 1094
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_17/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "a896082aa6fa3a84bdb9955f834a6a17d76c36a80a1d2ef057abcced8a3a0f4f",
+      "side": "current",
+      "size_bytes": 7526
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_17/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_17/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "390c99bd41e45388490aaa115fcca5ff34e6dbbdc1c2f243b5ce1b9c22da29d3",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_17/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "4c72cbe6c7e7169a65c85ac4cddd5892449b35f701c855435ef634b99486083e",
+      "side": "current",
+      "size_bytes": 1053
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_18/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "16496012e40d92ae825f553c9d78d8549e666761f6cd70defc6ba154ecab9ae3",
+      "side": "current",
+      "size_bytes": 8608
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_18/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_18/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "cb6fee379fadcb606b1db623b8c102232d5feab89c5c47eada3b67bd3ad2ebee",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_18/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "e1a8871ca5a539330b2f7182894201369a804255524050b985e1257f6275d6a8",
+      "side": "current",
+      "size_bytes": 1096
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_19/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "397eb8a3962a0a0f8ad7cd5ea82bcd2c0f6d16900b33517fbd17de6c240c807b",
+      "side": "current",
+      "size_bytes": 8608
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_19/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_19/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "d1c9f087cb50e999be9272d39e6882a361938ecac35f709750150e8775bd3dbe",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_19/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "2d248d7660c7fdce953eb61878fef5e05de5bfb0ee211be451a70e72a5d2fbf7",
+      "side": "current",
+      "size_bytes": 1086
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_20/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "0a9730eaa6e7684ff46c07f56dca59c108e23db295b68ec7945cf2337ba9a5bc",
+      "side": "current",
+      "size_bytes": 8223
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase4/case_20/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase4/case_20/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "8076a74f53919b51e00d308a4942073b1e0d1c93b1cc4181bf13d4f9689036bf",
+      "side": "current",
+      "size_bytes": 896
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase4/case_20/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "0a3d753430173b0e40ff3df9032a66e2adf24f4df26dd81413039da85d07c7db",
+      "side": "current",
+      "size_bytes": 1094
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/composite/chain_dut.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "dcf77d246d8ceb80d956c92cf2df7624df9da7604b6828a06374ffd0d0f981d8",
+      "side": "current",
+      "size_bytes": 5502
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
       "kind": "rtl",
       "path": "testdata/fixtures/active_trace/rtl/p0/p0_0_assign_chain/tb.sv",
       "roles": [
@@ -569,6 +1784,321 @@
       "sha256": "08c021e5322450e3b0ab0ca2ba2ccaf4c1005ce9eebf1fc62e1aa251d69681c3",
       "side": "current",
       "size_bytes": 925
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_01/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "dcf92b21caeae316d7af4f27cec0394bbc71a86b39c2a7282f2d25de845f8a62",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_02/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "dcf92b21caeae316d7af4f27cec0394bbc71a86b39c2a7282f2d25de845f8a62",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_03/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "1692febe36d338ce1add7bbc91628d5e3a23423b3f7f9a0aaf2084ab2f6a9110",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_04/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "94adf2a33ef24225443db5bec470828680d9ed2767ce083ca48d174eadbcfcb7",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_05/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "39e81ec31e58996aaa200621c49e90a7e4748316cdacfeaeb867417c190a34aa",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_06/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "ac4c4e254fff8d9cdd72ea8913bb9881950c34bb855eacdf14826e96074cdba2",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_07/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "554132338dee1547a8ad68938c59f821267923bb8e7f2ae4bccac2826b2c36e9",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_08/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "554132338dee1547a8ad68938c59f821267923bb8e7f2ae4bccac2826b2c36e9",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_09/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "78cb01f0e9b14353a93cfaafb6b429a6d7279e481447865bbae0fc2cb65f52a6",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_10/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "554132338dee1547a8ad68938c59f821267923bb8e7f2ae4bccac2826b2c36e9",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_11/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "554132338dee1547a8ad68938c59f821267923bb8e7f2ae4bccac2826b2c36e9",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_12/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "554132338dee1547a8ad68938c59f821267923bb8e7f2ae4bccac2826b2c36e9",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_13/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "be609667c19592e55fa5b7f9a052bceb8818410ed12a8be472e2e54389bed0ea",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_14/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "7448ea71eed26889a3aa37e73780a78a56231fa82e1edefd57e0c5bab948bb19",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_15/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "aba6eec26677449e30e1bebe0ecb82c4cfb26d35173fc5987f9604b0c51906ca",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_16/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "4f116de31d73e97b2fc651f084adf266f7114e3d6a5107bb4a20b5e3286bfb34",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_17/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "0affd2d565369d2aff8d6222f16256b6ff8913e235d038a23f5b44c875b86d28",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_18/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "21853c02f74dbcac2b5a63eb433435251bb72448d63d0b0192c4aa8c95c3451d",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_19/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "e0df98232fe31a6c41182fa06329d9e8d7249ed36c399af094caad35955ad5fe",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/case_20/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "4f116de31d73e97b2fc651f084adf266f7114e3d6a5107bb4a20b5e3286bfb34",
+      "side": "current",
+      "size_bytes": 599
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase4/phase4_dut.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "e2be93090da3f82d0ae86716b4cfaebf86c57174ca14f3f39a4b59da9a03f6b5",
+      "side": "current",
+      "size_bytes": 1471
     },
     {
       "exists": true,
@@ -2846,9 +4376,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "6cdea4215affc55777bc33a4ccfb4303680d7ae05139c9fca647c25419d186a4",
+      "sha256": "7f35032d2e54ded260bbd68eaac8b72359ad02cfbd04c64910eb91f207590a64",
       "side": "current",
-      "size_bytes": 1345080
+      "size_bytes": 1407005
     },
     {
       "exists": true,
@@ -3044,6 +4574,21 @@
       "sha256": "78fd3616cd961b66d59afcd55eb682b71ddb5549db8e99c580f4f141552298f2",
       "side": "current",
       "size_bytes": 17535
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/p3c-phase4.original-oracle.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "08e729d6370a48fde04611acb479c66c2458e5e7f193fd7747268a0d56b69368",
+      "side": "current",
+      "size_bytes": 215720
     },
     {
       "exists": true,
@@ -3431,9 +4976,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "ab659e94184495b0a40a42b21265eff5972476cf03ac431b04baa89621fb6ce3",
+      "sha256": "63081765a905fd4185baf54ee93221069f210516d353f1d8ad1cbe9c2258f36b",
       "side": "current",
-      "size_bytes": 12304
+      "size_bytes": 12536
     },
     {
       "exists": true,
@@ -3449,6 +4994,21 @@
       "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
       "side": "current",
       "size_bytes": 11780
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/test_p3c_active_trace_phase4.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "31244b486773cd58ea462aa112eaa7027f6f140ca5ce030467d3920711fdcf19",
+      "side": "current",
+      "size_bytes": 11586
     },
     {
       "exists": true,
@@ -3596,9 +5156,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "c264d3338efbb700612b186b0df22547ae2974dab1dc0935f3a4644b0922fdaf",
+      "sha256": "61631fe5b88f72d64279522e12a7035f49ab188cd9fb6d97b5794c877519bf50",
       "side": "current",
-      "size_bytes": 13761
+      "size_bytes": 18833
     },
     {
       "exists": true,
@@ -3716,9 +5276,9 @@
       "roles": [
         "generator"
       ],
-      "sha256": "8e2c4e57ae9bc2f773e4d867d583975a7452b6a687568f6e4ded0228c7b5ca47",
+      "sha256": "8c5d77295320650dfa52f09907105988d7f40468bb7e087ba81b5fb5ba86c64c",
       "side": "current",
-      "size_bytes": 84211
+      "size_bytes": 98818
     },
     {
       "exists": true,
@@ -3731,9 +5291,9 @@
       "roles": [
         "generator"
       ],
-      "sha256": "f8924359bca18a5a9b9a896b2486428dcbe85c7abc09b1d806cc43a63560d40e",
+      "sha256": "25439b34792211f61990edea4bb86f4cb67daabf19594d3bd380262fb054a7c5",
       "side": "current",
-      "size_bytes": 10943
+      "size_bytes": 11907
     },
     {
       "exists": true,
@@ -12016,10 +13576,10 @@
   "schema_version": "xdebug-rtl-wave-assets.v1",
   "summary": {
     "current": {
-      "asset_count": 251,
-      "fst_count": 22,
-      "rtl_count": 22,
-      "test_consumer_count": 61,
+      "asset_count": 355,
+      "fst_count": 42,
+      "rtl_count": 44,
+      "test_consumer_count": 63,
       "vcd_count": 1
     },
     "missing_assets": [],
