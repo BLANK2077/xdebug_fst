@@ -198,23 +198,45 @@ std::string signal_name(IDesignBackend& design, int index) {
     return name?std::string(name):std::string();
 }
 
+std::string decode_verilator_scope_selectors(std::string signal) {
+    size_t begin=0;
+    while ((begin=signal.find("__bra__",begin))!=std::string::npos) {
+        const size_t value_begin=begin+7;
+        const size_t end=signal.find("__ket__",value_begin);
+        if (end==std::string::npos) break;
+        const std::string value=signal.substr(value_begin,end-value_begin);
+        size_t digit=0;
+        if (!value.empty()&&(value.front()=='-'||value.front()=='+')) digit=1;
+        if (digit==value.size()||!std::all_of(
+                value.begin()+static_cast<std::ptrdiff_t>(digit),value.end(),
+                [](unsigned char ch){return std::isdigit(ch)!=0;})) {
+            begin=end+7;
+            continue;
+        }
+        const std::string replacement="["+value+"]";
+        signal.replace(begin,end+7-begin,replacement);
+        begin+=replacement.size();
+    }
+    return signal;
+}
+
 std::string public_signal_name(const std::string& signal,
                                const std::string& requested_root,
                                bool compatibility_projection) {
     if (signal==requested_root) return signal;
+    std::string projected=signal;
     const bool requested_explicit_top=requested_root=="top"||
         requested_root.rfind("top.",0)==0||requested_root=="TOP"||
         requested_root.rfind("TOP.",0)==0;
     if (compatibility_projection&&requested_explicit_top) {
-        if (signal.rfind("top.top.",0)==0) return signal.substr(4);
-        if (signal.rfind("TOP.top.",0)==0) return signal.substr(4);
-        return signal;
+        if (signal.rfind("top.top.",0)==0||signal.rfind("TOP.top.",0)==0)
+            projected=signal.substr(4);
+    } else if (compatibility_projection&&
+               (signal.rfind("top.",0)==0||signal.rfind("TOP.",0)==0)) {
+        projected=signal.substr(4);
     }
-    if (compatibility_projection&&signal.rfind("top.",0)==0)
-        return signal.substr(4);
-    if (compatibility_projection&&signal.rfind("TOP.",0)==0)
-        return signal.substr(4);
-    return signal;
+    return compatibility_projection
+        ?decode_verilator_scope_selectors(std::move(projected)):projected;
 }
 
 bool has_explicit_top_root(const std::string& signal) {
@@ -225,9 +247,36 @@ bool has_explicit_top_root(const std::string& signal) {
 bool uses_native_visible_root(IDesignBackend& design,
                               const std::string& signal) {
     if (!has_explicit_top_root(signal)) return true;
-    const int index=design.resolve(signal.c_str());
+    std::string lookup=signal;
+    int index=design.resolve(lookup.c_str());
+    if (index<0&&!lookup.empty()&&lookup.back()==']') {
+        const size_t selector=lookup.rfind('[');
+        if (selector!=std::string::npos) {
+            lookup.erase(selector);
+            index=design.resolve(lookup.c_str());
+        }
+    }
     const std::string resolved=signal_name(design,index);
-    std::string canonical_request=signal;
+    std::string canonical_request=lookup;
+    if (canonical_request.rfind("TOP.",0)==0)
+        canonical_request="top."+canonical_request.substr(4);
+    return !resolved.empty()&&resolved=="top."+canonical_request;
+}
+
+bool uses_duplicate_hdl_top_projection(IDesignBackend& design,
+                                       const std::string& signal) {
+    if (!has_explicit_top_root(signal)) return false;
+    std::string lookup=signal;
+    int index=design.resolve(lookup.c_str());
+    if (index<0&&!lookup.empty()&&lookup.back()==']') {
+        const size_t selector=lookup.rfind('[');
+        if (selector!=std::string::npos) {
+            lookup.erase(selector);
+            index=design.resolve(lookup.c_str());
+        }
+    }
+    const std::string resolved=signal_name(design,index);
+    std::string canonical_request=lookup;
     if (canonical_request.rfind("TOP.",0)==0)
         canonical_request="top."+canonical_request.substr(4);
     return !resolved.empty()&&resolved=="top."+canonical_request;
@@ -464,6 +513,158 @@ std::vector<StatementGroup> statement_groups(
         statements.push_back(std::move(statement));
     }
     return statements;
+}
+
+bool select_native_flattened_leaf_facts(
+    IDesignBackend& design,const SelectedDesignSignal& selected,
+    std::vector<IDesignBackend::DriverRecord>& drivers,int& driver_index) {
+    int leaf_target=selected.index;
+    std::vector<IDesignBackend::DriverRecord> leaf_drivers=drivers;
+
+    // A packed waveform selection is represented in DesignDB as a vector
+    // target followed by one Verilator bit-alias per elaborated element.  Pick
+    // only the requested alias before walking compiler temporaries; otherwise
+    // all generated instances collapse into one unrelated RHS set.
+    if (selected.has_numeric_selector&&!selected.exact) {
+        const std::string base=signal_name(design,selected.index);
+        const std::string encoded=base+"__bra__"+
+            std::to_string(selected.selector)+"__ket__";
+        std::set<int> candidates;
+        for (const auto& driver : drivers) {
+            if (driver.dependency_role=="rhs"&&driver.src_signal>=0&&
+                signal_name(design,driver.src_signal)==encoded) {
+                candidates.insert(driver.src_signal);
+            }
+        }
+        if (candidates.size()!=1) return false;
+        leaf_target=*candidates.begin();
+        leaf_drivers=drivers_for(design,leaf_target);
+
+        // Collapse only the compiler-created chain selected above.  This is
+        // deliberately not applied to an ordinary one-RHS assignment chain,
+        // whose intermediate hops are public active-trace semantics.
+        std::set<int> visited;
+        for (size_t depth=0;depth<32&&visited.insert(leaf_target).second;
+             ++depth) {
+            const auto groups=statement_groups(leaf_drivers);
+            if (groups.size()!=1||groups.front().kind!="cont_assign"||
+                groups.front().rhs.size()!=1) break;
+            const int next=groups.front().rhs.front().src_signal;
+            if (next<0||next==leaf_target) break;
+            leaf_target=next;
+            leaf_drivers=drivers_for(design,leaf_target);
+        }
+    }
+
+    // Recover the instance-local input ports that correspond to flattened
+    // parent nets or __vcellinp__ temporaries.  The unique connected output
+    // fixes the instance identity, so equal-valued sibling instances cannot
+    // be mixed together.
+    std::vector<int> output_ports=ports_connected_to(design,leaf_target,2);
+    output_ports.erase(std::remove_if(
+        output_ports.begin(),output_ports.end(),[&](int port) {
+            return port==leaf_target||signal_name(design,port).empty();
+        }),output_ports.end());
+    if (output_ports.empty()) return false;
+    const size_t deepest=hierarchy_depth(signal_name(
+        design,*std::max_element(output_ports.begin(),output_ports.end(),
+            [&](int left,int right) {
+                return hierarchy_depth(signal_name(design,left))<
+                    hierarchy_depth(signal_name(design,right));
+            })));
+    output_ports.erase(std::remove_if(
+        output_ports.begin(),output_ports.end(),[&](int port) {
+            return hierarchy_depth(signal_name(design,port))!=deepest;
+        }),output_ports.end());
+    if (output_ports.size()!=1) return false;
+    const std::string instance_scope=signal_scope(
+        signal_name(design,output_ports.front()));
+    if (instance_scope.empty()) return false;
+
+    std::map<int,int> mapped_sources;
+    for (const auto& group : statement_groups(leaf_drivers)) {
+        for (const auto& rhs : group.rhs) {
+            if (mapped_sources.count(rhs.src_signal)>0) continue;
+            std::vector<int> input_ports=ports_connected_to(
+                design,rhs.src_signal,1);
+            input_ports.erase(std::remove_if(
+                input_ports.begin(),input_ports.end(),[&](int port) {
+                    return signal_scope(signal_name(design,port))!=instance_scope;
+                }),input_ports.end());
+            std::sort(input_ports.begin(),input_ports.end());
+            input_ports.erase(std::unique(input_ports.begin(),input_ports.end()),
+                              input_ports.end());
+            if (input_ports.size()!=1) return false;
+            mapped_sources[rhs.src_signal]=input_ports.front();
+        }
+    }
+    if (mapped_sources.empty()) return false;
+    for (auto& driver : leaf_drivers) {
+        if (driver.dependency_role!="rhs") continue;
+        const auto mapped=mapped_sources.find(driver.src_signal);
+        if (mapped!=mapped_sources.end()) driver.src_signal=mapped->second;
+    }
+    drivers=std::move(leaf_drivers);
+    driver_index=leaf_target;
+    return true;
+}
+
+std::vector<StatementGroup> native_dependency_groups(
+    const std::vector<StatementGroup>& active,
+    const std::vector<IDesignBackend::DriverRecord>& drivers) {
+    using Key=std::tuple<std::string,int,std::string>;
+    std::map<Key,size_t> positions;
+    std::vector<StatementGroup> merged;
+    for (const auto& statement : active) {
+        const Key key{statement.file,statement.line,statement.kind};
+        if (positions.count(key)>0) continue;
+        positions[key]=merged.size();
+        StatementGroup group;
+        group.kind=statement.kind;
+        group.file=statement.file;
+        group.line=statement.line;
+        group.predicate="1";
+        group.has_event_time=statement.has_event_time;
+        group.event_time=statement.event_time;
+        merged.push_back(std::move(group));
+    }
+    for (const auto& driver : drivers) {
+        if (driver.src_signal<0||
+            (driver.dependency_role!="rhs"&&
+             driver.dependency_role!="control")) continue;
+        const Key key{driver.file,driver.line,driver.kind};
+        const auto found=positions.find(key);
+        if (found==positions.end()) continue;
+        auto& group=merged[found->second];
+        group.records.push_back(driver);
+        if (std::none_of(group.rhs.begin(),group.rhs.end(),
+                [&](const auto& item) {
+                    return item.src_signal==driver.src_signal;
+                })) {
+            group.rhs.push_back(driver);
+        }
+    }
+    merged.erase(std::remove_if(
+        merged.begin(),merged.end(),[](const auto& group) {
+            return group.records.empty();
+        }),merged.end());
+    return merged;
+}
+
+bool has_native_loop_selection_boundary(
+    const std::vector<IDesignBackend::DriverRecord>& drivers) {
+    using Key=std::tuple<std::string,int,std::string,std::string>;
+    std::map<Key,std::pair<bool,bool>> markers;
+    for (const auto& driver : drivers) {
+        const Key key{driver.file,driver.line,driver.kind,
+                      driver.activation_predicate};
+        auto& marker=markers[key];
+        marker.first|=driver.dependency_role=="rhs_loop_selected";
+        marker.second|=driver.dependency_role=="rhs_loop_index";
+    }
+    return std::any_of(markers.begin(),markers.end(),[](const auto& item) {
+        return item.second.first&&item.second.second;
+    });
 }
 
 std::string active_source_line(const StatementGroup& statement);
@@ -1404,14 +1605,81 @@ Sample sample_before(IWaveformBackend& waveform,const std::string& signal,
     const uint32_t ref=waveform.find_signal(signal);
     if (ref==IWaveformBackend::kInvalidSignalRef) return {};
     if (!waveform.is_loaded(ref)) waveform.load_signals({ref});
-    const uint32_t query_index=waveform.time_idx_of(time);
     const auto indices=waveform.time_indices_of(ref);
     for (auto it=indices.rbegin();it!=indices.rend();++it) {
         const uint64_t candidate_time=waveform.time_at(*it);
-        if (*it<query_index&&candidate_time<time)
+        if (candidate_time<time)
             return sample_at(waveform,signal,candidate_time);
     }
     return {};
+}
+
+struct NativeCandidateChange {
+    size_t candidate_count=0;
+    size_t sampled_count=0;
+    size_t changed_count=0;
+    int unique_changed_source=-1;
+};
+
+NativeCandidateChange native_candidate_changes(
+    const StatementGroup& group,const std::string& requested_root,
+    uint64_t evidence_time,IDesignBackend& design,
+    IWaveformBackend& waveform) {
+    NativeCandidateChange result;
+    result.candidate_count=group.rhs.size();
+    for (const auto& driver : group.rhs) {
+        const std::string internal=signal_name(design,driver.src_signal);
+        const std::string source=public_signal_name(
+            internal,requested_root,true);
+        const Sample before=sample_before(waveform,source,evidence_time);
+        const Sample after=sample_at(waveform,source,evidence_time);
+        if (!before.ok||!after.ok) continue;
+        ++result.sampled_count;
+        if (before.bits==after.bits) continue;
+        ++result.changed_count;
+        result.unique_changed_source=driver.src_signal;
+    }
+    if (result.changed_count!=1) result.unique_changed_source=-1;
+    return result;
+}
+
+bool select_native_statement_input(
+    const std::vector<IDesignBackend::DriverRecord>& drivers,
+    const Sample& sample,IWaveformBackend& waveform,
+    StatementGroup& selected) {
+    if (drivers.empty()||!std::all_of(
+            drivers.begin(),drivers.end(),[](const auto& driver) {
+                return driver.src_signal<0&&driver.kind=="proc_assign"&&
+                    driver.dependency_role=="statement";
+            })) return false;
+    const auto statements=statement_groups(drivers);
+    if (statements.empty()||!std::all_of(
+            statements.begin(),statements.end(),[](const auto& statement) {
+                return statement.rhs.empty()&&!statement.records.empty();
+            })) return false;
+    for (size_t index=1;index<statements.size();++index) {
+        if (statements[index].file!=statements.front().file||
+            statements[index].line<=statements[index-1].line) return false;
+    }
+
+    // A one-to-one, source-ordered stimulus is the only case in which an FST
+    // transition can be associated with a statement-only DesignDB record
+    // without simulator event handles.  Any missing/non-changing assignment
+    // breaks the bijection and therefore remains an ordinary fail-closed
+    // assignment boundary.
+    const auto changes=waveform.time_indices_of(sample.ref);
+    if (changes.size()!=statements.size()) return false;
+    for (size_t index=1;index<changes.size();++index) {
+        if (waveform.time_at(changes[index])<=
+            waveform.time_at(changes[index-1])) return false;
+    }
+    for (size_t index=0;index<changes.size();++index) {
+        if (waveform.time_at(changes[index])==sample.active_time) {
+            selected=statements[index];
+            return true;
+        }
+    }
+    return false;
 }
 
 bool known_bits(const std::string& bits) {
@@ -1429,7 +1697,9 @@ Json ambiguity_value(const Sample& sample,IWaveformBackend& waveform,
 }
 
 Json ambiguity_evidence(const std::string& kind,const std::string& signal,
-                        uint64_t active_time,size_t hop_index,
+                        const std::string& requested_root,
+                        bool compatibility_projection,uint64_t active_time,
+                        size_t hop_index,
                         const std::vector<StatementGroup>& groups,
                         size_t max_trace_signals,IDesignBackend& design,
                         IWaveformBackend& waveform,TimeRenderUnit unit,
@@ -1451,19 +1721,23 @@ Json ambiguity_evidence(const std::string& kind,const std::string& signal,
                 if (!source.empty()&&!leaf.empty())
                     source+="["+leaf+"]";
             }
-            const bool source_exists=waveform.find_signal(source)!=
+            const std::string public_source=public_signal_name(
+                source,requested_root,compatibility_projection);
+            const bool source_exists=waveform.find_signal(public_source)!=
                 IWaveformBackend::kInvalidSignalRef;
             const char* missing_status=source_exists
                 ?"missing_value":"signal_not_found";
-            const Sample before=sample_before(waveform,source,active_time);
-            const Sample after=sample_at(waveform,source,active_time);
+            const Sample before=sample_before(
+                waveform,public_source,active_time);
+            const Sample after=sample_at(
+                waveform,public_source,active_time);
             Json before_json=ambiguity_value(
                 before,waveform,unit,format,missing_status);
             Json after_json=ambiguity_value(
                 after,waveform,unit,format,missing_status);
             Json changed=nullptr;
             if (before.ok&&after.ok) changed=before.bits!=after.bits;
-            samples.push_back({{"signal",source},{"before",before_json},
+            samples.push_back({{"signal",public_source},{"before",before_json},
                 {"after",after_json},{"changed",changed}});
             ++returned;
         }
@@ -1474,7 +1748,8 @@ Json ambiguity_evidence(const std::string& kind,const std::string& signal,
             {"complete",samples.size()==group.rhs.size()},{"rhs_samples",samples}});
     }
     const size_t omitted=rhs_count-returned;
-    return {{"kind",kind},{"signal",signal},
+    return {{"kind",kind},{"signal",public_signal_name(
+            signal,requested_root,compatibility_projection)},
         {"active_time",waveform.format_time(active_time,unit)},
         {"hop_index",hop_index},{"statement_count",groups.size()},
         {"rhs_signal_count",rhs_count},{"returned_rhs_signal_count",returned},
@@ -1683,6 +1958,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
         Json ambiguity=nullptr;
         const bool compatibility_projection=uses_native_visible_root(
             design,root);
+        const bool duplicate_top_projection=
+            uses_duplicate_hdl_top_projection(design,root);
         for (size_t depth=0;;++depth) {
             const std::string visit_key=current+"\x1f"+std::to_string(current_time);
             if (!visited.insert(visit_key).second) {
@@ -1708,25 +1985,34 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             }
             auto drivers=drivers_for(design,index);
             int driver_index=index;
-            const bool flattened_output=select_flattened_output_driver_facts(
+            bool flattened_output=select_flattened_output_driver_facts(
                 design,waveform,index,
                 compatibility_projection||
                     (selected_signal.has_numeric_selector&&
                      !selected_signal.exact),
                 drivers,driver_index);
+            const bool native_flattened_output=duplicate_top_projection&&
+                depth==0&&select_native_flattened_leaf_facts(
+                    design,selected_signal,drivers,driver_index);
+            flattened_output|=native_flattened_output;
             std::string root_input_parent;
             const bool projected_root_input=compatibility_projection&&
                 depth==0&&
                 select_root_input_parent_driver_facts(
                     design,waveform,index,drivers,driver_index,
                     root_input_parent);
-            if (has_loop_selection_context&&bind_target_loop_indices(
+            if (native_flattened_output) {
+                has_loop_selection_context=false;
+            } else if (has_loop_selection_context&&bind_target_loop_indices(
                     design,loop_selection_context,drivers)) {
                 has_loop_selection_context=false;
             }
             annotate_output_instance_identities(design,driver_index,drivers);
-            expand_expression_temporaries(design,waveform,drivers);
+            if (!native_flattened_output)
+                expand_expression_temporaries(design,waveform,drivers);
             annotate_loop_selected_rhs(drivers);
+            const bool native_loop_boundary=duplicate_top_projection&&
+                has_native_loop_selection_boundary(drivers);
             bool self_hold_backtrack_limited=false;
             auto evaluated=active_statement_groups_skipping_self_hold(
                 drivers,design,waveform,driver_index,sample.active_time,
@@ -1743,7 +2029,7 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 detail="max_nodes";
                 break;
             }
-            if (compatibility_projection)
+            if (compatibility_projection&&!duplicate_top_projection)
                 suppress_non_source_rhs(evaluated,design);
             const bool initialization_only=compatibility_projection&&
                 flattened_output&&
@@ -1779,18 +2065,64 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                         return statement.kind!="force";
                     }),groups.end());
             }
+            bool native_statement_input=false;
+            if (duplicate_top_projection&&depth>0&&!has_active_force&&
+                evaluated.unresolved.empty()) {
+                StatementGroup statement_input;
+                if (select_native_statement_input(
+                        drivers,sample,waveform,statement_input)) {
+                    groups={std::move(statement_input)};
+                    native_statement_input=true;
+                }
+            }
+            if (duplicate_top_projection&&!native_loop_boundary&&
+                !native_statement_input&&!has_active_force&&!groups.empty()) {
+                auto native_groups=native_dependency_groups(groups,drivers);
+                if (!native_groups.empty()) groups=std::move(native_groups);
+            }
             const IDesignBackend::DriverRecord* selected=nullptr;
             IDesignBackend::DriverRecord mapped_driver;
             std::string upstream;
             std::string ambiguity_kind;
-            if (!has_active_force&&!evaluated.unresolved.empty())
+            bool native_control_only=false;
+            int native_unique_changed_source=-1;
+            if (native_loop_boundary) {
+                groups.clear();
+            } else if (!has_active_force&&!evaluated.unresolved.empty()) {
                 ambiguity_kind="predicate_unresolved";
-            else if (groups.size()>1) ambiguity_kind="multiple_active_candidates";
-            else if (groups.size()==1&&groups[0].rhs.size()>1)
+            } else if (groups.size()>1) {
+                ambiguity_kind="multiple_active_candidates";
+            } else if (groups.size()==1&&groups[0].rhs.size()>1) {
                 ambiguity_kind="multiple_rhs_sources";
+                if (duplicate_top_projection) {
+                    const NativeCandidateChange changes=native_candidate_changes(
+                        groups[0],root,current_time,design,waveform);
+                    if (changes.sampled_count==changes.candidate_count) {
+                        if (changes.changed_count==1) {
+                            ambiguity_kind.clear();
+                            native_unique_changed_source=
+                                changes.unique_changed_source;
+                        } else if (changes.changed_count==0) {
+                            ambiguity_kind.clear();
+                            native_control_only=true;
+                        }
+                    }
+                }
+            }
             if (!groups.empty()) selected=representative_driver(groups[0]);
-            if (ambiguity_kind.empty()&&selected&&groups[0].kind!="force"&&
-                selected->dependency_role=="rhs") {
+            if (native_unique_changed_source>=0) {
+                const auto unique=std::find_if(
+                    groups[0].rhs.begin(),groups[0].rhs.end(),
+                    [&](const auto& driver) {
+                        return driver.src_signal==native_unique_changed_source;
+                    });
+                if (unique!=groups[0].rhs.end()) {
+                    selected=&*unique;
+                    upstream=signal_name(design,unique->src_signal);
+                }
+            } else if (ambiguity_kind.empty()&&!native_control_only&&selected&&
+                       groups[0].kind!="force"&&
+                       selected->dependency_role=="rhs") {
                 const std::string candidate=signal_name(design,selected->src_signal);
                 if (!candidate.empty()&&candidate!=current&&
                     sample_at(waveform,candidate,sample.active_time).ok)
@@ -1801,7 +2133,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             // A top/parent output may be a flattened alias of one child output.
             // Cross only a unique deepest continuous boundary; procedural/NBA
             // assignments retain their own frozen termination semantics.
-            if (direction==2&&previous.empty()&&evaluated.unresolved.empty()&&
+            if (!native_control_only&&!native_flattened_output&&
+                direction==2&&previous.empty()&&evaluated.unresolved.empty()&&
                 groups.size()==1&&groups[0].kind=="cont_assign") {
                 std::vector<int> child_outputs=ports_connected_to(design,index,2);
                 child_outputs.erase(std::remove_if(
@@ -1851,7 +2184,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                         return other==index;
                     });
             }
-            if (direction==0&&!arrived_from_ref&&!arrived_from_output&&
+            if (!native_control_only&&!native_flattened_output&&
+                direction==0&&!arrived_from_ref&&!arrived_from_output&&
                 evaluated.unresolved.empty()&&groups.size()==1) {
                 std::vector<int> output_ports=ports_connected_to(design,index,2);
                 output_ports.erase(std::remove_if(output_ports.begin(),output_ports.end(),
@@ -1971,7 +2305,8 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
             }
 
             bool non_direct_rhs=false;
-            if (compatibility_projection&&ambiguity_kind.empty()&&
+            if (compatibility_projection&&!duplicate_top_projection&&
+                ambiguity_kind.empty()&&
                 groups.size()==1&&
                 groups[0].kind!="force"&&!upstream.empty()&&
                 !statement_has_direct_rhs(groups[0])) {
@@ -2027,7 +2362,37 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     signal_path,public_signal_name(
                         current,root,compatibility_projection));
                 hop["signal_path"]=std::move(signal_path);
+                if (native_loop_boundary) {
+                    // The native NPI control handle has no source location
+                    // (file="", line=0).  The frozen public response schema
+                    // requires a non-empty file and line>=1, so retain the
+                    // semantic boundary while using its canonical sentinel.
+                    hop["file"]="<unknown>";
+                    hop["line"]=1;
+                    hop["source_context"]=Json::array();
+                }
                 hops.push_back(std::move(hop));
+            }
+
+            if (native_loop_boundary) {
+                termination="primary_input";
+                detail="primary_input";
+                break;
+            }
+            if (native_control_only) {
+                // The locked v1 response schema permits ambiguity_evidence
+                // only with termination=ambiguous.  Preserve control_only as
+                // the native outcome; candidate waveform facts remain
+                // independently queryable rather than emitting a
+                // schema-invalid mixed response.
+                termination="control_only";
+                detail="no_causal_toggle";
+                break;
+            }
+            if (native_statement_input) {
+                termination="primary_input";
+                detail="primary_input";
+                break;
             }
 
             if (!ambiguity_kind.empty()) {
@@ -2035,8 +2400,11 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                     ?evaluated.unresolved:groups;
                 const size_t ambiguity_hop_index=stops_before_current_hop
                     ?hops.size():hops.size()-1;
-                ambiguity=ambiguity_evidence(ambiguity_kind,current,
-                    sample.active_time,ambiguity_hop_index,evidence_groups,
+                const uint64_t evidence_time=duplicate_top_projection
+                    ?current_time:sample.active_time;
+                ambiguity=ambiguity_evidence(ambiguity_kind,current,root,
+                    compatibility_projection,evidence_time,
+                    ambiguity_hop_index,evidence_groups,
                     max_trace_signals,design,waveform,unit,format);
                 if (ambiguity_kind=="predicate_unresolved") {
                     ambiguity["analysis_complete"]=false;

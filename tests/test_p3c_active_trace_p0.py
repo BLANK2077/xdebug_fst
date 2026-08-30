@@ -19,6 +19,10 @@ ORACLE_PATH = (
 )
 ORACLE = json.loads(ORACLE_PATH.read_text(encoding="utf-8"))
 ROWS = ORACLE["rows"]
+CHAIN_SCHEMA = json.loads((
+    ROOT / "compat/xdebug-v1/schemas/v1/actions/"
+    "trace.active_driver_chain.response.schema.json"
+).read_text(encoding="utf-8"))
 
 
 def digest(path: Path) -> str:
@@ -66,6 +70,17 @@ def ambiguity_samples(response: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
+def value_at_bits(loop_runner: StdioLoopRunner, signal: str,
+                  time: str) -> str:
+    response = loop_runner.request(
+        "value.at", args={"signal": signal, "time": time}
+    )
+    assert response.get("ok"), response
+    values = response["data"]["samples"][0]["values"]
+    assert len(values) == 1 and values[0]["status"] == "ok", values
+    return values[0]["value"]["bits"]
+
+
 def test_p3c_p0_oracle_is_locked_complete_and_sanitized() -> None:
     assert ORACLE["schema_version"] == \
         "xdebug.p3c-original-active-trace-oracle.v1"
@@ -101,6 +116,25 @@ def test_p3c_p0_oracle_is_locked_complete_and_sanitized() -> None:
         value for value in all_strings(ORACLE)
         if value.startswith("/") or "/home/" in value
     ]
+
+    # The locked native NPI collector can expose a source-less control handle
+    # and branch samples on control_only.  The independently frozen public v1
+    # schema cannot encode either shape: trace hops require file/line sentinels,
+    # and ambiguity_evidence is coupled to termination=ambiguous.  Keep the raw
+    # oracle intact and freeze the representational boundary explicitly.
+    hop = CHAIN_SCHEMA["$defs"]["nonSamplingTraceHop"]
+    assert hop["properties"]["file"]["minLength"] == 1
+    assert hop["properties"]["line"]["minimum"] == 1
+    assert any(
+        row["native_result"]["termination"] == "control_only" and
+        row["native_result"]["branch_evidence"]
+        for row in ROWS
+    )
+    assert any(
+        native_hop["file"] == "" and native_hop["line"] == 0
+        for row in ROWS
+        for native_hop in row["native_result"]["chain"]
+    )
 
 
 @pytest.mark.parametrize("row", ROWS, ids=lambda row: row["scenario_id"])
@@ -165,28 +199,53 @@ def test_p3c_p0_matches_locked_native_chain_semantics(
     assert [hop["signal"] for hop in hops] == [
         hop["signal"] for hop in native_hops
     ]
-    assert [hop["line"] for hop in hops] == [
-        hop["line"] for hop in native_hops
+    expected_lines = [
+        1 if hop["file"] == "" and hop["line"] == 0 else hop["line"]
+        for hop in native_hops
     ]
+    assert [hop["line"] for hop in hops] == expected_lines
+    for current_hop, native_hop in zip(hops, native_hops):
+        if native_hop["file"] == "" and native_hop["line"] == 0:
+            assert current_hop["file"] == "<unknown>"
+            assert current_hop["line"] == 1
+            assert current_hop["source_context"] == []
     assert [time_fs(hop["active_time"]) for hop in hops] == [
         time_fs(hop["active_time"]) for hop in native_hops
     ]
-    assert [logic_bits(hop["value"]) for hop in hops] == [
-        logic_bits(hop["value"]) for hop in native_hops
-    ]
+    for current_hop, native_hop in zip(hops, native_hops):
+        current_bits = logic_bits(current_hop["value"])
+        if native_hop["value"]:
+            assert current_bits == logic_bits(native_hop["value"])
+        else:
+            # Native NPI reports value_known=true but an empty value for the
+            # generated packed-bit control handle.  Only knownness is
+            # observable there; current FST retains the actual known bit.
+            assert native_hop["value_known"] is True
+            assert current_bits and set(current_bits) <= set("01")
     assert all(hop["value_known"] is True for hop in native_hops)
-    assert sum(
+    assert [
+        hop["relation"] == "root" or
         time_fs(hop["time"]) != time_fs(hop["active_time"])
         for hop in hops
-    ) == native["temporal_boundaries"]
+    ] == [
+        hop["hop_type"] == "temporal_boundary" for hop in native_hops
+    ]
+    assert native["temporal_boundaries"] == sum(
+        hop["hop_type"] == "temporal_boundary" for hop in native_hops
+    )
     assert all(
         any(context["active"] and context["line"] == hop["line"]
             for context in hop["source_context"])
-        for hop in hops if hop["line"] > 0
+        for hop in hops
+        if hop["line"] > 0 and hop["file"] != "<unknown>"
+    )
+    assert all(
+        hop["line"] == 1 and hop["source_context"] == []
+        for hop in hops if hop["file"] == "<unknown>"
     )
 
     native_branches = native["branch_evidence"]
-    if native_branches:
+    if native_branches and native["termination"] == "ambiguous":
         samples = ambiguity_samples(response)
         assert response["data"]["ambiguity_evidence"][
             "analysis_complete"] is True
@@ -205,6 +264,23 @@ def test_p3c_p0_matches_locked_native_chain_semantics(
             for branch in native_branches
             for candidate in branch["candidates"]
         }
+    elif native_branches:
+        assert native["termination"] == "control_only"
+        assert "ambiguity_evidence" not in response["data"]
+        query_fs = int(time_fs(request["time"]))
+        assert query_fs > 1_000
+        before_time = f"{query_fs - 1_000}fs"
+        for branch in native_branches:
+            for candidate in branch["candidates"]:
+                assert candidate["toggled"] is False
+                assert logic_bits(candidate["before"]) == \
+                    logic_bits(candidate["after"])
+                assert logic_bits(value_at_bits(
+                    loop_runner, candidate["name"], before_time
+                )) == logic_bits(candidate["before"])
+                assert logic_bits(value_at_bits(
+                    loop_runner, candidate["name"], request["time"]
+                )) == logic_bits(candidate["after"])
     else:
         assert "ambiguity_evidence" not in response["data"]
 
