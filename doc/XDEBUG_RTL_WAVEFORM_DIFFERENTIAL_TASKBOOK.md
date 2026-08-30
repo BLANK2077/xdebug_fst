@@ -542,9 +542,78 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | P3-B 实现 commit | 已完成 | `b4b810e 修复：对齐活动驱动递归与接口层级语义` |
 | P3-B 证据 commit | 已完成 | `56348d1 测试：补齐设计与活动驱动差分场景` |
 
+### 2026-08-30：P3-C active trace P0 六场景补测
+
+- 先以 `28fbdeb` 固定显式 `top.*` 在 HDL 顶层也名为 `top` 时被解析为 `top.top.*` 的红灯，
+  再以 `e3c268a` 修正 binary/XDD/Wellen 与 combined 的公共路径投影。随后 `a523096` 逐字节
+  镜像 P0 六份原版 RTL，保存六个原版 native NPI chain oracle，并把尚未对齐的六项语义断言
+  作为稳定红灯提交；没有在修复后补写“曾经失败”的伪证据。
+- 原版 oracle SHA-256 为 `78fd3616cd961b66d59afcd55eb682b71ddb5549db8e99c580f4f141552298f2`；
+  runner SHA-256 为 `f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237`，
+  NPI 为 `X-2025.06-SP1`。原版 P0 cache 只读复用，`fixture_rebuilt=false`，未复制或提交
+  FSDB/daidir。当前六个 fixture 只在红灯批次按选择性生成器连续构建两次；本次实现没有修改
+  fixture 输入，因此没有重建缓存。
+- 六个 `fixture.sha256` 的传递锁分别为：assign `2b616bff...`、flop `6e81e26d...`、module
+  `f395cf7c...`、generate `1ece7c03...`、mux `247b9803...`、procedural-for `6ace9a5e...`。
+  每个锁精确覆盖该 case 的字节相同 RTL、公共 dump probe、原始 FST、binary-v1 XDD 与 manifest；
+  14 项 P0 门禁逐文件重算全部哈希，不靠目录存在性判定。
+- 锁定原版结果逐项为：`p0_0` ambiguous/3 hops，`p0_1` primary_input/4 hops，`p0_2`
+  control_only/1 hop，`p0_3` control_only/1 hop，`p0_5` ambiguous/1 hop，`p0_6`
+  primary_input/1 hop；六项都只有一个 native temporal boundary、`truncated=false`、limitations
+  为空。当前请求逐项核对 signal/time、hop 顺序、源码行、active time、值/knownness、候选切换、
+  termination、计数及 scan/analysis/response-truncation 完整性，没有用共享 DUT 代表其余 case。
+- `2b65e5c` 用 DesignDB/FST 通用事实关闭红灯：区分重复 HDL top 与无前缀兼容投影，解码
+  Verilator generate selector，恢复 module/generate 实例本地端口，按同一源语句合并 data/control
+  依赖，并以查询时刻前后的真实 transition 选择唯一因果源或判定 control_only/ambiguous；同时
+  补齐 statement-only 输入与 procedural-loop 边界。生产代码没有硬编码 P0 case、fixture 路径或
+  oracle 值。
+- 原版 native collector 与冻结公开 v1 schema 有两项不可直接编码的边界，原始 oracle 保持不改：
+  `p0_6` 的 `file="", line=0` 在公开 hop 中投影为 `<unknown>:1` 加空 source context；`p0_2/p0_3`
+  的 control_only branch candidates 不能放入仅允许 ambiguous termination 的
+  `ambiguity_evidence`，因此维持 control_only，并用同一原始 FST 上的 `value.at` 分别核对每个候选
+  前后值。另有两个 collector 表示差异被显式冻结：generate packed bit 的 native
+  `value_known=true` 但 value 为空，当前只比较 knownness 并保留实际已知 bit；native
+  `temporal_boundary` 与当前 root relation/时间关系逐 hop 对照。上述项目均有静态 schema 断言，
+  不是易变字段白名单或宽松 success-only 比较。
+- 构建后实现聚焦回归 129/129 通过：P0 14、combined 85、original-active 18、binary DesignDB
+  production E2E 2、binary backend 10；P3-B runtime-audit/producer 相邻回归 12/12 通过。
+  `runtime-schema-validator`、`xdd-design-backend`、`wellen-fst-backend` CTest 3/3 通过，
+  `git diff --check` 通过。
+- manifest/矩阵/P0 联合门禁 33/33 通过；manifest 与 matrix 都经过 write→check 稳定点复现。
+  manifest 更新为原版 359 assets/103 RTL/23 fixture/260 consumer/25 outputs，当前 251 assets/
+  22 RTL/22 FST/1 VCD/61 consumer，零 missing asset、零未归属原版 HDL；SHA-256 为
+  `210753cab44e8b756e0c29590181bbcbeb195a5987db21c2cfaff11d2769c6cb`。
+- 六项 P0 从 partial 升级为 semantic-equivalent，矩阵变为 `semantic-equivalent=13,
+  proven-unobservable=2, partial=71, missing=2`；P3-C 队列从 70 降为 64。原版只声明但没有
+  RTL/catalog oracle 的 `p0_4_interface_modport` 仍为 missing，`fixture.active_trace_runner` 也未由
+  六个 case 顺带关闭。矩阵 SHA-256 为
+  `6cdea4215affc55777bc33a4ccfb4303680d7ae05139c9fca647c25419d186a4`。
+- 外部权威审计用 manifest 的完整 porcelain+内容口径复核：xverif HEAD `5110099482b...` 的
+  18 个既有 dirty/untracked 条目逐路径、状态、大小、SHA-256 完全相同，359 个原版资产零增删、
+  零哈希漂移；Wellen `afab0abd...` 与 Verilator `bf01d667...` 仍 clean。一次只含 tracked 项的
+  `git status -uno` 原始哈希不能与含 untracked 的冻结口径直接比较，随后结构化审计已证明并非
+  外部变化。本批没有越过唯一可写根，也没有 fallback。
+
+### P3-C P0 当前状态
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 六份原版 RTL/当前镜像 | 已完成 | 逐字节相同；六个 fixture 传递哈希锁 |
+| 锁定原版 native oracle | 已完成 | 6/6；只读 cache；oracle `78fd3616...` |
+| P0 精确差分 | 已通过 | 14/14；含 limits 与两项 schema 表达边界 |
+| 实现/相邻回归 | 已通过 | 129/129 + 12/12；CTest 3/3 |
+| manifest/matrix 门禁 | 已通过 | 33/33；连续 write/check 稳定 |
+| P0 矩阵关闭 | 已完成 | 6 semantic-equivalent；剩余 P3-C queue=64 |
+| p0_4 declared-only orphan | 未关闭 | 保持 missing，禁止用 P0 六项代表 |
+| 外部零写入/零 fallback | 已通过 | 完整 snapshot 相同；原版资产漂移 0 |
+| 顶层路径 red/green commit | 已完成 | `28fbdeb` / `e3c268a` |
+| P0 六场景 red/green commit | 已完成 | `a523096` / `2b65e5c` |
+
 ### 下一步
 
-1. 进入 P3-C，逐个关闭 68 个 active catalog case 和两个 P3-C 特殊场景；共享 DUT 不能替代
-   每个 case 的控制、时间和完整响应证据。
+1. P3-C 保持进行中，下一批逐项处理 phase4 20、composite 20、timing 12、phase5 10，以及
+   `fixture.active_trace_runner` 和 p0_4 declared-only orphan，共 64 项；共享 DUT 不能替代每个
+   case 的控制、时间和完整响应证据。
 2. Phase5 必须单独关闭完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
-   statement 和源码证据。
+   statement 和源码证据。p0_4 若无法建立原版动态 oracle，必须按冻结资产/schema 给出受限的
+   proven-unobservable 证明，不能编造原版 fixture。

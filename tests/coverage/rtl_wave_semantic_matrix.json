@@ -9528,12 +9528,6 @@
       "active.composite.18",
       "active.composite.19",
       "active.composite.20",
-      "active.p0.01",
-      "active.p0.02",
-      "active.p0.03",
-      "active.p0.04",
-      "active.p0.05",
-      "active.p0.06",
       "active.p0.declared_only_p0_4",
       "active.phase4.01",
       "active.phase4.02",
@@ -18684,357 +18678,78 @@
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter",
-          "current.case",
-          "current.interface_modport",
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "waveform_fst",
+            "line_anchor": 1,
+            "line_count": 3,
+            "path": "testdata/fixtures/active_trace/p0/p0_0_assign_chain/waves.fst",
+            "sha256": "ac59b6aeecb0d6fc6fad0d12eee14afe01f3c4cb13abd233faad14f5101f473c"
+          },
+          {
             "construct_lines": {
-              "always": [
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "always_comb": [
-                176
-              ],
-              "case": [
+              "continuous_assign": [
+                13,
                 14,
-                59
-              ],
-              "casex": [
-                31
-              ],
-              "casez": [
-                27
-              ],
-              "clock": [
-                2,
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "continuous_assign": [
-                54,
-                55,
-                67,
-                71,
-                142,
-                150,
-                158,
-                167,
-                168
-              ],
-              "four_state_literal": [
-                12,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                45,
-                47,
-                51,
-                55,
-                60,
-                61,
-                62,
-                87,
-                96,
-                103,
-                107,
-                158,
-                168,
-                180
-              ],
-              "if": [
-                11,
-                23,
-                40,
-                42,
-                44,
-                82,
-                86,
-                102,
-                104,
-                177
-              ],
-              "inside": [
-                59
-              ],
-              "module": [
-                1,
-                133,
-                138,
-                146,
-                153,
-                161,
-                171
-              ],
-              "nonblocking_assignment": [
-                12,
-                15,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                43,
-                45,
-                47,
-                51,
-                60,
-                61,
-                62,
-                83,
-                87,
-                103,
-                105,
-                107
-              ],
-              "reset": [
-                3,
-                11,
-                23,
-                40,
-                82,
-                102
-              ]
-            },
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 182,
-            "path": "testdata/fixtures/case/case_top.sv",
-            "sha256": "4bca4382a96ce062aedcf007bc2f296c9dea42ac203ce211ff5b115583872716"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/case/tb_case.cpp",
-            "sha256": "b664ca6c2d338e16596c89210f2311d2ecdd6459e1c17c23afd63c3fb78b895d"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 32,
-            "path": "testdata/fixtures/case/waves.fst",
-            "sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
-          },
-          {
-            "construct_lines": {
-              "always": [
-                7
-              ],
-              "clock": [
-                2,
-                7
-              ],
-              "four_state_literal": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "if": [
-                8
-              ],
-              "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
-              ]
-            },
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
-          },
-          {
-            "construct_lines": {
-              "continuous_assign": [
-                11,
                 15
               ],
-              "interface": [
-                4
-              ],
-              "modport": [
-                6,
-                7
-              ],
-              "module": [
-                10,
-                14,
-                18
-              ]
-            },
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 25,
-            "path": "testdata/fixtures/interface_modport/interface_modport_top.sv",
-            "sha256": "8719eba578990c1ba9b135c299b0386f7108b59421833f2c69fe2250d4ee1036"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/interface_modport/tb_interface_modport.cpp",
-            "sha256": "124c061daa725ea5a4cdf8c3d7315687f5ed14e6cc017d1c03a4a81988536aa9"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 10,
-            "path": "testdata/fixtures/interface_modport/waves.fst",
-            "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
-          },
-          {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
               "delay": [
-                5
+                20,
+                23
               ],
-              "function": [
-                25
+              "four_state_literal": [
+                18,
+                19,
+                21,
+                22
               ],
-              "if": [
-                35
+              "initial": [
+                17
               ],
               "module": [
-                5
-              ],
-              "procedural_for": [
-                34
+                9
               ]
             },
             "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/rtl/p0/p0_0_assign_chain/tb.sv",
+            "sha256": "51ea434d068add1fc69d06cf814a7ee71e928cc0f68a2b102677a92eb137ecf9"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C P0 六场景逐项差分已通过；不是以共享 DUT 或代表 case 替代",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 84,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 807,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_enters_child_output_from_parent_net"
+            "line": 141,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_exact_rtl_and_generated_fixture_hashes"
           },
           {
-            "line": 659,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_crosses_interface_modports"
+            "line": 175,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_matches_locked_native_chain_semantics"
           },
           {
-            "line": 53,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_selects_runtime_else_branch"
+            "line": 288,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -19078,6 +18793,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_p0",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "781288b86da97600895bb815dc92b85a57de142f584b39f793593a1800c9b809",
+          "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+          "scenario_id": "active.p0.01",
+          "temporal_boundaries": 1,
+          "termination": "ambiguous",
+          "total_hops": 3,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.out",
@@ -19142,367 +18866,113 @@
         "api_version": "xdebug.v1",
         "args": {
           "signal": "top.out",
+          "stop_on_temporal": false,
           "time": "10ns"
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 RTL 与当前镜像逐字节相同；锁定 native NPI oracle 和当前原始 FST/binary-v1 DesignDB 已按请求、hop、源码行、时间、值、候选、termination 与完整性逐项通过。冻结 v1 schema 的两项表达限制由显式哨兵/value.at 门禁裁决。",
+      "runtime_audit": {
+        "locked_native_hop_count": 3,
+        "locked_native_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.p0.01",
+        "schema_projections": [],
+        "sha256": "78fd3616cd961b66d59afcd55eb682b71ddb5549db8e99c580f4f141552298f2",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.p0.01",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter",
-          "current.case",
-          "current.interface_modport",
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "waveform_fst",
+            "line_anchor": 1,
+            "line_count": 9,
+            "path": "testdata/fixtures/active_trace/p0/p0_1_flop_boundary/waves.fst",
+            "sha256": "65228b97bdd436f0dbfd7e9282888ceaf9733f3fd2b356c127e6381f9041c571"
+          },
+          {
             "construct_lines": {
-              "always": [
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "always_comb": [
-                176
-              ],
-              "case": [
-                14,
-                59
-              ],
-              "casex": [
-                31
-              ],
-              "casez": [
-                27
+              "always_ff": [
+                16
               ],
               "clock": [
-                2,
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
+                9,
+                16,
+                21,
+                22
               ],
               "continuous_assign": [
-                54,
-                55,
-                67,
-                71,
-                142,
-                150,
-                158,
-                167,
-                168
-              ],
-              "four_state_literal": [
-                12,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                45,
-                47,
-                51,
-                55,
-                60,
-                61,
-                62,
-                87,
-                96,
-                103,
-                107,
-                158,
-                168,
-                180
-              ],
-              "if": [
-                11,
-                23,
-                40,
-                42,
-                44,
-                82,
-                86,
-                102,
-                104,
-                177
-              ],
-              "inside": [
-                59
-              ],
-              "module": [
-                1,
-                133,
-                138,
-                146,
-                153,
-                161,
-                171
-              ],
-              "nonblocking_assignment": [
-                12,
-                15,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                43,
-                45,
-                47,
-                51,
-                60,
-                61,
-                62,
-                83,
-                87,
-                103,
-                105,
-                107
-              ],
-              "reset": [
-                3,
-                11,
-                23,
-                40,
-                82,
-                102
-              ]
-            },
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 182,
-            "path": "testdata/fixtures/case/case_top.sv",
-            "sha256": "4bca4382a96ce062aedcf007bc2f296c9dea42ac203ce211ff5b115583872716"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/case/tb_case.cpp",
-            "sha256": "b664ca6c2d338e16596c89210f2311d2ecdd6459e1c17c23afd63c3fb78b895d"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 32,
-            "path": "testdata/fixtures/case/waves.fst",
-            "sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
-          },
-          {
-            "construct_lines": {
-              "always": [
-                7
-              ],
-              "clock": [
-                2,
-                7
-              ],
-              "four_state_literal": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "if": [
-                8
-              ],
-              "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
-              ]
-            },
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
-          },
-          {
-            "construct_lines": {
-              "continuous_assign": [
-                11,
-                15
-              ],
-              "interface": [
-                4
-              ],
-              "modport": [
-                6,
-                7
-              ],
-              "module": [
-                10,
-                14,
-                18
-              ]
-            },
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 25,
-            "path": "testdata/fixtures/interface_modport/interface_modport_top.sv",
-            "sha256": "8719eba578990c1ba9b135c299b0386f7108b59421833f2c69fe2250d4ee1036"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/interface_modport/tb_interface_modport.cpp",
-            "sha256": "124c061daa725ea5a4cdf8c3d7315687f5ed14e6cc017d1c03a4a81988536aa9"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 10,
-            "path": "testdata/fixtures/interface_modport/waves.fst",
-            "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
-          },
-          {
-            "construct_lines": {
-              "always_comb": [
-                33
+                13,
+                14
               ],
               "delay": [
-                5
+                22,
+                29,
+                32,
+                36,
+                37,
+                39
               ],
-              "function": [
+              "four_state_literal": [
+                21
+              ],
+              "initial": [
+                20,
                 25
               ],
-              "if": [
-                35
-              ],
               "module": [
-                5
+                8
               ],
-              "procedural_for": [
-                34
+              "nonblocking_assignment": [
+                17
               ]
             },
             "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 41,
+            "path": "testdata/fixtures/active_trace/rtl/p0/p0_1_flop_boundary/tb.sv",
+            "sha256": "76f408a4d4997c78d399a7aebadb556112bedf4d7b9acbd526d9ce0bae90c4f5"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C P0 六场景逐项差分已通过；不是以共享 DUT 或代表 case 替代",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 84,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 807,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_enters_child_output_from_parent_net"
+            "line": 141,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_exact_rtl_and_generated_fixture_hashes"
           },
           {
-            "line": 659,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_crosses_interface_modports"
+            "line": 175,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_matches_locked_native_chain_semantics"
           },
           {
-            "line": 53,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_selects_runtime_else_branch"
+            "line": 288,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -19546,6 +19016,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_p0",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "b0d7ff073ca122c16ac05c7a37d4398946a372db3c347c47ddc6a40c700e6fa9",
+          "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+          "scenario_id": "active.p0.02",
+          "temporal_boundaries": 1,
+          "termination": "primary_input",
+          "total_hops": 4,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.out",
@@ -19623,367 +19102,99 @@
         "api_version": "xdebug.v1",
         "args": {
           "signal": "top.out",
+          "stop_on_temporal": false,
           "time": "17ns"
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 RTL 与当前镜像逐字节相同；锁定 native NPI oracle 和当前原始 FST/binary-v1 DesignDB 已按请求、hop、源码行、时间、值、候选、termination 与完整性逐项通过。冻结 v1 schema 的两项表达限制由显式哨兵/value.at 门禁裁决。",
+      "runtime_audit": {
+        "locked_native_hop_count": 4,
+        "locked_native_termination": "primary_input",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.p0.02",
+        "schema_projections": [],
+        "sha256": "78fd3616cd961b66d59afcd55eb682b71ddb5549db8e99c580f4f141552298f2",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.p0.02",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter",
-          "current.case",
-          "current.interface_modport",
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always": [
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "always_comb": [
-                176
-              ],
-              "case": [
-                14,
-                59
-              ],
-              "casex": [
-                31
-              ],
-              "casez": [
-                27
-              ],
-              "clock": [
-                2,
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "continuous_assign": [
-                54,
-                55,
-                67,
-                71,
-                142,
-                150,
-                158,
-                167,
-                168
-              ],
-              "four_state_literal": [
-                12,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                45,
-                47,
-                51,
-                55,
-                60,
-                61,
-                62,
-                87,
-                96,
-                103,
-                107,
-                158,
-                168,
-                180
-              ],
-              "if": [
-                11,
-                23,
-                40,
-                42,
-                44,
-                82,
-                86,
-                102,
-                104,
-                177
-              ],
-              "inside": [
-                59
-              ],
-              "module": [
-                1,
-                133,
-                138,
-                146,
-                153,
-                161,
-                171
-              ],
-              "nonblocking_assignment": [
-                12,
-                15,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                43,
-                45,
-                47,
-                51,
-                60,
-                61,
-                62,
-                83,
-                87,
-                103,
-                105,
-                107
-              ],
-              "reset": [
-                3,
-                11,
-                23,
-                40,
-                82,
-                102
-              ]
-            },
             "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 182,
-            "path": "testdata/fixtures/case/case_top.sv",
-            "sha256": "4bca4382a96ce062aedcf007bc2f296c9dea42ac203ce211ff5b115583872716"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/case/tb_case.cpp",
-            "sha256": "b664ca6c2d338e16596c89210f2311d2ecdd6459e1c17c23afd63c3fb78b895d"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 32,
-            "path": "testdata/fixtures/case/waves.fst",
-            "sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
-          },
-          {
-            "construct_lines": {
-              "always": [
-                7
-              ],
-              "clock": [
-                2,
-                7
-              ],
-              "four_state_literal": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "if": [
-                8
-              ],
-              "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
-              ]
-            },
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 3,
+            "path": "testdata/fixtures/active_trace/p0/p0_2_module_boundary/waves.fst",
+            "sha256": "c6a6e353b1179625c3e3217d3e3d04e9a556d50b414c6f8c5b71de1c30392f9f"
           },
           {
             "construct_lines": {
               "continuous_assign": [
-                11,
-                15
-              ],
-              "interface": [
-                4
-              ],
-              "modport": [
-                6,
-                7
-              ],
-              "module": [
-                10,
-                14,
-                18
-              ]
-            },
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 25,
-            "path": "testdata/fixtures/interface_modport/interface_modport_top.sv",
-            "sha256": "8719eba578990c1ba9b135c299b0386f7108b59421833f2c69fe2250d4ee1036"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/interface_modport/tb_interface_modport.cpp",
-            "sha256": "124c061daa725ea5a4cdf8c3d7315687f5ed14e6cc017d1c03a4a81988536aa9"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 10,
-            "path": "testdata/fixtures/interface_modport/waves.fst",
-            "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
-          },
-          {
-            "construct_lines": {
-              "always_comb": [
-                33
+                8
               ],
               "delay": [
-                5
+                18,
+                21
               ],
-              "function": [
-                25
+              "four_state_literal": [
+                16,
+                17,
+                19,
+                20
               ],
-              "if": [
-                35
+              "initial": [
+                15
               ],
               "module": [
-                5
-              ],
-              "procedural_for": [
-                34
+                7,
+                11
               ]
             },
             "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 24,
+            "path": "testdata/fixtures/active_trace/rtl/p0/p0_2_module_boundary/tb.sv",
+            "sha256": "74e48d9215532cca23cbc64f3bf6e05a902432be85f6b910a3f76a1589d61529"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C P0 六场景逐项差分已通过；不是以共享 DUT 或代表 case 替代",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 84,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 807,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_enters_child_output_from_parent_net"
+            "line": 141,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_exact_rtl_and_generated_fixture_hashes"
           },
           {
-            "line": 659,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_crosses_interface_modports"
+            "line": 175,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_matches_locked_native_chain_semantics"
           },
           {
-            "line": 53,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_selects_runtime_else_branch"
+            "line": 288,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -20027,6 +19238,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_p0",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "26f71f7e5309dc2556e27ab4aa234cda56add0bf1ca1db0bb9fa762b967df101",
+          "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+          "scenario_id": "active.p0.03",
+          "temporal_boundaries": 1,
+          "termination": "control_only",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.y",
@@ -20090,367 +19310,111 @@
         "api_version": "xdebug.v1",
         "args": {
           "signal": "top.y",
+          "stop_on_temporal": false,
           "time": "10ns"
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 RTL 与当前镜像逐字节相同；锁定 native NPI oracle 和当前原始 FST/binary-v1 DesignDB 已按请求、hop、源码行、时间、值、候选、termination 与完整性逐项通过。冻结 v1 schema 的两项表达限制由显式哨兵/value.at 门禁裁决。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "control_only",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.p0.03",
+        "schema_projections": [
+          {
+            "kind": "control_only_candidate_sampling",
+            "native_shape": "control_only with branch candidates",
+            "public_shape": "control_only without schema-invalid ambiguity_evidence; candidate before/after values independently gated by value.at"
+          }
+        ],
+        "sha256": "78fd3616cd961b66d59afcd55eb682b71ddb5549db8e99c580f4f141552298f2",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.p0.03",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter",
-          "current.case",
-          "current.interface_modport",
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always": [
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "always_comb": [
-                176
-              ],
-              "case": [
-                14,
-                59
-              ],
-              "casex": [
-                31
-              ],
-              "casez": [
-                27
-              ],
-              "clock": [
-                2,
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "continuous_assign": [
-                54,
-                55,
-                67,
-                71,
-                142,
-                150,
-                158,
-                167,
-                168
-              ],
-              "four_state_literal": [
-                12,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                45,
-                47,
-                51,
-                55,
-                60,
-                61,
-                62,
-                87,
-                96,
-                103,
-                107,
-                158,
-                168,
-                180
-              ],
-              "if": [
-                11,
-                23,
-                40,
-                42,
-                44,
-                82,
-                86,
-                102,
-                104,
-                177
-              ],
-              "inside": [
-                59
-              ],
-              "module": [
-                1,
-                133,
-                138,
-                146,
-                153,
-                161,
-                171
-              ],
-              "nonblocking_assignment": [
-                12,
-                15,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                43,
-                45,
-                47,
-                51,
-                60,
-                61,
-                62,
-                83,
-                87,
-                103,
-                105,
-                107
-              ],
-              "reset": [
-                3,
-                11,
-                23,
-                40,
-                82,
-                102
-              ]
-            },
             "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 182,
-            "path": "testdata/fixtures/case/case_top.sv",
-            "sha256": "4bca4382a96ce062aedcf007bc2f296c9dea42ac203ce211ff5b115583872716"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/case/tb_case.cpp",
-            "sha256": "b664ca6c2d338e16596c89210f2311d2ecdd6459e1c17c23afd63c3fb78b895d"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 32,
-            "path": "testdata/fixtures/case/waves.fst",
-            "sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
-          },
-          {
-            "construct_lines": {
-              "always": [
-                7
-              ],
-              "clock": [
-                2,
-                7
-              ],
-              "four_state_literal": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "if": [
-                8
-              ],
-              "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
-              ]
-            },
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
+            "line_count": 12,
+            "path": "testdata/fixtures/active_trace/p0/p0_3_generate_for/waves.fst",
+            "sha256": "c30d9a296ed825de62b82f3e67ca32c2111042930cc1d4cd2949dbf7d55f4977"
           },
           {
             "construct_lines": {
               "continuous_assign": [
-                11,
-                15
-              ],
-              "interface": [
-                4
-              ],
-              "modport": [
-                6,
-                7
-              ],
-              "module": [
-                10,
-                14,
-                18
-              ]
-            },
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 25,
-            "path": "testdata/fixtures/interface_modport/interface_modport_top.sv",
-            "sha256": "8719eba578990c1ba9b135c299b0386f7108b59421833f2c69fe2250d4ee1036"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/interface_modport/tb_interface_modport.cpp",
-            "sha256": "124c061daa725ea5a4cdf8c3d7315687f5ed14e6cc017d1c03a4a81988536aa9"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 10,
-            "path": "testdata/fixtures/interface_modport/waves.fst",
-            "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
-          },
-          {
-            "construct_lines": {
-              "always_comb": [
-                33
+                6
               ],
               "delay": [
-                5
+                24,
+                27,
+                30,
+                32
               ],
-              "function": [
-                25
+              "four_state_literal": [
+                30
               ],
-              "if": [
-                35
+              "generate": [
+                13,
+                14
+              ],
+              "initial": [
+                20
               ],
               "module": [
-                5
+                5,
+                9
               ],
               "procedural_for": [
-                34
+                15
               ]
             },
             "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 34,
+            "path": "testdata/fixtures/active_trace/rtl/p0/p0_3_generate_for/tb.sv",
+            "sha256": "6b2920228653132ee6be7dab06367a2dc7a2ba3ce8c53bc4fa8e64f1b6bd159b"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C P0 六场景逐项差分已通过；不是以共享 DUT 或代表 case 替代",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 84,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 807,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_enters_child_output_from_parent_net"
+            "line": 141,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_exact_rtl_and_generated_fixture_hashes"
           },
           {
-            "line": 659,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_crosses_interface_modports"
+            "line": 175,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_matches_locked_native_chain_semantics"
           },
           {
-            "line": 53,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_selects_runtime_else_branch"
+            "line": 288,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -20494,6 +19458,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_p0",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "2f04f10bf46dd785ef025e56306e2720687d0b26261351ea77f14ef609179bed",
+          "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+          "scenario_id": "active.p0.04",
+          "temporal_boundaries": 1,
+          "termination": "control_only",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.y[2]",
@@ -20563,367 +19536,105 @@
         "api_version": "xdebug.v1",
         "args": {
           "signal": "top.y[2]",
+          "stop_on_temporal": false,
           "time": "10ns"
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 RTL 与当前镜像逐字节相同；锁定 native NPI oracle 和当前原始 FST/binary-v1 DesignDB 已按请求、hop、源码行、时间、值、候选、termination 与完整性逐项通过。冻结 v1 schema 的两项表达限制由显式哨兵/value.at 门禁裁决。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "control_only",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.p0.04",
+        "schema_projections": [
+          {
+            "kind": "control_only_candidate_sampling",
+            "native_shape": "control_only with branch candidates",
+            "public_shape": "control_only without schema-invalid ambiguity_evidence; candidate before/after values independently gated by value.at"
+          }
+        ],
+        "sha256": "78fd3616cd961b66d59afcd55eb682b71ddb5549db8e99c580f4f141552298f2",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.p0.04",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter",
-          "current.case",
-          "current.interface_modport",
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always": [
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "always_comb": [
-                176
-              ],
-              "case": [
-                14,
-                59
-              ],
-              "casex": [
-                31
-              ],
-              "casez": [
-                27
-              ],
-              "clock": [
-                2,
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "continuous_assign": [
-                54,
-                55,
-                67,
-                71,
-                142,
-                150,
-                158,
-                167,
-                168
-              ],
-              "four_state_literal": [
-                12,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                45,
-                47,
-                51,
-                55,
-                60,
-                61,
-                62,
-                87,
-                96,
-                103,
-                107,
-                158,
-                168,
-                180
-              ],
-              "if": [
-                11,
-                23,
-                40,
-                42,
-                44,
-                82,
-                86,
-                102,
-                104,
-                177
-              ],
-              "inside": [
-                59
-              ],
-              "module": [
-                1,
-                133,
-                138,
-                146,
-                153,
-                161,
-                171
-              ],
-              "nonblocking_assignment": [
-                12,
-                15,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                43,
-                45,
-                47,
-                51,
-                60,
-                61,
-                62,
-                83,
-                87,
-                103,
-                105,
-                107
-              ],
-              "reset": [
-                3,
-                11,
-                23,
-                40,
-                82,
-                102
-              ]
-            },
             "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 182,
-            "path": "testdata/fixtures/case/case_top.sv",
-            "sha256": "4bca4382a96ce062aedcf007bc2f296c9dea42ac203ce211ff5b115583872716"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/case/tb_case.cpp",
-            "sha256": "b664ca6c2d338e16596c89210f2311d2ecdd6459e1c17c23afd63c3fb78b895d"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 32,
-            "path": "testdata/fixtures/case/waves.fst",
-            "sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
-          },
-          {
-            "construct_lines": {
-              "always": [
-                7
-              ],
-              "clock": [
-                2,
-                7
-              ],
-              "four_state_literal": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "if": [
-                8
-              ],
-              "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
-              ]
-            },
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
-          },
-          {
-            "construct_lines": {
-              "continuous_assign": [
-                11,
-                15
-              ],
-              "interface": [
-                4
-              ],
-              "modport": [
-                6,
-                7
-              ],
-              "module": [
-                10,
-                14,
-                18
-              ]
-            },
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 25,
-            "path": "testdata/fixtures/interface_modport/interface_modport_top.sv",
-            "sha256": "8719eba578990c1ba9b135c299b0386f7108b59421833f2c69fe2250d4ee1036"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/interface_modport/tb_interface_modport.cpp",
-            "sha256": "124c061daa725ea5a4cdf8c3d7315687f5ed14e6cc017d1c03a4a81988536aa9"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
             "line_count": 10,
-            "path": "testdata/fixtures/interface_modport/waves.fst",
-            "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
+            "path": "testdata/fixtures/active_trace/p0/p0_5_mux_branch/waves.fst",
+            "sha256": "f267ff72e19c2c34336b706b25b3fa66e066a779c8e6240ca693bd37391c6337"
           },
           {
             "construct_lines": {
-              "always_comb": [
-                33
+              "continuous_assign": [
+                10
               ],
               "delay": [
-                5
+                16,
+                19,
+                22,
+                25,
+                28,
+                31,
+                34,
+                37,
+                39
               ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
+              "initial": [
+                12
               ],
               "module": [
-                5
-              ],
-              "procedural_for": [
-                34
+                7
               ]
             },
             "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 41,
+            "path": "testdata/fixtures/active_trace/rtl/p0/p0_5_mux_branch/tb.sv",
+            "sha256": "601c59b99d143a6f4114fbf5a50aaa16bf59596a7b5a090bb7cef09b7d92e753"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C P0 六场景逐项差分已通过；不是以共享 DUT 或代表 case 替代",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 84,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 807,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_enters_child_output_from_parent_net"
+            "line": 141,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_exact_rtl_and_generated_fixture_hashes"
           },
           {
-            "line": 659,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_crosses_interface_modports"
+            "line": 175,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_matches_locked_native_chain_semantics"
           },
           {
-            "line": 53,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_selects_runtime_else_branch"
+            "line": 288,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -20967,6 +19678,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_p0",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "abb68b8bf3a8564c130e9f109f728842f439996dd3675d0b7262119e291a9b39",
+          "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+          "scenario_id": "active.p0.05",
+          "temporal_boundaries": 1,
+          "termination": "ambiguous",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.y",
@@ -21030,367 +19750,105 @@
         "api_version": "xdebug.v1",
         "args": {
           "signal": "top.y",
+          "stop_on_temporal": false,
           "time": "10ns"
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 RTL 与当前镜像逐字节相同；锁定 native NPI oracle 和当前原始 FST/binary-v1 DesignDB 已按请求、hop、源码行、时间、值、候选、termination 与完整性逐项通过。冻结 v1 schema 的两项表达限制由显式哨兵/value.at 门禁裁决。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "ambiguous",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.p0.05",
+        "schema_projections": [],
+        "sha256": "78fd3616cd961b66d59afcd55eb682b71ddb5549db8e99c580f4f141552298f2",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.p0.05",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter",
-          "current.case",
-          "current.interface_modport",
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always": [
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "always_comb": [
-                176
-              ],
-              "case": [
-                14,
-                59
-              ],
-              "casex": [
-                31
-              ],
-              "casez": [
-                27
-              ],
-              "clock": [
-                2,
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "continuous_assign": [
-                54,
-                55,
-                67,
-                71,
-                142,
-                150,
-                158,
-                167,
-                168
-              ],
-              "four_state_literal": [
-                12,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                45,
-                47,
-                51,
-                55,
-                60,
-                61,
-                62,
-                87,
-                96,
-                103,
-                107,
-                158,
-                168,
-                180
-              ],
-              "if": [
-                11,
-                23,
-                40,
-                42,
-                44,
-                82,
-                86,
-                102,
-                104,
-                177
-              ],
-              "inside": [
-                59
-              ],
-              "module": [
-                1,
-                133,
-                138,
-                146,
-                153,
-                161,
-                171
-              ],
-              "nonblocking_assignment": [
-                12,
-                15,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                43,
-                45,
-                47,
-                51,
-                60,
-                61,
-                62,
-                83,
-                87,
-                103,
-                105,
-                107
-              ],
-              "reset": [
-                3,
-                11,
-                23,
-                40,
-                82,
-                102
-              ]
-            },
             "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 182,
-            "path": "testdata/fixtures/case/case_top.sv",
-            "sha256": "4bca4382a96ce062aedcf007bc2f296c9dea42ac203ce211ff5b115583872716"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/case/tb_case.cpp",
-            "sha256": "b664ca6c2d338e16596c89210f2311d2ecdd6459e1c17c23afd63c3fb78b895d"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 32,
-            "path": "testdata/fixtures/case/waves.fst",
-            "sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
-          },
-          {
-            "construct_lines": {
-              "always": [
-                7
-              ],
-              "clock": [
-                2,
-                7
-              ],
-              "four_state_literal": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "if": [
-                8
-              ],
-              "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
-              ]
-            },
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
-          },
-          {
-            "construct_lines": {
-              "continuous_assign": [
-                11,
-                15
-              ],
-              "interface": [
-                4
-              ],
-              "modport": [
-                6,
-                7
-              ],
-              "module": [
-                10,
-                14,
-                18
-              ]
-            },
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "rtl",
-            "line_anchor": 4,
-            "line_count": 25,
-            "path": "testdata/fixtures/interface_modport/interface_modport_top.sv",
-            "sha256": "8719eba578990c1ba9b135c299b0386f7108b59421833f2c69fe2250d4ee1036"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "testbench",
-            "line_anchor": 4,
-            "line_count": 24,
-            "path": "testdata/fixtures/interface_modport/tb_interface_modport.cpp",
-            "sha256": "124c061daa725ea5a4cdf8c3d7315687f5ed14e6cc017d1c03a4a81988536aa9"
-          },
-          {
-            "fixture_ids": [
-              "current.interface_modport"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 10,
-            "path": "testdata/fixtures/interface_modport/waves.fst",
-            "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
+            "line_count": 12,
+            "path": "testdata/fixtures/active_trace/p0/p0_6_procedural_for/waves.fst",
+            "sha256": "804d27f53d0428843aa9a84dc6141942d450cc8d6148ecd1f674e1d9bb47899d"
           },
           {
             "construct_lines": {
               "always_comb": [
-                33
+                11
               ],
               "delay": [
-                5
+                6,
+                23,
+                26,
+                29,
+                32,
+                34
               ],
-              "function": [
-                25
+              "four_state_literal": [
+                12
               ],
               "if": [
-                35
+                14
+              ],
+              "initial": [
+                19
               ],
               "module": [
-                5
+                6
               ],
               "procedural_for": [
-                34
+                13
               ]
             },
             "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 36,
+            "path": "testdata/fixtures/active_trace/rtl/p0/p0_6_procedural_for/tb.sv",
+            "sha256": "08c021e5322450e3b0ab0ca2ba2ccaf4c1005ce9eebf1fc62e1aa251d69681c3"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "P3-C P0 六场景逐项差分已通过；不是以共享 DUT 或代表 case 替代",
         "test_evidence": [
           {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
+            "line": 84,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_oracle_is_locked_complete_and_sanitized"
           },
           {
-            "line": 807,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_enters_child_output_from_parent_net"
+            "line": 141,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_exact_rtl_and_generated_fixture_hashes"
           },
           {
-            "line": 659,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_crosses_interface_modports"
+            "line": 175,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_matches_locked_native_chain_semantics"
           },
           {
-            "line": 53,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_selects_runtime_else_branch"
+            "line": 288,
+            "path": "tests/test_p3c_active_trace_p0.py",
+            "sha256": "7e5cdac884224c5987d87df96ca386c9a604374c27ab661d02cadc0b6c1290f8",
+            "test": "test_p3c_p0_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -21434,6 +19892,15 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_p0",
+        "locked_native_oracle": {
+          "original_fsdb_sha256": "f68cf53e96df455ac7d5e6dc09e6ae4159e4aa2e47f6248cf017d69d6971f743",
+          "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+          "scenario_id": "active.p0.06",
+          "temporal_boundaries": 1,
+          "termination": "primary_input",
+          "total_hops": 1,
+          "truncated": false
+        },
         "observed_public_actions": [],
         "oracle": {
           "signal": "top.y",
@@ -21503,243 +19970,37 @@
         "api_version": "xdebug.v1",
         "args": {
           "signal": "top.y",
+          "stop_on_temporal": false,
           "time": "15ns"
         }
       },
-      "rationale": "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。",
+      "rationale": "原版 RTL 与当前镜像逐字节相同；锁定 native NPI oracle 和当前原始 FST/binary-v1 DesignDB 已按请求、hop、源码行、时间、值、候选、termination 与完整性逐项通过。冻结 v1 schema 的两项表达限制由显式哨兵/value.at 门禁裁决。",
+      "runtime_audit": {
+        "locked_native_hop_count": 1,
+        "locked_native_termination": "primary_input",
+        "p3_batch": "P3-C",
+        "path": "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "scenario_id": "active.p0.06",
+        "schema_projections": [
+          {
+            "kind": "source_location_sentinel",
+            "native_shape": "source-less file='' and line=0",
+            "public_shape": "file='<unknown>', line=1, source_context=[]"
+          }
+        ],
+        "sha256": "78fd3616cd961b66d59afcd55eb682b71ddb5549db8e99c580f4f141552298f2",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "active.p0.06",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.counter",
-          "current.case",
-          "current.interface_modport",
-          "current.phase5"
+          "current.interface_modport"
         ],
         "candidate_sources": [
-          {
-            "construct_lines": {
-              "always": [
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "always_comb": [
-                176
-              ],
-              "case": [
-                14,
-                59
-              ],
-              "casex": [
-                31
-              ],
-              "casez": [
-                27
-              ],
-              "clock": [
-                2,
-                10,
-                22,
-                39,
-                51,
-                58,
-                81,
-                85,
-                101
-              ],
-              "continuous_assign": [
-                54,
-                55,
-                67,
-                71,
-                142,
-                150,
-                158,
-                167,
-                168
-              ],
-              "four_state_literal": [
-                12,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                45,
-                47,
-                51,
-                55,
-                60,
-                61,
-                62,
-                87,
-                96,
-                103,
-                107,
-                158,
-                168,
-                180
-              ],
-              "if": [
-                11,
-                23,
-                40,
-                42,
-                44,
-                82,
-                86,
-                102,
-                104,
-                177
-              ],
-              "inside": [
-                59
-              ],
-              "module": [
-                1,
-                133,
-                138,
-                146,
-                153,
-                161,
-                171
-              ],
-              "nonblocking_assignment": [
-                12,
-                15,
-                16,
-                17,
-                24,
-                25,
-                28,
-                29,
-                32,
-                33,
-                41,
-                43,
-                45,
-                47,
-                51,
-                60,
-                61,
-                62,
-                83,
-                87,
-                103,
-                105,
-                107
-              ],
-              "reset": [
-                3,
-                11,
-                23,
-                40,
-                82,
-                102
-              ]
-            },
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 182,
-            "path": "testdata/fixtures/case/case_top.sv",
-            "sha256": "4bca4382a96ce062aedcf007bc2f296c9dea42ac203ce211ff5b115583872716"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/case/tb_case.cpp",
-            "sha256": "b664ca6c2d338e16596c89210f2311d2ecdd6459e1c17c23afd63c3fb78b895d"
-          },
-          {
-            "fixture_ids": [
-              "current.case"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 32,
-            "path": "testdata/fixtures/case/waves.fst",
-            "sha256": "73d3749d1f6d6ec39a5021a4b732aa87ee1d41d484207dc93f9174b5214ecfd0"
-          },
-          {
-            "construct_lines": {
-              "always": [
-                7
-              ],
-              "clock": [
-                2,
-                7
-              ],
-              "four_state_literal": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "if": [
-                8
-              ],
-              "module": [
-                1
-              ],
-              "nonblocking_assignment": [
-                9,
-                10,
-                12,
-                13
-              ],
-              "reset": [
-                3,
-                8
-              ]
-            },
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "rtl",
-            "line_anchor": 1,
-            "line_count": 16,
-            "path": "testdata/fixtures/counter/counter_top.sv",
-            "sha256": "7c91aec97e06ab50459631011d41e0d9fc58249c64b9578b693adcc67c2b6d6a"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 23,
-            "path": "testdata/fixtures/counter/tb_counter.cpp",
-            "sha256": "e51e576a14ce16cfbdc43e1491822c4f7219fbbb0aba73f69f744b42005db4a2"
-          },
-          {
-            "fixture_ids": [
-              "current.counter"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 15,
-            "path": "testdata/fixtures/counter/waves.fst",
-            "sha256": "09325f01e3c0125091cc415c4990d5b263a5677b9268c6c342bae1d8ccb76b93"
-          },
           {
             "construct_lines": {
               "continuous_assign": [
@@ -21787,83 +20048,15 @@
             "line_count": 10,
             "path": "testdata/fixtures/interface_modport/waves.fst",
             "sha256": "6dd5376b4f30278bdcd5c261133557c44ea7e0dc0f813700cbffd072e27b9768"
-          },
-          {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
           }
         ],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "evidence_scope": "仅证明当前存在 interface/modport active-chain 能力；原版 p0_4 没有RTL、catalog request 或动态 oracle，不能据此关闭 missing",
         "test_evidence": [
-          {
-            "line": 334,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_propagates_through_nba_active_time"
-          },
-          {
-            "line": 807,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_enters_child_output_from_parent_net"
-          },
           {
             "line": 659,
             "path": "tests/test_combined.py",
             "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
             "test": "test_trace_active_driver_chain_crosses_interface_modports"
-          },
-          {
-            "line": 53,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_selects_runtime_else_branch"
           }
         ]
       },
@@ -44577,9 +42770,9 @@
     "scenario_count": 88,
     "status_counts": {
       "missing": 2,
-      "partial": 77,
+      "partial": 71,
       "proven-unobservable": 2,
-      "semantic-equivalent": 7
+      "semantic-equivalent": 13
     },
     "unclassified_count": 0,
     "unqueued_gap_count": 0

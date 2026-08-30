@@ -39,11 +39,21 @@ AI_COMPLEX_RUNTIME_AUDIT = Path(
 P3B_RUNTIME_AUDIT = Path(
     "tests/data/rtl_wave_differential/p3b.runtime-audit.json"
 )
+P3C_P0_ORACLE = Path(
+    "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json"
+)
 AI_COMPLEX_RUNNER_SHA256 = (
     "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724"
 )
 AI_COMPLEX_COUNTER_RUNNER_SHA256 = (
     "fe0bafa4ff50d36d1fc283da07f915981ce613aae618341324edfb683c29ead5"
+)
+P3C_P0_RUNNER_SHA256 = (
+    "f7e80398cf4b1f95b29d33c45373ff08bdcfd9c56bb20195b4467b952090f237"
+)
+P3C_P0_FIXTURE_VERSION = (
+    "c2bff810935847ad3debd15d1facb671d4943bc209ba25f38cb4b92d3d1ca06c-"
+    "prepare-98pbtd3b"
 )
 
 ALLOWED_STATUSES = {
@@ -331,13 +341,17 @@ FIXTURE_CANDIDATES = {
 
 ACTIVE_CANDIDATES = {
     "p0": {
-        "fixtures": ["current.counter", "current.case", "current.interface_modport", "current.phase5"],
+        "fixtures": ["current.active_trace"],
         "tests": [
-            "test_trace_active_driver_chain_propagates_through_nba_active_time",
-            "test_trace_active_driver_chain_enters_child_output_from_parent_net",
-            "test_trace_active_driver_chain_crosses_interface_modports",
-            "test_trace_active_driver_selects_runtime_else_branch",
+            "test_p3c_p0_oracle_is_locked_complete_and_sanitized",
+            "test_p3c_p0_exact_rtl_and_generated_fixture_hashes",
+            "test_p3c_p0_matches_locked_native_chain_semantics",
+            "test_p3c_p0_limits_are_explicit_analysis_boundaries",
         ],
+        "evidence_scope": (
+            "六份原版 RTL 字节相同；锁定 native NPI oracle 与当前原始 FST/"
+            "binary-v1 DesignDB 按 hop、时间、值、候选、终止和完整性逐项通过"
+        ),
     },
     "composite": {
         "fixtures": ["current.counter", "current.interface_modport", "current.phase5"],
@@ -516,6 +530,174 @@ def validate_phase5_runtime_audit(
         or verdict.get("full_response_equivalent_scene_count") != 0
     ):
         raise MatrixError("Phase5 runtime audit verdict drifted")
+    return result
+
+
+def validate_p3c_p0_oracle(
+    oracle: dict,
+    repo_root: Path,
+    original_assets: dict[str, dict],
+    current_assets: dict[str, dict],
+) -> dict[str, dict]:
+    if oracle.get("schema_version") != \
+            "xdebug.p3c-original-active-trace-oracle.v1":
+        raise MatrixError("P3-C P0 oracle has the wrong schema_version")
+    if oracle.get("goal_id") != GOAL_ID or oracle.get("group") != "p0":
+        raise MatrixError("P3-C P0 oracle belongs to a different Goal/group")
+    locked = oracle.get("locked_runtime", {})
+    if locked != {
+        "cache_reused": True,
+        "fixture_rebuilt": False,
+        "fixture_version": P3C_P0_FIXTURE_VERSION,
+        "npi_version": "X-2025.06-SP1",
+        "runner_sha256": P3C_P0_RUNNER_SHA256,
+        "source_access": "read_only",
+    }:
+        raise MatrixError("P3-C P0 locked native runtime/cache identity drifted")
+    if oracle.get("session") != {
+        "all_runtime_writes_repository_local": True,
+        "fallback_used": False,
+        "mode": "native_chain_test",
+    }:
+        raise MatrixError("P3-C P0 write/fallback boundary is not proven")
+
+    catalog_asset = original_assets.get(ACTIVE_CATALOG.as_posix())
+    mirrored_catalog = current_assets.get(
+        "testdata/fixtures/active_trace/original-cases.v1.yaml"
+    )
+    catalog = oracle.get("catalog", {})
+    if (
+        catalog_asset is None
+        or mirrored_catalog is None
+        or catalog.get("schema_version") != "xdebug-active-trace-cases.v1"
+        or catalog.get("row_count") != 6
+        or catalog.get("sha256") != catalog_asset["sha256"]
+        or mirrored_catalog["sha256"] != catalog_asset["sha256"]
+    ):
+        raise MatrixError("P3-C P0 catalog identity drifted")
+
+    rows = oracle.get("rows")
+    expected_results = [
+        ("ambiguous", 3),
+        ("primary_input", 4),
+        ("control_only", 1),
+        ("control_only", 1),
+        ("ambiguous", 1),
+        ("primary_input", 1),
+    ]
+    if not isinstance(rows, list) or len(rows) != len(expected_results):
+        raise MatrixError("P3-C P0 oracle must contain exactly six rows")
+
+    digest_pattern = re.compile(r"[0-9a-f]{64}")
+    result = {}
+    has_source_less_control = False
+    has_control_only_candidates = False
+    for ordinal, (row, expected_result) in enumerate(
+            zip(rows, expected_results), 1):
+        scenario_id = f"active.p0.{ordinal:02d}"
+        case = row.get("case")
+        if (
+            row.get("scenario_id") != scenario_id
+            or row.get("catalog_index") != ordinal
+            or not isinstance(case, str)
+            or not case
+        ):
+            raise MatrixError(f"P3-C P0 row identity drifted: {scenario_id}")
+
+        original_path = (
+            "xdebug/tests/active_trace_chain/p0_composability/"
+            f"{case}/tb.sv"
+        )
+        current_path = f"testdata/fixtures/active_trace/rtl/p0/{case}/tb.sv"
+        mirrors = row.get("rtl_mirrors")
+        if not isinstance(mirrors, list) or len(mirrors) != 1:
+            raise MatrixError(f"P3-C P0 RTL mirror inventory drifted: {scenario_id}")
+        mirror = mirrors[0]
+        original_asset = original_assets.get(original_path)
+        current_asset = current_assets.get(current_path)
+        if (
+            mirror.get("byte_identical") is not True
+            or mirror.get("original_path") != original_path
+            or mirror.get("current_path") != current_path
+            or original_asset is None
+            or current_asset is None
+            or mirror.get("sha256") != original_asset["sha256"]
+            or current_asset["sha256"] != original_asset["sha256"]
+            or mirror.get("size") != original_asset["size_bytes"]
+            or current_asset["size_bytes"] != original_asset["size_bytes"]
+        ):
+            raise MatrixError(f"P3-C P0 RTL mirror drifted: {scenario_id}")
+
+        fixture_root = f"testdata/fixtures/active_trace/p0/{case}"
+        lock_path = f"{fixture_root}/fixture.sha256"
+        lock_asset = current_assets.get(lock_path)
+        if lock_asset is None:
+            raise MatrixError(f"P3-C P0 fixture lock is missing: {scenario_id}")
+        recorded = {}
+        lock_text = validate_frozen_file(repo_root, lock_asset).decode("utf-8")
+        for line in lock_text.splitlines():
+            checksum, path = line.split(maxsplit=1)
+            recorded[path] = checksum
+        expected_paths = {
+            current_path,
+            "testdata/fixtures/active_trace/dump_probe.sv",
+            f"{fixture_root}/waves.fst",
+            f"{fixture_root}/design_db/Vactive_trace__DesignDb.xddb",
+            f"{fixture_root}/design_db/xdebug-design-db.json",
+        }
+        if set(recorded) != expected_paths:
+            raise MatrixError(f"P3-C P0 fixture lock inventory drifted: {scenario_id}")
+        for path, checksum in recorded.items():
+            asset = current_assets.get(path)
+            if (
+                asset is None
+                or not digest_pattern.fullmatch(checksum)
+                or asset["sha256"] != checksum
+            ):
+                raise MatrixError(
+                    f"P3-C P0 fixture evidence drifted: {scenario_id}: {path}"
+                )
+
+        request = row.get("request", {})
+        if (
+            not isinstance(request.get("signal"), str)
+            or not isinstance(request.get("time"), str)
+            or request.get("stop_on_temporal") is not False
+        ):
+            raise MatrixError(f"P3-C P0 request drifted: {scenario_id}")
+        original_fixture = row.get("fixture", {})
+        if (
+            not digest_pattern.fullmatch(original_fixture.get("fsdb_sha256", ""))
+            or original_fixture.get("fsdb_size", 0) <= 0
+        ):
+            raise MatrixError(f"P3-C P0 original fixture proof drifted: {scenario_id}")
+
+        native = row.get("native_result", {})
+        termination, hop_count = expected_result
+        chain = native.get("chain")
+        if (
+            native.get("termination") != termination
+            or native.get("total_hops") != hop_count
+            or not isinstance(chain, list)
+            or len(chain) != hop_count
+            or native.get("truncated") is not False
+            or native.get("limitations") != []
+            or native.get("temporal_boundaries") != sum(
+                hop.get("hop_type") == "temporal_boundary" for hop in chain
+            )
+        ):
+            raise MatrixError(f"P3-C P0 native result is incomplete: {scenario_id}")
+        has_source_less_control |= any(
+            hop.get("file") == "" and hop.get("line") == 0 for hop in chain
+        )
+        branches = native.get("branch_evidence")
+        if not isinstance(branches, list):
+            raise MatrixError(f"P3-C P0 branch evidence drifted: {scenario_id}")
+        has_control_only_candidates |= termination == "control_only" and bool(branches)
+        result[scenario_id] = row
+
+    if not has_source_less_control or not has_control_only_candidates:
+        raise MatrixError("P3-C P0 frozen schema representability boundaries disappeared")
     return result
 
 
@@ -1259,6 +1441,18 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         original_assets,
         current_assets,
     )
+    p3c_p0_oracle_asset = current_assets.get(P3C_P0_ORACLE.as_posix())
+    if p3c_p0_oracle_asset is None:
+        raise MatrixError("P0 manifest does not freeze the P3-C P0 oracle")
+    p3c_p0_oracle = json.loads(
+        validate_frozen_file(repo_root, p3c_p0_oracle_asset).decode("utf-8")
+    )
+    p3c_p0_rows = validate_p3c_p0_oracle(
+        p3c_p0_oracle,
+        repo_root,
+        original_assets,
+        current_assets,
+    )
 
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
@@ -1386,6 +1580,7 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         group = row["group"]
         group_ordinals[group] += 1
         ordinal = group_ordinals[group]
+        scenario_id = f"active.{group}.{ordinal:02d}"
         fixture_id = ACTIVE_FIXTURE[group]
         candidate = ACTIVE_CANDIDATES[group] | {
             "actions": ["trace.active_driver_chain"], "batch": "P3-C"
@@ -1407,9 +1602,36 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
             "consumer_paths": paths,
             "observed_public_actions": fixture_actions(consumers, paths),
         }
+        status = "partial"
         rationale = "存在相关能力代表测试，但未覆盖该原版 case 的同一 RTL 组合、刺激时间和完整响应。"
+        p0_runtime_row = None
+        if group == "p0":
+            p0_runtime_row = p3c_p0_rows[scenario_id]
+            if (
+                p0_runtime_row["case"] != row["case"]
+                or p0_runtime_row["request"]["signal"] != original["query"]["signal"]
+                or p0_runtime_row["request"]["time"] != original["query"]["time"]
+            ):
+                raise MatrixError(
+                    f"P3-C P0 oracle differs from frozen catalog: {scenario_id}"
+                )
+            native = p0_runtime_row["native_result"]
+            original["locked_native_oracle"] = {
+                "path": P3C_P0_ORACLE.as_posix(),
+                "scenario_id": scenario_id,
+                "termination": native["termination"],
+                "total_hops": native["total_hops"],
+                "temporal_boundaries": native["temporal_boundaries"],
+                "truncated": native["truncated"],
+                "original_fsdb_sha256": p0_runtime_row["fixture"]["fsdb_sha256"],
+            }
+            status = "semantic-equivalent"
+            rationale = (
+                "原版 RTL 与当前镜像逐字节相同；锁定 native NPI oracle 和当前原始 FST/"
+                "binary-v1 DesignDB 已按请求、hop、源码行、时间、值、候选、termination 与"
+                "完整性逐项通过。冻结 v1 schema 的两项表达限制由显式哨兵/value.at 门禁裁决。"
+            )
         if group == "phase5":
-            scenario_id = f"active.phase5.{ordinal:02d}"
             runtime_row = phase5_runtime_rows[scenario_id]
             if runtime_row["locked_request"] != original["query"]:
                 raise MatrixError(
@@ -1448,7 +1670,61 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
             )
         current = current_evidence(repo_root, current_assets, current_tests, candidate)
         runtime_evidence = None
-        if group == "phase5":
+        public_args = {"signal": row["signal"], "time": row["time"]}
+        if group == "p0":
+            native = p0_runtime_row["native_result"]
+            exact_current_paths = {
+                p0_runtime_row["rtl_mirrors"][0]["current_path"],
+                (
+                    "testdata/fixtures/active_trace/p0/"
+                    f"{p0_runtime_row['case']}/waves.fst"
+                ),
+            }
+            current["candidate_sources"] = [
+                source for source in current["candidate_sources"]
+                if source["path"] in exact_current_paths
+            ]
+            if {
+                source["path"] for source in current["candidate_sources"]
+            } != exact_current_paths:
+                raise MatrixError(
+                    f"P3-C P0 exact current fixture evidence is missing: {scenario_id}"
+                )
+            current["evidence_scope"] = (
+                "P3-C P0 六场景逐项差分已通过；不是以共享 DUT 或代表 case 替代"
+            )
+            schema_projections = []
+            if any(
+                    hop.get("file") == "" and hop.get("line") == 0
+                    for hop in native["chain"]):
+                schema_projections.append({
+                    "kind": "source_location_sentinel",
+                    "native_shape": "source-less file='' and line=0",
+                    "public_shape": "file='<unknown>', line=1, source_context=[]",
+                })
+            if native["termination"] == "control_only" and \
+                    native["branch_evidence"]:
+                schema_projections.append({
+                    "kind": "control_only_candidate_sampling",
+                    "native_shape": "control_only with branch candidates",
+                    "public_shape": (
+                        "control_only without schema-invalid ambiguity_evidence; "
+                        "candidate before/after values independently gated by value.at"
+                    ),
+                })
+            runtime_evidence = {
+                "path": P3C_P0_ORACLE.as_posix(),
+                "sha256": p3c_p0_oracle_asset["sha256"],
+                "scenario_id": scenario_id,
+                "status": "semantic-equivalent",
+                "p3_batch": "P3-C",
+                "locked_native_termination": native["termination"],
+                "locked_native_hop_count": native["total_hops"],
+                "remaining_observable_gap_count": 0,
+                "schema_projections": schema_projections,
+            }
+            public_args = dict(p0_runtime_row["request"])
+        elif group == "phase5":
             current["evidence_scope"] = (
                 "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭"
             )
@@ -1463,10 +1739,10 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                 "full_response_equivalent": False,
             }
         scenarios.append({
-            "scenario_id": f"active.{group}.{ordinal:02d}",
+            "scenario_id": scenario_id,
             "kind": "active_trace_catalog_case",
             "p3_batch": "P3-C",
-            "status": "partial",
+            "status": status,
             "rationale": rationale,
             "original": original,
             "current": current,
@@ -1474,7 +1750,7 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
             "public_request": {
                 "api_version": "xdebug.v1",
                 "action": "trace.active_driver_chain",
-                "args": {"signal": row["signal"], "time": row["time"]},
+                "args": public_args,
             },
             "public_action_contracts": {
                 "trace.active_driver_chain": contracts["trace.active_driver_chain"]
@@ -1484,8 +1760,15 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
     readme_asset = original_assets[ACTIVE_README.as_posix()]
     readme_text = validate_frozen_file(original_root, readme_asset).decode("utf-8")
     orphan_line = file_line(original_root / ACTIVE_README, r"p0_4_interface_modport")
-    orphan_candidate = ACTIVE_CANDIDATES["p0"] | {
-        "actions": ["trace.active_driver_chain"], "batch": "P3-C"
+    orphan_candidate = {
+        "fixtures": ["current.interface_modport"],
+        "tests": ["test_trace_active_driver_chain_crosses_interface_modports"],
+        "actions": ["trace.active_driver_chain"],
+        "batch": "P3-C",
+        "evidence_scope": (
+            "仅证明当前存在 interface/modport active-chain 能力；原版 p0_4 没有"
+            "RTL、catalog request 或动态 oracle，不能据此关闭 missing"
+        ),
     }
     p0_paths = fixture_consumers(consumers, "xdebug.active_trace_p0")
     scenarios.append({

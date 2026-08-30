@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import hashlib
 import json
 import re
@@ -15,6 +16,7 @@ from tools.build_rtl_wave_semantic_matrix import (
     ensure_within_repo,
     parse_inline_mapping,
     scan_constructs,
+    validate_p3c_p0_oracle,
 )
 
 
@@ -100,9 +102,9 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "scenario_count": 88,
         "status_counts": {
             "missing": 2,
-            "partial": 77,
+            "partial": 71,
             "proven-unobservable": 2,
-            "semantic-equivalent": 7,
+            "semantic-equivalent": 13,
         },
         "unclassified_count": 0,
         "unqueued_gap_count": 0,
@@ -158,6 +160,7 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "fixture.design_uart",
         "fixture.design_p3",
         "fixture.design_hierarchy",
+        *{f"active.p0.{index:02d}" for index in range(1, 7)},
     }
 
 
@@ -248,4 +251,113 @@ def test_phase5_differences_and_declared_only_p0_case_are_not_hidden() -> None:
     assert orphan["status"] == "missing"
     assert orphan["original"]["catalog_presence"] is False
     assert orphan["original"]["sources"] == []
+    assert orphan["current"]["candidate_fixture_ids"] == [
+        "current.interface_modport"
+    ]
+    assert [
+        evidence["test"] for evidence in orphan["current"]["test_evidence"]
+    ] == ["test_trace_active_driver_chain_crosses_interface_modports"]
     assert orphan["scenario_id"] in matrix["p3_queue"]["P3-C"]
+
+
+def test_p3c_p0_cases_are_closed_individually_with_locked_evidence() -> None:
+    matrix = load_matrix()
+    scenarios = {item["scenario_id"]: item for item in matrix["scenarios"]}
+    p0 = [scenarios[f"active.p0.{index:02d}"] for index in range(1, 7)]
+    assert [item["status"] for item in p0] == ["semantic-equivalent"] * 6
+    assert [
+        item["original"]["locked_native_oracle"]["termination"]
+        for item in p0
+    ] == [
+        "ambiguous", "primary_input", "control_only", "control_only",
+        "ambiguous", "primary_input",
+    ]
+    assert [
+        item["original"]["locked_native_oracle"]["total_hops"]
+        for item in p0
+    ] == [3, 4, 1, 1, 1, 1]
+    assert all(
+        item["runtime_audit"]["path"] ==
+        "tests/data/rtl_wave_differential/p3c-p0.original-oracle.json"
+        and SHA256.fullmatch(item["runtime_audit"]["sha256"])
+        and item["runtime_audit"]["remaining_observable_gap_count"] == 0
+        and item["current"]["candidate_fixture_ids"] ==
+        ["current.active_trace"]
+        for item in p0
+    )
+    assert [
+        [projection["kind"] for projection in
+         item["runtime_audit"]["schema_projections"]]
+        for item in p0
+    ] == [
+        [], [], ["control_only_candidate_sampling"],
+        ["control_only_candidate_sampling"], [],
+        ["source_location_sentinel"],
+    ]
+    for item in p0:
+        case = item["original"]["case"]
+        assert {source["path"] for source in item["current"]["candidate_sources"]} == {
+            f"testdata/fixtures/active_trace/rtl/p0/{case}/tb.sv",
+            f"testdata/fixtures/active_trace/p0/{case}/waves.fst",
+        }
+    required_tests = {
+        "test_p3c_p0_oracle_is_locked_complete_and_sanitized",
+        "test_p3c_p0_exact_rtl_and_generated_fixture_hashes",
+        "test_p3c_p0_matches_locked_native_chain_semantics",
+        "test_p3c_p0_limits_are_explicit_analysis_boundaries",
+    }
+    assert all(
+        {evidence["test"] for evidence in item["current"]["test_evidence"]}
+        == required_tests
+        for item in p0
+    )
+    assert not any(
+        item["scenario_id"] in matrix["p3_queue"]["P3-C"] for item in p0
+    )
+
+
+def test_p3c_p0_matrix_gate_rejects_oracle_and_schema_boundary_drift() -> None:
+    manifest = load_assets()
+    original_assets = {
+        asset["path"]: asset for asset in manifest["assets"]
+        if asset["side"] == "original"
+    }
+    current_assets = {
+        asset["path"]: asset for asset in manifest["assets"]
+        if asset["side"] == "current"
+    }
+    oracle = json.loads((
+        ROOT / "tests/data/rtl_wave_differential/"
+        "p3c-p0.original-oracle.json"
+    ).read_text(encoding="utf-8"))
+    assert set(validate_p3c_p0_oracle(
+        oracle, ROOT, original_assets, current_assets
+    )) == {f"active.p0.{index:02d}" for index in range(1, 7)}
+
+    wrong_goal = deepcopy(oracle)
+    wrong_goal["goal_id"] = "wrong-goal"
+    with pytest.raises(MatrixError, match="different Goal/group"):
+        validate_p3c_p0_oracle(
+            wrong_goal, ROOT, original_assets, current_assets
+        )
+
+    wrong_result = deepcopy(oracle)
+    wrong_result["rows"][0]["native_result"]["termination"] = "primary_input"
+    with pytest.raises(MatrixError, match="native result is incomplete"):
+        validate_p3c_p0_oracle(
+            wrong_result, ROOT, original_assets, current_assets
+        )
+
+    missing_boundaries = deepcopy(oracle)
+    for row in missing_boundaries["rows"]:
+        native = row["native_result"]
+        if native["termination"] == "control_only":
+            native["branch_evidence"] = []
+        for hop in native["chain"]:
+            if hop["file"] == "" and hop["line"] == 0:
+                hop["file"] = "<unknown>"
+                hop["line"] = 1
+    with pytest.raises(MatrixError, match="representability boundaries disappeared"):
+        validate_p3c_p0_oracle(
+            missing_boundaries, ROOT, original_assets, current_assets
+        )
