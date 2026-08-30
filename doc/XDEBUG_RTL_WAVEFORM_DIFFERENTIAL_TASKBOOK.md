@@ -926,3 +926,19 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
    的有限 proven-unobservable 证明。
 2. P3-C queue 清零并通过独立门禁后，再进入 P3-D 性能/大波形与 P3-E 剩余 Action，最后执行 P4
    全量验收；不得用 Phase5 的局部成功提前宣告 Goal 完成。
+
+### 2026-08-30：P3-C runner/orphan 有限不可观察证明红灯
+
+- `xdebug.active_trace_runner` 的冻结输入只有 Makefile、`chain_test.cpp`、`chain_test.h`，输出仅为
+  私有 native NPI 测试可执行文件 `build/chain_test`；它不接受 RTL，不生成波形，也不是冻结 73
+  Action 中的公开请求。P0/composite/timing/Phase4 共 58 个 catalog case 已由同一锁定 runner
+  SHA-256 `f7e80398...` 的 native oracle 覆盖；Phase5 十项由冻结公开 runtime 完整 oracle 覆盖。
+  因此待证明的是“无额外公开观察点”，不是把私有 runner 输出伪装成当前公开响应等价。
+- `p0_4_interface_modport` 在冻结原版中只有 README 第 22 行声明和目录内一个 `.gitignore`；没有
+  RTL/TCL、catalog row、signal/time 请求、具体 FSDB 或可执行 stimulus。当前已有的 interface/
+  modport 动态用例只能证明当前能力，不能反向创造原版合同。待建立的证明严格限定在冻结资产与
+  `trace.active_driver_chain` 必填 signal/time 的公开 schema；不泛化为 interface/modport 免测。
+- 新增红灯 `tests/test_p3c_active_trace_closure.py`，要求仓库内存在去敏、可重建 audit，runner 的
+  68 个既有公开观察点全部闭合、额外观察点为零，orphan 的冻结目录/catalog/request 计数均为零，
+  两项才可升级为 `proven-unobservable` 并清空 P3-C queue。当前 audit 尚不存在、矩阵仍为
+  partial/missing，预期三项失败；不运行 EDA、不重建 fixture/cache，也不允许用 current 候选替代。
