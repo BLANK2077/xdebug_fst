@@ -540,12 +540,11 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | local path audit | 已通过 | `check_no_local_paths.py --repo-root` |
 | 外部零写入/零 fallback | 已通过 | xverif 18 个既有 dirty；Wellen/Verilator clean；前后快照一致 |
 | P3-B 实现 commit | 已完成 | `b4b810e 修复：对齐活动驱动递归与接口层级语义` |
-| P3-B 证据 commit | 本批待提交 | `测试：补齐设计与活动驱动差分场景` |
+| P3-B 证据 commit | 已完成 | `56348d1 测试：补齐设计与活动驱动差分场景` |
 
 ### 下一步
 
-1. 完成 P3-B manifest/matrix/audit/taskbook 的 diff/staged 白名单复核和独立中文详细证据 commit。
-2. 进入 P3-C，逐个关闭 68 个 active catalog case 和两个 P3-C 特殊场景；共享 DUT 不能替代
+1. 进入 P3-C，逐个关闭 68 个 active catalog case 和两个 P3-C 特殊场景；共享 DUT 不能替代
    每个 case 的控制、时间和完整响应证据。
-3. Phase5 必须单独关闭完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
+2. Phase5 必须单独关闭完整响应差异；不得用当前 termination 子集门禁替代 width、顺序、
    statement 和源码证据。
