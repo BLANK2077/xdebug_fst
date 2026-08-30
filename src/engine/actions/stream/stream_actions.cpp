@@ -11,11 +11,14 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
 #include <fstream>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -554,6 +557,100 @@ struct StreamSample {
     int packet_index = -1;
     size_t beat_index = 0;
 };
+
+static bool parse_analysis_cache_budget(
+        const char* name, uint64_t default_value, bool allow_zero,
+        uint64_t& value, std::string& message) {
+    const char* raw=std::getenv(name);
+    if (raw==nullptr) {
+        value=default_value;
+        return true;
+    }
+    if (*raw=='\0') {
+        message=std::string(name)+" must be a non-empty unsigned integer";
+        return false;
+    }
+    uint64_t parsed=0;
+    for (const unsigned char* cursor=
+             reinterpret_cast<const unsigned char*>(raw);
+         *cursor!='\0';++cursor) {
+        if (!std::isdigit(*cursor)) {
+            message=std::string(name)+
+                " must contain only unsigned decimal digits";
+            return false;
+        }
+        const uint64_t digit=*cursor-'0';
+        if (parsed>(std::numeric_limits<uint64_t>::max()-digit)/10) {
+            message=std::string(name)+" exceeds uint64 range";
+            return false;
+        }
+        parsed=parsed*10+digit;
+    }
+    if (!allow_zero&&parsed==0) {
+        message=std::string(name)+" must be positive";
+        return false;
+    }
+    value=parsed;
+    return true;
+}
+
+static std::string stream_cache_key_summary(
+        const StreamConfig& cfg, const Json& args) {
+    const std::string material=cfg.name+"\n"+cfg.source.dump()+"\n"+
+        args.value("cache_scope",std::string("full"))+"\n"+
+        args.value("time_range",Json::object()).dump();
+    uint64_t hash=1469598103934665603ULL;
+    for (unsigned char byte : material) {
+        hash^=static_cast<uint64_t>(byte);
+        hash*=1099511628211ULL;
+    }
+    std::ostringstream text;
+    text << std::hex << std::setw(16) << std::setfill('0') << hash;
+    return text.str();
+}
+
+static Json stream_analysis_budget_error(
+        const StreamConfig& cfg, const Json& args) {
+    uint64_t soft_max_bytes=0,hard_max_bytes=0;
+    std::string message;
+    if (!parse_analysis_cache_budget(
+            "XDEBUG_ANALYSIS_CACHE_MAX_BYTES",1073741824ULL,true,
+            soft_max_bytes,message) ||
+        !parse_analysis_cache_budget(
+            "XDEBUG_ANALYSIS_CACHE_HARD_MAX_BYTES",2147483648ULL,false,
+            hard_max_bytes,message)) {
+        return {{"ok",false},{"error",{
+            {"code","INVALID_ENVIRONMENT"},
+            {"message",message},
+            {"error_layer","handler"},
+            {"recoverable",false},
+        }}};
+    }
+    if (soft_max_bytes>hard_max_bytes) {
+        return {{"ok",false},{"error",{
+            {"code","INVALID_ENVIRONMENT"},
+            {"message","XDEBUG_ANALYSIS_CACHE_MAX_BYTES must not exceed "
+                "XDEBUG_ANALYSIS_CACHE_HARD_MAX_BYTES"},
+            {"error_layer","handler"},
+            {"recoverable",false},
+        }}};
+    }
+    if (hard_max_bytes>=sizeof(StreamSample)) return Json::object();
+    return {{"ok",false},{"error",{
+        {"code","ANALYSIS_MEMORY_LIMIT_EXCEEDED"},
+        {"message","analysis cache build exceeds the configured hard memory limit"},
+        {"recoverable",true},
+        {"error_layer","handler"},
+        {"current_estimated_bytes",0},
+        {"hard_max_bytes",hard_max_bytes},
+        {"protocol","stream"},
+        {"key_summary",stream_cache_key_summary(cfg,args)},
+        {"next_actions",Json::array({
+            "For stream analysis, explicitly retry with cache_scope=range or a smaller time_range.",
+            "If range analysis still exceeds the limit, use x-npi for one-off offline analysis.",
+        })},
+    }}};
+}
 
 static std::vector<StreamSample> scan_stream_samples(
     IWaveformBackend* wf, const StreamConfig& cfg,
@@ -1101,6 +1198,9 @@ struct StreamQueryHandler : public EngineActionHandler {
         if (!packet_enabled && (query=="first_packet"||query=="last_packet"||
             query=="packet_at"||query=="packet_window"))
             return action_error("PACKET_NOT_CONFIGURED","stream has no sop/eop packet boundaries");
+
+        Json budget_error=stream_analysis_budget_error(cfg,args);
+        if (!budget_error.empty()) return budget_error;
 
         bool fields_complete=true;
         auto samples=scan_stream_samples(
@@ -1752,7 +1852,7 @@ struct StreamValidateHandler : public EngineActionHandler {
         }
         const bool dynamic_requested = args.value("dynamic",true);
         Json dynamic = Json::object();
-        bool scan_complete = false, analysis_complete = static_ok;
+        bool scan_complete = static_ok, analysis_complete = static_ok;
         if (dynamic_requested && static_ok) {
             Json query_args=args;
             query_args.erase("dynamic");

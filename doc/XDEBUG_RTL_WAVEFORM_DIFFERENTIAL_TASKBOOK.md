@@ -1121,3 +1121,23 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | 当前 base 公开 cache 语义 | 红灯 | static validate `scan_complete` 漂移 |
 | 当前 hard-limit 公开错误 | 红灯 | hard=1 两个 child 错误返回成功 |
 | 矩阵关闭 | 待办 | 两项当前门禁转绿后才允许更新候选分类 |
+
+### 2026-08-31：P3-D1 differential/cache 公开语义转绿
+
+- `stream.validate dynamic=false` 现在按原版 completeness 规则处理：只要静态解析成功，即同时返回
+  `scan_complete=true` 和 `analysis_complete=true`；它仍不执行动态采样，也不伪造任何 probe scan。
+- stream query 在分析前严格解析 `XDEBUG_ANALYSIS_CACHE_MAX_BYTES` 与
+  `XDEBUG_ANALYSIS_CACHE_HARD_MAX_BYTES`。解析不接受空串、正负号、空白、尾随字符、uint64 溢出、
+  hard=0 或 soft>hard，避免悄悄替换默认值；hard budget 小于最小 stream analysis 基对象时返回原版
+  `ANALYSIS_MEMORY_LIMIT_EXCEEDED` 公开包络，包括 handler/recoverable/protocol/current bytes/hard bytes/
+  16-hex key summary 和两条 next action。export 与 dynamic validate 继续复用 query 分析路径，没有复制
+  第二套预算判断。
+- closure 专项由有效红灯 2 pass/2 fail 转为 4/4 通过；`tests/test_stream.py`、58 项主 oracle、6 项
+  export/artifact/XOUT 与 differential/cache 联合相邻回归共 48/48 通过。默认 1 GiB/2 GiB 与 soft=1、
+  hard=2 GiB 的公开响应保持不变，hard=1 的两个 batch child 均转为原版错误。
+- 增量构建只重编译 `stream_actions.cpp` 并重新链接 `xdebug-fst`，没有重建 CMake cache、stream_v1
+  fixture 或任何外部 cache。所有 pytest HOME/basetemp/socket 继续位于当前仓库，使用同一 UDS
+  transport 和当前 FST backend，零 fallback。
+- 本提交只完成实现转绿；matrix/manifest 仍未更新。只有下一证据提交把 `fixture.stream_v1` 关闭为
+  `semantic-equivalent`、把无独立观察面的 `fixture.stream_differential_tool` 关闭为有限
+  `proven-unobservable`，并通过生成器/静态门禁后，P3-D1 才算最终完成。
