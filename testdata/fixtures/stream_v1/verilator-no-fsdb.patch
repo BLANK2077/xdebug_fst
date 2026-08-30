@@ -1,0 +1,15 @@
+--- stream_v1_top.sv
++++ stream_v1_top.sv
+@@ -78,10 +78,12 @@
+     forever #5 clk = ~clk;
+   end
+
++`ifndef VERILATOR
+   initial begin
+     $fsdbDumpfile("waves.fsdb");
+     $fsdbDumpvars(0, stream_v1_top);
+   end
++`endif
+
+   task init_signals;
+     begin

@@ -240,13 +240,27 @@ std::string field_value(const Json& object, const std::string& member,
 void emit_stream_records(TextResponseBuilder& out, const std::string& section,
                          const Json& records) {
     if (!records.is_array() || records.empty()) return;
-    const bool packets = records[0].contains("packet_index");
+    const bool packets = records[0].contains("packet_index")&&
+        records[0].contains("start_cycle")&&records[0].contains("beat_count");
     if (!packets) {
         const auto fields = field_names(records, "fields");
+        const auto stable_fields = field_names(records, "packet_stable_fields");
+        const bool has_packet_index=std::any_of(
+            records.begin(),records.end(),[](const Json& record) {
+                return record.contains("packet_index");
+            });
+        const bool has_channel_id=std::any_of(
+            records.begin(),records.end(),[](const Json& record) {
+                return record.contains("channel_id");
+            });
         std::vector<std::string> columns{
             "cycle", "time", "transfer", "stall", "vld", "rdy", "bp",
             "sop", "eop", "beat_index"};
+        if (has_packet_index) columns.push_back("packet_index");
+        if (has_channel_id) columns.push_back("channel_id");
         for (const auto& field : fields) columns.push_back(field);
+        for (const auto& field : stable_fields)
+            columns.push_back("packet_stable."+field);
         std::vector<std::vector<std::string>> rows;
         for (const auto& record : records) {
             std::vector<std::string> row;
@@ -254,8 +268,17 @@ void emit_stream_records(TextResponseBuilder& out, const std::string& section,
                                     "vld", "rdy", "bp", "sop", "eop",
                                     "beat_index"})
                 row.push_back(json_to_xout_value(record.value(key, Json())));
+            if (has_packet_index)
+                row.push_back(json_to_xout_value(
+                    record.value("packet_index",Json())));
+            if (has_channel_id)
+                row.push_back(json_to_xout_value(
+                    record.value("channel_id",Json())));
             for (const auto& field : fields)
                 row.push_back(field_value(record, "fields", field));
+            for (const auto& field : stable_fields)
+                row.push_back(field_value(
+                    record,"packet_stable_fields",field));
             rows.push_back(std::move(row));
         }
         out.emit_section(section);
@@ -265,10 +288,18 @@ void emit_stream_records(TextResponseBuilder& out, const std::string& section,
 
     const auto first_fields = field_names(records, "first_fields");
     const auto last_fields = field_names(records, "last_fields");
+    const auto stable_fields = field_names(records, "packet_stable_fields");
+    const bool has_channel_id=std::any_of(
+        records.begin(),records.end(),[](const Json& record) {
+            return record.contains("channel_id");
+        });
     std::vector<std::string> columns{
         "packet_index", "start_cycle", "end_cycle", "start_time", "end_time",
         "beat_count", "partial_begin", "partial_end", "preview_total",
         "preview_returned", "preview_truncated"};
+    if (has_channel_id) columns.push_back("channel_id");
+    for (const auto& field : stable_fields)
+        columns.push_back("packet_stable."+field);
     for (const auto& field : first_fields) columns.push_back("first." + field);
     for (const auto& field : last_fields) columns.push_back("last." + field);
     std::vector<std::vector<std::string>> rows;
@@ -286,6 +317,11 @@ void emit_stream_records(TextResponseBuilder& out, const std::string& section,
         row.push_back(json_to_xout_value(preview.value("returned_count", Json())));
         row.push_back(json_to_xout_value(
             preview.value("response_truncated", Json())));
+        if (has_channel_id)
+            row.push_back(json_to_xout_value(
+                packet.value("channel_id",Json())));
+        for (const auto& field : stable_fields)
+            row.push_back(field_value(packet,"packet_stable_fields",field));
         for (const auto& field : first_fields)
             row.push_back(field_value(packet, "first_fields", field));
         for (const auto& field : last_fields)

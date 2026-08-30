@@ -1,0 +1,11 @@
+{
+  "streams": {
+    "valid_only": {"transfer_count": 20000},
+    "ready_stream": {"transfer_count": 15059, "stall_cycles": 3764},
+    "bp_stream": {"transfer_count": 17142, "stall_cycles": 2858},
+    "ready_packet": {"transfer_count": 20000, "packet_count": 5000},
+    "bp_packet": {"transfer_count": 20000, "packet_count": 5000},
+    "ready_bp_packet_negedge": {"transfer_count": 20000, "packet_count": 5000, "ready_bp_conflict_count": 1},
+    "interleaved_packet": {"transfer_count": 20000, "packet_count": 5000}
+  }
+}

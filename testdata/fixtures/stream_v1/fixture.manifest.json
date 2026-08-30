@@ -1,0 +1,46 @@
+{
+  "schema_version": "xdebug-fst.fixture.stream-v1.v1",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "fixture_id": "current.stream_v1",
+  "source_contract": {
+    "original_fixture_id": "xdebug.stream_v1",
+    "rtl_byte_identical": true,
+    "rtl_sha256": "4e9a24d992ceb1d58f5b300cbca46345c70f9da9d1ad13648475711342357438",
+    "config_byte_identical": true,
+    "config_sha256": "22269ed6fc9bedf16be4370f7cbc9374980a9e52414a49d2b436b3d62a3dd22a",
+    "expected_sha256": "ed649e5524766275200c10067ff8c81ad573e681f964218644f35e8b62c6c132",
+    "stimulus_count": 20000,
+    "randomization": false,
+    "seed": "not-applicable-deterministic-formulas",
+    "timescale": "1ns/1ps",
+    "clock_half_period": "5ns",
+    "waveform_end": "200105ns"
+  },
+  "build_contract": {
+    "simulator": "verilator",
+    "version": "v5.050-109-gc3be3c805",
+    "revision": "c3be3c80501bec8d4c3b7f5256890332df62d410",
+    "tree": "8e247c8b90237517f84fbda98a594318b16ca998",
+    "fingerprint": "8b8b0886d5338b71500dd218e7af46bcd1c2a2dabb16492addeea82c85b14bb9",
+    "patchset_version": "xdebug-design-db-v4-deterministic-fst",
+    "gcc_version": "13.3.1",
+    "trace_format": "fst",
+    "trace_depth": 2,
+    "timing": true,
+    "fsdb_task_overlay": {
+      "compile_only": true,
+      "rtl_committed_copy_modified": false,
+      "sha256": "08d760d3e831a095f2a07219ef7eedd7b404a4bca9c1e698285787c055a97b6d"
+    },
+    "harness_sha256": "83ed62fd8fd25dc3755ff1b92fa10dfd7f363f545cba085f884e571b4e94d532"
+  },
+  "output_contract": {
+    "path": "waves.fst",
+    "size": 1398608,
+    "sha256": "ead0ce4e385c32bbc7cc4683e51c3707e0d03b8ccc5817eb7f1f84e0b6b561d5",
+    "expected_path": "stream_expected.json",
+    "expected_checked_by_rtl": true,
+    "fsdb_conversion_used": false,
+    "external_cache_rebuilt": false
+  }
+}

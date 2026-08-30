@@ -1050,3 +1050,30 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 - 新增 `tests/test_p3d_stream_v1_export.py`。红灯为 1 pass/1 fail：runtime/schema/oracle/XOUT 缺口锁
   通过，当前侧在第一个 `transfer_preview` 的 summary 公开语义处失败；尚未进入后续 artifact 比较，
   因而不是伪造文件差异。所有采集输出仍只写当前仓库，没有 fallback 或 fixture 重建。
+
+### 2026-08-30：P3-D1 stream_v1 主体与 export 转绿
+
+- 当前新增 `testdata/fixtures/stream_v1`：RTL 和 config 与原版逐字节一致；Verilator 只在仓库内
+  build copy 上应用条件屏蔽专有 `$fsdbDump*` task 的 compile-only overlay，提交的 RTL 不改一字。
+  C++ timing harness 直接生成 FST，不经过 FSDB/VCD/JSON 转换；RTL 自写 expected 与冻结 expected
+  逐字节一致。FST 为 1,398,608 bytes，SHA-256 固定为 `ead0ce4e...`。
+- `fixture.manifest.json` 锁住原版 RTL/config/expected 哈希、`N=20000`、无随机化 seed、1ns/1ps、
+  5ns 半周期，以及 Verilator revision/tree/fingerprint/patchset 和 GCC 13.3.1。生成脚本在安装 FST
+  前先核对 expected、size 和 SHA，禁止外部 cache 重建与 FSDB conversion；`fixture.sha256` 逐文件
+  覆盖 RTL/config/expected/overlay/harness/manifest/FST。
+- 使用两个全新的仓库内目录 `stream_v1-determinism-b/c` 完整编译和运行，二者及提交 FST 的
+  SHA-256 均为 `ead0ce4e...`，`cmp` 全部通过。第一次隔离尝试发现生成脚本仍硬编码默认 source
+  path；在计入门禁前已修为每次使用各自 work-dir 的 compile copy，随后才执行有效的 b/c 双重
+  复现。没有删除或重建任何既有 fixture cache。
+- stream 实现补齐 alias/表达式 clock、valid/ready/bp/sop/eop/data/channel、before/after/negedge
+  采样、ready+bp conflict、stable field、partial/interleaved packet、exact/range/mask filter、channel、
+  stall boundary 和原版错误包络。58 个 config/describe/validate/query 公开响应逐字段严格一致。
+- `stream.export` 改为完整结果计数与有限 preview 分离：preview scope 为 `response_preview`；written
+  不受 preview line limit 裁剪，并按原版字段顺序输出 transfer/packet/packet-beats 及完整 meta。
+  六项 JSON、三份 artifact/meta 的 size/SHA/文本全部与原版一致。当前 XOUT 继续投影 range、channel、
+  stable field 和多 beat，关闭原版已登记的信息缺口，不以逐字符复制退化求一致。
+- 原有 `tests/test_stream.py` 的 stall reason、preview scope、导出 header/packet row 断言同步为已证明
+  的原版值。P3-D1 query/export focused 与相邻 stream 回归合计 44/44 通过；没有 skip、xfail、响应
+  白名单或 completeness 放宽。
+- 本提交只关闭 `stream_v1` 主体和 export 实现。`stream_differential_tool` 私有 legacy comparator、
+  cache probe 与矩阵状态仍保留在本批后续门禁，未在此处提前宣告 P3-D1 完成。

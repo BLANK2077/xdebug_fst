@@ -1,0 +1,178 @@
+{
+  "streams": [
+    {
+      "name": "valid_only",
+      "signals": {
+        "clk": "stream_v1_top.clk",
+        "vld": "stream_v1_top.vo_vld",
+        "data": "stream_v1_top.vo_data"
+      },
+      "clock": "clk || 1'b0",
+      "edge": "posedge",
+      "reset": {"signal": "stream_v1_top.rst_n", "polarity": "active_low"},
+      "vld": "vld",
+      "data": "data",
+      "description": "valid-only stream"
+    },
+    {
+      "name": "ready_stream",
+      "signals": {
+        "clk": "stream_v1_top.clk",
+        "vld": "stream_v1_top.ready_vld",
+        "flush": "stream_v1_top.ready_flush",
+        "rdy": "stream_v1_top.ready_rdy",
+        "chid": "stream_v1_top.ready_chid",
+        "data_sig": "stream_v1_top.ready_data",
+        "addr_hi": "stream_v1_top.ready_addr_hi",
+        "addr_lo": "stream_v1_top.ready_addr_lo",
+        "cmd": "stream_v1_top.ready_cmd"
+      },
+      "clock": "clk",
+      "edge": "posedge",
+      "reset": {"signal": "stream_v1_top.rst_n", "polarity": "active_low"},
+      "vld": "vld && !flush",
+      "rdy": "rdy",
+      "channel_id": "chid",
+      "beat_fields": {
+        "low8": "data_sig[7:0]",
+        "addr": "{addr_hi, addr_lo}",
+        "is_wr": "cmd == 2'b01",
+        "data": "data_sig"
+      },
+      "description": "vld/rdy stream with gated valid, slice, concat, compare, and channel"
+    },
+    {
+      "name": "bp_stream",
+      "signals": {
+        "clk": "stream_v1_top.clk",
+        "vld": "stream_v1_top.bp_vld",
+        "bp": "stream_v1_top.bp_bp",
+        "data": "stream_v1_top.bp_data"
+      },
+      "clock": "clk",
+      "edge": "posedge",
+      "reset": {"signal": "stream_v1_top.rst_n", "polarity": "active_low"},
+      "vld": "vld",
+      "bp": "bp",
+      "data": "data",
+      "description": "vld/bp stream"
+    },
+    {
+      "name": "ready_packet",
+      "signals": {
+        "clk": "stream_v1_top.clk",
+        "vld": "stream_v1_top.rpkt_vld",
+        "rdy": "stream_v1_top.rpkt_rdy",
+        "sop": "stream_v1_top.rpkt_sop",
+        "eop": "stream_v1_top.rpkt_eop",
+        "opcode": "stream_v1_top.rpkt_opcode",
+        "seq": "stream_v1_top.rpkt_seq",
+        "data": "stream_v1_top.rpkt_data"
+      },
+      "clock": "clk",
+      "edge": "posedge",
+      "reset": {"signal": "stream_v1_top.rst_n", "polarity": "active_low"},
+      "vld": "vld",
+      "rdy": "rdy",
+      "sop": "sop",
+      "eop": "eop",
+      "packet_stable_fields": {
+        "opcode": "opcode"
+      },
+      "beat_fields": {
+        "seq": "seq",
+        "data": "data"
+      },
+      "description": "vld/rdy/sop/eop packet stream"
+    },
+    {
+      "name": "bp_packet",
+      "signals": {
+        "clk": "stream_v1_top.clk",
+        "vld": "stream_v1_top.bpkt_vld",
+        "bp": "stream_v1_top.bpkt_bp",
+        "sop": "stream_v1_top.bpkt_sop",
+        "eop": "stream_v1_top.bpkt_eop",
+        "badstable": "stream_v1_top.bpkt_badstable",
+        "seq": "stream_v1_top.bpkt_seq",
+        "data": "stream_v1_top.bpkt_data"
+      },
+      "clock": "clk",
+      "edge": "posedge",
+      "reset": {"signal": "stream_v1_top.rst_n", "polarity": "active_low"},
+      "vld": "vld",
+      "bp": "bp",
+      "sop": "sop",
+      "eop": "eop",
+      "packet_stable_fields": {
+        "badstable": "badstable"
+      },
+      "beat_fields": {
+        "seq": "seq",
+        "data": "data"
+      },
+      "description": "vld/bp/sop/eop packet stream"
+    },
+    {
+      "name": "ready_bp_packet_negedge",
+      "signals": {
+        "clk": "stream_v1_top.clk",
+        "vld": "stream_v1_top.npkt_vld",
+        "rdy": "stream_v1_top.npkt_rdy",
+        "bp": "stream_v1_top.npkt_bp",
+        "sop": "stream_v1_top.npkt_sop",
+        "eop": "stream_v1_top.npkt_eop",
+        "chid": "stream_v1_top.npkt_chid",
+        "seq": "stream_v1_top.npkt_seq",
+        "data": "stream_v1_top.npkt_data"
+      },
+      "clock": "clk",
+      "edge": "negedge",
+      "reset": {"signal": "stream_v1_top.rst_n", "polarity": "active_low"},
+      "vld": "vld",
+      "rdy": "rdy",
+      "bp": "bp",
+      "sop": "sop",
+      "eop": "eop",
+      "channel_id": "chid",
+      "channel_id_valid": "every_beat",
+      "beat_fields": {
+        "seq": "seq",
+        "data": "data"
+      },
+      "description": "negedge vld/rdy/bp/sop/eop packet stream"
+    },
+    {
+      "name": "interleaved_packet",
+      "signals": {
+        "clk": "stream_v1_top.clk",
+        "vld": "stream_v1_top.ipkt_vld",
+        "rdy": "stream_v1_top.ipkt_rdy",
+        "sop": "stream_v1_top.ipkt_sop",
+        "eop": "stream_v1_top.ipkt_eop",
+        "chid": "stream_v1_top.ipkt_chid",
+        "tag": "stream_v1_top.ipkt_tag",
+        "seq": "stream_v1_top.ipkt_seq",
+        "data": "stream_v1_top.ipkt_data"
+      },
+      "clock": "clk",
+      "edge": "posedge",
+      "reset": {"signal": "stream_v1_top.rst_n", "polarity": "active_low"},
+      "vld": "vld",
+      "rdy": "rdy",
+      "sop": "sop",
+      "eop": "eop",
+      "channel_id": "chid",
+      "channel_id_valid": "every_beat",
+      "allow_interleaving": true,
+      "packet_stable_fields": {
+        "tag": "tag"
+      },
+      "beat_fields": {
+        "seq": "seq",
+        "data": "data"
+      },
+      "description": "interleaved two-channel packet stream"
+    }
+  ]
+}

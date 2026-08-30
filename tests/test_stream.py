@@ -196,7 +196,7 @@ def test_stream_query_stall_window(loop_runner: StdioLoopRunner,
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["stall_cycles"] > 0
     assert rsp["summary"]["stall_windows"] == len(rsp["data"]["stalls"])
-    assert rsp["data"]["stalls"][0]["reason"] == "vld_without_rdy"
+    assert rsp["data"]["stalls"][0]["reason"] == "rdy_low"
 
 
 def test_stream_query_packet_window_and_filter(
@@ -306,7 +306,9 @@ def test_stream_export(loop_runner: StdioLoopRunner, stream_fst, tmp_path) -> No
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["output_written"] is True
     assert rsp["summary"]["row_count"] == 4
-    assert output.read_text().splitlines()[0] == "cycle\ttime\tdata"
+    assert output.read_text().splitlines()[0] == (
+        "cycle\ttime\ttransfer\tstall\tvld\trdy\tbp\tsop\teop\tdata"
+    )
     assert output.with_name(output.name + ".meta.json").is_file()
 
 
@@ -341,7 +343,7 @@ def test_stream_export_preview_line_limit_marks_truncation(
     assert rsp["summary"]["total_count"] == 4
     assert rsp["summary"]["returned_count"] == 1
     assert rsp["summary"]["response_truncated"] is True
-    assert rsp["summary"]["truncation_scopes"] == ["response_rows"]
+    assert rsp["summary"]["truncation_scopes"] == ["response_preview"]
     assert len(rsp["data"]["preview"]) == 1
 
 
@@ -357,7 +359,9 @@ def test_stream_export_packet_final_artifact(
     assert rsp.get("ok"), rsp
     assert rsp["summary"]["row_count"] == 4
     assert rsp["data"] == {}
-    assert '"packet_index":0' in output.read_text()
+    lines = output.read_text().splitlines()
+    assert lines[0].startswith("packet_index\tchannel_id\tstart_time\tend_time")
+    assert lines[1].startswith("0\t")
 
 
 def test_stream_validate(loop_runner: StdioLoopRunner, stream_fst) -> None:
