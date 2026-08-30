@@ -19,6 +19,7 @@ from tools.build_rtl_wave_semantic_matrix import (
     validate_p3c_composite_oracle,
     validate_p3c_p0_oracle,
     validate_p3c_phase4_oracle,
+    validate_p3c_phase5_public_oracle,
     validate_p3c_timing_oracle,
 )
 
@@ -105,9 +106,9 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "scenario_count": 88,
         "status_counts": {
             "missing": 2,
-            "partial": 19,
+            "partial": 9,
             "proven-unobservable": 2,
-            "semantic-equivalent": 65,
+            "semantic-equivalent": 75,
         },
         "unclassified_count": 0,
         "unqueued_gap_count": 0,
@@ -167,6 +168,7 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         *{f"active.composite.{index:02d}" for index in range(1, 21)},
         *{f"active.timing.{index:02d}" for index in range(1, 13)},
         *{f"active.phase4.{index:02d}" for index in range(1, 21)},
+        *{f"active.phase5.{index:02d}" for index in range(1, 11)},
     }
 
 
@@ -227,11 +229,11 @@ def test_all_73_action_contracts_link_frozen_examples_and_schemas() -> None:
     } <= active_fields
 
 
-def test_phase5_differences_and_declared_only_p0_case_are_not_hidden() -> None:
+def test_phase5_full_responses_are_closed_without_hiding_historical_drift() -> None:
     matrix = load_matrix()
     scenarios = {item["scenario_id"]: item for item in matrix["scenarios"]}
     phase5 = [scenarios[f"active.phase5.{index:02d}"] for index in range(1, 11)]
-    assert all(item["status"] == "partial" for item in phase5)
+    assert [item["status"] for item in phase5] == ["semantic-equivalent"] * 10
     assert [item["original"]["oracle"]["termination"] for item in phase5] == [
         "ambiguous", "primary_input", "primary_input", "primary_input",
         "control_only", "ambiguous", "control_only", "primary_input",
@@ -244,14 +246,136 @@ def test_phase5_differences_and_declared_only_p0_case_are_not_hidden() -> None:
     assert set(conflicts) == {"active.phase5.06", "active.phase5.08"}
     assert conflicts["active.phase5.06"]["report_value"] == "control_only"
     assert conflicts["active.phase5.08"]["report_value"] == "control_only"
+    oracle_path = (
+        "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json"
+    )
+    historical_path = (
+        "tests/data/rtl_wave_differential/phase5.runtime-audit.json"
+    )
     assert all(
-        any(
-            evidence["test"]
-            == "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
-            for evidence in item["current"]["test_evidence"]
-        )
+        item["original"]["locked_runtime_oracle"]["path"] == oracle_path
+        and item["original"]["locked_runtime_oracle"]["termination"] ==
+        "ambiguous"
+        and item["original"]["locked_runtime_oracle"]["scan_complete"] is True
+        and item["original"]["locked_runtime_oracle"]["analysis_complete"] is True
+        and item["original"]["locked_runtime_oracle"][
+            "response_truncated"
+        ] is False
+        and item["original"]["historical_subset_audit"]["path"] ==
+        historical_path
+        and item["original"]["historical_subset_audit"]["status"] == "partial"
+        and item["runtime_audit"]["path"] == oracle_path
+        and SHA256.fullmatch(item["runtime_audit"]["sha256"])
+        and item["runtime_audit"]["status"] == "semantic-equivalent"
+        and item["runtime_audit"]["remaining_observable_gap_count"] == 0
+        and item["runtime_audit"]["full_response_equivalent"] is True
+        and item["runtime_audit"]["historical_subset_audit"]["path"] ==
+        historical_path
+        and item["runtime_audit"]["historical_subset_audit"]["status"] ==
+        "partial"
+        and item["current"]["candidate_fixture_ids"] ==
+        ["current.active_trace"]
+        and item["public_request"]["limits"] == {
+            "max_depth": 64, "max_nodes": 64,
+        }
+        and set(item["public_request"]["args"]) == {
+            "render_time_unit", "signal", "time",
+        }
         for item in phase5
     )
+    required_tests = {
+        "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized",
+        "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes",
+        "test_p3c_phase5_matches_locked_full_public_response",
+        "test_p3c_phase5_limits_are_explicit_analysis_boundaries",
+    }
+    for item in phase5:
+        assert {
+            source["path"] for source in item["current"]["candidate_sources"]
+        } == {
+            "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+        }
+        assert {
+            evidence["test"] for evidence in item["current"]["test_evidence"]
+        } == required_tests
+        projection_kinds = [
+            projection["kind"]
+            for projection in item["runtime_audit"]["schema_projections"]
+        ]
+        assert projection_kinds == (
+            ["statement_kind_projection", "exact_width_strengthening"]
+            if "dout" in item["public_request"]["args"]["signal"]
+            else ["statement_kind_projection"]
+        )
+        assert item["scenario_id"] not in matrix["p3_queue"]["P3-C"]
+
+
+def test_p3c_phase5_matrix_gate_rejects_full_response_evidence_drift() -> None:
+    manifest = load_assets()
+    original_assets = {
+        asset["path"]: asset for asset in manifest["assets"]
+        if asset["side"] == "original"
+    }
+    current_assets = {
+        asset["path"]: asset for asset in manifest["assets"]
+        if asset["side"] == "current"
+    }
+    baseline = manifest["baselines"]["original_runtime"]
+    oracle = json.loads((
+        ROOT / "tests/data/rtl_wave_differential/"
+        "p3c-phase5.public-oracle.json"
+    ).read_text(encoding="utf-8"))
+
+    def validate(document: dict) -> dict[str, dict]:
+        return validate_p3c_phase5_public_oracle(
+            document,
+            ROOT,
+            original_assets,
+            current_assets,
+            baseline["runtime_revision"],
+            baseline["schema_revision"],
+        )
+
+    assert set(validate(oracle)) == {
+        f"active.phase5.{index:02d}" for index in range(1, 11)
+    }
+
+    wrong_goal = deepcopy(oracle)
+    wrong_goal["goal_id"] = "wrong-goal"
+    with pytest.raises(MatrixError, match="different Goal/group"):
+        validate(wrong_goal)
+
+    incomplete = deepcopy(oracle)
+    incomplete["rows"][0]["response"]["summary"]["analysis_complete"] = False
+    with pytest.raises(MatrixError, match="locked full response is incomplete"):
+        validate(incomplete)
+
+    wrong_rhs_order = deepcopy(oracle)
+    samples = wrong_rhs_order["rows"][0]["response"]["data"][
+        "ambiguity_evidence"
+    ]["statements"][0]["rhs_samples"]
+    samples[0], samples[1] = samples[1], samples[0]
+    with pytest.raises(MatrixError, match="statement/RHS evidence drifted"):
+        validate(wrong_rhs_order)
+
+    wrong_value_time = deepcopy(oracle)
+    wrong_value_time["rows"][0]["response"]["data"][
+        "ambiguity_evidence"
+    ]["statements"][0]["rhs_samples"][0]["after"]["value_time"] = "11ns"
+    with pytest.raises(MatrixError, match="sampled value evidence drifted"):
+        validate(wrong_value_time)
+
+    fallback = deepcopy(oracle)
+    fallback["session"]["fallback_used"] = True
+    with pytest.raises(MatrixError, match="write/session/fallback boundary"):
+        validate(fallback)
+
+
+def test_declared_only_p0_case_remains_an_explicit_gap() -> None:
+    matrix = load_matrix()
+    scenarios = {item["scenario_id"]: item for item in matrix["scenarios"]}
 
     orphan = scenarios["active.p0.declared_only_p0_4"]
     assert orphan["status"] == "missing"

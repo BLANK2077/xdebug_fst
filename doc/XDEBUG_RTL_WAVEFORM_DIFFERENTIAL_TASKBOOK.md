@@ -874,6 +874,36 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 - 红灯执行使用既有 `.conda-xverif` pytest 解释器，只禁用与本地单测无关的自动编排插件；
   `XVERIF_TEST_TMPDIR` 与 `--basetemp` 均显式指向当前仓库。整个批次遵守 Goal 唯一可写根
   `${REPO_ROOT}`（仅解析为本任务当前仓库根），未修改原版/依赖仓库，未发起 PR 或 push。
+- 矩阵收口不再引用旧 `phase5.runtime-audit.json` 的 termination/ambiguity 子集作为等价性权威，
+  而是逐行绑定完整公开 oracle、两份精确 RTL 镜像、本 Phase5 FST 和四项专项测试。旧 audit 仍以
+  `historical_subset_audit/status=partial` 保留，S6/S8 的 catalog/report 冲突也继续显式记录，避免
+  通过覆盖历史证据来制造“等价”。十项公开请求均固定 `render_time_unit=ns` 和
+  `max_depth=64,max_nodes=64`。
+- `tools/build_rtl_wave_semantic_matrix.py` 新增 fail-closed Phase5 oracle validator：锁住 Goal、
+  runtime/schema/binary/wrapper/cache/session 身份、零 fallback/只读来源、catalog/RTL/fixture 传递
+  哈希、十行顺序、完整性、statement/RHS 顺序与计数、动态 selector 哨兵、sample evidence time、
+  hop 和宽度诊断。对应 mutation 门禁会分别拒绝错误 Goal、不完整响应、RHS 重排、after 时刻漂移
+  和 fallback 标记漂移。
+- 允许的两项 schema projection 逐场景显式列出：所有场景只允许 NPI textual `assignment` 到
+  DesignDB `proc_assign` 的 kind 映射；S1～S6/S9 额外允许原版 unsized hop + 明示 width diagnostic
+  被当前精确 8-bit FST/DesignDB 事实加强。其余 statement、源码行、RHS、值、时刻、termination
+  和完整性不得投影。
+- Phase5 十项已从 `partial` 升级为 `semantic-equivalent`。矩阵总计变为
+  `semantic-equivalent=75, proven-unobservable=2, partial=9, missing=2`；P3-C queue 从 12 降为
+  2，只剩 `fixture.active_trace_runner` 与 `active.p0.declared_only_p0_4`，没有借 Phase5 证据顺带
+  关闭 runner 或无原版 RTL/catalog request 的 orphan。
+- manifest/matrix 按 write→write→write→check→check 到达可重复稳定点。manifest 保持原版
+  359 assets/103 RTL/23 fixture/260 consumer/25 outputs，当前更新为 529 assets/79 RTL/75 FST/
+  1 VCD/69 consumer，零 missing asset、零未归属原版 HDL；SHA-256 分别为
+  `1f2417891e3dceecf59ba1796b822370f6ae7ad11c5197ab3f50e3dd2c42d70c` 与
+  `b2889f3f452287e4b1494486f18b73041b85dbc51741d2f24abcbb462f7b4748`。
+- 最终门禁为 Phase5 13/13、P0/composite/Phase4/timing/Phase5/combined 相邻回归 222/222、
+  manifest/matrix/P3-B/producer 静态联合 39/39、关键 CTest 3/3、两项生成器 `--check` 和
+  `git diff --check` 全通过。没有重建任何 fixture 或 CMake cache。
+- manifest 结构化外部审计在本批前后排序 JSON SHA-256 均为
+  `b36b1c254efbe860544f135e0fd964b9cd6fedd0cbb1bb32c7b3aae5de8c4bcb`；原版 xverif 的既有
+  dirty/untracked 状态以及 Wellen/Verilator clean 状态逐项未变。全部运行时临时文件仍位于当前
+  仓库，零外部写入、零 fixture/backend fallback。
 
 ### Phase5 实现当前状态
 
@@ -885,13 +915,14 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | runtime 写边界/fallback | 已通过 | 写入仅当前仓库；外部只读；零 fallback |
 | 通用实现修复 | 已完成 | Phase5 13/13；联合相邻回归 222/222 |
 | CTest | 已通过 | 关键 CTest 3/3 |
-| Phase5 矩阵关闭 | 未完成 | 仍保留 10 个 partial；P3-C queue=12 |
+| manifest/matrix 门禁 | 已通过 | 静态联合 39/39；连续 write/check 稳定 |
+| Phase5 矩阵关闭 | 已完成 | 10 个 semantic-equivalent；P3-C queue=2 |
+| Phase5 red/green/证据 commit | 已完成 | `77e628b` / `9c68af5` / 本批提交 |
 
 ### 下一步
 
-1. 把十项完整公开响应、允许的 NPI→FST 表示投影和 Phase5 fixture/consumer 逐行写入语义矩阵，
-   运行 manifest/matrix 连续 write/check 稳定门禁后，才把十项 partial 升级为
-   semantic-equivalent；实现转绿本身不能提前关闭矩阵。
-2. 单独裁决 `fixture.active_trace_runner` 与 p0_4 declared-only orphan。p0_4 没有冻结 RTL/catalog
+1. 单独裁决 `fixture.active_trace_runner` 与 p0_4 declared-only orphan。p0_4 没有冻结 RTL/catalog
    request 时不得编造原版 fixture；只能补成有权威来源的动态合同，或给出受 schema/资产哈希约束
    的有限 proven-unobservable 证明。
+2. P3-C queue 清零并通过独立门禁后，再进入 P3-D 性能/大波形与 P3-E 剩余 Action，最后执行 P4
+   全量验收；不得用 Phase5 的局部成功提前宣告 Goal 完成。

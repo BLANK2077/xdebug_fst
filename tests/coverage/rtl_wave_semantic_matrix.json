@@ -9509,16 +9509,6 @@
   "p3_queue": {
     "P3-C": [
       "active.p0.declared_only_p0_4",
-      "active.phase5.01",
-      "active.phase5.02",
-      "active.phase5.03",
-      "active.phase5.04",
-      "active.phase5.05",
-      "active.phase5.06",
-      "active.phase5.07",
-      "active.phase5.08",
-      "active.phase5.09",
-      "active.phase5.10",
       "fixture.active_trace_runner"
     ],
     "P3-D": [
@@ -31817,67 +31807,129 @@
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -31906,14 +31958,32 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.01",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 6,
           "scan_complete": true,
           "scenario_id": "active.phase5.01",
+          "statement_count": 1,
           "termination": "ambiguous",
-          "termination_detail": "multiple_rhs_sources"
+          "termination_detail": "multiple_rhs_sources",
+          "total_hops": 1,
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
         },
         "observed_public_actions": [],
         "oracle": {
@@ -32032,88 +32102,176 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.dout[2]",
           "time": "10ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 1,
+        "locked_rhs_signal_count": 6,
+        "locked_statement_count": 1,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_rhs_sources",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.01",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          },
+          {
+            "kind": "exact_width_strengthening",
+            "native_shape": "value_width_complete=false with an explicit npi_range_size_unavailable diagnostic and unsized hop",
+            "public_shape": "exact 8-bit FST/DesignDB value with value_width_complete=true and width_diagnostics=[]"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.01",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -32142,14 +32300,32 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.02",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 6,
           "scan_complete": true,
           "scenario_id": "active.phase5.02",
+          "statement_count": 1,
           "termination": "ambiguous",
-          "termination_detail": "multiple_rhs_sources"
+          "termination_detail": "multiple_rhs_sources",
+          "total_hops": 1,
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
         },
         "observed_public_actions": [],
         "oracle": {
@@ -32268,88 +32444,176 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.dout[2]",
           "time": "20ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 1,
+        "locked_rhs_signal_count": 6,
+        "locked_statement_count": 1,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_rhs_sources",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.02",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          },
+          {
+            "kind": "exact_width_strengthening",
+            "native_shape": "value_width_complete=false with an explicit npi_range_size_unavailable diagnostic and unsized hop",
+            "public_shape": "exact 8-bit FST/DesignDB value with value_width_complete=true and width_diagnostics=[]"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.02",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -32378,14 +32642,32 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.03",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 6,
           "scan_complete": true,
           "scenario_id": "active.phase5.03",
+          "statement_count": 1,
           "termination": "ambiguous",
-          "termination_detail": "multiple_rhs_sources"
+          "termination_detail": "multiple_rhs_sources",
+          "total_hops": 1,
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
         },
         "observed_public_actions": [],
         "oracle": {
@@ -32504,88 +32786,176 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.dout[2]",
           "time": "30ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 1,
+        "locked_rhs_signal_count": 6,
+        "locked_statement_count": 1,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_rhs_sources",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.03",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          },
+          {
+            "kind": "exact_width_strengthening",
+            "native_shape": "value_width_complete=false with an explicit npi_range_size_unavailable diagnostic and unsized hop",
+            "public_shape": "exact 8-bit FST/DesignDB value with value_width_complete=true and width_diagnostics=[]"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.03",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -32614,14 +32984,32 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.04",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 6,
           "scan_complete": true,
           "scenario_id": "active.phase5.04",
+          "statement_count": 1,
           "termination": "ambiguous",
-          "termination_detail": "multiple_rhs_sources"
+          "termination_detail": "multiple_rhs_sources",
+          "total_hops": 1,
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
         },
         "observed_public_actions": [],
         "oracle": {
@@ -32740,88 +33128,176 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.dout[2]",
           "time": "41ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 1,
+        "locked_rhs_signal_count": 6,
+        "locked_statement_count": 1,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_rhs_sources",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.04",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          },
+          {
+            "kind": "exact_width_strengthening",
+            "native_shape": "value_width_complete=false with an explicit npi_range_size_unavailable diagnostic and unsized hop",
+            "public_shape": "exact 8-bit FST/DesignDB value with value_width_complete=true and width_diagnostics=[]"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.04",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -32850,14 +33326,32 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.05",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 6,
           "scan_complete": true,
           "scenario_id": "active.phase5.05",
+          "statement_count": 1,
           "termination": "ambiguous",
-          "termination_detail": "multiple_rhs_sources"
+          "termination_detail": "multiple_rhs_sources",
+          "total_hops": 1,
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[1]"
+            }
+          ]
         },
         "observed_public_actions": [],
         "oracle": {
@@ -32976,88 +33470,176 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.dout[1]",
           "time": "50ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 1,
+        "locked_rhs_signal_count": 6,
+        "locked_statement_count": 1,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_rhs_sources",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.05",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          },
+          {
+            "kind": "exact_width_strengthening",
+            "native_shape": "value_width_complete=false with an explicit npi_range_size_unavailable diagnostic and unsized hop",
+            "public_shape": "exact 8-bit FST/DesignDB value with value_width_complete=true and width_diagnostics=[]"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.05",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -33092,14 +33674,32 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.06",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 6,
           "scan_complete": true,
           "scenario_id": "active.phase5.06",
+          "statement_count": 1,
           "termination": "ambiguous",
-          "termination_detail": "multiple_rhs_sources"
+          "termination_detail": "multiple_rhs_sources",
+          "total_hops": 1,
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[1]"
+            }
+          ]
         },
         "observed_public_actions": [],
         "oracle": {
@@ -33218,88 +33818,176 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.dout[1]",
           "time": "60ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 1,
+        "locked_rhs_signal_count": 6,
+        "locked_statement_count": 1,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_rhs_sources",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.06",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          },
+          {
+            "kind": "exact_width_strengthening",
+            "native_shape": "value_width_complete=false with an explicit npi_range_size_unavailable diagnostic and unsized hop",
+            "public_shape": "exact 8-bit FST/DesignDB value with value_width_complete=true and width_diagnostics=[]"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.06",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -33328,14 +34016,26 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.07",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 9,
           "scan_complete": true,
           "scenario_id": "active.phase5.07",
+          "statement_count": 2,
           "termination": "ambiguous",
-          "termination_detail": "multiple_active_candidates"
+          "termination_detail": "multiple_active_candidates",
+          "total_hops": 0,
+          "value_width_complete": true,
+          "width_diagnostics": []
         },
         "observed_public_actions": [],
         "oracle": {
@@ -33454,88 +34154,171 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.flag[2]",
           "time": "71ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 0,
+        "locked_rhs_signal_count": 9,
+        "locked_statement_count": 2,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_active_candidates",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.07",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.07",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -33570,14 +34353,26 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.08",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 9,
           "scan_complete": true,
           "scenario_id": "active.phase5.08",
+          "statement_count": 2,
           "termination": "ambiguous",
-          "termination_detail": "multiple_active_candidates"
+          "termination_detail": "multiple_active_candidates",
+          "total_hops": 0,
+          "value_width_complete": true,
+          "width_diagnostics": []
         },
         "observed_public_actions": [],
         "oracle": {
@@ -33696,88 +34491,171 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.flag[2]",
           "time": "81ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 0,
+        "locked_rhs_signal_count": 9,
+        "locked_statement_count": 2,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_active_candidates",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.08",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.08",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -33806,14 +34684,32 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.09",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 6,
           "scan_complete": true,
           "scenario_id": "active.phase5.09",
+          "statement_count": 1,
           "termination": "ambiguous",
-          "termination_detail": "multiple_rhs_sources"
+          "termination_detail": "multiple_rhs_sources",
+          "total_hops": 1,
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "hops[0].value",
+              "signal": "top.u_dut.dout[2]"
+            }
+          ]
         },
         "observed_public_actions": [],
         "oracle": {
@@ -33932,88 +34828,176 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.dout[2]",
           "time": "90ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 1,
+        "locked_rhs_signal_count": 6,
+        "locked_statement_count": 1,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_rhs_sources",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.09",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          },
+          {
+            "kind": "exact_width_strengthening",
+            "native_shape": "value_width_complete=false with an explicit npi_range_size_unavailable diagnostic and unsized hop",
+            "public_shape": "exact 8-bit FST/DesignDB value with value_width_complete=true and width_diagnostics=[]"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.09",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.phase5"
+          "current.active_trace"
         ],
         "candidate_sources": [
           {
-            "construct_lines": {
-              "always_comb": [
-                33
-              ],
-              "delay": [
-                5
-              ],
-              "function": [
-                25
-              ],
-              "if": [
-                35
-              ],
-              "module": [
-                5
-              ],
-              "procedural_for": [
-                34
-              ]
-            },
             "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "rtl",
-            "line_anchor": 3,
-            "line_count": 46,
-            "path": "testdata/fixtures/phase5/phase5_dut.sv",
-            "sha256": "9c111a83bc2e9cf17bb58a72c4a00d79deed8fcdbc5920ce655a36326949bbfe"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
-            ],
-            "kind": "testbench",
-            "line_anchor": 3,
-            "line_count": 83,
-            "path": "testdata/fixtures/phase5/tb_phase5.cpp",
-            "sha256": "e6361b40d147c1768a2cb8b917df24baa635ae5dd6c62e0dd99c4ee55edfb22b"
-          },
-          {
-            "fixture_ids": [
-              "current.phase5"
+              "current.active_trace"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 30,
-            "path": "testdata/fixtures/phase5/waves.fst",
-            "sha256": "6058af63cd8cb8bd8de2f391754be197aa38759d10be009fe33f22f59869366d"
+            "line_count": 26,
+            "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+            "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b"
+          },
+          {
+            "construct_lines": {
+              "always_comb": [
+                30
+              ],
+              "delay": [
+                2
+              ],
+              "function": [
+                22
+              ],
+              "if": [
+                32
+              ],
+              "module": [
+                2
+              ],
+              "procedural_for": [
+                31
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 2,
+            "line_count": 44,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+            "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1"
+          },
+          {
+            "construct_lines": {
+              "delay": [
+                11,
+                20,
+                27,
+                33,
+                36,
+                39,
+                40,
+                43,
+                46,
+                49,
+                50,
+                56,
+                57,
+                61,
+                64,
+                65,
+                68,
+                69,
+                72,
+                73,
+                76,
+                78
+              ],
+              "four_state_literal": [
+                16,
+                19,
+                30,
+                36,
+                43,
+                46,
+                61,
+                69,
+                73,
+                76
+              ],
+              "initial": [
+                14
+              ],
+              "module": [
+                3
+              ]
+            },
+            "fixture_ids": [
+              "current.active_trace"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 80,
+            "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+            "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391"
           }
         ],
-        "evidence_scope": "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭",
+        "evidence_scope": "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据",
         "test_evidence": [
           {
-            "line": 1737,
-            "path": "tests/test_combined.py",
-            "sha256": "5a6f16a790f550de1f5ffd12454b405652c0a563240ab157370b9ce6efca24bc",
-            "test": "test_trace_active_driver_chain_matches_original_phase5_public_semantics"
+            "line": 165,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized"
+          },
+          {
+            "line": 234,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes"
+          },
+          {
+            "line": 279,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_matches_locked_full_public_response"
+          },
+          {
+            "line": 294,
+            "path": "tests/test_p3c_active_trace_phase5.py",
+            "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+            "test": "test_p3c_phase5_limits_are_explicit_analysis_boundaries"
           }
         ]
       },
@@ -34042,14 +35026,26 @@
           }
         ],
         "fixture_id": "xdebug.active_trace_phase5",
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "scenario_id": "active.phase5.10",
+          "status": "partial",
+          "termination": "ambiguous"
+        },
         "locked_runtime_oracle": {
           "analysis_complete": true,
-          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "original_fsdb_sha256": "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba",
+          "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
           "response_truncated": false,
+          "rhs_signal_count": 9,
           "scan_complete": true,
           "scenario_id": "active.phase5.10",
+          "statement_count": 2,
           "termination": "ambiguous",
-          "termination_detail": "multiple_active_candidates"
+          "termination_detail": "multiple_active_candidates",
+          "total_hops": 0,
+          "value_width_complete": true,
+          "width_diagnostics": []
         },
         "observed_public_actions": [],
         "oracle": {
@@ -34168,23 +35164,44 @@
         "action": "trace.active_driver_chain",
         "api_version": "xdebug.v1",
         "args": {
+          "render_time_unit": "ns",
           "signal": "top.u_dut.flag[2]",
           "time": "100ns"
+        },
+        "limits": {
+          "max_depth": 64,
+          "max_nodes": 64
         }
       },
-      "rationale": "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。",
+      "rationale": "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report 历史漂移继续留证，但不再作为完整响应等价性的裁决权威。",
       "runtime_audit": {
-        "current_gate_termination": "ambiguous",
-        "full_response_equivalent": false,
+        "full_response_equivalent": true,
+        "historical_subset_audit": {
+          "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+          "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
+          "status": "partial"
+        },
+        "locked_hop_count": 0,
+        "locked_rhs_signal_count": 9,
+        "locked_statement_count": 2,
         "locked_termination": "ambiguous",
+        "locked_termination_detail": "multiple_active_candidates",
         "p3_batch": "P3-C",
-        "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+        "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+        "remaining_observable_gap_count": 0,
         "scenario_id": "active.phase5.10",
-        "sha256": "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8",
-        "status": "partial"
+        "schema_projections": [
+          {
+            "kind": "statement_kind_projection",
+            "native_shape": "NPI assignment with textual driver",
+            "public_shape": "DesignDB proc_assign with the same source line and ordered RHS evidence"
+          }
+        ],
+        "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+        "status": "semantic-equivalent"
       },
       "scenario_id": "active.phase5.10",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -46746,9 +47763,9 @@
     "scenario_count": 88,
     "status_counts": {
       "missing": 2,
-      "partial": 19,
+      "partial": 9,
       "proven-unobservable": 2,
-      "semantic-equivalent": 65
+      "semantic-equivalent": 75
     },
     "unclassified_count": 0,
     "unqueued_gap_count": 0

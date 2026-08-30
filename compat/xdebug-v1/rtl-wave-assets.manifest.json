@@ -2886,6 +2886,66 @@
       "fixture_ids": [
         "current.active_trace"
       ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase5/phase5/design_db/Vactive_trace__DesignDb.xddb",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "065f226b7bf39aa63dc492572a600ccf8018504d0b57f579ed8debaa18f84edd",
+      "side": "current",
+      "size_bytes": 12983
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "design_artifact",
+      "path": "testdata/fixtures/active_trace/phase5/phase5/design_db/xdebug-design-db.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "14b693db06c11bba64d89e05a48a809a51f7249223bd89e0990e0d49d331292f",
+      "side": "current",
+      "size_bytes": 124
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/active_trace/phase5/phase5/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "e41298c897518c683a31e2f1a85300a1314d4be6a87c19178c23851ff92a6a2a",
+      "side": "current",
+      "size_bytes": 754
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "f242c3fe96e7a604170b858eb17a84cd25288ec4e2458a6c5e2ffb4be04b597b",
+      "side": "current",
+      "size_bytes": 988
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
       "kind": "rtl",
       "path": "testdata/fixtures/active_trace/rtl/composite/case_01/tb.sv",
       "roles": [
@@ -3599,6 +3659,36 @@
       "sha256": "e2be93090da3f82d0ae86716b4cfaebf86c57174ca14f3f39a4b59da9a03f6b5",
       "side": "current",
       "size_bytes": 1471
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "168e18c1d116533238f70c422fca5dc6f4c166ce893a8afce4cac161a888b8e1",
+      "side": "current",
+      "size_bytes": 1525
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.active_trace"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "ea4c1d23a9b81e1beb4adc0891646713e5eea7c932efe6bccedafb4d84788391",
+      "side": "current",
+      "size_bytes": 3383
     },
     {
       "exists": true,
@@ -6791,9 +6881,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "27af6e7594d39574bb924c938819a49d28d3c1097e2c972437cb5afafe29e455",
+      "sha256": "b2889f3f452287e4b1494486f18b73041b85dbc51741d2f24abcbb462f7b4748",
       "side": "current",
-      "size_bytes": 1464440
+      "size_bytes": 1500106
     },
     {
       "exists": true,
@@ -7019,6 +7109,21 @@
       "sha256": "08e729d6370a48fde04611acb479c66c2458e5e7f193fd7747268a0d56b69368",
       "side": "current",
       "size_bytes": 215720
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "2da78f7e629356e4fe55bad144a9e42a1b799073999fa13a67aae1d7c2108cca",
+      "side": "current",
+      "size_bytes": 81650
     },
     {
       "exists": true,
@@ -7477,6 +7582,21 @@
         "current.cross_fixture"
       ],
       "kind": "test_consumer",
+      "path": "tests/test_p3c_active_trace_phase5.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "be321e0b63bd818f532a304c2e1f99036fce2d62c6841c83c60bc77a93a24569",
+      "side": "current",
+      "size_bytes": 12027
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
       "path": "tests/test_p3c_active_trace_timing.py",
       "roles": [
         "test_consumer"
@@ -7631,9 +7751,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "d887433f7af57f4b8e000beaef8d383cd5ba6ee806a2c18b77439831f3c62ff6",
+      "sha256": "26962d40033368a2d63748d3aea12707cd7622d0dcf04c7ff6926ea67d18b239",
       "side": "current",
-      "size_bytes": 28357
+      "size_bytes": 33489
     },
     {
       "exists": true,
@@ -7751,9 +7871,9 @@
       "roles": [
         "generator"
       ],
-      "sha256": "9ff76323b4ff952399ea018daf7133392338aa04dd64e4ee073701f4139d0548",
+      "sha256": "9c72e04879c61527ae7d326e7b42505f6e616a073ff2338e799e92bbd742cc69",
       "side": "current",
-      "size_bytes": 128101
+      "size_bytes": 147642
     },
     {
       "exists": true,
@@ -7769,6 +7889,21 @@
       "sha256": "25439b34792211f61990edea4bb86f4cb67daabf19594d3bd380262fb054a7c5",
       "side": "current",
       "size_bytes": 11907
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "generator",
+      "path": "tools/collect_p3c_phase5_public_oracle.py",
+      "roles": [
+        "generator"
+      ],
+      "sha256": "1c27613217b4227cad536188026232e33d1b9c6acab8b5dfc9f9cfa1b98086fa",
+      "side": "current",
+      "size_bytes": 9566
     },
     {
       "exists": true,
@@ -16051,10 +16186,10 @@
   "schema_version": "xdebug-rtl-wave-assets.v1",
   "summary": {
     "current": {
-      "asset_count": 520,
-      "fst_count": 74,
-      "rtl_count": 77,
-      "test_consumer_count": 67,
+      "asset_count": 529,
+      "fst_count": 75,
+      "rtl_count": 79,
+      "test_consumer_count": 69,
       "vcd_count": 1
     },
     "missing_assets": [],

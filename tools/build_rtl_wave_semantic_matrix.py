@@ -51,6 +51,9 @@ P3C_PHASE4_ORACLE = Path(
 P3C_TIMING_ORACLE = Path(
     "tests/data/rtl_wave_differential/p3c-timing.original-oracle.json"
 )
+P3C_PHASE5_PUBLIC_ORACLE = Path(
+    "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json"
+)
 AI_COMPLEX_RUNNER_SHA256 = (
     "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724"
 )
@@ -75,6 +78,16 @@ P3C_PHASE4_FIXTURE_VERSION = (
 P3C_TIMING_FIXTURE_VERSION = (
     "1042c712bf8a59877d837e55ffd4e986a62eefc16aba01eaec2d6e459eca5fb5-"
     "prepare-d9oyxhx2"
+)
+P3C_PHASE5_FIXTURE_VERSION = (
+    "2ee4a76b564e9c59197f85abde73928afc903d82fcf77224ccf1b99b3d160442-"
+    "prepare-tydl8ogq"
+)
+P3C_PHASE5_BINARY_SHA256 = (
+    "0f54515fa1c7e80634cdba1e9455ed7cdc1acae26144c7c5a39200853becf46d"
+)
+P3C_PHASE5_WRAPPER_SHA256 = (
+    "c9569332281ccad39099e06d547075d33b35f9b50699e4d148203ad5645978e7"
 )
 
 ALLOWED_STATUSES = {
@@ -414,8 +427,18 @@ ACTIVE_CANDIDATES = {
         ),
     },
     "phase5": {
-        "fixtures": ["current.phase5"],
-        "tests": ["test_trace_active_driver_chain_matches_original_phase5_public_semantics"],
+        "fixtures": ["current.active_trace"],
+        "tests": [
+            "test_p3c_phase5_public_oracle_is_locked_complete_and_sanitized",
+            "test_p3c_phase5_exact_rtl_and_generated_fixture_hashes",
+            "test_p3c_phase5_matches_locked_full_public_response",
+            "test_p3c_phase5_limits_are_explicit_analysis_boundaries",
+        ],
+        "evidence_scope": (
+            "两份原版 Phase5 RTL 与当前镜像字节相同；锁定公开 runtime 完整响应与"
+            "当前原始 FST/binary-v1 DesignDB 按 statement、RHS、时间、值、源码、"
+            "宽度投影、termination 和完整性逐项通过"
+        ),
     },
 }
 
@@ -567,6 +590,332 @@ def validate_phase5_runtime_audit(
         or verdict.get("full_response_equivalent_scene_count") != 0
     ):
         raise MatrixError("Phase5 runtime audit verdict drifted")
+    return result
+
+
+def validate_p3c_phase5_public_oracle(
+    oracle: dict,
+    repo_root: Path,
+    original_assets: dict[str, dict],
+    current_assets: dict[str, dict],
+    runtime_revision: str,
+    schema_revision: str,
+) -> dict[str, dict]:
+    if oracle.get("schema_version") != \
+            "xdebug.p3c-phase5-public-oracle.v1":
+        raise MatrixError("P3-C Phase5 public oracle has the wrong schema_version")
+    if oracle.get("goal_id") != GOAL_ID or oracle.get("group") != "phase5":
+        raise MatrixError(
+            "P3-C Phase5 public oracle belongs to a different Goal/group"
+        )
+    expected_runtime = {
+        "action_count": 73,
+        "binary_sha256": P3C_PHASE5_BINARY_SHA256,
+        "build_id": f"{runtime_revision[:12]}-{schema_revision}",
+        "cache_reused": True,
+        "fixture_rebuilt": False,
+        "fixture_version": P3C_PHASE5_FIXTURE_VERSION,
+        "npi_version": "X-2025.06-SP1",
+        "runtime_revision": runtime_revision,
+        "schema_revision": schema_revision,
+        "source_access": "read_only",
+        "wrapper_sha256": P3C_PHASE5_WRAPPER_SHA256,
+    }
+    if oracle.get("locked_runtime") != expected_runtime:
+        raise MatrixError("P3-C Phase5 locked public runtime identity drifted")
+    if oracle.get("session") != {
+        "all_runtime_writes_repository_local": True,
+        "closed_gracefully": True,
+        "fallback_used": False,
+        "mode": "combined",
+        "opened": True,
+        "transport": "uds",
+    }:
+        raise MatrixError("P3-C Phase5 write/session/fallback boundary is not proven")
+
+    def strings(value: object) -> Iterable[str]:
+        if isinstance(value, str):
+            yield value
+        elif isinstance(value, list):
+            for item in value:
+                yield from strings(item)
+        elif isinstance(value, dict):
+            for key, item in value.items():
+                yield from strings(key)
+                yield from strings(item)
+
+    if any(
+            value.startswith("/") or "/home/" in value
+            for value in strings(oracle)):
+        raise MatrixError("P3-C Phase5 public oracle contains an absolute path")
+
+    catalog_asset = original_assets.get(ACTIVE_CATALOG.as_posix())
+    mirrored_catalog = current_assets.get(
+        "testdata/fixtures/active_trace/original-cases.v1.yaml"
+    )
+    catalog = oracle.get("catalog", {})
+    if (
+        catalog_asset is None
+        or mirrored_catalog is None
+        or catalog.get("schema_version") != "xdebug-active-trace-cases.v1"
+        or catalog.get("row_count") != 10
+        or catalog.get("sha256") != catalog_asset["sha256"]
+        or mirrored_catalog["sha256"] != catalog_asset["sha256"]
+    ):
+        raise MatrixError("P3-C Phase5 catalog identity drifted")
+
+    rows = oracle.get("rows")
+    if not isinstance(rows, list) or len(rows) != 10:
+        raise MatrixError("P3-C Phase5 public oracle must contain exactly ten rows")
+    expected_signals = [
+        "top.u_dut.dout[2]", "top.u_dut.dout[2]",
+        "top.u_dut.dout[2]", "top.u_dut.dout[2]",
+        "top.u_dut.dout[1]", "top.u_dut.dout[1]",
+        "top.u_dut.flag[2]", "top.u_dut.flag[2]",
+        "top.u_dut.dout[2]", "top.u_dut.flag[2]",
+    ]
+    expected_times = [
+        "10ns", "20ns", "30ns", "41ns", "50ns",
+        "60ns", "71ns", "81ns", "90ns", "100ns",
+    ]
+    expected_active_times = [
+        "10ns", "20ns", "30ns", "41ns", "50ns",
+        "50ns", "71ns", "71ns", "90ns", "71ns",
+    ]
+    expected_catalog_terminations = [
+        "ambiguous", "primary_input", "primary_input", "primary_input",
+        "control_only", "ambiguous", "control_only", "primary_input",
+        "primary_input", "control_only",
+    ]
+    normal_rhs = [
+        "top.u_dut.ctrl_mode", "top.u_dut.ctrl_sel", "top.u_dut.en1",
+        "top.u_dut.src_a", "top.u_dut.src_b", "top.u_dut.src_c",
+    ]
+    special_flag_rhs = [
+        "top.u_dut.en0", "top.u_dut.mask_a[ln]", "top.u_dut.mask_b[ln]",
+    ]
+    normal_flag_rhs = [
+        "top.u_dut.ctrl_mode", "top.u_dut.ctrl_sel", "top.u_dut.en1",
+        "top.u_dut.en2", "top.u_dut.mask_a[ln]",
+        "top.u_dut.mask_b[ln]",
+    ]
+    digest_pattern = re.compile(r"[0-9a-f]{64}")
+    mirror_paths = [
+        (
+            "xdebug/tests/active_trace_chain/phase5/dut.sv",
+            "testdata/fixtures/active_trace/rtl/phase5/dut.sv",
+        ),
+        (
+            "xdebug/tests/active_trace_chain/phase5/tb.sv",
+            "testdata/fixtures/active_trace/rtl/phase5/tb.sv",
+        ),
+    ]
+    fixture_root = "testdata/fixtures/active_trace/phase5/phase5"
+    result = {}
+    for ordinal, row in enumerate(rows, 1):
+        scenario_id = f"active.phase5.{ordinal:02d}"
+        if (
+            row.get("scenario_id") != scenario_id
+            or row.get("catalog_index") != ordinal
+            or row.get("case") != "phase5"
+            or row.get("catalog_expectation") != {
+                "termination": expected_catalog_terminations[ordinal - 1]
+            }
+        ):
+            raise MatrixError(f"P3-C Phase5 row identity drifted: {scenario_id}")
+
+        mirrors = row.get("rtl_mirrors")
+        if not isinstance(mirrors, list) or len(mirrors) != 2:
+            raise MatrixError(
+                f"P3-C Phase5 RTL mirror inventory drifted: {scenario_id}"
+            )
+        by_paths = {
+            (mirror.get("original_path"), mirror.get("current_path")): mirror
+            for mirror in mirrors
+        }
+        for original_path, current_path in mirror_paths:
+            mirror = by_paths.get((original_path, current_path), {})
+            original_asset = original_assets.get(original_path)
+            current_asset = current_assets.get(current_path)
+            if (
+                mirror.get("byte_identical") is not True
+                or original_asset is None
+                or current_asset is None
+                or mirror.get("sha256") != original_asset["sha256"]
+                or current_asset["sha256"] != original_asset["sha256"]
+                or mirror.get("size") != original_asset["size_bytes"]
+                or current_asset["size_bytes"] != original_asset["size_bytes"]
+            ):
+                raise MatrixError(
+                    f"P3-C Phase5 RTL mirror drifted: {scenario_id}"
+                )
+
+        lock_path = f"{fixture_root}/fixture.sha256"
+        lock_asset = current_assets.get(lock_path)
+        if lock_asset is None:
+            raise MatrixError(
+                f"P3-C Phase5 fixture lock is missing: {scenario_id}"
+            )
+        recorded = {}
+        lock_text = validate_frozen_file(repo_root, lock_asset).decode("utf-8")
+        for line in lock_text.splitlines():
+            checksum, path = line.split(maxsplit=1)
+            recorded[path] = checksum
+        expected_paths = {
+            *(current_path for _, current_path in mirror_paths),
+            "testdata/fixtures/active_trace/dump_probe.sv",
+            f"{fixture_root}/waves.fst",
+            f"{fixture_root}/design_db/Vactive_trace__DesignDb.xddb",
+            f"{fixture_root}/design_db/xdebug-design-db.json",
+        }
+        if set(recorded) != expected_paths:
+            raise MatrixError(
+                f"P3-C Phase5 fixture lock inventory drifted: {scenario_id}"
+            )
+        for path, checksum in recorded.items():
+            asset = current_assets.get(path)
+            if (
+                asset is None
+                or not digest_pattern.fullmatch(checksum)
+                or asset["sha256"] != checksum
+            ):
+                raise MatrixError(
+                    f"P3-C Phase5 fixture evidence drifted: {scenario_id}: {path}"
+                )
+
+        signal = expected_signals[ordinal - 1]
+        request_time = expected_times[ordinal - 1]
+        active_time = expected_active_times[ordinal - 1]
+        if row.get("request") != {
+            "render_time_unit": "ns", "signal": signal, "time": request_time,
+        } or row.get("limits") != {"max_depth": 64, "max_nodes": 64}:
+            raise MatrixError(f"P3-C Phase5 request drifted: {scenario_id}")
+        original_fixture = row.get("fixture", {})
+        if (
+            original_fixture.get("fsdb_sha256") !=
+                "9fdc31f039e65a24a25cb2808f0d62c232e3c4d91ea90e0cf6252c9e1d2df7ba"
+            or original_fixture.get("fsdb_size") != 10799
+        ):
+            raise MatrixError(
+                f"P3-C Phase5 original fixture proof drifted: {scenario_id}"
+            )
+
+        response = row.get("response", {})
+        summary = response.get("summary", {})
+        evidence = response.get("data", {}).get("ambiguity_evidence", {})
+        is_flag = "flag" in signal
+        expected_detail = (
+            "multiple_active_candidates" if is_flag else "multiple_rhs_sources"
+        )
+        expected_hops = 0 if is_flag else 1
+        if (
+            summary.get("signal") != signal
+            or summary.get("time") != request_time
+            or summary.get("termination") != "ambiguous"
+            or summary.get("termination_detail") != expected_detail
+            or summary.get("scan_complete") is not True
+            or summary.get("analysis_complete") is not True
+            or summary.get("response_truncated") is not False
+            or summary.get("total_count") != expected_hops
+            or summary.get("returned_count") != expected_hops
+            or summary.get("truncation_scopes") != []
+            or summary.get("value_width_complete") is not is_flag
+            or (is_flag and summary.get("width_diagnostics") != [])
+            or (not is_flag and summary.get("width_diagnostics") != [{
+                "reason": "npi_range_size_unavailable",
+                "role": "hops[0].value",
+                "signal": signal,
+            }])
+        ):
+            raise MatrixError(
+                f"P3-C Phase5 locked full response is incomplete: {scenario_id}"
+            )
+
+        expected_rhs = (
+            [special_flag_rhs, normal_flag_rhs] if is_flag else [normal_rhs]
+        )
+        expected_lines = [34, 39] if is_flag else [37]
+        statements = evidence.get("statements")
+        if (
+            evidence.get("kind") != expected_detail
+            or evidence.get("signal") != signal
+            or evidence.get("active_time") != active_time
+            or evidence.get("hop_index") != 0
+            or evidence.get("statement_count") != len(expected_rhs)
+            or evidence.get("rhs_signal_count") != sum(map(len, expected_rhs))
+            or evidence.get("returned_rhs_signal_count") !=
+                sum(map(len, expected_rhs))
+            or evidence.get("omitted_rhs_signal_count") != 0
+            or evidence.get("analysis_complete") is not True
+            or evidence.get("truncation_scopes") != []
+            or not isinstance(statements, list)
+            or len(statements) != len(expected_rhs)
+        ):
+            raise MatrixError(
+                f"P3-C Phase5 ambiguity evidence drifted: {scenario_id}"
+            )
+        for statement, line, rhs_names in zip(
+                statements, expected_lines, expected_rhs):
+            samples = statement.get("rhs_samples")
+            if (
+                statement.get("kind") != "assignment"
+                or not statement.get("driver")
+                or statement.get("file") != mirror_paths[0][0]
+                or statement.get("line") != line
+                or statement.get("rhs_signal_count") != len(rhs_names)
+                or statement.get("returned_rhs_signal_count") != len(rhs_names)
+                or statement.get("complete") is not True
+                or not isinstance(samples, list)
+                or [sample.get("signal") for sample in samples] != rhs_names
+            ):
+                raise MatrixError(
+                    f"P3-C Phase5 statement/RHS evidence drifted: {scenario_id}"
+                )
+            for sample in samples:
+                before = sample.get("before", {})
+                after = sample.get("after", {})
+                if sample["signal"].endswith("[ln]"):
+                    missing = {
+                        "known": None, "status": "signal_not_found",
+                        "value": None, "value_time": None,
+                    }
+                    if before != missing or after != missing or \
+                            sample.get("changed") is not None:
+                        raise MatrixError(
+                            f"P3-C Phase5 dynamic selector evidence drifted: "
+                            f"{scenario_id}"
+                        )
+                elif (
+                    before.get("status") != "ok"
+                    or after.get("status") != "ok"
+                    or after.get("value_time") != active_time
+                    or not isinstance(sample.get("changed"), bool)
+                ):
+                    raise MatrixError(
+                        f"P3-C Phase5 sampled value evidence drifted: {scenario_id}"
+                    )
+
+        hops = response.get("data", {}).get("hops")
+        if not isinstance(hops, list) or len(hops) != expected_hops:
+            raise MatrixError(f"P3-C Phase5 hop inventory drifted: {scenario_id}")
+        if hops:
+            hop = hops[0]
+            if (
+                hop.get("index") != 0
+                or hop.get("chain_id") != "c0"
+                or hop.get("signal") != signal
+                or hop.get("relation") != "root"
+                or hop.get("file") != mirror_paths[0][0]
+                or hop.get("line") != 37
+                or hop.get("time") != request_time
+                or hop.get("active_time") != active_time
+                or not isinstance(hop.get("value"), str)
+                or not hop["value"].startswith("'h")
+            ):
+                raise MatrixError(
+                    f"P3-C Phase5 hop evidence drifted: {scenario_id}"
+                )
+        result[scenario_id] = row
     return result
 
 
@@ -2211,6 +2560,26 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         original_assets,
         current_assets,
     )
+    p3c_phase5_oracle_asset = current_assets.get(
+        P3C_PHASE5_PUBLIC_ORACLE.as_posix()
+    )
+    if p3c_phase5_oracle_asset is None:
+        raise MatrixError(
+            "P0 manifest does not freeze the P3-C Phase5 public oracle"
+        )
+    p3c_phase5_oracle = json.loads(
+        validate_frozen_file(
+            repo_root, p3c_phase5_oracle_asset
+        ).decode("utf-8")
+    )
+    p3c_phase5_rows = validate_p3c_phase5_public_oracle(
+        p3c_phase5_oracle,
+        repo_root,
+        original_assets,
+        current_assets,
+        runtime_baseline["runtime_revision"],
+        runtime_baseline["schema_revision"],
+    )
 
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
@@ -2366,6 +2735,7 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         composite_runtime_row = None
         timing_runtime_row = None
         phase4_runtime_row = None
+        phase5_public_row = None
         if group == "p0":
             p0_runtime_row = p3c_p0_rows[scenario_id]
             if (
@@ -2483,10 +2853,20 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                 "源码行、值、generate 逐位候选、termination 与完整性逐项通过。"
             )
         if group == "phase5":
-            runtime_row = phase5_runtime_rows[scenario_id]
-            if runtime_row["locked_request"] != original["query"]:
+            historical_runtime_row = phase5_runtime_rows[scenario_id]
+            if historical_runtime_row["locked_request"] != original["query"]:
                 raise MatrixError(
                     f"Phase5 runtime request differs from frozen catalog: {scenario_id}"
+                )
+            phase5_public_row = p3c_phase5_rows[scenario_id]
+            phase5_request = phase5_public_row["request"]
+            if (
+                phase5_public_row["case"] != row["case"]
+                or phase5_request["signal"] != original["query"]["signal"]
+                or phase5_request["time"] != original["query"]["time"]
+            ):
+                raise MatrixError(
+                    f"P3-C Phase5 oracle differs from frozen catalog: {scenario_id}"
                 )
             report = phase5_by_scene[ordinal]
             original["report_oracle"] = {
@@ -2505,19 +2885,40 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                         "历史 oracle 漂移继续保留，禁止静默改写。"
                     ),
                 }
-            original["locked_runtime_oracle"] = {
+            original["historical_subset_audit"] = {
                 "path": PHASE5_RUNTIME_AUDIT.as_posix(),
                 "scenario_id": scenario_id,
-                "termination": runtime_row["locked_runtime"]["termination"],
-                "termination_detail": runtime_row["locked_runtime"]["termination_detail"],
-                "scan_complete": runtime_row["locked_runtime"]["scan_complete"],
-                "analysis_complete": runtime_row["locked_runtime"]["analysis_complete"],
-                "response_truncated": runtime_row["locked_runtime"]["response_truncated"],
+                "status": historical_runtime_row["status"],
+                "termination": historical_runtime_row[
+                    "locked_runtime"
+                ]["termination"],
             }
+            response = phase5_public_row["response"]
+            summary = response["summary"]
+            ambiguity = response["data"]["ambiguity_evidence"]
+            original["locked_runtime_oracle"] = {
+                "path": P3C_PHASE5_PUBLIC_ORACLE.as_posix(),
+                "scenario_id": scenario_id,
+                "termination": summary["termination"],
+                "termination_detail": summary["termination_detail"],
+                "scan_complete": summary["scan_complete"],
+                "analysis_complete": summary["analysis_complete"],
+                "response_truncated": summary["response_truncated"],
+                "total_hops": summary["total_count"],
+                "statement_count": ambiguity["statement_count"],
+                "rhs_signal_count": ambiguity["rhs_signal_count"],
+                "value_width_complete": summary["value_width_complete"],
+                "width_diagnostics": summary["width_diagnostics"],
+                "original_fsdb_sha256": phase5_public_row[
+                    "fixture"
+                ]["fsdb_sha256"],
+            }
+            status = "semantic-equivalent"
             rationale = (
-                "P2 锁定 runtime 实测与当前门禁在 termination/ambiguity 子集上一致；"
-                "S1 完整响应仍有宽度诊断、RHS 顺序、statement 和源码证据差异，"
-                "且资产 catalog/report 已确认漂移，因此继续保持 partial 并进入 P3-C。"
+                "两份原版 Phase5 RTL 与当前镜像逐字节相同；锁定公开 runtime 完整响应"
+                "和当前原始 FST/binary-v1 DesignDB 已按 statement、RHS、活动时间、值、"
+                "源码、宽度投影、termination 与完整性逐项通过。P2 的 catalog/report "
+                "历史漂移继续留证，但不再作为完整响应等价性的裁决权威。"
             )
         current = current_evidence(repo_root, current_assets, current_tests, candidate)
         runtime_evidence = None
@@ -2750,19 +3151,71 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
             }
             public_limits = {"max_depth": 16}
         elif group == "phase5":
-            current["evidence_scope"] = (
-                "P2 已证明十个场景的 termination/ambiguity 子集一致；完整响应仍由 P3-C 关闭"
-            )
-            runtime_evidence = {
-                "path": PHASE5_RUNTIME_AUDIT.as_posix(),
-                "sha256": audit_asset["sha256"],
-                "scenario_id": scenario_id,
-                "status": runtime_row["status"],
-                "p3_batch": runtime_row["p3_batch"],
-                "locked_termination": runtime_row["locked_runtime"]["termination"],
-                "current_gate_termination": runtime_row["current_gate"]["termination"],
-                "full_response_equivalent": False,
+            summary = phase5_public_row["response"]["summary"]
+            ambiguity = phase5_public_row["response"]["data"][
+                "ambiguity_evidence"
+            ]
+            exact_current_paths = {
+                *(mirror["current_path"]
+                  for mirror in phase5_public_row["rtl_mirrors"]),
+                "testdata/fixtures/active_trace/phase5/phase5/waves.fst",
             }
+            current["candidate_sources"] = [
+                source for source in current["candidate_sources"]
+                if source["path"] in exact_current_paths
+            ]
+            if {
+                source["path"] for source in current["candidate_sources"]
+            } != exact_current_paths:
+                raise MatrixError(
+                    f"P3-C Phase5 exact current fixture evidence is missing: "
+                    f"{scenario_id}"
+                )
+            current["evidence_scope"] = (
+                "P3-C Phase5 十场景逐项完整响应差分已通过；P2 子集审计仅保留为历史证据"
+            )
+            schema_projections = [{
+                "kind": "statement_kind_projection",
+                "native_shape": "NPI assignment with textual driver",
+                "public_shape": (
+                    "DesignDB proc_assign with the same source line and "
+                    "ordered RHS evidence"
+                ),
+            }]
+            if "dout" in phase5_public_row["request"]["signal"]:
+                schema_projections.append({
+                    "kind": "exact_width_strengthening",
+                    "native_shape": (
+                        "value_width_complete=false with an explicit "
+                        "npi_range_size_unavailable diagnostic and unsized hop"
+                    ),
+                    "public_shape": (
+                        "exact 8-bit FST/DesignDB value with "
+                        "value_width_complete=true and width_diagnostics=[]"
+                    ),
+                })
+            runtime_evidence = {
+                "path": P3C_PHASE5_PUBLIC_ORACLE.as_posix(),
+                "sha256": p3c_phase5_oracle_asset["sha256"],
+                "scenario_id": scenario_id,
+                "status": "semantic-equivalent",
+                "p3_batch": "P3-C",
+                "locked_termination": summary["termination"],
+                "locked_termination_detail": summary["termination_detail"],
+                "locked_hop_count": summary["total_count"],
+                "locked_statement_count": ambiguity["statement_count"],
+                "locked_rhs_signal_count": ambiguity["rhs_signal_count"],
+                "remaining_observable_gap_count": 0,
+                "full_response_equivalent": True,
+                "historical_subset_audit": {
+                    "path": PHASE5_RUNTIME_AUDIT.as_posix(),
+                    "sha256": audit_asset["sha256"],
+                    "status": "partial",
+                },
+                "schema_projections": schema_projections,
+            }
+            public_args = dict(phase5_public_row["request"])
+            public_limits = dict(phase5_public_row["limits"])
         scenarios.append({
             "scenario_id": scenario_id,
             "kind": "active_trace_catalog_case",
