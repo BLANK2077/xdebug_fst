@@ -1181,3 +1181,90 @@ FST 和去敏证据。最终报告逐条链接验收证据后，才允许把 Goa
 | mutation/fail-closed | 已通过 | 六类边界篡改全部拒绝 |
 | focused + matrix/manifest | 已通过 | pytest 26/26；两生成器 write→check；diff-check 通过 |
 | P3-D1 分类 | 已关闭 | stream_v1=`semantic-equivalent`；differential=`proven-unobservable` |
+
+P3-D1 最终证据提交为 `925e3f5 测试：关闭 P3-D1 stream differential 证据链`。
+
+## P3-D2：APB native/XAMBA 分批实施计划
+
+### D2-0：冻结两个独立权威面
+
+- `xdebug.apb_vip` 是 SVT APB VIP fixture：seed=11，固定 5 写/5 读，覆盖 byte strobe、setup/access、
+  0–3 wait、back-to-back 和一笔 `PSLVERR`。当前只读 cache 固定为
+  `5b0d1be8...-prepare-ui7xh3j3`，FSDB 位于其 `out/regression/test/apb_vip_test/waves.fsdb`。
+- `xdebug.apb_xamba_vip` 是 XAMBA UVM VIP fixture：seed=11，固定 64 笔交替读写，地址/数据/strobe/
+  prot/nse/wait/error 均由 index 公式确定。当前只读 cache 固定为
+  `05c16a52...-prepare-xgy6zv8g`，FSDB 位于其 `out/waves.fsdb`；run manifest、extra sources manifest
+  和 resolved filelist 只作为 producer provenance，不能冒充公开 Action 等价证据。
+- 两者 stimulus、层级、笔数和 producer 均不同，必须保留两个场景。现有 `current.apb` 只有代表性
+  RTL/FST 与基础 Action 测试，在同 stimulus/time/result 差分前只算 candidate，禁止复用关闭任一项。
+
+门禁：冻结两套 fixture/source/manifest/cache/FSDB/sim-log 哈希、73 Action runtime/schema/NPI 身份；
+所有原版输入只读，HOME/TMP/cache/socket/artifact 全部重定向到当前仓库；不运行 prepare/rebuild，
+不修改 SVT/XAMBA/VCS/原版仓库，不使用 live 新版或另一 cache generation 替换失败输入。
+
+### D2-1：双 fixture 原版公开 oracle 与有效红灯
+
+- 使用冻结原版 runtime 对两份 FSDB 分别采集 `apb.config.load/list`、`apb.query` count/list/index/last、
+  exact/range/mask/direction/value-format、`apb.statistics`、`apb.export` preview/range/filter/CSV/TSV/meta、
+  `apb.transfer_window`、`apb.transaction.cursor` 以及非法 range。响应必须保留完整 transaction 值、
+  completion time、wait/error、宽度、scan/analysis/truncation 字段；XAMBA 必须覆盖全部 64 笔，不能只
+  沿用旧测试的前 20 行 preview。
+- 单独冻结 cache base/hit/index、soft LRU 与 hard=1 公开错误边界。scanner/hit/miss/eviction 等私有
+  probe 字段只有在 73 Action/request schema 无入口且源码合同锁定后才可有限判为不可观察；
+  `ANALYSIS_MEMORY_LIMIT_EXCEEDED` 继续按公开响应比较。
+- 对可代表复杂 APB 结果的 query/statistics/export/window/cursor 同步保存 XOUT 语义审计；written
+  artifact 比较规范化路径后必须逐字节一致。guide 请求若冻结 runtime 不支持，记录
+  `INVALID_REQUEST`，不得改用未冻结 surface。
+- 先提交 oracle 身份测试和当前侧精确断言；当前独立 fixture 尚不存在时必须形成有效红灯。环境、
+  UDS 路径或依赖错误发生在业务断言前时不计入红灯，修正运行边界后重跑同一请求。
+
+门禁：oracle 两次独立采集规范 JSON 字节一致；零绝对路径/专有数据库提交；每个观察 ID 唯一；
+原版侧全绿、当前侧有可复现业务差异，禁止 skip/xfail/宽松字段白名单或只比较计数。
+
+### D2-2：SVT 10 笔语义 fixture 转绿
+
+- 在 `testdata/fixtures` 新建专属当前 fixture，以仓库锁定 Verilator 和最小 pin-level APB RTL/harness
+  重放 SVT fixture 已冻结的确定性 bus stimulus。允许 producer 表示不同，但 pclk/reset、setup/access、
+  completion time、地址/方向/数据/strobe/wait/error 及结束时间必须与原版公开 oracle 一致。
+- FST 由当前 RTL/harness 直接生成，禁止读取或转换原版 FSDB，禁止导入 daidir/专有 VIP 代码或离线
+  transaction 快照。manifest 锁定 source contract、tool revision/tree/fingerprint、seed、timescale、
+  end time 和每个提交资产 SHA；两个全新仓库内 work-dir 必须生成字节相同 FST。
+- 若当前 APB Action 与原版响应有差异，先保留失败，再只修改当前 analyzer/action/export/cache 实现；
+  不为通过测试改 oracle，不用现有 `current.apb` 的较弱值替换。
+
+门禁：SVT fixture 全公开观察、artifact/XOUT、cache/hard-limit 全绿；现有 APB/stream/协议相邻回归
+保持全绿；只重建新增 SVT fixture 与受影响增量目标，不重建既有 fixture cache。
+
+### D2-3：XAMBA 64 笔语义 fixture 转绿
+
+- 新建另一份专属当前 fixture，按冻结 XAMBA fixture package 中的 index 公式重放 64 笔 pin-level APB
+  stimulus；它不得复用 SVT 10 笔波形，也不得依赖外部 XAMBA 仓库参与当前 FST 生成。
+- 对 64 笔全量 transaction、前 20 preview、statistics、window、cursor、error/wait 分布和边界时间逐项
+  比较。原版 producer 的 product-only filelist/run manifest 作为 provenance 保留差异说明；当前侧只证明
+  APB 公开可观察语义，不宣称两个 VIP 实现或私有 UVM 对象等价。
+- 同样执行双目录确定性生成、逐文件 lock、相邻回归与零外部写审计。
+
+门禁：XAMBA fixture 全观察零差异；64/64 transaction 覆盖；不把前 20 preview 当全量；SVT 与 XAMBA
+场景互不借证；没有 FSDB conversion、VIP fallback、随机 seed 漂移或 proprietary build 产物提交。
+
+### D2-4：manifest/matrix/fail-closed 关闭
+
+- manifest 必须发现两个新 current fixture 及 D2 oracle/collector/tests；matrix 分别把
+  `fixture.apb_vip`、`fixture.apb_xamba_vip` 关联到自身 current fixture，状态只有在各自零差异后才改为
+  `semantic-equivalent`。
+- validator 联合校验两套原版 cache/FSDB/source identity、当前 fixture lock、观察清单、artifact/XOUT、
+  cache 私有/公开边界、零 fallback/零重建/零绝对路径/零剩余 gap。mutation 至少拒绝 fixture 串用、
+  少一笔 transaction、completion time 漂移、丢失 error/wait、截断伪装完整、private probe 泄漏和
+  hard limit 被隐藏。
+- 生成器连续 write→check 稳定后更新 P3-D queue；本批只允许清除两项 APB，AXI 两项继续留在 D3。
+
+计划提交批次：
+
+1. `文档：展开 P3-D2 APB 双 fixture 差分计划`；
+2. `测试：冻结 P3-D2 APB 双 fixture 公开语义红灯`；
+3. `实现：补齐 P3-D2 APB 双 fixture 与公开语义`（若两份实现可独立验收则拆成 SVT/XAMBA 两提交）；
+4. `测试：关闭 P3-D2 APB manifest 与矩阵证据链`。
+
+最终 D2 门禁：两套 original/current focused、APB/stream/协议相邻回归、manifest/matrix、外部只读
+审计和 `git diff --check`；实现影响 analyzer/cache 时再加入 CTest 与 sanitizer 定向门禁。任何 EDA/NPI
+动作使用正式 host 工具链，但所有写入仍只能位于当前仓库。
