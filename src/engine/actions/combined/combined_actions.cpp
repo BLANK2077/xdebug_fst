@@ -1659,6 +1659,191 @@ bool causal_event_time_through_unique_chain(
         design,waveform,upstream,horizon,remaining-1,visited,event_time);
 }
 
+std::string selector_base_name(const std::string& signal) {
+    std::string base;
+    int64_t selector=0;
+    return final_numeric_selector(signal,base,selector)?base:signal;
+}
+
+bool has_collapsed_array_propagation_stage(
+    IDesignBackend& design,int source) {
+    if (source<0) return false;
+    const std::string source_name=signal_name(design,source);
+    if (source_name.empty()) return false;
+    const std::string source_base=selector_base_name(source_name);
+    std::vector<IDesignBackend::LoadRecord> loads;
+    design.trace_load(source,loads);
+    // A direct terminal element has only an NBA consumer.  A load whose
+    // consumer shares the array base proves that one elaborated element feeds
+    // another propagation stage; this remains visible even when the binary
+    // DesignDB collapses the individual assignment drivers onto the base.
+    return std::any_of(loads.begin(),loads.end(),[&](const auto& load) {
+        if (load.consumer<0) return false;
+        const std::string consumer=signal_name(design,load.consumer);
+        return !consumer.empty()&&
+            selector_base_name(consumer)==source_base;
+    });
+}
+
+std::string duplicate_top_waveform_name(
+    IWaveformBackend& waveform,const std::string& design_signal,
+    const std::string& requested_root) {
+    if (waveform.find_signal(design_signal)!=
+            IWaveformBackend::kInvalidSignalRef) {
+        return design_signal;
+    }
+    const std::string projected=public_signal_name(
+        design_signal,requested_root,true);
+    return waveform.find_signal(projected)!=
+        IWaveformBackend::kInvalidSignalRef?projected:std::string();
+}
+
+bool has_same_slot_array_propagation_race_source(
+    const StatementGroup& statement,IDesignBackend& design,
+    IWaveformBackend& waveform,const std::string& requested_root,
+    uint64_t event_time) {
+    return std::any_of(
+        statement.rhs.begin(),statement.rhs.end(),[&](const auto& driver) {
+            if (!has_collapsed_array_propagation_stage(
+                    design,driver.src_signal)) return false;
+            const std::string design_source=signal_name(
+                design,driver.src_signal);
+            const auto changed_at_event=[&](const std::string& candidate) {
+                const std::string source=duplicate_top_waveform_name(
+                    waveform,candidate,requested_root);
+                if (source.empty()) return false;
+                const Sample source_sample=sample_at(
+                    waveform,source,event_time);
+                return source_sample.ok&&
+                    source_sample.active_time==event_time;
+            };
+            if (changed_at_event(design_source)) return true;
+
+            // Unpacked arrays can have no sampleable base object in FST.  The
+            // DesignDB selector index gives the elaborated terminal element
+            // without scanning every signal in a large design.
+            const std::string base=selector_base_name(design_source);
+            int64_t last=0;
+            return last_materialized_selector(design,base,last)&&
+                (changed_at_event(base+"["+std::to_string(last)+"]")||
+                 changed_at_event(base+"__bra__"+std::to_string(last)+
+                                  "__ket__"));
+        });
+}
+
+bool next_statement_event_time(
+    const StatementGroup& statement,IDesignBackend& design,
+    IWaveformBackend& waveform,const std::string& requested_root,
+    uint64_t after,uint64_t horizon,uint64_t& event_time) {
+    bool found=false;
+    const uint32_t horizon_index=waveform.time_idx_of(horizon);
+    for (const auto& record : statement.records) {
+        if (record.src_signal<0||record.dependency_role.rfind("event_",0)!=0)
+            continue;
+        const std::string event_signal=duplicate_top_waveform_name(
+            waveform,signal_name(design,record.src_signal),requested_root);
+        const uint32_t ref=waveform.find_signal(event_signal);
+        if (ref==IWaveformBackend::kInvalidSignalRef) continue;
+        if (!waveform.is_loaded(ref)&&waveform.load_signals({ref})!=1) continue;
+        for (uint32_t index : waveform.time_indices_of(ref)) {
+            const uint64_t candidate=waveform.time_at(index);
+            if (index>horizon_index||candidate>horizon) break;
+            if (candidate<=after) continue;
+            IWaveformBackend::SampledValue before,current;
+            if (!waveform.sampled_value_at(
+                    ref,index,IWaveformBackend::ObservationPoint::Before,before)||
+                !waveform.sampled_value_at(
+                    ref,index,IWaveformBackend::ObservationPoint::Raw,current)||
+                !event_edge_matches(record.dependency_role,
+                                    before.value.text,current.value.text)) {
+                continue;
+            }
+            if (!found||candidate<event_time) event_time=candidate;
+            found=true;
+            break;
+        }
+    }
+    return found;
+}
+
+bool collect_same_slot_nba_boundaries(
+    IDesignBackend& design,IWaveformBackend& waveform,int signal,
+    const std::string& requested_root,uint64_t event_time,size_t& remaining,
+    std::set<int>& visited,std::vector<StatementGroup>& boundaries) {
+    if (signal<0||!visited.insert(signal).second) return true;
+    if (remaining==0) return false;
+    --remaining;
+    auto drivers=drivers_for(design,signal);
+    auto evaluated=active_statement_groups(
+        drivers,design,waveform,event_time,event_time);
+    apply_unique_nba_priority(evaluated);
+    for (const auto& statement : evaluated.active) {
+        if (statement.kind=="nba"&&statement.has_event_time&&
+            statement.event_time==event_time&&
+            has_same_slot_array_propagation_race_source(
+                statement,design,waveform,requested_root,event_time)) {
+            boundaries.push_back(statement);
+        }
+    }
+    for (const auto& driver : drivers) {
+        if (driver.kind!="cont_assign"||driver.dependency_role!="rhs"||
+            driver.src_signal<0) continue;
+        if (!collect_same_slot_nba_boundaries(
+                design,waveform,driver.src_signal,requested_root,event_time,
+                remaining,visited,boundaries)) return false;
+    }
+    return true;
+}
+
+bool sample_before_transition(IWaveformBackend& waveform,
+                              const std::string& signal,uint64_t transition,
+                              uint64_t query_time,Sample& previous) {
+    const uint32_t ref=waveform.find_signal(signal);
+    if (ref==IWaveformBackend::kInvalidSignalRef) return false;
+    bool found=false;
+    uint64_t previous_time=waveform.min_time();
+    for (uint32_t index : waveform.time_indices_of(ref)) {
+        const uint64_t candidate=waveform.time_at(index);
+        if (candidate>=transition) break;
+        previous_time=candidate;
+        found=true;
+    }
+    if (!found&&transition<=waveform.min_time()) return false;
+    previous=sample_at(waveform,signal,previous_time);
+    if (!previous.ok) return false;
+    previous.query_time=query_time;
+    return true;
+}
+
+bool project_duplicate_top_same_slot_nba_race(
+    IDesignBackend& design,IWaveformBackend& waveform,int root_index,
+    const std::string& root,uint64_t query_time,size_t max_nodes,
+    Sample& sample) {
+    if (!sample.ok||sample.active_time>query_time) return false;
+    size_t remaining=max_nodes;
+    std::set<int> visited;
+    std::vector<StatementGroup> boundaries;
+    if (!collect_same_slot_nba_boundaries(
+            design,waveform,root_index,root,sample.active_time,remaining,
+            visited,boundaries)||boundaries.size()!=1) return false;
+
+    uint64_t next_event=0;
+    if (next_statement_event_time(
+            boundaries.front(),design,waveform,root,sample.active_time,
+            query_time,next_event)) {
+        sample.active_time=next_event;
+        return true;
+    }
+
+    Sample previous;
+    if (!sample_before_transition(
+            waveform,root,sample.active_time,sample.query_time,previous)) {
+        return false;
+    }
+    sample=std::move(previous);
+    return true;
+}
+
 const IDesignBackend::DriverRecord* representative_driver(
     const StatementGroup& statement) {
     if (!statement.rhs.empty()) return &statement.rhs.front();
@@ -2578,6 +2763,18 @@ struct TraceActiveDriverChainHandler : public EngineActionHandler {
                 upstream=root_input_parent;
                 non_direct_rhs=false;
             }
+
+            // A duplicate HDL top is the structural compatibility projection
+            // used by native VCS mode.  If an NBA samples an unpacked
+            // element after collapsed same-array propagation stages, a source
+            // update in the same event slot is observed by VCS at the next
+            // matching edge, while Verilator's flattened FST can expose it on
+            // the current edge.  Reconstruct that native boundary from
+            // DesignDB load/event facts.  A query before the next edge rolls
+            // back to the preceding observable root transition.
+            if (duplicate_top_projection&&depth==0)
+                project_duplicate_top_same_slot_nba_race(
+                    design,waveform,index,root,current_time,max_nodes,sample);
 
             // FST records value changes, while an NBA executes on every
             // matching sensitivity event.  Refine a sequential hop from its

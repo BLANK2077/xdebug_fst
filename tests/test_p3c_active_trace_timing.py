@@ -67,6 +67,17 @@ def fixture_dir(row: dict[str, Any]) -> Path:
     return ACTIVE_ROOT / "timing" / row["case"]
 
 
+def value_at_bits(loop_runner: StdioLoopRunner, signal: str,
+                  time: str) -> str:
+    response = loop_runner.request(
+        "value.at", args={"signal": signal, "time": time}
+    )
+    assert response.get("ok"), response
+    values = response["data"]["samples"][0]["values"]
+    assert len(values) == 1 and values[0]["status"] == "ok", values
+    return values[0]["value"]["bits"]
+
+
 def test_p3c_timing_oracle_is_locked_complete_and_sanitized() -> None:
     assert ORACLE["schema_version"] == \
         "xdebug.p3c-original-active-trace-oracle.v1"
@@ -233,9 +244,12 @@ def test_p3c_timing_matches_locked_native_temporal_prefix_semantics(
         assert current_bits == logic_bits(native_hop["value"])
     else:
         # case_10 的原版 NPI 返回 known=true 但字符串为空；公开 schema 只允许
-        # 字符串值，保留当前可观察的已知 bit，不把空串臆测成某个常量。
+        # 字符串值，不把空串臆测成某个原版常量；但投影后的值必须与当前 FST
+        # 在原版 active_time 上的已知采样一致，不能只改时间标签。
         assert native_hop["value_known"] is True
-        assert current_bits and set(current_bits) <= set("01")
+        assert current_bits == logic_bits(value_at_bits(
+            loop_runner, request["signal"], native_hop["active_time"]
+        ))
 
 
 def test_p3c_timing_limits_are_explicit_analysis_boundaries(
