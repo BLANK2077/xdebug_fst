@@ -1600,3 +1600,36 @@ analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
   仍按 Goal 在每个可能写入的命令中显式定向到仓库 `.tmp`。
 - 批后外部状态与 D3 批后一致：xverif HEAD `511009948...`、porcelain hash `b2daea28...`；Wellen
   HEAD `afab0abd...`、Verilator HEAD `bf01d667...`，后二者 porcelain 均为空哈希。外部零写入。
+
+### 2026-08-31：E2 XIF event 开源 FST 内容等价差分
+
+- 验收标准明确为“测试内容和公开可观察语义等价”，不要求当前 RTL/FST 与原版文件哈希相同。哈希只
+  用于冻结原版证据身份和证明当前夹具可重复生成，不作为双侧等价判据。能脱离专有依赖直接复用的
+  六份 `event_*.json` 已逐字节复制原版；packed struct 字段定义、packet 向量和流控场景沿用原版内容。
+  原版 `xif_event_pkg.sv/top.sv` 直接依赖 UVM、`xif_pkg/xif_agent_pkg/xif_if`、VCS 与 FSDB，不能作为
+  开源可执行输入，因此只将这部分最小化为 pin-level SystemVerilog 镜像和确定性 FST writer，没有复制
+  或提交 XIF/VIP/NPI/FSDB 私有依赖。
+- red 证据先证明当前仓库不存在 `testdata/fixtures/xif_event`。随后新增原始 `waves.fst`、可 lint 的
+  `xif_event_top.sv`、直接 FST writer、四态补丁、锁定 manifest/sha256 和仓库边界严格的再生成脚本；
+  两个全新仓库内构建目录均得到 `244b042d...`、1128 bytes，`cmp` 一致。Verilator 5.051 对镜像 RTL
+  执行 `--lint-only --timing` 通过；未重建原版 fixture/cache，也未执行 FSDB 转换或 action-export 回灌。
+- 复用冻结原版 runtime `8eecf712...` 和既有 `xdebug.xif_event` cache，只读采集两次得到逐字节一致的
+  32 项公开 oracle（SHA256 `25125566...`）：6 配置、6 全量 flow、10 packed field 精确表达式、1 关系
+  表达式、1 X 未知表达式、2 find/错误、5 `value.at` 和 1 写文件 artifact。原版 NPI 只承担这一次只读
+  裁判，不进入当前实现、构建、运行依赖或最终门禁。
+- 32 项在当前原始 FST 上逐项回放。门禁比较事件时序/数量、signal/field 集合、packed 位拼接、X/Z、
+  sampling、scan/analysis/truncation、错误合同和 artifact，而非比较 FSDB/FST 字节。原版 NPI 的
+  `event.export` 无尺寸字面量及 `value_width_complete=false` 属后端诊断差异；当前 FST 必须保留精确
+  `bits/width`、`value_width_complete=true`，比较器把两侧字面量规范到位串后判等，禁止反向削弱实现。
+- 差分暴露并修复四项真实公开缺口：支持原版 `raw[15:0]` field 简写并拒绝部分整数；省略 range end
+  时返回合同值 `max`；`event.export` 默认 `line_limit=1000`；写文件 artifact 改为
+  `events/sampling/summary`，仅在请求 aggregate 时写 aggregate。未知 alias 的 code/cause/message 也与
+  冻结公开错误合同一致，并为 event find/export 补齐精确位宽完整性字段。
+- E2 focused 与 E1 边界门禁 11/11；相邻 list/event/cursor、waveform/value、公开 action 差分共
+  94/94；`runtime-schema-validator` 与 `wellen-fst-backend` CTest 2/2。第一次相邻运行因通用 runner 的
+  UDS 路径超过 `sockaddr_un` 在会话启动前失败；按仓库既有合同显式设置短且仓库内隔离的
+  `XVERIF_TEST_TMPDIR` 后同一命令全绿，未更换工具、fixture、层级或 oracle，不属于 fallback。
+- 批后 Wellen `afab0abd...`、Verilator `bf01d667...` 仍 clean。xverif HEAD 仍为 `511009948...`，但
+  外部用户并行修改使 porcelain hash 从 E1 的 `b2daea28...` 变为 `b926c168...`；本批读取的 XIF
+  RTL/config/cache/runtime 哈希均与 E1/oracle 一致，且所有运行时输出位于当前仓库。该外部漂移将在
+  E3 通过原版冻结内容校验后更新只读审计快照，绝不写外部仓库。

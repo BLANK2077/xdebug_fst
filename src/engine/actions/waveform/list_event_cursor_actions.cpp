@@ -683,18 +683,52 @@ static bool normalize_event_config(const std::string& name, const Json& input,
     Json fields = Json::object();
     const Json field_input = input.value("fields", Json::object());
     for (auto it = field_input.begin(); it != field_input.end(); ++it) {
-        if (!it.value().is_object() || !it.value().contains("signal") ||
-            !it.value().contains("left") || !it.value().contains("right")) {
+        Json field;
+        if (it.value().is_string()) {
+            const std::string shorthand = it.value();
+            const size_t open = shorthand.rfind('[');
+            const size_t colon = shorthand.rfind(':');
+            const size_t close = shorthand.rfind(']');
+            if (open == std::string::npos || colon == std::string::npos ||
+                close != shorthand.size() - 1 || open >= colon ||
+                shorthand.find('[', open + 1) != std::string::npos) {
+                error = "event field shorthand must be alias[left:right]: " +
+                    it.key();
+                return false;
+            }
+            try {
+                const std::string left_text =
+                    shorthand.substr(open + 1, colon - open - 1);
+                const std::string right_text =
+                    shorthand.substr(colon + 1, close - colon - 1);
+                size_t left_consumed = 0, right_consumed = 0;
+                const int left = std::stoi(left_text, &left_consumed);
+                const int right = std::stoi(right_text, &right_consumed);
+                if (left_consumed != left_text.size() ||
+                    right_consumed != right_text.size())
+                    throw std::invalid_argument("trailing field bound text");
+                field = {{"signal", shorthand.substr(0, open)},
+                         {"left", left}, {"right", right}};
+            } catch (const std::exception&) {
+                error = "event field shorthand has invalid bounds: " + it.key();
+                return false;
+            }
+        } else if (it.value().is_object() &&
+                   it.value().contains("signal") &&
+                   it.value().contains("left") &&
+                   it.value().contains("right")) {
+            field = it.value();
+        } else {
             error = "event field must contain signal, left, and right: " + it.key();
             return false;
         }
-        const std::string alias = it.value().at("signal");
+        const std::string alias = field.at("signal");
         if (!signals.contains(alias)) {
             error = "field references unknown signal alias: " + alias;
             return false;
         }
-        fields[it.key()] = {{"signal", alias}, {"left", it.value().at("left")},
-                            {"right", it.value().at("right")}};
+        fields[it.key()] = {{"signal", alias}, {"left", field.at("left")},
+                            {"right", field.at("right")}};
     }
     config = {{"name", name}, {"clock", clock},
               {"edge", input.value("edge", "negedge")},
@@ -887,7 +921,7 @@ static bool bind_event_expression(ExprNode* node, const Json& signals,
             node->msb = field.at("left");
             node->lsb = field.at("right");
         } else {
-            error = "expression references unknown event alias: " + node->signal;
+            error = "Unknown alias in expression: " + node->signal;
             return false;
         }
     }
@@ -953,7 +987,8 @@ static Json run_event_find(const Json& args) {
     std::unique_ptr<ExprNode> expression(parse_expression(args.at("expr"), parse_error));
     if (!expression || !bind_event_expression(expression.get(), signals, fields,
                                                parse_error))
-        return make_error("EXPRESSION_INVALID", parse_error);
+        return {{"ok", false}, {"error", {{"code", "ACTION_FAILED"},
+            {"cause_code", "EVENT_FAILED"}, {"message", parse_error}}}};
     uint64_t begin = wf->min_time(), end = wf->max_time();
     const Json range = args.value("time_range", Json::object());
     if (range.contains("begin") && !wf->parse_time(range.at("begin"), begin, parse_error))
@@ -1044,11 +1079,13 @@ static Json run_event_find(const Json& args) {
     Json summary{{"sample_count", sample_count}, {"mode", mode}, {"inline", !named},
         {"sampling_mode", "clock_edge"}, {"clock", clock},
         {"sample_time_semantics", "time is sample_time"},
-        {"begin", wf->format_time(begin, unit)}, {"end", wf->format_time(end, unit)},
+        {"begin", wf->format_time(begin, unit)},
+        {"end", range.contains("end") ? wf->format_time(end, unit) : "max"},
         {"scan_complete", analysis_complete}, {"analysis_complete", analysis_complete},
         {"response_truncated", truncated}, {"total_count", total_count},
         {"returned_count", returned.size()}, {"truncation_scopes", truncated
-            ? Json::array({"response_events"}) : Json::array()}};
+            ? Json::array({"response_events"}) : Json::array()},
+        {"value_width_complete", true}, {"width_diagnostics", Json::array()}};
     if (total_count) {
         summary["first"] = all_events.front().at("time");
         summary["last"] = all_events.back().at("time");
@@ -1126,14 +1163,14 @@ struct EventExportHandler : public EngineActionHandler {
         Json summary = result.at("summary");
         summary["mode"] = "export";
         summary["row_count"] = result.at("summary").at("total_count");
-        summary["line_limit"] = args.value("line_limit", 16);
+        summary["line_limit"] = args.value("line_limit", 1000);
         const bool written = args.contains("output") &&
             args.at("output").contains("path");
         summary["status"] = written ? "written" : "preview";
         summary["output_written"] = written;
         if (!written) {
             if (include_events) {
-                const size_t limit = args.value("line_limit", 16u);
+                const size_t limit = args.value("line_limit", 1000u);
                 while (data["events"].size() > limit)
                     data["events"].erase(data["events"].end() - 1);
                 summary["returned_count"] = data["events"].size();
@@ -1155,8 +1192,10 @@ struct EventExportHandler : public EngineActionHandler {
                 if (error) return make_error("EXPORT_FAILED", error.message());
             }
             std::ofstream output(path, std::ios::trunc);
-            output << Json{{"events", events}, {"aggregate", aggregate},
-                           {"sampling", data.at("sampling")}}.dump(2) << '\n';
+            Json artifact{{"events", events}, {"sampling", data.at("sampling")},
+                          {"summary", summary}};
+            if (args.contains("aggregate")) artifact["aggregate"] = aggregate;
+            output << artifact.dump(2) << '\n';
             if (!output) return make_error("EXPORT_FAILED", "cannot write event output");
             summary["output"] = {{"path", path.string()}, {"file_format", "json"}};
             summary["returned_count"] = result.at("summary").at("total_count");

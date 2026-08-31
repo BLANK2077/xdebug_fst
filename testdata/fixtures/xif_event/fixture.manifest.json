@@ -1,0 +1,68 @@
+{
+  "schema_version": "xdebug.p3e-xif-event-fixture.v1",
+  "fixture_id": "current.xif_event",
+  "source_contract": {
+    "original_fixture_id": "xdebug.xif_event",
+    "producer_equivalence": "pin-level-semantic-mirror",
+    "original_rtl_sha256": {
+      "tb/xif_event_pkg.sv": "9249ebd3caff15c07909a5bbf790dab675ae4100a3d2168b5e64a46d41425326",
+      "tb/xif_event_top.sv": "0e21eb1315727aa125febe0f559a232ec3694577a5802b78552d1f86a987715a"
+    },
+    "current_rtl_sha256": "b66df6f716aae265c79d886baf9260cb6bcbd5f9670fd5586e8a7b8ee19b3aac",
+    "generator_sha256": "8fba23a3b39b2ce3d017ea6f2a3bf0290c1dde013365595aa68abd1cf1397a72",
+    "four_state_patch_sha256": "9db81ca952ec5579bd95bf142d94996834d0f64d8b109fe2e996014d5b24cc83",
+    "config_sha256": {
+      "event_bp.json": "c3d9fe78dd8d30e5ed532a52f7252a3421c5e58df713cbce0c9b0d7625894544",
+      "event_none.json": "cc3074723613229fefc41ce64fa5c66e282b1d82a704f06705076a219f0a5fe9",
+      "event_pair_master.json": "75be3b016bbc73a099cfdf13fab90c17dcb9ed0949cc0720fc3a1cc0c97e4b7e",
+      "event_pair_slave.json": "bece75a8066e6af4a1b49ca5c9a925fb1e4b69e453079b9e36d15a0f0c46e6b3",
+      "event_rdy.json": "c8e81605a397103822e7bbe73818d740e242c57456d25eba9d9c23b0007c7e84",
+      "event_xz.json": "4b059282b9d31f72dcfda0c190d375276a14ab2a330cfd626fd85cb3a495955a"
+    },
+    "clock_period_ns": 10,
+    "reset_release_ns": 45,
+    "end_time_ns": 195,
+    "posedge_sample_count": 20,
+    "interface_count": 5,
+    "packed_widths": {
+      "opcode": 8,
+      "channel": 4,
+      "id": 4,
+      "data": 16,
+      "pd": 32
+    },
+    "flow_event_counts": {
+      "rdy": 5,
+      "bp_unblocked": 2,
+      "none": 3,
+      "pair_master": 4,
+      "pair_slave": 4,
+      "xz": 1
+    },
+    "proprietary_vip_used": false,
+    "fsdb_conversion_used": false,
+    "action_export_feedback_used": false,
+    "randomization": false
+  },
+  "build_contract": {
+    "revision": "c3be3c80501bec8d4c3b7f5256890332df62d410",
+    "tree": "8e247c8b90237517f84fbda98a594318b16ca998",
+    "fingerprint": "8b8b0886d5338b71500dd218e7af46bcd1c2a2dabb16492addeea82c85b14bb9",
+    "patchset_version": "xdebug-design-db-v4-deterministic-fst",
+    "compiler": "g++ (GCC) 13.3.1 20240611 (Red Hat 13.3.1-2)",
+    "fstcpp_source_sha256": {
+      "fstcpp_variable_info.h": "dd476ccc747ab5a9e8d409e9d22c37d08baf945b61b69f1eb1e59c088faf0a66",
+      "fstcpp_writer.cpp": "f23a80a02aa2b7f6376f2c5604733a62c20b2d5de4773fc190d1c9c6d901fd0b",
+      "fstcpp_variable_info.cpp": "d09efcbf6b96dc4ae9712de195cd7cd5025711fc93e8f7c771cac7f86cd0e73f"
+    }
+  },
+  "output_contract": {
+    "path": "waves.fst",
+    "sha256": "244b042da3a9e6adbdcfe046f224cafcd56f9c7cb20e88bd1c5f62a5476bf4ff",
+    "size": 1128,
+    "timescale": "1ps",
+    "deterministic_build_directories": 2,
+    "external_cache_rebuilt": false,
+    "proprietary_artifact_committed": false
+  }
+}

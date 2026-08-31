@@ -1,0 +1,4293 @@
+{
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "locked_runtime": {
+    "action_count": 73,
+    "binary_sha256": "0f54515fa1c7e80634cdba1e9455ed7cdc1acae26144c7c5a39200853becf46d",
+    "build_id": "8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "npi_version": "X-2025.06-SP1",
+    "runtime_revision": "8eecf71271cc523d93bf03f6b9f9b6fa04ed3ee8",
+    "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+    "wrapper_sha256": "c9569332281ccad39099e06d547075d33b35f9b50699e4d148203ad5645978e7"
+  },
+  "observations": [
+    {
+      "action": "event.config.load",
+      "observation_id": "config.rdy",
+      "request": {
+        "config_path": "xdebug/xdebug/testdata/waveform/xif_agent_event/event_rdy.json",
+        "name": "rdy"
+      },
+      "response": {
+        "data": {
+          "config": {
+            "clock": "xif_event_top.clk",
+            "edge": "posedge",
+            "fields": {},
+            "name": "rdy",
+            "reset": {
+              "polarity": "active_low",
+              "signal": "xif_event_top.rst_n"
+            },
+            "signals": {
+              "bp": "xif_event_top.if_rdy.bp",
+              "channel": "xif_event_top.if_rdy.pd.channel",
+              "data": "xif_event_top.if_rdy.pd.data",
+              "id": "xif_event_top.if_rdy.pd.id",
+              "opcode": "xif_event_top.if_rdy.pd.opcode",
+              "pd": "xif_event_top.if_rdy.pd",
+              "rdy": "xif_event_top.if_rdy.rdy",
+              "vld": "xif_event_top.if_rdy.vld"
+            }
+          }
+        },
+        "ok": true,
+        "summary": {
+          "status": "loaded"
+        }
+      }
+    },
+    {
+      "action": "event.config.load",
+      "observation_id": "config.bp",
+      "request": {
+        "config_path": "xdebug/xdebug/testdata/waveform/xif_agent_event/event_bp.json",
+        "name": "bp"
+      },
+      "response": {
+        "data": {
+          "config": {
+            "clock": "xif_event_top.clk",
+            "edge": "posedge",
+            "fields": {},
+            "name": "bp",
+            "reset": {
+              "polarity": "active_low",
+              "signal": "xif_event_top.rst_n"
+            },
+            "signals": {
+              "bp": "xif_event_top.if_bp.bp",
+              "channel": "xif_event_top.if_bp.pd.channel",
+              "data": "xif_event_top.if_bp.pd.data",
+              "id": "xif_event_top.if_bp.pd.id",
+              "opcode": "xif_event_top.if_bp.pd.opcode",
+              "pd": "xif_event_top.if_bp.pd",
+              "rdy": "xif_event_top.if_bp.rdy",
+              "vld": "xif_event_top.if_bp.vld"
+            }
+          }
+        },
+        "ok": true,
+        "summary": {
+          "status": "loaded"
+        }
+      }
+    },
+    {
+      "action": "event.config.load",
+      "observation_id": "config.none",
+      "request": {
+        "config_path": "xdebug/xdebug/testdata/waveform/xif_agent_event/event_none.json",
+        "name": "none"
+      },
+      "response": {
+        "data": {
+          "config": {
+            "clock": "xif_event_top.clk",
+            "edge": "posedge",
+            "fields": {},
+            "name": "none",
+            "reset": {
+              "polarity": "active_low",
+              "signal": "xif_event_top.rst_n"
+            },
+            "signals": {
+              "bp": "xif_event_top.if_none.bp",
+              "channel": "xif_event_top.if_none.pd.channel",
+              "data": "xif_event_top.if_none.pd.data",
+              "id": "xif_event_top.if_none.pd.id",
+              "opcode": "xif_event_top.if_none.pd.opcode",
+              "pd": "xif_event_top.if_none.pd",
+              "rdy": "xif_event_top.if_none.rdy",
+              "vld": "xif_event_top.if_none.vld"
+            }
+          }
+        },
+        "ok": true,
+        "summary": {
+          "status": "loaded"
+        }
+      }
+    },
+    {
+      "action": "event.config.load",
+      "observation_id": "config.pair_master",
+      "request": {
+        "config_path": "xdebug/xdebug/testdata/waveform/xif_agent_event/event_pair_master.json",
+        "name": "pair_master"
+      },
+      "response": {
+        "data": {
+          "config": {
+            "clock": "xif_event_top.clk",
+            "edge": "posedge",
+            "fields": {},
+            "name": "pair_master",
+            "reset": {
+              "polarity": "active_low",
+              "signal": "xif_event_top.rst_n"
+            },
+            "signals": {
+              "bp": "xif_event_top.if_pair_master.bp",
+              "channel": "xif_event_top.if_pair_master.pd.channel",
+              "data": "xif_event_top.if_pair_master.pd.data",
+              "id": "xif_event_top.if_pair_master.pd.id",
+              "opcode": "xif_event_top.if_pair_master.pd.opcode",
+              "pd": "xif_event_top.if_pair_master.pd",
+              "rdy": "xif_event_top.if_pair_master.rdy",
+              "vld": "xif_event_top.if_pair_master.vld"
+            }
+          }
+        },
+        "ok": true,
+        "summary": {
+          "status": "loaded"
+        }
+      }
+    },
+    {
+      "action": "event.config.load",
+      "observation_id": "config.pair_slave",
+      "request": {
+        "config_path": "xdebug/xdebug/testdata/waveform/xif_agent_event/event_pair_slave.json",
+        "name": "pair_slave"
+      },
+      "response": {
+        "data": {
+          "config": {
+            "clock": "xif_event_top.clk",
+            "edge": "posedge",
+            "fields": {},
+            "name": "pair_slave",
+            "reset": {
+              "polarity": "active_low",
+              "signal": "xif_event_top.rst_n"
+            },
+            "signals": {
+              "bp": "xif_event_top.if_pair_slave.bp",
+              "channel": "xif_event_top.if_pair_slave.pd.channel",
+              "data": "xif_event_top.if_pair_slave.pd.data",
+              "id": "xif_event_top.if_pair_slave.pd.id",
+              "opcode": "xif_event_top.if_pair_slave.pd.opcode",
+              "pd": "xif_event_top.if_pair_slave.pd",
+              "rdy": "xif_event_top.if_pair_slave.rdy",
+              "vld": "xif_event_top.if_pair_slave.vld"
+            }
+          }
+        },
+        "ok": true,
+        "summary": {
+          "status": "loaded"
+        }
+      }
+    },
+    {
+      "action": "event.config.load",
+      "observation_id": "config.xz",
+      "request": {
+        "config_path": "xdebug/xdebug/testdata/waveform/xif_agent_event/event_xz.json",
+        "name": "xz"
+      },
+      "response": {
+        "data": {
+          "config": {
+            "clock": "xif_event_top.clk",
+            "edge": "posedge",
+            "fields": {
+              "data": {
+                "left": 15,
+                "right": 0,
+                "signal": "raw"
+              }
+            },
+            "name": "xz",
+            "reset": {
+              "polarity": "active_low",
+              "signal": "xif_event_top.rst_n"
+            },
+            "signals": {
+              "raw": "xif_event_top.xz_data",
+              "vld": "xif_event_top.xz_vld"
+            }
+          }
+        },
+        "ok": true,
+        "summary": {
+          "status": "loaded"
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "full.rdy",
+      "request": {
+        "expr": "vld && rdy",
+        "name": "rdy"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'ha55a"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h5a"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{01011010,0011,0010,1010010101011010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "85ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'ha55a"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h5a"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{01011010,0011,0010,1010010101011010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "95ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h1000"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h10"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{00010000,0001,0001,0001000000000000}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "105ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h1001"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h11"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{00010001,0010,0000,0001000000000001}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "125ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h1002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h12"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{00010010,0011,0010,0001000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "135ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "85ns",
+          "inline": false,
+          "last": "135ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 5,
+          "row_count": 5,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 5,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[4].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[4].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[4].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[4].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[4].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[4].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[4].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "full.bp",
+      "request": {
+        "expr": "vld && !bp",
+        "name": "bp"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h2002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hb2"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{10110010,0010,0010,0010000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "95ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h2003"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hb3"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{10110011,0011,0011,0010000000000011}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "105ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "95ns",
+          "inline": false,
+          "last": "105ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 2,
+          "row_count": 2,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 2,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "full.none",
+      "request": {
+        "expr": "vld",
+        "name": "none"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h3000"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hc0"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11000000,0000,0001,0011000000000000}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "65ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h3001"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hc1"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11000001,0001,0010,0011000000000001}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "105ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h3002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hc2"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11000010,0010,0011,0011000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "115ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "65ns",
+          "inline": false,
+          "last": "115ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 3,
+          "row_count": 3,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 3,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "full.pair_master",
+      "request": {
+        "expr": "vld && rdy",
+        "name": "pair_master"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4000"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd0"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010000,0000,0000,0100000000000000}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "65ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4001"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd1"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010001,0001,0001,0100000000000001}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "75ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd2"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010010,0010,0010,0100000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "95ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4003"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd3"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010011,0011,0011,0100000000000011}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "105ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "65ns",
+          "inline": false,
+          "last": "105ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 4,
+          "row_count": 4,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 4,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "full.pair_slave",
+      "request": {
+        "expr": "vld && rdy",
+        "name": "pair_slave"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4000"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd0"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010000,0000,0000,0100000000000000}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "65ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4001"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd1"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010001,0001,0001,0100000000000001}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "75ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd2"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010010,0010,0010,0100000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "95ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4003"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd3"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010011,0011,0011,0100000000000011}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "105ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "65ns",
+          "inline": false,
+          "last": "105ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 4,
+          "row_count": 4,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 4,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[3].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "full.xz",
+      "request": {
+        "expr": "vld",
+        "name": "xz"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {
+                "data": {
+                  "has_x": true,
+                  "has_z": false,
+                  "known": false,
+                  "value": "'hxxxx"
+                }
+              },
+              "signals": {
+                "raw": {
+                  "has_x": true,
+                  "has_z": false,
+                  "known": false,
+                  "value": "'hxxxx"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "75ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "75ns",
+          "inline": false,
+          "last": "75ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.raw",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].fields.data",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.01",
+      "request": {
+        "expr": "vld && rdy && opcode == 'h5a && channel == 'h3 && id == 'h2 && data == 'ha55a",
+        "name": "rdy"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'ha55a"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h5a"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{01011010,0011,0010,1010010101011010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "85ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'ha55a"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h5a"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{01011010,0011,0010,1010010101011010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "95ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "85ns",
+          "inline": false,
+          "last": "95ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 2,
+          "row_count": 2,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 2,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.02",
+      "request": {
+        "expr": "vld && rdy && opcode == 'h10 && channel == 'h1 && id == 'h1 && data == 'h1000",
+        "name": "rdy"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h1000"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h10"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{00010000,0001,0001,0001000000000000}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "105ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "105ns",
+          "inline": false,
+          "last": "105ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.03",
+      "request": {
+        "expr": "vld && !bp && opcode == 'hb2 && channel == 'h2 && id == 'h2 && data == 'h2002",
+        "name": "bp"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h2002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hb2"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{10110010,0010,0010,0010000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "95ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "95ns",
+          "inline": false,
+          "last": "95ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.04",
+      "request": {
+        "expr": "vld && !bp && opcode == 'hb3 && channel == 'h3 && id == 'h3 && data == 'h2003",
+        "name": "bp"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h2003"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hb3"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{10110011,0011,0011,0010000000000011}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "105ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "105ns",
+          "inline": false,
+          "last": "105ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.05",
+      "request": {
+        "expr": "vld && opcode == 'hc0 && channel == 'h0 && id == 'h1 && data == 'h3000",
+        "name": "none"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h3000"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hc0"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11000000,0000,0001,0011000000000000}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "65ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "65ns",
+          "inline": false,
+          "last": "65ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.06",
+      "request": {
+        "expr": "vld && opcode == 'hc2 && channel == 'h2 && id == 'h3 && data == 'h3002",
+        "name": "none"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h3002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hc2"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11000010,0010,0011,0011000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "115ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "115ns",
+          "inline": false,
+          "last": "115ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.07",
+      "request": {
+        "expr": "vld && rdy && opcode == 'hd0 && channel == 'h0 && id == 'h0 && data == 'h4000",
+        "name": "pair_master"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4000"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd0"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010000,0000,0000,0100000000000000}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "65ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "65ns",
+          "inline": false,
+          "last": "65ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.08",
+      "request": {
+        "expr": "vld && rdy && opcode == 'hd2 && channel == 'h2 && id == 'h2 && data == 'h4002",
+        "name": "pair_master"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd2"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010010,0010,0010,0100000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "95ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "95ns",
+          "inline": false,
+          "last": "95ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.09",
+      "request": {
+        "expr": "vld && rdy && opcode == 'hd0 && channel == 'h0 && id == 'h0 && data == 'h4000",
+        "name": "pair_slave"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4000"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd0"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010000,0000,0000,0100000000000000}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "65ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "65ns",
+          "inline": false,
+          "last": "65ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "direct.10",
+      "request": {
+        "expr": "vld && rdy && opcode == 'hd2 && channel == 'h2 && id == 'h2 && data == 'h4002",
+        "name": "pair_slave"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h4002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'hd2"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{11010010,0010,0010,0100000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "95ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "95ns",
+          "inline": false,
+          "last": "95ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 1,
+          "row_count": 1,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 1,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "relational.rdy",
+      "request": {
+        "expr": "vld && rdy && opcode >= 8'h10 && data <= 16'h1002",
+        "name": "rdy"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h1000"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h10"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{00010000,0001,0001,0001000000000000}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "105ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h1001"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h11"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{00010001,0010,0000,0001000000000001}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "125ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "known": true,
+                  "value": "'h0"
+                },
+                "channel": {
+                  "known": true,
+                  "value": "'h3"
+                },
+                "data": {
+                  "known": true,
+                  "value": "'h1002"
+                },
+                "id": {
+                  "known": true,
+                  "value": "'h2"
+                },
+                "opcode": {
+                  "known": true,
+                  "value": "'h12"
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{00010010,0011,0010,0001000000000010}"
+                },
+                "rdy": {
+                  "known": true,
+                  "value": "'h1"
+                },
+                "vld": {
+                  "known": true,
+                  "value": "'h1"
+                }
+              },
+              "time": "135ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "105ns",
+          "inline": false,
+          "last": "135ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 3,
+          "row_count": 3,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 3,
+          "truncation_scopes": [],
+          "value_width_complete": false,
+          "width_diagnostics": [
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[0].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[1].signals.vld",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.bp",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.channel",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.data",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.id",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.opcode",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.rdy",
+              "signal": null
+            },
+            {
+              "reason": "npi_range_size_unavailable",
+              "role": "events[2].signals.vld",
+              "signal": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "observation_id": "xz.unknown",
+      "request": {
+        "expr": "vld && data != 0",
+        "name": "xz"
+      },
+      "response": {
+        "data": {
+          "events": [],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "inline": false,
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": false,
+          "response_truncated": false,
+          "returned_count": 0,
+          "row_count": 0,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "preview",
+          "total_count": 0,
+          "truncation_scopes": []
+        }
+      }
+    },
+    {
+      "action": "event.find",
+      "observation_id": "find.rdy.limit2",
+      "request": {
+        "expr": "vld && rdy",
+        "line_limit": 2,
+        "mode": "all",
+        "name": "rdy"
+      },
+      "response": {
+        "data": {
+          "events": [
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "bits": "0",
+                  "known": true,
+                  "value": "1'h0",
+                  "width": 1
+                },
+                "channel": {
+                  "bits": "0011",
+                  "known": true,
+                  "value": "4'h3",
+                  "width": 4
+                },
+                "data": {
+                  "bits": "1010010101011010",
+                  "known": true,
+                  "value": "16'ha55a",
+                  "width": 16
+                },
+                "id": {
+                  "bits": "0010",
+                  "known": true,
+                  "value": "4'h2",
+                  "width": 4
+                },
+                "opcode": {
+                  "bits": "01011010",
+                  "known": true,
+                  "value": "8'h5a",
+                  "width": 8
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{01011010,0011,0010,1010010101011010}"
+                },
+                "rdy": {
+                  "bits": "1",
+                  "known": true,
+                  "value": "1'h1",
+                  "width": 1
+                },
+                "vld": {
+                  "bits": "1",
+                  "known": true,
+                  "value": "1'h1",
+                  "width": 1
+                }
+              },
+              "time": "85ns"
+            },
+            {
+              "fields": {},
+              "signals": {
+                "bp": {
+                  "bits": "0",
+                  "known": true,
+                  "value": "1'h0",
+                  "width": 1
+                },
+                "channel": {
+                  "bits": "0011",
+                  "known": true,
+                  "value": "4'h3",
+                  "width": 4
+                },
+                "data": {
+                  "bits": "1010010101011010",
+                  "known": true,
+                  "value": "16'ha55a",
+                  "width": 16
+                },
+                "id": {
+                  "bits": "0010",
+                  "known": true,
+                  "value": "4'h2",
+                  "width": 4
+                },
+                "opcode": {
+                  "bits": "01011010",
+                  "known": true,
+                  "value": "8'h5a",
+                  "width": 8
+                },
+                "pd": {
+                  "known": true,
+                  "value": "'b{01011010,0011,0010,1010010101011010}"
+                },
+                "rdy": {
+                  "bits": "1",
+                  "known": true,
+                  "value": "1'h1",
+                  "width": 1
+                },
+                "vld": {
+                  "bits": "1",
+                  "known": true,
+                  "value": "1'h1",
+                  "width": 1
+                }
+              },
+              "time": "95ns"
+            }
+          ],
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "85ns",
+          "inline": false,
+          "last": "135ns",
+          "mode": "all",
+          "response_truncated": true,
+          "returned_count": 2,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "total_count": 5,
+          "truncation_scopes": [
+            "response_events"
+          ],
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      },
+      "xout": "@xdebug.event.find.v1\nsummary:\n  sample_count         : 20\n  mode                 : all\n  inline               : false\n  sampling_mode        : clock_edge\n  clock                : xif_event_top.clk\n  sample_time_semantics: time is sample_time\n  scan_complete        : true\n  analysis_complete    : true\n  response_truncated   : true\n  total_count          : 5\n  returned_count       : 2\n\ntruncation_scopes:\n  response_events\n  first               : 85ns\n  last                : 135ns\n  begin               : 0ns\n  end                 : max\n  value_width_complete: true\n\nrequested:\n  edge: posedge\n\neffective:\n  edge                            : posedge\n  sample_point                    : before\n  sample_point_applied            : true\n  sample_point_ignored_for_negedge: false\n\nevents:\n  time  bp    channel  data      id    opcode  pd                                                     rdy   vld\n  85ns  1'h0  4'h3     16'ha55a  4'h2  8'h5a   'b{01011010,0011,0010,1010010101011010} width_unknown  1'h1  1'h1\n  95ns  1'h0  4'h3     16'ha55a  4'h2  8'h5a   'b{01011010,0011,0010,1010010101011010} width_unknown  1'h1  1'h1\n",
+      "xout_sha256": "36a55f2b947fb3b3c81aeda5589a3276393fb8735fb7c0a077792c6b22e27c71"
+    },
+    {
+      "action": "event.find",
+      "observation_id": "find.unknown_alias",
+      "request": {
+        "expr": "vld && missing_alias",
+        "name": "rdy"
+      },
+      "response": {
+        "data": null,
+        "error": {
+          "cause_code": "EVENT_FAILED",
+          "code": "ACTION_FAILED",
+          "error_layer": "handler",
+          "message": "Unknown alias in expression: missing_alias",
+          "recoverable": true
+        },
+        "ok": false,
+        "summary": {
+          "error_code": "ACTION_FAILED",
+          "status": "error"
+        }
+      }
+    },
+    {
+      "action": "value.at",
+      "observation_id": "value.01",
+      "request": {
+        "signal": "xif_event_top.if_rdy.pd.opcode",
+        "time": "85ns",
+        "value_format": "hex"
+      },
+      "response": {
+        "data": {
+          "entries": [
+            {
+              "key": "xif_event_top.if_rdy.pd.opcode",
+              "kind": "signal",
+              "path": "xif_event_top.if_rdy.pd.opcode"
+            }
+          ],
+          "samples": [
+            {
+              "sampling_mode": "raw_time",
+              "time": "85ns",
+              "values": [
+                {
+                  "key": "xif_event_top.if_rdy.pd.opcode",
+                  "status": "ok",
+                  "value": {
+                    "bits": "01011010",
+                    "known": true,
+                    "value": "8'h5a",
+                    "width": 8
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "entry_count": 1,
+          "sampling_mode": "raw_time",
+          "source_kind": "signal",
+          "source_name": "xif_event_top.if_rdy.pd.opcode",
+          "time_count": 1,
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "value.at",
+      "observation_id": "value.02",
+      "request": {
+        "signal": "xif_event_top.if_rdy.pd.channel",
+        "time": "85ns",
+        "value_format": "hex"
+      },
+      "response": {
+        "data": {
+          "entries": [
+            {
+              "key": "xif_event_top.if_rdy.pd.channel",
+              "kind": "signal",
+              "path": "xif_event_top.if_rdy.pd.channel"
+            }
+          ],
+          "samples": [
+            {
+              "sampling_mode": "raw_time",
+              "time": "85ns",
+              "values": [
+                {
+                  "key": "xif_event_top.if_rdy.pd.channel",
+                  "status": "ok",
+                  "value": {
+                    "bits": "0011",
+                    "known": true,
+                    "value": "4'h3",
+                    "width": 4
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "entry_count": 1,
+          "sampling_mode": "raw_time",
+          "source_kind": "signal",
+          "source_name": "xif_event_top.if_rdy.pd.channel",
+          "time_count": 1,
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "value.at",
+      "observation_id": "value.03",
+      "request": {
+        "signal": "xif_event_top.if_rdy.pd.id",
+        "time": "85ns",
+        "value_format": "hex"
+      },
+      "response": {
+        "data": {
+          "entries": [
+            {
+              "key": "xif_event_top.if_rdy.pd.id",
+              "kind": "signal",
+              "path": "xif_event_top.if_rdy.pd.id"
+            }
+          ],
+          "samples": [
+            {
+              "sampling_mode": "raw_time",
+              "time": "85ns",
+              "values": [
+                {
+                  "key": "xif_event_top.if_rdy.pd.id",
+                  "status": "ok",
+                  "value": {
+                    "bits": "0010",
+                    "known": true,
+                    "value": "4'h2",
+                    "width": 4
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "entry_count": 1,
+          "sampling_mode": "raw_time",
+          "source_kind": "signal",
+          "source_name": "xif_event_top.if_rdy.pd.id",
+          "time_count": 1,
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "value.at",
+      "observation_id": "value.04",
+      "request": {
+        "signal": "xif_event_top.if_rdy.pd.data",
+        "time": "85ns",
+        "value_format": "hex"
+      },
+      "response": {
+        "data": {
+          "entries": [
+            {
+              "key": "xif_event_top.if_rdy.pd.data",
+              "kind": "signal",
+              "path": "xif_event_top.if_rdy.pd.data"
+            }
+          ],
+          "samples": [
+            {
+              "sampling_mode": "raw_time",
+              "time": "85ns",
+              "values": [
+                {
+                  "key": "xif_event_top.if_rdy.pd.data",
+                  "status": "ok",
+                  "value": {
+                    "bits": "1010010101011010",
+                    "known": true,
+                    "value": "16'ha55a",
+                    "width": 16
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "entry_count": 1,
+          "sampling_mode": "raw_time",
+          "source_kind": "signal",
+          "source_name": "xif_event_top.if_rdy.pd.data",
+          "time_count": 1,
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "value.at",
+      "observation_id": "value.05",
+      "request": {
+        "signal": "xif_event_top.xz_data",
+        "time": "70ns",
+        "value_format": "hex"
+      },
+      "response": {
+        "data": {
+          "entries": [
+            {
+              "key": "xif_event_top.xz_data",
+              "kind": "signal",
+              "path": "xif_event_top.xz_data"
+            }
+          ],
+          "samples": [
+            {
+              "sampling_mode": "raw_time",
+              "time": "70ns",
+              "values": [
+                {
+                  "key": "xif_event_top.xz_data",
+                  "status": "ok",
+                  "value": {
+                    "bits": "xxxxxxxxxxxxxxxx",
+                    "has_x": true,
+                    "has_z": false,
+                    "known": false,
+                    "value": "16'hxxxx",
+                    "width": 16
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "ok": true,
+        "summary": {
+          "entry_count": 1,
+          "sampling_mode": "raw_time",
+          "source_kind": "signal",
+          "source_name": "xif_event_top.xz_data",
+          "time_count": 1,
+          "value_width_complete": true,
+          "width_diagnostics": []
+        }
+      }
+    },
+    {
+      "action": "event.export",
+      "artifact": {
+        "events": [
+          {
+            "fields": {},
+            "signals": {
+              "bp": {
+                "known": true,
+                "value": "'h0"
+              },
+              "channel": {
+                "known": true,
+                "value": "'h3"
+              },
+              "data": {
+                "known": true,
+                "value": "'ha55a"
+              },
+              "id": {
+                "known": true,
+                "value": "'h2"
+              },
+              "opcode": {
+                "known": true,
+                "value": "'h5a"
+              },
+              "pd": {
+                "known": true,
+                "value": "'b{01011010,0011,0010,1010010101011010}"
+              },
+              "rdy": {
+                "known": true,
+                "value": "'h1"
+              },
+              "vld": {
+                "known": true,
+                "value": "'h1"
+              }
+            },
+            "time": "85ns"
+          },
+          {
+            "fields": {},
+            "signals": {
+              "bp": {
+                "known": true,
+                "value": "'h0"
+              },
+              "channel": {
+                "known": true,
+                "value": "'h3"
+              },
+              "data": {
+                "known": true,
+                "value": "'ha55a"
+              },
+              "id": {
+                "known": true,
+                "value": "'h2"
+              },
+              "opcode": {
+                "known": true,
+                "value": "'h5a"
+              },
+              "pd": {
+                "known": true,
+                "value": "'b{01011010,0011,0010,1010010101011010}"
+              },
+              "rdy": {
+                "known": true,
+                "value": "'h1"
+              },
+              "vld": {
+                "known": true,
+                "value": "'h1"
+              }
+            },
+            "time": "95ns"
+          },
+          {
+            "fields": {},
+            "signals": {
+              "bp": {
+                "known": true,
+                "value": "'h0"
+              },
+              "channel": {
+                "known": true,
+                "value": "'h1"
+              },
+              "data": {
+                "known": true,
+                "value": "'h1000"
+              },
+              "id": {
+                "known": true,
+                "value": "'h1"
+              },
+              "opcode": {
+                "known": true,
+                "value": "'h10"
+              },
+              "pd": {
+                "known": true,
+                "value": "'b{00010000,0001,0001,0001000000000000}"
+              },
+              "rdy": {
+                "known": true,
+                "value": "'h1"
+              },
+              "vld": {
+                "known": true,
+                "value": "'h1"
+              }
+            },
+            "time": "105ns"
+          },
+          {
+            "fields": {},
+            "signals": {
+              "bp": {
+                "known": true,
+                "value": "'h0"
+              },
+              "channel": {
+                "known": true,
+                "value": "'h2"
+              },
+              "data": {
+                "known": true,
+                "value": "'h1001"
+              },
+              "id": {
+                "known": true,
+                "value": "'h0"
+              },
+              "opcode": {
+                "known": true,
+                "value": "'h11"
+              },
+              "pd": {
+                "known": true,
+                "value": "'b{00010001,0010,0000,0001000000000001}"
+              },
+              "rdy": {
+                "known": true,
+                "value": "'h1"
+              },
+              "vld": {
+                "known": true,
+                "value": "'h1"
+              }
+            },
+            "time": "125ns"
+          },
+          {
+            "fields": {},
+            "signals": {
+              "bp": {
+                "known": true,
+                "value": "'h0"
+              },
+              "channel": {
+                "known": true,
+                "value": "'h3"
+              },
+              "data": {
+                "known": true,
+                "value": "'h1002"
+              },
+              "id": {
+                "known": true,
+                "value": "'h2"
+              },
+              "opcode": {
+                "known": true,
+                "value": "'h12"
+              },
+              "pd": {
+                "known": true,
+                "value": "'b{00010010,0011,0010,0001000000000010}"
+              },
+              "rdy": {
+                "known": true,
+                "value": "'h1"
+              },
+              "vld": {
+                "known": true,
+                "value": "'h1"
+              }
+            },
+            "time": "135ns"
+          }
+        ],
+        "sampling": {
+          "effective": {
+            "edge": "posedge",
+            "sample_point": "before"
+          },
+          "requested": {
+            "edge": "posedge",
+            "sample_point": null
+          },
+          "sample_point_applied": true,
+          "sample_point_ignored_for_negedge": false
+        },
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "85ns",
+          "inline": false,
+          "last": "135ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output_written": true,
+          "response_truncated": false,
+          "returned_count": 5,
+          "row_count": 5,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "written",
+          "total_count": 5,
+          "truncation_scopes": []
+        }
+      },
+      "artifact_sha256": "bc5cdf6faaadd4d604aad5f775ed72fdec9742928c6fa7633afa0718e8f91abd",
+      "observation_id": "artifact.rdy.full",
+      "request": {
+        "expr": "vld && rdy",
+        "name": "rdy",
+        "output": {
+          "file_format": "json",
+          "path": "<artifact>/rdy-full.json"
+        }
+      },
+      "response": {
+        "data": {
+          "sampling": {
+            "effective": {
+              "edge": "posedge",
+              "sample_point": "before"
+            },
+            "requested": {
+              "edge": "posedge",
+              "sample_point": null
+            },
+            "sample_point_applied": true,
+            "sample_point_ignored_for_negedge": false
+          }
+        },
+        "ok": true,
+        "summary": {
+          "analysis_complete": true,
+          "begin": "0ns",
+          "clock": "xif_event_top.clk",
+          "end": "max",
+          "first": "85ns",
+          "inline": false,
+          "last": "135ns",
+          "line_limit": 1000,
+          "mode": "export",
+          "output": {
+            "file_format": "json",
+            "path": "<artifact>/rdy-full.json"
+          },
+          "output_written": true,
+          "response_truncated": false,
+          "returned_count": 5,
+          "row_count": 5,
+          "sample_count": 20,
+          "sample_time_semantics": "time is sample_time",
+          "sampling_mode": "clock_edge",
+          "scan_complete": true,
+          "status": "written",
+          "total_count": 5,
+          "truncation_scopes": []
+        }
+      }
+    }
+  ],
+  "original_fixture": {
+    "cache_manifest_sha256": "89be42e2895c175b8d09470d69ad0489da96f17f6188c61b6bcce7d0bc8285b1",
+    "cache_reused": true,
+    "fixture_id": "xdebug.xif_event",
+    "fixture_rebuilt": false,
+    "fixture_version": "c9875b80f2908d0d1e3ae53d301e96d3daab070c18c17f47909eec0a12d81f17-prepare-rgjacil2",
+    "fsdb_sha256": "ea6c027d54a21a1f087fb12bddaff36ab8277ac7c9ee7605281cebd64e4e978d",
+    "fsdb_size": 12030,
+    "source_access": "read_only",
+    "sources": [
+      {
+        "path": "tb/xif_event_pkg.sv",
+        "sha256": "9249ebd3caff15c07909a5bbf790dab675ae4100a3d2168b5e64a46d41425326"
+      },
+      {
+        "path": "tb/xif_event_top.sv",
+        "sha256": "0e21eb1315727aa125febe0f559a232ec3694577a5802b78552d1f86a987715a"
+      },
+      {
+        "path": "event_rdy.json",
+        "sha256": "c8e81605a397103822e7bbe73818d740e242c57456d25eba9d9c23b0007c7e84"
+      },
+      {
+        "path": "event_bp.json",
+        "sha256": "c3d9fe78dd8d30e5ed532a52f7252a3421c5e58df713cbce0c9b0d7625894544"
+      },
+      {
+        "path": "event_none.json",
+        "sha256": "cc3074723613229fefc41ce64fa5c66e282b1d82a704f06705076a219f0a5fe9"
+      },
+      {
+        "path": "event_pair_master.json",
+        "sha256": "75be3b016bbc73a099cfdf13fab90c17dcb9ed0949cc0720fc3a1cc0c97e4b7e"
+      },
+      {
+        "path": "event_pair_slave.json",
+        "sha256": "bece75a8066e6af4a1b49ca5c9a925fb1e4b69e453079b9e36d15a0f0c46e6b3"
+      },
+      {
+        "path": "event_xz.json",
+        "sha256": "4b059282b9d31f72dcfda0c190d375276a14ab2a330cfd626fd85cb3a495955a"
+      }
+    ]
+  },
+  "schema_version": "xdebug.p3e-xif-event-public-oracle.v1",
+  "session": {
+    "all_runtime_writes_repository_local": true,
+    "closed_gracefully": true,
+    "fallback_used": false,
+    "mode": "waveform",
+    "opened": true,
+    "transport": "uds"
+  }
+}

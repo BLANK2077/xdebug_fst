@@ -1,0 +1,12 @@
+{
+  "clock": "xif_event_top.clk",
+  "reset": {"signal": "xif_event_top.rst_n", "polarity": "active_low"},
+  "edge": "posedge",
+  "signals": {
+    "vld": "xif_event_top.xz_vld",
+    "raw": "xif_event_top.xz_data"
+  },
+  "fields": {
+    "data": "raw[15:0]"
+  }
+}
