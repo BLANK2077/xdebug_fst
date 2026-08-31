@@ -600,17 +600,93 @@ def test_current_svt_apb_fixture_locks_source_tool_and_deterministic_fst() -> No
     assert "/home/" not in json.dumps(manifest, ensure_ascii=False)
 
 
-def test_current_svt_apb_matches_locked_soft_budget_public_observations(
+def test_current_xamba_apb_fixture_locks_formula_tool_and_deterministic_fst() -> None:
+    fixture = REPO_ROOT / "testdata/fixtures/apb_xamba_vip"
+    lock = load_hash_lock(fixture / "fixture.sha256")
+    assert list(lock) == [
+        "xdebug_apb_xamba_fixture_top.sv",
+        "tb_apb_xamba.cpp",
+        "fixture.manifest.json",
+        "waves.fst",
+    ]
+    for name, digest in lock.items():
+        path = fixture / name
+        assert path.is_file() and not path.is_symlink()
+        assert sha256(path) == digest
+
+    manifest = json.loads(
+        (fixture / "fixture.manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["schema_version"] == "xdebug-fst.fixture.apb-xamba-vip.v1"
+    assert manifest["goal_id"] == GOAL_ID
+    assert manifest["fixture_id"] == "current.apb_xamba_vip"
+    source = manifest["source_contract"]
+    assert source["original_fixture_id"] == "xdebug.apb_xamba_vip"
+    assert source["producer_equivalence"] == "pin-level-semantic-mirror"
+    assert source["proprietary_vip_used"] is False
+    assert source["fsdb_conversion_used"] is False
+    assert source["seed"] == 11
+    assert source["randomization"] is False
+    assert (source["transaction_count"], source["write_count"],
+            source["read_count"], source["error_count"]) == (64, 32, 32, 6)
+    assert source["address_formula"] == "32'h00001000 + index * 4"
+    assert source["write_data_formula"] == "32'ha5000000 | index"
+    assert source["read_data_formula"] == "32'h5a000000 | index"
+    assert source["pstrb_formula"] == (
+        "is_write ? 4'b0001 << (index % 4) : 0"
+    )
+    assert source["pprot_formula"] == "index % 8"
+    assert source["pnse_formula"] == "(index / 8) % 2"
+    assert source["wait_formula"] == "index % 4"
+    assert source["error_formula"] == "index % 11 == 0"
+
+    dependency = json.loads(
+        (REPO_ROOT / "dependencies.lock.json").read_text(encoding="utf-8")
+    )["verilator"]
+    build = manifest["build_contract"]
+    for key in ("version", "revision", "tree", "patchset_version"):
+        assert build[key] == dependency[key]
+    assert build["fingerprint"] == (
+        "8b8b0886d5338b71500dd218e7af46bcd1c2a2dabb16492addeea82c85b14bb9"
+    )
+    assert build["gcc_version"] == "13.3.1"
+    assert build["trace_format"] == "fst"
+    assert build["trace_depth"] == 4
+    assert build["timing"] is True
+    assert build["rtl_sha256"] == lock["xdebug_apb_xamba_fixture_top.sv"]
+    assert build["harness_sha256"] == lock["tb_apb_xamba.cpp"]
+
+    output = manifest["output_contract"]
+    assert output == {
+        "path": "waves.fst",
+        "size": (fixture / "waves.fst").stat().st_size,
+        "sha256": lock["waves.fst"],
+        "deterministic_build_directories": 2,
+        "external_cache_rebuilt": False,
+        "proprietary_artifact_committed": False,
+    }
+    regenerator = REPO_ROOT / "tools/regenerate_p3d_apb_xamba_fixture.sh"
+    assert regenerator.is_file() and not regenerator.is_symlink()
+    assert "/home/" not in json.dumps(manifest, ensure_ascii=False)
+
+
+@pytest.mark.parametrize("fixture_id", EXPECTED)
+def test_current_apb_matches_locked_soft_budget_public_observations(
+    fixture_id: str,
     xfst_bin: Path,
     tmp_path: Path,
 ) -> None:
-    oracle = load_oracle("xdebug.apb_vip")
+    oracle = load_oracle(fixture_id)
+    fixture = REPO_ROOT / "testdata/fixtures" / EXPECTED[fixture_id][
+        "fixture_dir"
+    ] / "waves.fst"
     runner = start_budget_runner(
-        xfst_bin, tmp_path / "soft", soft_bytes="1",
+        xfst_bin, tmp_path / EXPECTED[fixture_id]["fixture_dir"] / "soft",
+        soft_bytes="1",
         hard_bytes="2147483648",
     )
     try:
-        open_session(runner, REPO_ROOT / "testdata/fixtures/apb_vip/waves.fst")
+        open_session(runner, fixture)
         for observation in oracle["cache_contract"]["soft_lru"][
             "public_observations"
         ]:
@@ -626,19 +702,25 @@ def test_current_svt_apb_matches_locked_soft_budget_public_observations(
         runner.stop()
 
 
-def test_current_svt_apb_exposes_locked_public_hard_limit_error(
+@pytest.mark.parametrize("fixture_id", EXPECTED)
+def test_current_apb_exposes_locked_public_hard_limit_error(
+    fixture_id: str,
     xfst_bin: Path,
     tmp_path: Path,
 ) -> None:
-    oracle = load_oracle("xdebug.apb_vip")
+    oracle = load_oracle(fixture_id)
+    fixture = REPO_ROOT / "testdata/fixtures" / EXPECTED[fixture_id][
+        "fixture_dir"
+    ] / "waves.fst"
     observations = oracle["cache_contract"]["hard_limit"][
         "public_observations"
     ]
     runner = start_budget_runner(
-        xfst_bin, tmp_path / "hard", soft_bytes="1", hard_bytes="1"
+        xfst_bin, tmp_path / EXPECTED[fixture_id]["fixture_dir"] / "hard",
+        soft_bytes="1", hard_bytes="1"
     )
     try:
-        open_session(runner, REPO_ROOT / "testdata/fixtures/apb_vip/waves.fst")
+        open_session(runner, fixture)
         loaded = runner.request(
             observations[0]["action"],
             args=copy.deepcopy(observations[0]["request"]),

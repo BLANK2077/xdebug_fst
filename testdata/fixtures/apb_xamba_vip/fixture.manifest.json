@@ -1,0 +1,74 @@
+{
+  "schema_version": "xdebug-fst.fixture.apb-xamba-vip.v1",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "fixture_id": "current.apb_xamba_vip",
+  "source_contract": {
+    "original_fixture_id": "xdebug.apb_xamba_vip",
+    "producer_equivalence": "pin-level-semantic-mirror",
+    "proprietary_vip_used": false,
+    "fsdb_conversion_used": false,
+    "seed": 11,
+    "randomization": false,
+    "transaction_count": 64,
+    "write_count": 32,
+    "read_count": 32,
+    "error_count": 6,
+    "timescale": "1ns/1ps",
+    "clock_half_period": "5ns",
+    "reset_release": "20ns",
+    "first_completion": "45ns",
+    "last_completion": "2895ns",
+    "waveform_end": "2915ns",
+    "address_formula": "32'h00001000 + index * 4",
+    "write_data_formula": "32'ha5000000 | index",
+    "read_data_formula": "32'h5a000000 | index",
+    "pstrb_formula": "is_write ? 4'b0001 << (index % 4) : 0",
+    "pprot_formula": "index % 8",
+    "pnse_formula": "(index / 8) % 2",
+    "wait_formula": "index % 4",
+    "error_formula": "index % 11 == 0",
+    "original_package_sha256": "fc039da4a994ef49dd21600b021fe51b7da8d40627afa213b6263680523dc12f",
+    "original_top_sha256": "fa8475957bb42b248e0beb8f82048c70811e6a5304ee825972a666bbc0a91420"
+  },
+  "interface_contract": {
+    "top": "xdebug_apb_xamba_fixture_top",
+    "interface": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if",
+    "clock": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.pclk",
+    "reset": "xdebug_apb_xamba_fixture_top.dut.apb_reply_if.presetn",
+    "edge": "posedge",
+    "sample_point": "before",
+    "address_width": 32,
+    "data_width": 32,
+    "optional_signals": [
+      "pready",
+      "pslverr"
+    ],
+    "source_only_signals": [
+      "pstrb",
+      "pprot",
+      "pnse"
+    ]
+  },
+  "build_contract": {
+    "simulator": "verilator",
+    "version": "v5.050-109-gc3be3c805",
+    "revision": "c3be3c80501bec8d4c3b7f5256890332df62d410",
+    "tree": "8e247c8b90237517f84fbda98a594318b16ca998",
+    "fingerprint": "8b8b0886d5338b71500dd218e7af46bcd1c2a2dabb16492addeea82c85b14bb9",
+    "patchset_version": "xdebug-design-db-v4-deterministic-fst",
+    "gcc_version": "13.3.1",
+    "trace_format": "fst",
+    "trace_depth": 4,
+    "timing": true,
+    "rtl_sha256": "a7f5c173af4d80ae159375fc850a26002c569ae552f63a8516af861246a1e045",
+    "harness_sha256": "a6488b17d0a44bf41dbd832baccbf37bba4bb90db7c929a2b80aab0f66aa4289"
+  },
+  "output_contract": {
+    "path": "waves.fst",
+    "size": 1676,
+    "sha256": "52e3da4db15c6bad8b91c71991a690aab4d506dbfd53edd0ba8f72ee39979f36",
+    "deterministic_build_directories": 2,
+    "external_cache_rebuilt": false,
+    "proprietary_artifact_committed": false
+  }
+}

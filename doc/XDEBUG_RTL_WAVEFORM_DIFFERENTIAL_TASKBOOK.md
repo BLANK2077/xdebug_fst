@@ -1316,3 +1316,20 @@ export fallback 进入本批，禁止 skip/xfail/宽松字段白名单或只比�
 - focused gate 为 8/8：两套原版 oracle/authority 静态门禁、SVT 36/36 JSON 与 4/4 XOUT、fixture
   hash/tool/source contract、soft-LRU 六条公开观察和 hard-limit 两条公开观察全部通过。D2-2 仅关闭
   SVT 子项；XAMBA 64 笔 fixture 仍按 D2-3 独立实施，不借用本 fixture 或结论。
+
+### 2026-08-31：D2-3 XAMBA APB 64 笔 fixture 转绿
+
+- 新增独立 `testdata/fixtures/apb_xamba_vip`，只以原版 package 中冻结的 index 公式驱动 pin-level
+  APB，不编译 XAMBA/UVM/product filelist。fixture 保留
+  `xdebug_apb_xamba_fixture_top.dut.apb_reply_if` 层级以及 `pstrb/pprot/pnse` 源刺激信号，但公开
+  等价结论仍严格限于六项冻结 APB Action 可观察字段。
+- 64 笔交易逐笔锁定 `addr=0x1000+4*index`、交替读写、`A5000000|index`/`5A000000|index`、
+  strobe、prot、nse、0–3 wait 和每 11 笔 error 公式。completion 从 45ns 到 2895ns；32 写/32 读、
+  6 笔 error，完整 `query.full` 为 64/64，未用 20 行 preview 冒充全量。
+- `tools/regenerate_p3d_apb_xamba_fixture.sh` 锁定同一仓库 resolved Verilator/GCC 工具身份，并拒绝
+  work-dir 越出当前仓库。两个全新目录 `.tmp/xamba-final-a`、`.tmp/xamba-final-b/work` 生成的
+  FST 与提交目标均为 `52e3da4d...`（1,676 bytes）；未读取 FSDB、未重建外部 cache、未提交
+  proprietary artifact。
+- 当前 XAMBA fixture 对冻结 34/34 基础观察、4/4 XOUT、soft-LRU 六条公开观察和 hard-limit 两条
+  公开观察均零差异；fixture formula/tool/source/output hash 门禁同步通过。P3-D2 focused 当前为
+  12/12；SVT 和 XAMBA 使用各自 RTL、FST、manifest、hash lock 与 oracle，互不借证。
