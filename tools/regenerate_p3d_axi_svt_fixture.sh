@@ -9,7 +9,7 @@ readonly FIXTURE_DIR="${REPO_DIR}/testdata/fixtures/axi_vip"
 readonly MANIFEST="${FIXTURE_DIR}/fixture.manifest.json"
 readonly DEPENDENCY_LOCK="${REPO_DIR}/build/dependencies.resolved.json"
 readonly REQUESTED_WORK_DIR="${XDEBUG_AXI_SVT_WORK_DIR:-${REPO_DIR}/build/fixtures/axi_vip}"
-readonly REQUESTED_RUNS="${XDEBUG_AXI_SVT_RUNS:-fixed_delay random_seed_7 random_seed_19 random_seed_73}"
+readonly REQUESTED_RUNS="${XDEBUG_AXI_SVT_RUNS:-stress fixed_delay random_seed_7 random_seed_19 random_seed_73}"
 
 mkdir -p -- "${REQUESTED_WORK_DIR}"
 readonly WORK_DIR="$(cd -- "${REQUESTED_WORK_DIR}" && pwd -P)"
@@ -56,6 +56,15 @@ expected_harness_sha="$(jq -r '.build_contract.harness_sha256' "${MANIFEST}")"
   echo "SVT AXI harness hash 漂移" >&2
   exit 2
 }
+actual_stress_rtl_sha="$(sha256sum "${FIXTURE_DIR}/axi_vip_stress_top.sv" | cut -d' ' -f1)"
+expected_stress_rtl_sha="$(jq -r '.build_contract.stress_rtl_sha256' "${MANIFEST}")"
+actual_stress_harness_sha="$(sha256sum "${FIXTURE_DIR}/tb_axi_svt_stress.cpp" | cut -d' ' -f1)"
+expected_stress_harness_sha="$(jq -r '.build_contract.stress_harness_sha256' "${MANIFEST}")"
+[[ "${actual_stress_rtl_sha}" == "${expected_stress_rtl_sha}" &&
+   "${actual_stress_harness_sha}" == "${expected_stress_harness_sha}" ]] || {
+  echo "SVT AXI stress RTL/harness hash 漂移" >&2
+  exit 2
+}
 
 for run in ${REQUESTED_RUNS}; do
   jq -e --arg run "${run}" '.runs[$run] != null' "${MANIFEST}" >/dev/null || {
@@ -74,16 +83,28 @@ for run in ${REQUESTED_RUNS}; do
     echo "SVT AXI ${run} event hash 漂移" >&2
     exit 2
   }
-  python3 "${SCRIPT_DIR}/generate_p3d_axi_svt_mirror.py" render \
-    --events "${events}" --output "${generated_sv}"
-  (
-    cd -- "${REPO_DIR}"
-    "${VERILATOR_BIN}" -Wno-fatal --cc --exe --build --timing \
-      --trace-fst --trace-depth 4 --top-module axi_vip_fixture_top \
-      --Mdir "${object_dir}" -CFLAGS "${XDEBUG_FIXTURE_PREFIX_MAP_FLAGS[*]}" \
-      "${generated_sv}" "${FIXTURE_DIR}/tb_axi_svt.cpp"
-  )
-  "${object_dir}/Vaxi_vip_fixture_top" "${generated_fst}"
+  if [[ "${run}" == "stress" ]]; then
+    (
+      cd -- "${REPO_DIR}"
+      "${VERILATOR_BIN}" -Wno-fatal --public-flat-rw --cc --exe --build \
+        --timing --trace-fst --trace-depth 4 --top-module axi_vip_fixture_top \
+        --Mdir "${object_dir}" -CFLAGS "${XDEBUG_FIXTURE_PREFIX_MAP_FLAGS[*]}" \
+        "${FIXTURE_DIR}/axi_vip_stress_top.sv" \
+        "${FIXTURE_DIR}/tb_axi_svt_stress.cpp"
+    )
+    "${object_dir}/Vaxi_vip_fixture_top" "${events}" "${generated_fst}"
+  else
+    python3 "${SCRIPT_DIR}/generate_p3d_axi_svt_mirror.py" render \
+      --events "${events}" --output "${generated_sv}"
+    (
+      cd -- "${REPO_DIR}"
+      "${VERILATOR_BIN}" -Wno-fatal --cc --exe --build --timing \
+        --trace-fst --trace-depth 4 --top-module axi_vip_fixture_top \
+        --Mdir "${object_dir}" -CFLAGS "${XDEBUG_FIXTURE_PREFIX_MAP_FLAGS[*]}" \
+        "${generated_sv}" "${FIXTURE_DIR}/tb_axi_svt.cpp"
+    )
+    "${object_dir}/Vaxi_vip_fixture_top" "${generated_fst}"
+  fi
   actual_sha="$(sha256sum "${generated_fst}" | cut -d' ' -f1)"
   actual_size="$(stat -c '%s' "${generated_fst}")"
   expected_sha="$(jq -r --arg run "${run}" '.runs[$run].fst_sha256' "${MANIFEST}")"

@@ -1494,3 +1494,21 @@ analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
   focused gate 为 12/12，相邻 protocol/CLI/APB/stream 为 59/59，CTest 为 7/7。D3-3 仍未关闭：
   stress 的 51,472 条 handshake、6,400 笔事务、16 ID、outstanding depth=4 和全量 export 必须在
   D3-3b 单独实现并过门禁，当前四档证据不得代替 stress。
+
+### 2026-08-31：D3-3b SVT AXI stress 6,400 笔转绿
+
+- 从 D3-1 唯一锁定 generation 只读冻结 `axi_multi_id_test/axi_handshake.jsonl`，源 SHA 为
+  `1b19c870...`、大小 4,382,896 bytes。仓库内 `stress.events.tsv` 为 51,472 条完整事件：AW/AR/B
+  各 3,200，W 20,781，R 21,091；末次 handshake 为 3,225,165ns。测试从 TSV 重新统计五通道，
+  同时锁定 6,400 笔事务，不以 preview、总计数或其他 profile 代替 stress。
+- 为避免将 51,472 条事件展开成约 16 MB 的单个 SV 编译单元，新增固定 64/1024/128/8/10-bit
+  pin-level RTL 和 C++ runtime replay harness。harness 按冻结 TSV 在 clock edge 前驱动 VALID/READY、
+  payload、WLAST/RLAST 与 response，仍生成同一公开层级的完整 FST；`--public-flat-rw` 仅用于保留
+  C++ 驱动的 interface pin，未引入 DPI/NPI、SVT/VCS、FSDB conversion 或 export feedback。
+- 两个全新仓库内目录 `.tmp/stress-b`、`.tmp/stress-c` 均生成 SHA
+  `0c60efd9...`、217,440-byte FST；轻量 RTL、harness 和 normalized event 各自进入 manifest/hash
+  lock，再生成脚本 fail-closed 校验 resolved Verilator、工具输入、仓库输出边界和预期 FST 身份。
+- stress 对冻结 17/17 JSON、7/7 XOUT 和三份 6,400 行 export artifact 全部零差异；SVT 五 profile
+  加 XAMBA focused 为 13/13，相邻 protocol/CLI/APB/stream 为 59/59，CTest 为 7/7。上述 pytest
+  已改用当前仓库 `.xverif-python` 环境；一次失败被定位为过长 `--basetemp` 导致 UDS 超过
+  `sockaddr_un`，改用仓库内短目录后同一门禁全绿，不涉及 skip、fallback 或 oracle 调整。

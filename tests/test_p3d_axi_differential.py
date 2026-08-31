@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+from collections import Counter
 import hashlib
 import json
 from pathlib import Path
@@ -67,7 +68,8 @@ EXPECTED = {
     },
 }
 SVT_CURRENT_RUNS = (
-    "fixed_delay", "random_seed_7", "random_seed_19", "random_seed_73",
+    "stress", "fixed_delay", "random_seed_7", "random_seed_19",
+    "random_seed_73",
 )
 
 
@@ -462,11 +464,15 @@ def test_current_svt_axi_profiles_lock_events_tool_and_fst() -> None:
     lock = load_hash_lock(fixture / "fixture.sha256")
     expected_names = [
         "tb_axi_svt.cpp",
+        "axi_vip_stress_top.sv",
+        "tb_axi_svt_stress.cpp",
+        "stress.events.tsv",
         "fixed_delay.events.tsv",
         "random_seed_7.events.tsv",
         "random_seed_19.events.tsv",
         "random_seed_73.events.tsv",
         "fixture.manifest.json",
+        "stress/waves.fst",
         "fixed_delay/waves.fst",
         "random_seed_7/waves.fst",
         "random_seed_19/waves.fst",
@@ -505,6 +511,13 @@ def test_current_svt_axi_profiles_lock_events_tool_and_fst() -> None:
     assert lock["tb_axi_svt.cpp"] == manifest["build_contract"][
         "harness_sha256"
     ]
+    assert lock["axi_vip_stress_top.sv"] == manifest["build_contract"][
+        "stress_rtl_sha256"
+    ]
+    assert lock["tb_axi_svt_stress.cpp"] == manifest["build_contract"][
+        "stress_harness_sha256"
+    ]
+    assert manifest["build_contract"]["stress_public_flat_rw"] is True
     assert manifest["output_contract"] == {
         "deterministic_build_directories": 2,
         "repository_local_only": True,
@@ -527,7 +540,9 @@ def test_current_svt_axi_profiles_lock_events_tool_and_fst() -> None:
         assert run["transaction_count"] == 2 * oracle_runs[run_name][
             "expected_direction_count"
         ]
-        assert len(events.read_text(encoding="utf-8").splitlines()) == (
-            run["handshake_count"] + 1
-        )
+        event_lines = events.read_text(encoding="utf-8").splitlines()
+        assert len(event_lines) == run["handshake_count"] + 1
+        assert dict(Counter(
+            line.split("\t",1)[0] for line in event_lines[1:]
+        )) == oracle_runs[run_name]["handshake_channel_counts"]
     assert "/home/" not in json.dumps(manifest, ensure_ascii=False)

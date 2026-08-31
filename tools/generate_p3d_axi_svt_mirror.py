@@ -12,6 +12,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 RUNS = {
+    "stress": ("axi_multi_id_test", "1b19c87041282730f221fde779975dfb60d01e745990ee1b177328101f736a39"),
     "fixed_delay": ("axi_fixed_delay", "23be697da2934298b03586440aa94b773d497625814fd953236377a5ff97d16c"),
     "random_seed_7": ("axi_random_seed_7", "afc6001c8a4863626f8059973e7e0e37a4e4f2076f04e1115c629109cbe3c7a2"),
     "random_seed_19": ("axi_random_seed_19", "52ac70c3eee9c685f5bc34903102d92466906f60aa76484ba04a1cb5bbffdae3"),

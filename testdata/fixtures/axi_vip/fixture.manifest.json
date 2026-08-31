@@ -34,8 +34,11 @@
     "trace_format": "fst",
     "trace_depth": 4,
     "timing": true,
-    "generator_sha256": "8e6b72e3ec8ec702a97811b6ea157cab454d0dbd9f87d29cd5115b800610709f",
-    "harness_sha256": "fbb82f1b9219f73bb3147417728e5cccd5f31a6529a4eafce9144f6a7755fca3"
+    "generator_sha256": "4d0942964ec26453ef26d59c40e192e7a81aeb10b34a7a85d10ec7f7f6091fa3",
+    "harness_sha256": "fbb82f1b9219f73bb3147417728e5cccd5f31a6529a4eafce9144f6a7755fca3",
+    "stress_rtl_sha256": "c6fd7d163c25840c2c8991c2c536487aeb2c96ce0ec8b592cf632f1609671ec2",
+    "stress_harness_sha256": "56f9a0b4e612818342290a186313000b2d68541b882662f12e5f66b5d2133c81",
+    "stress_public_flat_rw": true
   },
   "output_contract": {
     "deterministic_build_directories": 2,
@@ -44,6 +47,17 @@
     "proprietary_artifact_committed": false
   },
   "runs": {
+    "stress": {
+      "seed": 7,
+      "transaction_count": 6400,
+      "handshake_count": 51472,
+      "handshake_source_sha256": "1b19c87041282730f221fde779975dfb60d01e745990ee1b177328101f736a39",
+      "events_sha256": "bed0f8fb0b854fa5db356cdb47d80b2f17f2bdd12f6f0ae9bf5c518939cf8a56",
+      "last_handshake": "3225165ns",
+      "wave_end": "3235165ns",
+      "fst_size": 217440,
+      "fst_sha256": "0c60efd9c06465624387b0d5ccd6d403c67bb62b04ba51695d90e5375c854be4"
+    },
     "fixed_delay": {
       "seed": 7,
       "transaction_count": 64,
