@@ -1512,3 +1512,20 @@ analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
   加 XAMBA focused 为 13/13，相邻 protocol/CLI/APB/stream 为 59/59，CTest 为 7/7。上述 pytest
   已改用当前仓库 `.xverif-python` 环境；一次失败被定位为过长 `--basetemp` 导致 UDS 超过
   `sockaddr_un`，改用仓库内短目录后同一门禁全绿，不涉及 skip、fallback 或 oracle 调整。
+
+### 2026-08-31：D3-4 AXI manifest/matrix/fail-closed 证据链关闭
+
+- P0 资产 manifest 已发现并冻结 `current.axi_vip`、`current.axi_xamba_vip` 两套专属 fixture、六份
+  FST、五份 normalized event、两份原版公开 oracle、生成器/再生成脚本和 closure 测试。fixture
+  inventory 与各自 `fixture.sha256` 必须精确一致，不允许重新映射到旧 `current.axi`。
+- 语义矩阵将 SVT 五 profile 记录为 85 个观察、8,000 笔事务、35 项 XOUT、15 份 export artifact；
+  XAMBA 记录为 17 个观察、64 笔事务、7 项 XOUT、3 份 artifact。两项状态均由 `partial` 更新为
+  `semantic-equivalent`，difference 和 remaining observable gap 均为 0；总状态变为 80 项等价、5 项
+  proven-unobservable、2 项 partial、1 项 missing，P3 queue 仅剩 P3-E 三项。
+- validator fail-closed 校验 runtime/fixture/source 只读身份、六 profile seed、AW/W/B/AR/R 全量计数、
+  handshake source SHA、完整 transaction/export summary、artifact/XOUT、公开 hard limit、两套 current
+  fixture inventory/hash/output 双目录合同。10 类变异覆盖 fixture/profile 串用、缺 profile/观察、seed、
+  channel count/source hash、伪完整、export 行数/artifact 身份和隐藏 hard limit。
+- manifest write→matrix write→manifest write 已达到双 check 稳定。D3 最终 closure/asset/matrix/runtime
+  组合门禁 55/55，通过前述相邻回归 59/59 和 CTest 7/7；两项 AXI 已从 P3-D queue 清除，P3-E
+  `npi_fsdb_sva`、`xif_event` 与 cross-fixture consumer 仍保持 gap，不提前关闭 Goal。

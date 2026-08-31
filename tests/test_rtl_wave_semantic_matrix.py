@@ -106,9 +106,9 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "scenario_count": 88,
         "status_counts": {
             "missing": 1,
-            "partial": 4,
+            "partial": 2,
             "proven-unobservable": 5,
-            "semantic-equivalent": 78,
+            "semantic-equivalent": 80,
         },
         "unclassified_count": 0,
         "unqueued_gap_count": 0,
@@ -169,6 +169,8 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "fixture.stream_differential_tool",
         "fixture.apb_vip",
         "fixture.apb_xamba_vip",
+        "fixture.axi_vip",
+        "fixture.axi_xamba_vip",
         "active.p0.declared_only_p0_4",
         *{f"active.p0.{index:02d}" for index in range(1, 7)},
         *{f"active.composite.{index:02d}" for index in range(1, 21)},
@@ -239,6 +241,32 @@ def test_p3d_apb_svt_and_xamba_are_closed_with_distinct_fixtures() -> None:
         assert scenario["runtime_audit"]["difference_count"] == 0
         assert scenario["runtime_audit"]["xout_check_count"] == 4
         assert scenario["runtime_audit"]["remaining_observable_gap_count"] == 0
+
+
+def test_p3d_axi_svt_and_xamba_are_closed_with_distinct_fixtures() -> None:
+    scenarios = {
+        item["scenario_id"]: item for item in load_matrix()["scenarios"]
+    }
+    expected = {
+        "fixture.axi_vip": ("current.axi_vip", 5, 85, 8000, 35, 15),
+        "fixture.axi_xamba_vip": (
+            "current.axi_xamba_vip", 1, 17, 64, 7, 3
+        ),
+    }
+    for scenario_id, values in expected.items():
+        fixture_id, profiles, observations, transactions, xouts, artifacts = values
+        scenario = scenarios[scenario_id]
+        audit = scenario["runtime_audit"]
+        assert scenario["status"] == "semantic-equivalent"
+        assert scenario["current"]["candidate_fixture_ids"] == [fixture_id]
+        assert audit["current_fixture_id"] == fixture_id
+        assert audit["profile_count"] == profiles
+        assert audit["observation_count"] == observations
+        assert audit["transaction_count"] == transactions
+        assert audit["difference_count"] == 0
+        assert audit["xout_check_count"] == xouts
+        assert audit["artifact_check_count"] == artifacts
+        assert audit["remaining_observable_gap_count"] == 0
 
 
 def test_matrix_evidence_is_relative_hashed_and_line_addressable() -> None:

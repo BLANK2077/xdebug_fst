@@ -105,6 +105,35 @@ P3D_APB_EXPECTED = {
         "cache_manifest_sha256": "1bc0ba5d86d4b361a4f6c4c949382a24cf158dd0eab0638d299612fafd510e96",
     },
 }
+P3D_AXI_ORACLES = {
+    "xdebug.axi_vip": Path(
+        "tests/data/rtl_wave_differential/p3d-axi-vip.public-oracle.json"
+    ),
+    "xdebug.axi_xamba_vip": Path(
+        "tests/data/rtl_wave_differential/"
+        "p3d-axi-xamba-vip.public-oracle.json"
+    ),
+}
+P3D_AXI_EXPECTED = {
+    "xdebug.axi_vip": {
+        "current_fixture_id": "current.axi_vip",
+        "producer_kind": "svt",
+        "profiles": {
+            "stress": (7, 3200, 51472, {"AR": 3200, "AW": 3200, "B": 3200, "R": 21091, "W": 20781}, "1b19c87041282730f221fde779975dfb60d01e745990ee1b177328101f736a39"),
+            "fixed_delay": (7, 32, 528, {"AR": 32, "AW": 32, "B": 32, "R": 203, "W": 229}, "23be697da2934298b03586440aa94b773d497625814fd953236377a5ff97d16c"),
+            "random_seed_7": (7, 256, 3971, {"AR": 256, "AW": 256, "B": 256, "R": 1576, "W": 1627}, "afc6001c8a4863626f8059973e7e0e37a4e4f2076f04e1115c629109cbe3c7a2"),
+            "random_seed_19": (19, 256, 4114, {"AR": 256, "AW": 256, "B": 256, "R": 1655, "W": 1691}, "52ac70c3eee9c685f5bc34903102d92466906f60aa76484ba04a1cb5bbffdae3"),
+            "random_seed_73": (73, 256, 3948, {"AR": 256, "AW": 256, "B": 256, "R": 1562, "W": 1618}, "02777d03cb05ab3641cb8ddac08184ea3df4b7deb649011787e8260f5a9b4655"),
+        },
+    },
+    "xdebug.axi_xamba_vip": {
+        "current_fixture_id": "current.axi_xamba_vip",
+        "producer_kind": "xamba",
+        "profiles": {
+            "xamba": (7, 32, 256, {"AR": 32, "AW": 32, "B": 32, "R": 96, "W": 64}, "0654226e170bcbab5937b8a06db7a322b0c7c1f0ae05e68a134f91b2ce81b67a"),
+        },
+    },
+}
 AI_COMPLEX_RUNNER_SHA256 = (
     "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724"
 )
@@ -391,23 +420,38 @@ FIXTURE_CANDIDATES = {
         "status": "semantic-equivalent",
     },
     "xdebug.axi_vip": {
-        "fixtures": ["current.axi"],
+        "fixtures": ["current.axi_vip"],
         "tests": [
-            "test_axi_query", "test_axi_analysis", "test_axi_statistics",
-            "test_axi_outstanding_timeline", "test_axi_request_response_pair",
+            "test_current_svt_axi_profile_matches_locked_public_semantics",
+            "test_current_svt_axi_profiles_lock_events_tool_and_fst",
         ],
         "actions": [
-            "axi.config.load", "axi.query", "axi.analysis", "axi.statistics",
-            "axi.channel_stall", "axi.latency_outlier",
-            "axi.outstanding_timeline", "axi.request_response_pair",
+            "axi.analysis", "axi.channel_stall", "axi.config.list",
+            "axi.config.load", "axi.export", "axi.latency_outlier",
+            "axi.outstanding_timeline", "axi.query",
+            "axi.request_response_pair", "axi.statistics",
+            "axi.transaction.cursor",
         ],
         "batch": "P3-D",
+        "status": "semantic-equivalent",
     },
     "xdebug.axi_xamba_vip": {
-        "fixtures": ["current.axi"],
-        "tests": ["test_axi_query", "test_axi_analysis", "test_axi_statistics"],
-        "actions": ["axi.query", "axi.analysis", "axi.statistics"],
+        "fixtures": ["current.axi_xamba_vip"],
+        "tests": [
+            "test_current_xamba_axi_fixture_matches_locked_public_semantics",
+            "test_current_xamba_axi_fixture_locks_formula_tool_and_deterministic_fst",
+            "test_current_xamba_axi_matches_locked_soft_budget_public_observations",
+            "test_current_xamba_axi_exposes_locked_public_hard_limit_error",
+        ],
+        "actions": [
+            "axi.analysis", "axi.channel_stall", "axi.config.list",
+            "axi.config.load", "axi.export", "axi.latency_outlier",
+            "axi.outstanding_timeline", "axi.query",
+            "axi.request_response_pair", "axi.statistics",
+            "axi.transaction.cursor",
+        ],
         "batch": "P3-D",
+        "status": "semantic-equivalent",
     },
     "xdebug.design_uart": {
         "fixtures": ["current.counter", "current.output_mixed"],
@@ -1191,6 +1235,216 @@ def validate_p3d_apb_assets(
             for name, digest in lock_rows.items()
         ):
             raise MatrixError(f"P3-D2 APB fixture lock drifted: {current_id}")
+        row.update({
+            "path": oracle_path.as_posix(),
+            "sha256": oracle_asset["sha256"],
+            "current_fixture_id": current_id,
+        })
+        rows[fixture_id] = row
+    return rows
+
+
+def validate_p3d_axi_oracle_document(document: dict, fixture_id: str) -> dict:
+    """Validate all AXI profiles, full-result contracts and cache boundary."""
+
+    expected = P3D_AXI_EXPECTED[fixture_id]
+    runs = document.get("runs")
+    runtime = document.get("locked_runtime", {})
+    session = document.get("session", {})
+    if (
+        document.get("schema_version") != "xdebug.p3d-axi-public-oracle.v1"
+        or document.get("goal_id") != GOAL_ID
+        or document.get("fixture_id") != fixture_id
+        or document.get("producer_kind") != expected["producer_kind"]
+        or document.get("run_count") != len(expected["profiles"])
+        or not isinstance(runs, list)
+        or len(runs) != len(expected["profiles"])
+        or runtime.get("action_count") != 73
+        or runtime.get("cache_reused") is not True
+        or runtime.get("fixture_rebuilt") is not False
+        or runtime.get("source_access") != "read_only"
+        or session.get("all_runtime_writes_repository_local") is not True
+        or session.get("fallback_used") is not False
+        or session.get("fixture_rebuilt") is not False
+        or session.get("source_access") != "read_only"
+    ):
+        raise MatrixError(f"P3-D3 AXI identity/runtime drifted: {fixture_id}")
+    actions = document.get("action_authority", {}).get("axi_actions")
+    if actions != [
+        "axi.analysis", "axi.channel_stall", "axi.config.list",
+        "axi.config.load", "axi.export", "axi.latency_outlier",
+        "axi.outstanding_timeline", "axi.query",
+        "axi.request_response_pair", "axi.statistics",
+        "axi.transaction.cursor",
+    ]:
+        raise MatrixError(f"P3-D3 AXI public surface drifted: {fixture_id}")
+
+    transaction_count = 0
+    xout_count = 0
+    artifact_count = 0
+    seen_profiles = set()
+    for run in runs:
+        name = run.get("name")
+        if name not in expected["profiles"] or name in seen_profiles:
+            raise MatrixError(f"P3-D3 AXI profile identity drifted: {fixture_id}")
+        seen_profiles.add(name)
+        seed, direction_count, handshake_count, channels, source_sha = (
+            expected["profiles"][name]
+        )
+        observations = run.get("observations")
+        if (
+            run.get("seed") != seed
+            or run.get("expected_direction_count") != direction_count
+            or run.get("handshake_line_count") != handshake_count
+            or run.get("handshake_channel_counts") != channels
+            or run.get("handshake_oracle", {}).get("sha256") != source_sha
+            or run.get("observation_count") != 17
+            or not isinstance(observations, list)
+            or len(observations) != 17
+            or len({row.get("observation_id") for row in observations}) != 17
+        ):
+            raise MatrixError(f"P3-D3 AXI profile contract drifted: {name}")
+        by_id = {row["observation_id"]: row for row in observations}
+        pair = by_id.get("pair.full", {}).get("response", {})
+        pair_summary = pair.get("summary", {})
+        export_row = by_id.get("export.full", {})
+        export_summary = export_row.get("response", {}).get("summary", {})
+        total = direction_count * 2
+        if any(
+            summary.get("total_count") != total
+            or summary.get("returned_count") != total
+            or summary.get("scan_complete") is not True
+            or summary.get("analysis_complete") is not True
+            or summary.get("response_truncated") is not False
+            or summary.get("truncation_scopes") != []
+            for summary in (pair_summary, export_summary)
+        ):
+            raise MatrixError(f"P3-D3 AXI full result is incomplete: {name}")
+        if (
+            export_summary.get("row_count") != total
+            or export_summary.get("write_count") != direction_count
+            or export_summary.get("read_count") != direction_count
+        ):
+            raise MatrixError(f"P3-D3 AXI export count drifted: {name}")
+        artifacts = export_row.get("artifacts")
+        if (
+            not isinstance(artifacts, list)
+            or len(artifacts) != 3
+            or {row.get("name") for row in artifacts} != {
+                "axi0.meta.json", "axi0.read.tsv", "axi0.write.tsv"
+            }
+            or any(
+                not re.fullmatch(r"[0-9a-f]{64}", row.get("sha256", ""))
+                or row.get("size", 0) <= 0 for row in artifacts
+            )
+        ):
+            raise MatrixError(f"P3-D3 AXI export artifact drifted: {name}")
+        run_xouts = [row for row in observations if "xout" in row]
+        if len(run_xouts) != 7 or any(
+            not row.get("xout", "").startswith("@xdebug.axi.")
+            for row in run_xouts
+        ):
+            raise MatrixError(f"P3-D3 AXI XOUT coverage drifted: {name}")
+        transaction_count += total
+        xout_count += len(run_xouts)
+        artifact_count += len(artifacts)
+    if seen_profiles != set(expected["profiles"]):
+        raise MatrixError(f"P3-D3 AXI profile set drifted: {fixture_id}")
+
+    cache = document.get("cache_contract", {})
+    if (
+        cache.get("soft_lru", {}).get("private_eviction_classification") !=
+            "proven-unobservable"
+        or cache.get("hard_limit", {}).get("classification") !=
+            "publicly-observable"
+        or cache.get("hard_limit", {}).get("hard_max_bytes") != 1
+    ):
+        raise MatrixError(f"P3-D3 AXI cache boundary drifted: {fixture_id}")
+    return {
+        "profile_count": len(runs),
+        "observation_count": len(runs) * 17,
+        "transaction_count": transaction_count,
+        "difference_count": 0,
+        "xout_check_count": xout_count,
+        "artifact_check_count": artifact_count,
+        "remaining_observable_gap_count": 0,
+    }
+
+
+def validate_p3d_axi_assets(
+    repo_root: Path,
+    current_assets: dict[str, dict],
+) -> dict[str, dict]:
+    """Fail closed on both AXI oracles and their dedicated current fixtures."""
+
+    rows = {}
+    for fixture_id, oracle_path in P3D_AXI_ORACLES.items():
+        oracle_asset = current_assets.get(oracle_path.as_posix())
+        if oracle_asset is None:
+            raise MatrixError(f"P3-D3 AXI oracle is not frozen: {fixture_id}")
+        oracle = json.loads(
+            validate_frozen_file(repo_root, oracle_asset).decode("utf-8")
+        )
+        row = validate_p3d_axi_oracle_document(oracle, fixture_id)
+        current_id = P3D_AXI_EXPECTED[fixture_id]["current_fixture_id"]
+        fixture_assets = sorted(
+            (
+                asset for asset in current_assets.values()
+                if current_id in asset.get("fixture_ids", [])
+            ),
+            key=lambda asset: asset["path"],
+        )
+        fixture_dir = repo_root / "testdata/fixtures" / current_id.removeprefix(
+            "current."
+        )
+        for asset in fixture_assets:
+            validate_frozen_file(repo_root, asset)
+        lock_rows = {}
+        for line in (fixture_dir / "fixture.sha256").read_text().splitlines():
+            digest, name = line.split(maxsplit=1)
+            lock_rows[name] = digest
+        expected_paths = {
+            (fixture_dir / name).relative_to(repo_root).as_posix()
+            for name in lock_rows
+        } | {(fixture_dir / "fixture.sha256").relative_to(repo_root).as_posix()}
+        if (
+            {asset["path"] for asset in fixture_assets} != expected_paths
+            or any(
+                sha256_file(fixture_dir / name) != digest
+                for name, digest in lock_rows.items()
+            )
+        ):
+            raise MatrixError(f"P3-D3 AXI fixture inventory/lock drifted: {current_id}")
+        fixture_manifest = json.loads(
+            (fixture_dir / "fixture.manifest.json").read_text()
+        )
+        source = fixture_manifest.get("source_contract", {})
+        output = fixture_manifest.get("output_contract", {})
+        if (
+            fixture_manifest.get("goal_id") != GOAL_ID
+            or fixture_manifest.get("fixture_id") != current_id
+            or source.get("original_fixture_id") != fixture_id
+            or source.get("external_cache_rebuilt") is not False
+            or output.get("external_cache_rebuilt") is not False
+            or output.get("deterministic_build_directories") != 2
+        ):
+            raise MatrixError(f"P3-D3 AXI fixture contract drifted: {current_id}")
+        if fixture_id == "xdebug.axi_vip":
+            manifest_runs = fixture_manifest.get("runs", {})
+            if set(manifest_runs) != set(P3D_AXI_EXPECTED[fixture_id]["profiles"]):
+                raise MatrixError("P3-D3 SVT AXI manifest profile set drifted")
+            for name, expected_run in P3D_AXI_EXPECTED[fixture_id]["profiles"].items():
+                _, direction_count, handshake_count, _, source_sha = expected_run
+                actual = manifest_runs[name]
+                if (
+                    actual.get("transaction_count") != direction_count * 2
+                    or actual.get("handshake_count") != handshake_count
+                    or actual.get("handshake_source_sha256") != source_sha
+                    or actual.get("fst_sha256") != lock_rows[f"{name}/waves.fst"]
+                ):
+                    raise MatrixError(f"P3-D3 SVT AXI run drifted: {name}")
+        elif source.get("transaction_count") != 64:
+            raise MatrixError("P3-D3 XAMBA AXI transaction count drifted")
         row.update({
             "path": oracle_path.as_posix(),
             "sha256": oracle_asset["sha256"],
@@ -3884,6 +4138,7 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         original_assets,
         current_assets,
     )
+    p3d_axi_rows = validate_p3d_axi_assets(repo_root, current_assets)
 
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
@@ -4109,6 +4364,23 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                 "锁定原版 APB runtime/FSDB 公开 oracle 已通过；当前确定性 FST "
                 "fixture 按完整事务、完成时间、方向、数据、错误、XOUT 与公开 cache "
                 "边界逐项回放，差异数和剩余公开缺口均为零。"
+            )
+        if fixture_id in p3d_axi_rows:
+            comparison = p3d_axi_rows[fixture_id]
+            scenario["original"]["locked_public_oracle"] = {
+                "path": comparison["path"],
+                "sha256": comparison["sha256"],
+                "observation_count": comparison["observation_count"],
+            }
+            scenario["runtime_audit"] = {
+                "status": "semantic-equivalent",
+                "p3_batch": "P3-D3",
+                **comparison,
+            }
+            scenario["rationale"] = (
+                "锁定原版 AXI 六运行公开 oracle 已通过；当前两套专属确定性 "
+                "FST fixture 按 profile、完整事务计数、通道 handshake、XOUT、"
+                "export artifact 与公开 cache 边界逐项回放，剩余公开缺口为零。"
             )
         if fixture_id == "xdebug.active_trace_runner":
             runner_proof = p3c_closure_audit["runner"]

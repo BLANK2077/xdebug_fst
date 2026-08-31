@@ -5509,6 +5509,306 @@
       "exists": true,
       "file_type": "file",
       "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/axi_vip/axi_vip_stress_top.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "c6fd7d163c25840c2c8991c2c536487aeb2c96ce0ec8b592cf632f1609671ec2",
+      "side": "current",
+      "size_bytes": 765
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/axi_vip/fixed_delay.events.tsv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "a9b1c998d5309ff81fc7df02c02596fcbc9a6d8d4c865c309a4d7517505d2926",
+      "side": "current",
+      "size_bytes": 13316
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/axi_vip/fixed_delay/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "756b8e203c13ffd3a10e63648b70ff7edf0c7bcff42579e28492cc90a78a5830",
+      "side": "current",
+      "size_bytes": 3115
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/axi_vip/fixture.manifest.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "e21102afad1e19ab8ad93495b57f5c81f8b42f0caca16d1e18543947865aff41",
+      "side": "current",
+      "size_bytes": 4316
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/axi_vip/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "3cc5c82a69dbf0013a7f41dab3ae11d9f76496db96a5f5ed79ae447e7b549bdb",
+      "side": "current",
+      "size_bytes": 1236
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/axi_vip/random_seed_19.events.tsv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "6b8e7d2082425a883447763c779ae5ce7f6e06cdc338d44b082c4277ae17c19d",
+      "side": "current",
+      "size_bytes": 111828
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/axi_vip/random_seed_19/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "218f8cc7fba1059a7c488f6a3f6c94d2946e15838a5e87bdf6f6142e185f76dc",
+      "side": "current",
+      "size_bytes": 17256
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/axi_vip/random_seed_7.events.tsv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "85bd6be4788b3a928e3db5a487fb13c73dc029f452d57ff05210565d059c1447",
+      "side": "current",
+      "size_bytes": 103758
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/axi_vip/random_seed_7/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "2799e98472e0232b260fdcb52ce7b560214c06f1365dac7efada50f152c51fad",
+      "side": "current",
+      "size_bytes": 16431
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/axi_vip/random_seed_73.events.tsv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "d0712ee71ab484e84d0a39eccd1d490c5b058c5ff25edb2f5989c223a840dfbe",
+      "side": "current",
+      "size_bytes": 104309
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/axi_vip/random_seed_73/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "0423c3b34c0a7b1e35d03e28d9855a524b747888d07ed1c469005a6eeabfe9c8",
+      "side": "current",
+      "size_bytes": 17323
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/axi_vip/stress.events.tsv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "bed0f8fb0b854fa5db356cdb47d80b2f17f2bdd12f6f0ae9bf5c518939cf8a56",
+      "side": "current",
+      "size_bytes": 1503473
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/axi_vip/stress/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "0c60efd9c06465624387b0d5ccd6d403c67bb62b04ba51695d90e5375c854be4",
+      "side": "current",
+      "size_bytes": 217440
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "testbench",
+      "path": "testdata/fixtures/axi_vip/tb_axi_svt.cpp",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "fbb82f1b9219f73bb3147417728e5cccd5f31a6529a4eafce9144f6a7755fca3",
+      "side": "current",
+      "size_bytes": 939
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_vip"
+      ],
+      "kind": "testbench",
+      "path": "testdata/fixtures/axi_vip/tb_axi_svt_stress.cpp",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "56f9a0b4e612818342290a186313000b2d68541b882662f12e5f66b5d2133c81",
+      "side": "current",
+      "size_bytes": 7272
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_xamba_vip"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/axi_xamba_vip/fixture.manifest.json",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "e419d6106c9b5b6d20afba46a0eeadc4e50cad750255ae042c18d3ab6ffb4aac",
+      "side": "current",
+      "size_bytes": 1973
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_xamba_vip"
+      ],
+      "kind": "fixture_support",
+      "path": "testdata/fixtures/axi_xamba_vip/fixture.sha256",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "9d93735b2bbf02c47ff73a2955aae169af589aca2b2c43caa6af17a0e4a2c468",
+      "side": "current",
+      "size_bytes": 345
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_xamba_vip"
+      ],
+      "kind": "testbench",
+      "path": "testdata/fixtures/axi_xamba_vip/tb_axi_xamba.cpp",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "92763d2d7ca98d5d778e91acbeb87e781abe6f3366c40829bfb927d4bf67e9b3",
+      "side": "current",
+      "size_bytes": 968
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_xamba_vip"
+      ],
+      "kind": "waveform_fst",
+      "path": "testdata/fixtures/axi_xamba_vip/waves.fst",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "b2e3b5cf10d06db77aa814f94a204acda05fa057154e2a0f61cf16d995c7e140",
+      "side": "current",
+      "size_bytes": 3089
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.axi_xamba_vip"
+      ],
+      "kind": "rtl",
+      "path": "testdata/fixtures/axi_xamba_vip/xdebug_axi_xamba_fixture_top.sv",
+      "roles": [
+        "fixture_asset"
+      ],
+      "sha256": "58d30c05df79e0a1ccba1f8f786e53bd2a53457c99ae2202f4296b0c40a1829b",
+      "side": "current",
+      "size_bytes": 5034
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
         "current.case"
       ],
       "kind": "rtl",
@@ -7151,9 +7451,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "4574cca7dd524c969a272064b5debe73b63d6683644b0c64372875c1383d5e29",
+      "sha256": "b3f0f3e2a06c69b482ede15743724ed1ddc51b815b855a39ae2fecbc78e0ce0b",
       "side": "current",
-      "size_bytes": 1522399
+      "size_bytes": 1529948
     },
     {
       "exists": true,
@@ -7454,6 +7754,36 @@
       "sha256": "574c9890ff9df89d70a9ecdbeb0c56183621d8b076975e3df26537ee93975b0c",
       "side": "current",
       "size_bytes": 126326
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/p3d-axi-vip.public-oracle.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "433f6197245c0ab9eff27e5e04f9670a9e2e83b71a0bb36f15a3b469e88476ff",
+      "side": "current",
+      "size_bytes": 540451
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/p3d-axi-xamba-vip.public-oracle.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "608222fc871d389f3237b2230ff23f28bb106a7b4fd650f8de52091255a38bb7",
+      "side": "current",
+      "size_bytes": 242393
     },
     {
       "exists": true,
@@ -8017,6 +8347,36 @@
         "current.cross_fixture"
       ],
       "kind": "test_consumer",
+      "path": "tests/test_p3d_axi_differential.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "b1d089cb0eb669d37cf3373369e1566fac47d0e1557f9f54d06e05c6a53b3ed5",
+      "side": "current",
+      "size_bytes": 22001
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/test_p3d_axi_matrix_closure.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "7a061410c4edf89ed5475d42215d78ee06655d2ea1a2d73d3bdeec697abf9251",
+      "side": "current",
+      "size_bytes": 3385
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
       "path": "tests/test_p3d_stream_differential_closure.py",
       "roles": [
         "test_consumer"
@@ -8201,9 +8561,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "cedda1cd5abaa7de0fc368f56aeb9ac235867aead47da8d2f921c9f426b79705",
+      "sha256": "f8b96fdcb219a2d02ddeb4acf2058b854de60f45d20f509d49a469572405dd45",
       "side": "current",
-      "size_bytes": 36962
+      "size_bytes": 38177
     },
     {
       "exists": true,
@@ -8336,9 +8696,9 @@
       "roles": [
         "generator"
       ],
-      "sha256": "ae18526cde8c911822f036fe8cd5de94fc776d8d0b9fb862587b2ec9b586e287",
+      "sha256": "68a5f0c9f01a7c09dfa1b36f46bdc85d4e22fc965448e0481087cbdb7b4053ec",
       "side": "current",
-      "size_bytes": 208573
+      "size_bytes": 221340
     },
     {
       "exists": true,
@@ -16806,10 +17166,10 @@
   "schema_version": "xdebug-rtl-wave-assets.v1",
   "summary": {
     "current": {
-      "asset_count": 560,
-      "fst_count": 78,
-      "rtl_count": 82,
-      "test_consumer_count": 81,
+      "asset_count": 584,
+      "fst_count": 84,
+      "rtl_count": 84,
+      "test_consumer_count": 85,
       "vcd_count": 1
     },
     "missing_assets": [],

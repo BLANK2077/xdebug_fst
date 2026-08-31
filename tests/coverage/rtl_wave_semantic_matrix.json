@@ -9507,10 +9507,6 @@
     }
   },
   "p3_queue": {
-    "P3-D": [
-      "fixture.axi_vip",
-      "fixture.axi_xamba_vip"
-    ],
     "P3-E": [
       "cross_fixture.public_contract_consumers",
       "fixture.npi_fsdb_sva",
@@ -43524,206 +43520,125 @@
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.axi"
+          "current.axi_vip"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                50,
-                72
-              ],
               "axi": [
+                4,
+                5,
+                6,
+                7,
+                8,
                 9,
                 10,
-                14,
-                15,
-                16,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-                24,
-                25,
-                26,
-                30,
-                31,
-                32,
-                33,
-                34,
-                35,
-                36,
-                37,
-                47,
-                48,
-                53,
-                55,
-                56,
-                58,
-                59,
-                62,
-                63,
-                65,
-                70,
-                75,
-                78,
-                79,
-                82,
-                83,
-                84,
-                85,
-                89,
-                90,
-                91,
-                93,
-                94,
-                105,
-                107,
-                108,
-                109,
-                110,
-                111,
-                113,
-                114,
-                115,
-                119,
-                120,
-                121,
-                122,
-                123,
-                124,
-                125
+                11
               ],
               "clock": [
-                7,
-                50,
-                72,
-                103,
-                118
+                19
               ],
-              "continuous_assign": [
-                47,
-                48,
-                70
-              ],
-              "delay": [
-                2,
-                117
-              ],
-              "four_state_literal": [
-                47,
-                48
-              ],
-              "if": [
-                51,
-                55,
-                58,
-                62,
-                65,
-                73,
-                78,
-                82,
-                89,
-                90
+              "interface": [
+                3,
+                14
               ],
               "module": [
-                2,
-                102
-              ],
-              "nonblocking_assignment": [
-                52,
-                53,
-                56,
-                59,
-                60,
-                63,
-                65,
-                74,
-                75,
-                76,
-                79,
-                80,
-                83,
-                84,
-                85,
-                86,
-                87,
-                91,
-                93,
-                94,
-                95
-              ],
-              "reset": [
-                8,
-                51,
-                73,
-                104,
-                118
+                18
               ]
             },
             "fixture_ids": [
-              "current.axi"
+              "current.axi_vip"
             ],
             "kind": "rtl",
-            "line_anchor": 2,
-            "line_count": 127,
-            "path": "testdata/fixtures/axi/axi_top.sv",
-            "sha256": "2cebb41b78715e3f24d7a0fcb0c4ff92d4420251e7850bd16f29a2ef11956240"
-          },
-          {
-            "fixture_ids": [
-              "current.axi"
-            ],
-            "kind": "testbench",
             "line_anchor": 1,
-            "line_count": 44,
-            "path": "testdata/fixtures/axi/tb_axi.cpp",
-            "sha256": "77b6153b9ee1599e5173c355de738c05628cfdbd3e92e8aef4b5781a763fc82f"
+            "line_count": 22,
+            "path": "testdata/fixtures/axi_vip/axi_vip_stress_top.sv",
+            "sha256": "c6fd7d163c25840c2c8991c2c536487aeb2c96ce0ec8b592cf632f1609671ec2"
           },
           {
             "fixture_ids": [
-              "current.axi"
+              "current.axi_vip"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
+            "line_count": 118,
+            "path": "testdata/fixtures/axi_vip/fixed_delay/waves.fst",
+            "sha256": "756b8e203c13ffd3a10e63648b70ff7edf0c7bcff42579e28492cc90a78a5830"
+          },
+          {
+            "fixture_ids": [
+              "current.axi_vip"
+            ],
+            "kind": "waveform_fst",
+            "line_anchor": 1,
+            "line_count": 610,
+            "path": "testdata/fixtures/axi_vip/random_seed_19/waves.fst",
+            "sha256": "218f8cc7fba1059a7c488f6a3f6c94d2946e15838a5e87bdf6f6142e185f76dc"
+          },
+          {
+            "fixture_ids": [
+              "current.axi_vip"
+            ],
+            "kind": "waveform_fst",
+            "line_anchor": 1,
+            "line_count": 579,
+            "path": "testdata/fixtures/axi_vip/random_seed_7/waves.fst",
+            "sha256": "2799e98472e0232b260fdcb52ce7b560214c06f1365dac7efada50f152c51fad"
+          },
+          {
+            "fixture_ids": [
+              "current.axi_vip"
+            ],
+            "kind": "waveform_fst",
+            "line_anchor": 1,
+            "line_count": 612,
+            "path": "testdata/fixtures/axi_vip/random_seed_73/waves.fst",
+            "sha256": "0423c3b34c0a7b1e35d03e28d9855a524b747888d07ed1c469005a6eeabfe9c8"
+          },
+          {
+            "fixture_ids": [
+              "current.axi_vip"
+            ],
+            "kind": "waveform_fst",
+            "line_anchor": 1,
+            "line_count": 10544,
+            "path": "testdata/fixtures/axi_vip/stress/waves.fst",
+            "sha256": "0c60efd9c06465624387b0d5ccd6d403c67bb62b04ba51695d90e5375c854be4"
+          },
+          {
+            "fixture_ids": [
+              "current.axi_vip"
+            ],
+            "kind": "testbench",
+            "line_anchor": 1,
             "line_count": 35,
-            "path": "testdata/fixtures/axi/waves.fst",
-            "sha256": "6cd22ee97d46763322570322f3a7c1057b85a91768f802bcfba91c4c3adc4d49"
+            "path": "testdata/fixtures/axi_vip/tb_axi_svt.cpp",
+            "sha256": "fbb82f1b9219f73bb3147417728e5cccd5f31a6529a4eafce9144f6a7755fca3"
+          },
+          {
+            "fixture_ids": [
+              "current.axi_vip"
+            ],
+            "kind": "testbench",
+            "line_anchor": 1,
+            "line_count": 175,
+            "path": "testdata/fixtures/axi_vip/tb_axi_svt_stress.cpp",
+            "sha256": "56f9a0b4e612818342290a186313000b2d68541b882662f12e5f66b5d2133c81"
           }
         ],
         "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
         "test_evidence": [
           {
-            "line": 398,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_axi_query"
+            "line": 428,
+            "path": "tests/test_p3d_axi_differential.py",
+            "sha256": "b1d089cb0eb669d37cf3373369e1566fac47d0e1557f9f54d06e05c6a53b3ed5",
+            "test": "test_current_svt_axi_profile_matches_locked_public_semantics"
           },
           {
-            "line": 515,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_axi_analysis"
-          },
-          {
-            "line": 573,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_axi_statistics"
-          },
-          {
-            "line": 793,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_axi_outstanding_timeline"
-          },
-          {
-            "line": 828,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_axi_request_response_pair"
+            "line": 462,
+            "path": "tests/test_p3d_axi_differential.py",
+            "sha256": "b1d089cb0eb669d37cf3373369e1566fac47d0e1557f9f54d06e05c6a53b3ed5",
+            "test": "test_current_svt_axi_profiles_lock_events_tool_and_fst"
           }
         ]
       },
@@ -43798,6 +43713,11 @@
         ],
         "fixture_id": "xdebug.axi_vip",
         "fixture_source_dir": "xdebug/testdata/waveform/axi_vip_real",
+        "locked_public_oracle": {
+          "observation_count": 85,
+          "path": "tests/data/rtl_wave_differential/p3d-axi-vip.public-oracle.json",
+          "sha256": "433f6197245c0ab9eff27e5e04f9670a9e2e83b71a0bb36f15a3b469e88476ff"
+        },
         "observed_public_actions": [
           "actions",
           "apb.config.load",
@@ -44431,10 +44351,28 @@
           "request_example": "compat/xdebug-v1/examples/requests/axi.channel_stall.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.channel_stall.response.schema.json"
         },
+        "axi.config.list": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.config.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.list.response.schema.json"
+        },
         "axi.config.load": {
           "completeness_fields": [],
           "request_example": "compat/xdebug-v1/examples/requests/axi.config.load.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.load.response.schema.json"
+        },
+        "axi.export": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.export.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.export.response.schema.json"
         },
         "axi.latency_outlier": {
           "completeness_fields": [
@@ -44499,30 +44437,75 @@
           ],
           "request_example": "compat/xdebug-v1/examples/requests/axi.statistics.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.statistics.response.schema.json"
+        },
+        "axi.transaction.cursor": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.transaction.cursor.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.transaction.cursor.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版 AXI 六运行公开 oracle 已通过；当前两套专属确定性 FST fixture 按 profile、完整事务计数、通道 handshake、XOUT、export artifact 与公开 cache 边界逐项回放，剩余公开缺口为零。",
+      "runtime_audit": {
+        "artifact_check_count": 15,
+        "current_fixture_id": "current.axi_vip",
+        "difference_count": 0,
+        "observation_count": 85,
+        "p3_batch": "P3-D3",
+        "path": "tests/data/rtl_wave_differential/p3d-axi-vip.public-oracle.json",
+        "profile_count": 5,
+        "remaining_observable_gap_count": 0,
+        "sha256": "433f6197245c0ab9eff27e5e04f9670a9e2e83b71a0bb36f15a3b469e88476ff",
+        "status": "semantic-equivalent",
+        "transaction_count": 8000,
+        "xout_check_count": 35
+      },
       "scenario_id": "fixture.axi_vip",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.axi"
+          "current.axi_xamba_vip"
         ],
         "candidate_sources": [
           {
+            "fixture_ids": [
+              "current.axi_xamba_vip"
+            ],
+            "kind": "testbench",
+            "line_anchor": 1,
+            "line_count": 35,
+            "path": "testdata/fixtures/axi_xamba_vip/tb_axi_xamba.cpp",
+            "sha256": "92763d2d7ca98d5d778e91acbeb87e781abe6f3366c40829bfb927d4bf67e9b3"
+          },
+          {
+            "fixture_ids": [
+              "current.axi_xamba_vip"
+            ],
+            "kind": "waveform_fst",
+            "line_anchor": 1,
+            "line_count": 107,
+            "path": "testdata/fixtures/axi_xamba_vip/waves.fst",
+            "sha256": "b2e3b5cf10d06db77aa814f94a204acda05fa057154e2a0f61cf16d995c7e140"
+          },
+          {
             "construct_lines": {
-              "always": [
-                50,
-                72
-              ],
               "axi": [
-                9,
-                10,
+                7,
+                8,
+                12,
+                13,
                 14,
-                15,
                 16,
+                17,
                 18,
                 19,
                 20,
@@ -44530,172 +44513,202 @@
                 22,
                 23,
                 24,
-                25,
-                26,
+                28,
+                29,
                 30,
                 31,
                 32,
                 33,
                 34,
                 35,
-                36,
-                37,
-                47,
-                48,
-                53,
-                55,
-                56,
-                58,
-                59,
+                61,
                 62,
                 63,
+                64,
                 65,
-                70,
-                75,
-                78,
+                66,
+                67,
+                72,
+                73,
+                77,
                 79,
+                81,
                 82,
-                83,
-                84,
                 85,
-                89,
+                87,
+                88,
                 90,
-                91,
+                92,
                 93,
                 94,
-                105,
+                97,
+                98,
+                99,
+                101,
+                106,
                 107,
-                108,
-                109,
+                111,
+                113,
+                115,
+                116,
+                119,
+                120,
+                124,
+                125,
+                126,
+                128,
+                129,
+                134,
+                135,
+                139,
+                141,
+                142,
+                143,
+                144,
+                145,
+                146,
+                150,
+                151,
+                152,
+                153,
+                154
+              ],
+              "clock": [
+                5,
+                42,
+                43,
+                48,
+                78,
+                80,
+                89,
+                91,
+                100,
+                112,
+                114,
+                127,
+                157
+              ],
+              "delay": [
+                43
+              ],
+              "four_state_literal": [
+                42,
+                47,
+                49,
+                54,
+                56,
+                57,
+                61,
+                62,
+                63,
+                64,
+                65,
+                66,
+                67,
+                73,
+                76,
+                77,
+                79,
+                81,
+                82,
+                85,
+                86,
+                88,
+                90,
+                92,
+                93,
+                94,
+                99,
+                101,
+                107,
                 110,
                 111,
                 113,
-                114,
                 115,
-                119,
-                120,
+                116,
                 121,
                 122,
-                123,
-                124,
-                125
+                126,
+                128,
+                129,
+                143,
+                144,
+                153,
+                154,
+                156
               ],
-              "clock": [
-                7,
-                50,
-                72,
-                103,
-                118
-              ],
-              "continuous_assign": [
-                47,
-                48,
-                70
-              ],
-              "delay": [
-                2,
-                117
-              ],
-              "four_state_literal": [
-                47,
-                48
+              "function": [
+                52
               ],
               "if": [
-                51,
+                53,
                 55,
-                58,
-                62,
-                65,
-                73,
-                78,
-                82,
-                89,
-                90
+                159
+              ],
+              "initial": [
+                41,
+                46,
+                133
+              ],
+              "interface": [
+                4
               ],
               "module": [
-                2,
-                102
+                38,
+                168
               ],
-              "nonblocking_assignment": [
-                52,
-                53,
-                56,
-                59,
-                60,
-                63,
-                65,
-                74,
-                75,
-                76,
-                79,
-                80,
-                83,
+              "procedural_for": [
                 84,
-                85,
-                86,
-                87,
-                91,
-                93,
-                94,
-                95
+                118,
+                158
               ],
               "reset": [
-                8,
-                51,
-                73,
-                104,
-                118
+                6,
+                47,
+                49,
+                156
+              ],
+              "task": [
+                60,
+                70,
+                104
               ]
             },
             "fixture_ids": [
-              "current.axi"
+              "current.axi_xamba_vip"
             ],
             "kind": "rtl",
-            "line_anchor": 2,
-            "line_count": 127,
-            "path": "testdata/fixtures/axi/axi_top.sv",
-            "sha256": "2cebb41b78715e3f24d7a0fcb0c4ff92d4420251e7850bd16f29a2ef11956240"
-          },
-          {
-            "fixture_ids": [
-              "current.axi"
-            ],
-            "kind": "testbench",
             "line_anchor": 1,
-            "line_count": 44,
-            "path": "testdata/fixtures/axi/tb_axi.cpp",
-            "sha256": "77b6153b9ee1599e5173c355de738c05628cfdbd3e92e8aef4b5781a763fc82f"
-          },
-          {
-            "fixture_ids": [
-              "current.axi"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 35,
-            "path": "testdata/fixtures/axi/waves.fst",
-            "sha256": "6cd22ee97d46763322570322f3a7c1057b85a91768f802bcfba91c4c3adc4d49"
+            "line_count": 170,
+            "path": "testdata/fixtures/axi_xamba_vip/xdebug_axi_xamba_fixture_top.sv",
+            "sha256": "58d30c05df79e0a1ccba1f8f786e53bd2a53457c99ae2202f4296b0c40a1829b"
           }
         ],
         "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
         "test_evidence": [
           {
-            "line": 398,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_axi_query"
+            "line": 297,
+            "path": "tests/test_p3d_axi_differential.py",
+            "sha256": "b1d089cb0eb669d37cf3373369e1566fac47d0e1557f9f54d06e05c6a53b3ed5",
+            "test": "test_current_xamba_axi_fixture_matches_locked_public_semantics"
           },
           {
-            "line": 515,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_axi_analysis"
+            "line": 334,
+            "path": "tests/test_p3d_axi_differential.py",
+            "sha256": "b1d089cb0eb669d37cf3373369e1566fac47d0e1557f9f54d06e05c6a53b3ed5",
+            "test": "test_current_xamba_axi_fixture_locks_formula_tool_and_deterministic_fst"
           },
           {
-            "line": 573,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_axi_statistics"
+            "line": 375,
+            "path": "tests/test_p3d_axi_differential.py",
+            "sha256": "b1d089cb0eb669d37cf3373369e1566fac47d0e1557f9f54d06e05c6a53b3ed5",
+            "test": "test_current_xamba_axi_matches_locked_soft_budget_public_observations"
+          },
+          {
+            "line": 400,
+            "path": "tests/test_p3d_axi_differential.py",
+            "sha256": "b1d089cb0eb669d37cf3373369e1566fac47d0e1557f9f54d06e05c6a53b3ed5",
+            "test": "test_current_xamba_axi_exposes_locked_public_hard_limit_error"
           }
         ]
       },
@@ -44723,6 +44736,11 @@
         ],
         "fixture_id": "xdebug.axi_xamba_vip",
         "fixture_source_dir": "xdebug/testdata/waveform/axi_xamba_vip_real",
+        "locked_public_oracle": {
+          "observation_count": 17,
+          "path": "tests/data/rtl_wave_differential/p3d-axi-xamba-vip.public-oracle.json",
+          "sha256": "608222fc871d389f3237b2230ff23f28bb106a7b4fd650f8de52091255a38bb7"
+        },
         "observed_public_actions": [
           "axi.analysis",
           "axi.config.load",
@@ -44898,6 +44916,66 @@
           "request_example": "compat/xdebug-v1/examples/requests/axi.analysis.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.analysis.response.schema.json"
         },
+        "axi.channel_stall": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.channel_stall.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.channel_stall.response.schema.json"
+        },
+        "axi.config.list": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.config.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.list.response.schema.json"
+        },
+        "axi.config.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.config.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.load.response.schema.json"
+        },
+        "axi.export": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.export.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.export.response.schema.json"
+        },
+        "axi.latency_outlier": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.latency_outlier.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.latency_outlier.response.schema.json"
+        },
+        "axi.outstanding_timeline": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.outstanding_timeline.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.outstanding_timeline.response.schema.json"
+        },
         "axi.query": {
           "completeness_fields": [
             "summary.analysis_complete",
@@ -44911,6 +44989,19 @@
           "request_example": "compat/xdebug-v1/examples/requests/axi.query.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.query.response.schema.json"
         },
+        "axi.request_response_pair": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.request_response_pair.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.request_response_pair.response.schema.json"
+        },
         "axi.statistics": {
           "completeness_fields": [
             "summary.analysis_complete",
@@ -44923,11 +45014,38 @@
           ],
           "request_example": "compat/xdebug-v1/examples/requests/axi.statistics.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.statistics.response.schema.json"
+        },
+        "axi.transaction.cursor": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.transaction.cursor.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.transaction.cursor.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版 AXI 六运行公开 oracle 已通过；当前两套专属确定性 FST fixture 按 profile、完整事务计数、通道 handshake、XOUT、export artifact 与公开 cache 边界逐项回放，剩余公开缺口为零。",
+      "runtime_audit": {
+        "artifact_check_count": 3,
+        "current_fixture_id": "current.axi_xamba_vip",
+        "difference_count": 0,
+        "observation_count": 17,
+        "p3_batch": "P3-D3",
+        "path": "tests/data/rtl_wave_differential/p3d-axi-xamba-vip.public-oracle.json",
+        "profile_count": 1,
+        "remaining_observable_gap_count": 0,
+        "sha256": "608222fc871d389f3237b2230ff23f28bb106a7b4fd650f8de52091255a38bb7",
+        "status": "semantic-equivalent",
+        "transaction_count": 64,
+        "xout_check_count": 7
+      },
       "scenario_id": "fixture.axi_xamba_vip",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -48304,9 +48422,9 @@
     "scenario_count": 88,
     "status_counts": {
       "missing": 1,
-      "partial": 4,
+      "partial": 2,
       "proven-unobservable": 5,
-      "semantic-equivalent": 78
+      "semantic-equivalent": 80
     },
     "unclassified_count": 0,
     "unqueued_gap_count": 0
