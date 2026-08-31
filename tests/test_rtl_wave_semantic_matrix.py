@@ -21,6 +21,7 @@ from tools.build_rtl_wave_semantic_matrix import (
     validate_p3c_phase4_oracle,
     validate_p3c_phase5_public_oracle,
     validate_p3c_timing_oracle,
+    validate_p3e_closure_audit,
 )
 
 
@@ -105,10 +106,8 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "original_hdl_count": 103,
         "scenario_count": 88,
         "status_counts": {
-            "missing": 1,
-            "partial": 2,
-            "proven-unobservable": 5,
-            "semantic-equivalent": 80,
+            "proven-unobservable": 7,
+            "semantic-equivalent": 81,
         },
         "unclassified_count": 0,
         "unqueued_gap_count": 0,
@@ -171,6 +170,9 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "fixture.apb_xamba_vip",
         "fixture.axi_vip",
         "fixture.axi_xamba_vip",
+        "fixture.xif_event",
+        "fixture.npi_fsdb_sva",
+        "cross_fixture.public_contract_consumers",
         "active.p0.declared_only_p0_4",
         *{f"active.p0.{index:02d}" for index in range(1, 7)},
         *{f"active.composite.{index:02d}" for index in range(1, 21)},
@@ -178,6 +180,62 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         *{f"active.phase4.{index:02d}" for index in range(1, 21)},
         *{f"active.phase5.{index:02d}" for index in range(1, 11)},
     }
+
+
+def test_p3e_matrix_closes_content_equivalence_and_bounded_private_surfaces() -> None:
+    matrix = load_matrix()
+    scenarios = {item["scenario_id"]: item for item in matrix["scenarios"]}
+    assert matrix["p3_queue"] == {}
+
+    xif = scenarios["fixture.xif_event"]
+    assert xif["status"] == "semantic-equivalent"
+    assert xif["current"]["candidate_fixture_ids"] == ["current.xif_event"]
+    assert xif["runtime_audit"] == {
+        "cross_side_hash_equality_required": False,
+        "directly_reused_config_count": 6,
+        "observation_count": 32,
+        "p3_batch": "P3-E",
+        "path": "tests/data/rtl_wave_differential/p3e-closure.audit.json",
+        "public_content_equivalence_required": True,
+        "remaining_observable_gap_count": 0,
+        "required_observation_count": 12,
+        "sha256": xif["runtime_audit"]["sha256"],
+        "status": "semantic-equivalent",
+    }
+
+    sva = scenarios["fixture.npi_fsdb_sva"]
+    assert sva["status"] == "proven-unobservable"
+    assert sva["unobservable_proof"]["observed_public_action_count"] == 0
+    assert sva["unobservable_proof"]["public_exposure_count"] == 0
+    assert sva["unobservable_proof"][
+        "remaining_distinct_public_observation_count"
+    ] == 0
+
+    cross = scenarios["cross_fixture.public_contract_consumers"]
+    assert cross["status"] == "proven-unobservable"
+    assert len(cross["public_action_contracts"]) == 72
+    assert cross["unobservable_proof"]["consumer_count"] == 37
+    assert cross["unobservable_proof"]["catalog_actions_not_observed"] == [
+        "session.kill"
+    ]
+    assert cross["unobservable_proof"][
+        "remaining_distinct_public_observation_count"
+    ] == 0
+
+
+def test_p3e_matrix_validator_rejects_reopened_observable_gap() -> None:
+    assets = load_assets()
+    current = {
+        item["path"]: item
+        for item in assets["assets"] if item["side"] == "current"
+    }
+    path = ROOT / "tests/data/rtl_wave_differential/p3e-closure.audit.json"
+    audit = json.loads(path.read_text(encoding="utf-8"))
+    validate_p3e_closure_audit(audit, ROOT, current)
+    mutated = deepcopy(audit)
+    mutated["xif_event"]["remaining_observable_gap_count"] = 1
+    with pytest.raises(MatrixError, match="XIF content-equivalence"):
+        validate_p3e_closure_audit(mutated, ROOT, current)
 
 
 def test_p3d_stream_and_private_differential_tool_are_closed_separately() -> None:

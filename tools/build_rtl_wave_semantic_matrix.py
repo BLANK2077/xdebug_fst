@@ -68,6 +68,9 @@ P3D_STREAM_DIFFERENTIAL_CLOSURE_AUDIT = Path(
     "tests/data/rtl_wave_differential/"
     "p3d-stream-differential-closure.audit.json"
 )
+P3E_CLOSURE_AUDIT = Path(
+    "tests/data/rtl_wave_differential/p3e-closure.audit.json"
+)
 P3D_APB_ORACLES = {
     "xdebug.apb_vip": Path(
         "tests/data/rtl_wave_differential/p3d-apb-vip.public-oracle.json"
@@ -382,12 +385,24 @@ FIXTURE_CANDIDATES = {
     },
     "xdebug.npi_fsdb_sva": {
         "fixtures": [],
-        "tests": [],
+        "tests": [
+            "test_sva_npi_boundary_is_private_and_bounded_by_frozen_schemas",
+            "test_p3e_sva_and_cross_fixture_proofs_are_strictly_bounded",
+        ],
         "actions": [
             "scope.list", "value.at", "signal.changes", "event.find",
         ],
         "batch": "P3-E",
-        "status": "missing",
+        "status": "proven-unobservable",
+        "rationale": (
+            "冻结原版 consumer 只调用私有 NPI probe，73 个公开 Action/schema 不暴露"
+            " assertion identity/event、SVA AST 或 design-wave join；有限静态证明剩余"
+            " 独立公开观察点为零，未来 schema 暴露将 fail closed。"
+        ),
+        "evidence_scope": (
+            "只关闭冻结 npi_fsdb_sva 私有 probe schema 和冻结 73 Action 的边界；"
+            "不把通用 event/value/scope 能力宣称为 SVA 行为替代"
+        ),
     },
     "xdebug.apb_vip": {
         "fixtures": ["current.apb_vip"],
@@ -513,10 +528,26 @@ FIXTURE_CANDIDATES = {
         ),
     },
     "xdebug.xif_event": {
-        "fixtures": [],
-        "tests": ["test_value_at_preserves_event_kind"],
+        "fixtures": ["current.xif_event"],
+        "tests": [
+            "test_xif_fixture_exists_and_is_locked",
+            "test_xif_original_oracle_locks_all_e2_observations",
+            "test_xif_all_32_original_observations_replay_on_raw_fst",
+            "test_xif_event_find_xout_preserves_complete_public_evidence",
+            "test_xif_field_shorthand_rejects_partial_integer_bounds",
+        ],
         "actions": ["value.at", "event.find", "event.export"],
         "batch": "P3-E",
+        "status": "semantic-equivalent",
+        "rationale": (
+            "六份原版 event 配置直接复制；依赖 UVM/XIF/VCS/FSDB 的 RTL 仅作最小"
+            " pin-level 开源镜像。冻结原版 FSDB 的 32 项公开观察已在当前原始 FST 上"
+            "按时序、位值、X 态、流控、错误、XOUT 和 artifact 内容逐项通过。"
+        ),
+        "evidence_scope": (
+            "验收测试内容与公开可观察语义等价，不要求双侧源码或波形哈希相同；"
+            "哈希只冻结身份和当前确定性重建"
+        ),
     },
 }
 
@@ -3872,6 +3903,99 @@ def current_evidence(
     }
 
 
+def validate_p3e_closure_audit(
+    audit: dict,
+    repo_root: Path,
+    current_assets: dict[str, dict],
+) -> dict:
+    if (
+        audit.get("schema_version") != "xdebug.p3e-closure-audit.v1"
+        or audit.get("goal_id") != GOAL_ID
+    ):
+        raise MatrixError("P3-E closure audit identity drifted")
+    if audit.get("session") != {
+        "all_writes_repository_local": True,
+        "external_sources_read_only": True,
+        "fallback_used": False,
+        "fixture_rebuilt": False,
+    }:
+        raise MatrixError("P3-E closure write/fallback boundary drifted")
+    if audit.get("verdict") != {
+        "missing_count": 0,
+        "p3_batch": "P3-E",
+        "partial_count": 0,
+        "proven_unobservable_count": 2,
+        "remaining_observable_gap_count": 0,
+        "scenario_count": 3,
+        "semantic_equivalent_count": 1,
+    }:
+        raise MatrixError("P3-E closure verdict drifted")
+
+    def locked(path: str, digest: str) -> None:
+        asset = current_assets.get(path)
+        if asset is None or asset["sha256"] != digest:
+            raise MatrixError(f"P3-E closure asset drifted: {path}")
+
+    boundary = audit.get("boundary", {})
+    locked(boundary.get("path", ""), boundary.get("sha256", ""))
+    xif = audit.get("xif_event", {})
+    oracle = xif.get("oracle", {})
+    locked(oracle.get("path", ""), oracle.get("sha256", ""))
+    fixture = xif.get("fixture", {})
+    locked(fixture.get("manifest_path", ""), fixture.get("manifest_sha256", ""))
+    locked("testdata/fixtures/xif_event/fixture.sha256", fixture.get("lock_sha256", ""))
+    locked("testdata/fixtures/xif_event/waves.fst", fixture.get("fst_sha256", ""))
+    test_gate = xif.get("test_gate", {})
+    locked(test_gate.get("path", ""), test_gate.get("sha256", ""))
+    policy = xif.get("asset_reuse_policy", {})
+    if (
+        xif.get("classification") != "semantic-equivalent"
+        or oracle.get("observation_count") != 32
+        or oracle.get("cache_reused") is not True
+        or oracle.get("fixture_rebuilt") is not False
+        or xif.get("remaining_observable_gap_count") != 0
+        or len(xif.get("requirements", {})) != 12
+        or not all(xif.get("requirements", {}).values())
+        or policy.get("direct_copy_preferred") is not True
+        or len(policy.get("directly_reused_configs", [])) != 6
+        or policy.get("cross_side_hash_equality_required") is not False
+        or policy.get("public_content_equivalence_required") is not True
+        or policy.get("original_rtl_directly_executable_open_source") is not False
+        or fixture.get("proprietary_vip_used") is not False
+        or fixture.get("fsdb_conversion_used") is not False
+        or fixture.get("action_export_feedback_used") is not False
+    ):
+        raise MatrixError("P3-E XIF content-equivalence closure drifted")
+    for row in policy["directly_reused_configs"]:
+        locked(
+            f"testdata/fixtures/xif_event/{row.get('name', '')}",
+            row.get("sha256", ""),
+        )
+        if row.get("reuse") != "byte-identical-copy":
+            raise MatrixError("P3-E XIF direct-reuse disposition drifted")
+
+    sva = audit.get("sva_npi", {})
+    if (
+        sva.get("classification") != "proven-unobservable"
+        or sva.get("observed_public_action_count") != 0
+        or sva.get("public_exposure_count") != 0
+        or sva.get("remaining_distinct_public_observation_count") != 0
+    ):
+        raise MatrixError("P3-E SVA bounded proof drifted")
+    cross = audit.get("cross_fixture", {})
+    if (
+        cross.get("classification") != "proven-unobservable"
+        or cross.get("consumer_count") != 37
+        or cross.get("observed_public_action_count") != 72
+        or cross.get("contract_count") != 72
+        or cross.get("catalog_actions_not_observed") != ["session.kill"]
+        or cross.get("remaining_unmapped_consumer_action_count") != 0
+        or cross.get("remaining_distinct_public_observation_count") != 0
+    ):
+        raise MatrixError("P3-E cross-fixture bounded proof drifted")
+    return audit
+
+
 def active_source_paths(group: str, case: str, original_assets: dict[str, dict]) -> list[str]:
     base = "xdebug/tests/active_trace_chain"
     candidates: list[str]
@@ -4139,6 +4263,15 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         current_assets,
     )
     p3d_axi_rows = validate_p3d_axi_assets(repo_root, current_assets)
+    p3e_closure_asset = current_assets.get(P3E_CLOSURE_AUDIT.as_posix())
+    if p3e_closure_asset is None:
+        raise MatrixError("P0 manifest does not freeze the P3-E closure audit")
+    p3e_closure = json.loads(
+        validate_frozen_file(
+            repo_root, p3e_closure_asset
+        ).decode("utf-8")
+    )
+    validate_p3e_closure_audit(p3e_closure, repo_root, current_assets)
 
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
@@ -4382,6 +4515,36 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                 "FST fixture 按 profile、完整事务计数、通道 handshake、XOUT、"
                 "export artifact 与公开 cache 边界逐项回放，剩余公开缺口为零。"
             )
+        if fixture_id == "xdebug.xif_event":
+            closure = p3e_closure["xif_event"]
+            scenario["original"]["locked_public_oracle"] = closure["oracle"]
+            scenario["runtime_audit"] = {
+                "path": P3E_CLOSURE_AUDIT.as_posix(),
+                "sha256": p3e_closure_asset["sha256"],
+                "status": closure["classification"],
+                "p3_batch": "P3-E",
+                "observation_count": closure["oracle"]["observation_count"],
+                "required_observation_count": len(closure["requirements"]),
+                "directly_reused_config_count": len(
+                    closure["asset_reuse_policy"]["directly_reused_configs"]
+                ),
+                "cross_side_hash_equality_required": closure[
+                    "asset_reuse_policy"
+                ]["cross_side_hash_equality_required"],
+                "public_content_equivalence_required": closure[
+                    "asset_reuse_policy"
+                ]["public_content_equivalence_required"],
+                "remaining_observable_gap_count": closure[
+                    "remaining_observable_gap_count"
+                ],
+            }
+        if fixture_id == "xdebug.npi_fsdb_sva":
+            proof = p3e_closure["sva_npi"]
+            scenario["unobservable_proof"] = {
+                "path": P3E_CLOSURE_AUDIT.as_posix(),
+                "sha256": p3e_closure_asset["sha256"],
+                **proof,
+            }
         if fixture_id == "xdebug.active_trace_runner":
             runner_proof = p3c_closure_audit["runner"]
             coverage = runner_proof["coverage"]
@@ -5028,13 +5191,26 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         )
 
     cross_paths = fixture_consumers(consumers, "original.cross_fixture")
+    cross_proof = p3e_closure["cross_fixture"]
+    cross_actions = fixture_actions(consumers, cross_paths)
+    if cross_actions != cross_proof["observed_public_actions"]:
+        raise MatrixError("P3-E cross-fixture consumer Action index drifted")
+    cross_tests = [
+        current_tests[name]
+        for name in (
+            "test_cross_fixture_surface_is_a_complete_contract_index_only",
+            "test_p3e_sva_and_cross_fixture_proofs_are_strictly_bounded",
+        )
+    ]
     scenarios.append({
         "scenario_id": "cross_fixture.public_contract_consumers",
         "kind": "cross_fixture_contract_surface",
         "p3_batch": "P3-E",
-        "status": "partial",
+        "status": "proven-unobservable",
         "rationale": (
-            "跨 fixture consumer 已完整归档，但其合同/Action 断言要在 P2/P4 由 73 Action 门禁裁决。"
+            "37 个 synthetic cross-fixture consumer 的 72 个公开 Action 已逐项绑定冻结合同；"
+            "该分组没有独立 RTL、刺激或波形观察点，故只关闭额外独立观察点。各波形 fixture "
+            "仍由自身 runtime differential 裁决，session.kill 继续由 73 Action/P4 门禁覆盖。"
         ),
         "original": {
             "fixture_id": None,
@@ -5046,10 +5222,20 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         "current": {
             "candidate_fixture_ids": [],
             "candidate_sources": [],
-            "test_evidence": [],
-            "evidence_scope": "P2/P4 73 Action cross-fixture contract gate",
+            "test_evidence": cross_tests,
+            "evidence_scope": (
+                "P3-E 只关闭 synthetic consumer index 的额外独立观察点；"
+                "不替代任何 fixture runtime differential"
+            ),
         },
-        "public_action_contracts": {},
+        "unobservable_proof": {
+            "path": P3E_CLOSURE_AUDIT.as_posix(),
+            "sha256": p3e_closure_asset["sha256"],
+            **cross_proof,
+        },
+        "public_action_contracts": {
+            action: contracts[action] for action in cross_actions
+        },
     })
 
     scenarios.sort(key=lambda item: item["scenario_id"])

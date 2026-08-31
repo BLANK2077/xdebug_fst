@@ -1,0 +1,262 @@
+{
+  "boundary": {
+    "path": "tests/data/rtl_wave_differential/p3e-boundary.audit.json",
+    "sha256": "242750e22f7cb2fe76b661d4040e10db771fb2f4388f25d1ddac9174c5d1a1c0"
+  },
+  "cross_fixture": {
+    "catalog_actions_not_observed": [
+      "session.kill"
+    ],
+    "classification": "proven-unobservable",
+    "consumer_count": 37,
+    "contract_count": 72,
+    "fixture_id": "original.cross_fixture",
+    "observed_public_action_count": 72,
+    "observed_public_actions": [
+      "actions",
+      "apb.config.list",
+      "apb.config.load",
+      "apb.query",
+      "apb.statistics",
+      "apb.transaction.cursor",
+      "apb.transfer_window",
+      "axi.analysis",
+      "axi.channel_stall",
+      "axi.config.list",
+      "axi.config.load",
+      "axi.export",
+      "axi.latency_outlier",
+      "axi.outstanding_timeline",
+      "axi.query",
+      "axi.request_response_pair",
+      "axi.statistics",
+      "axi.transaction.cursor",
+      "batch",
+      "counter.statistics",
+      "event.config.list",
+      "event.config.load",
+      "event.export",
+      "event.find",
+      "expr.eval_at",
+      "expr.normalize",
+      "list.add",
+      "list.create",
+      "list.delete",
+      "list.export",
+      "list.first_change",
+      "list.load",
+      "list.show",
+      "list.validate",
+      "nwave.rc.generate",
+      "protocol.handshake.inspect",
+      "schema",
+      "scope.list",
+      "scope.roots",
+      "session.close",
+      "session.doctor",
+      "session.gc",
+      "session.list",
+      "session.open",
+      "signal.anomaly.inspect",
+      "signal.canonicalize",
+      "signal.changes",
+      "signal.resolve",
+      "signal.sampled_pulse.inspect",
+      "signal.stability",
+      "signal.statistics",
+      "signal.xz_verify",
+      "stream.config.get",
+      "stream.config.list",
+      "stream.config.load",
+      "stream.describe",
+      "stream.export",
+      "stream.query",
+      "stream.validate",
+      "trace.active_driver",
+      "trace.active_driver_chain",
+      "trace.driver",
+      "trace.load",
+      "trace.x_origin",
+      "value.at",
+      "verify.conditions",
+      "waveform.cursor.delete",
+      "waveform.cursor.get",
+      "waveform.cursor.list",
+      "waveform.cursor.set",
+      "waveform.cursor.use",
+      "window.verify"
+    ],
+    "proof_scope": "closes only the synthetic cross-fixture consumer index; each waveform fixture remains governed by its own runtime differential",
+    "remaining_distinct_public_observation_count": 0,
+    "remaining_unmapped_consumer_action_count": 0
+  },
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "schema_version": "xdebug.p3e-closure-audit.v1",
+  "session": {
+    "all_writes_repository_local": true,
+    "external_sources_read_only": true,
+    "fallback_used": false,
+    "fixture_rebuilt": false
+  },
+  "sva_npi": {
+    "candidate_action_disposition": {
+      "event.find": "通用采样表达式事件，不暴露 assertion object/event kind",
+      "scope.list": "通用层级枚举，不暴露 SVA AST 或 NPI handle",
+      "signal.changes": "通用信号变化，不暴露 assertion attempt/result",
+      "value.at": "通用信号取值，不暴露 assertion attempt/result"
+    },
+    "classification": "proven-unobservable",
+    "consumer_count": 1,
+    "fixture_id": "xdebug.npi_fsdb_sva",
+    "observed_public_action_count": 0,
+    "private_probe_schema_versions": [
+      "npi-daidir-fsdb-sva-probe.v1",
+      "npi-fsdb-sva-probe.v1"
+    ],
+    "proof_scope": "only the frozen SVA/NPI private probe fields and the frozen 73-action public schemas; future schema exposure fails closed",
+    "public_exposure_count": 0,
+    "remaining_distinct_public_observation_count": 0
+  },
+  "verdict": {
+    "missing_count": 0,
+    "p3_batch": "P3-E",
+    "partial_count": 0,
+    "proven_unobservable_count": 2,
+    "remaining_observable_gap_count": 0,
+    "scenario_count": 3,
+    "semantic_equivalent_count": 1
+  },
+  "xif_event": {
+    "asset_reuse_policy": {
+      "cross_side_hash_equality_required": false,
+      "direct_copy_preferred": true,
+      "directly_reused_configs": [
+        {
+          "name": "event_bp.json",
+          "reuse": "byte-identical-copy",
+          "sha256": "c3d9fe78dd8d30e5ed532a52f7252a3421c5e58df713cbce0c9b0d7625894544"
+        },
+        {
+          "name": "event_none.json",
+          "reuse": "byte-identical-copy",
+          "sha256": "cc3074723613229fefc41ce64fa5c66e282b1d82a704f06705076a219f0a5fe9"
+        },
+        {
+          "name": "event_pair_master.json",
+          "reuse": "byte-identical-copy",
+          "sha256": "75be3b016bbc73a099cfdf13fab90c17dcb9ed0949cc0720fc3a1cc0c97e4b7e"
+        },
+        {
+          "name": "event_pair_slave.json",
+          "reuse": "byte-identical-copy",
+          "sha256": "bece75a8066e6af4a1b49ca5c9a925fb1e4b69e453079b9e36d15a0f0c46e6b3"
+        },
+        {
+          "name": "event_rdy.json",
+          "reuse": "byte-identical-copy",
+          "sha256": "c8e81605a397103822e7bbe73818d740e242c57456d25eba9d9c23b0007c7e84"
+        },
+        {
+          "name": "event_xz.json",
+          "reuse": "byte-identical-copy",
+          "sha256": "4b059282b9d31f72dcfda0c190d375276a14ab2a330cfd626fd85cb3a495955a"
+        }
+      ],
+      "original_rtl_directly_executable_open_source": false,
+      "public_content_equivalence_required": true,
+      "rtl_replacement_reason": "original-requires-uvm-xif-agent-vcs-fsdb",
+      "rtl_replacement_scope": "minimal-pin-level-semantic-mirror"
+    },
+    "classification": "semantic-equivalent",
+    "current_fixture_id": "current.xif_event",
+    "fixture": {
+      "action_export_feedback_used": false,
+      "deterministic_build_directories": 2,
+      "fsdb_conversion_used": false,
+      "fst_sha256": "244b042da3a9e6adbdcfe046f224cafcd56f9c7cb20e88bd1c5f62a5476bf4ff",
+      "fst_size": 1128,
+      "lock_sha256": "ae3c0125967fd2b8868d93764d1ceb1c11384b83e4057e5bfd5f00b1b8866010",
+      "manifest_path": "testdata/fixtures/xif_event/fixture.manifest.json",
+      "manifest_sha256": "be9c23dd1c18349bfaefafe2802b94fc29556cf782b00427260c362c5dcb5ac6",
+      "proprietary_vip_used": false
+    },
+    "oracle": {
+      "cache_reused": true,
+      "fixture_rebuilt": false,
+      "observation_count": 32,
+      "path": "tests/data/rtl_wave_differential/p3e-xif-event.public-oracle.json",
+      "sha256": "251255661924fe455eccd79ecc863f62304d0052b9bd242dca474d65fd52f35f"
+    },
+    "original_fixture_id": "xdebug.xif_event",
+    "remaining_observable_gap_count": 0,
+    "requirements": {
+      "bp_flow_control": [
+        "full.bp"
+      ],
+      "direct_packed_struct_fields": [
+        "direct.01",
+        "direct.02",
+        "direct.03",
+        "direct.04",
+        "direct.05",
+        "direct.06",
+        "direct.07",
+        "direct.08",
+        "direct.09",
+        "direct.10"
+      ],
+      "event_export_full_set": [
+        "full.rdy",
+        "full.bp",
+        "full.none",
+        "full.pair_master",
+        "full.pair_slave",
+        "full.xz"
+      ],
+      "event_find_flat_xout": [
+        "find.rdy.limit2"
+      ],
+      "event_find_line_limit": [
+        "find.rdy.limit2"
+      ],
+      "none_flow_control": [
+        "full.none"
+      ],
+      "paired_master_slave": [
+        "full.pair_master",
+        "full.pair_slave"
+      ],
+      "rdy_flow_control": [
+        "full.rdy"
+      ],
+      "relational_expression": [
+        "relational.rdy"
+      ],
+      "unknown_alias_error": [
+        "find.unknown_alias"
+      ],
+      "value_at_struct_member": [
+        "value.01",
+        "value.02",
+        "value.03",
+        "value.04",
+        "value.05"
+      ],
+      "xz_unknown_expression": [
+        "full.xz",
+        "xz.unknown"
+      ]
+    },
+    "test_gate": {
+      "path": "tests/test_p3e_xif_event_differential.py",
+      "sha256": "5188c8f655dc5672a7395e4f17d98dec05b08e3c7f78a88cd88f4e937d8c6baa",
+      "tests": [
+        "test_xif_fixture_exists_and_is_locked",
+        "test_xif_original_oracle_locks_all_e2_observations",
+        "test_xif_all_32_original_observations_replay_on_raw_fst",
+        "test_xif_event_find_xout_preserves_complete_public_evidence",
+        "test_xif_field_shorthand_rejects_partial_integer_bounds"
+      ]
+    }
+  }
+}

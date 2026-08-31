@@ -9506,13 +9506,7 @@
       "sha256": "fe0bafa4ff50d36d1fc283da07f915981ce613aae618341324edfb683c29ead5"
     }
   },
-  "p3_queue": {
-    "P3-E": [
-      "cross_fixture.public_contract_consumers",
-      "fixture.npi_fsdb_sva",
-      "fixture.xif_event"
-    ]
-  },
+  "p3_queue": {},
   "policy": {
     "candidate_evidence_is_not_equivalence": true,
     "comparison_unit": "fixture + RTL construct + stimulus/time + observable path + public Action + complete response",
@@ -39548,8 +39542,21 @@
       "current": {
         "candidate_fixture_ids": [],
         "candidate_sources": [],
-        "evidence_scope": "P2/P4 73 Action cross-fixture contract gate",
-        "test_evidence": []
+        "evidence_scope": "P3-E 只关闭 synthetic consumer index 的额外独立观察点；不替代任何 fixture runtime differential",
+        "test_evidence": [
+          {
+            "line": 131,
+            "path": "tests/test_p3e_boundary_audit.py",
+            "sha256": "8f23d55fde62bc0d2cafc2e628daefebc7041c763054383841b55456a99f3b6c",
+            "test": "test_cross_fixture_surface_is_a_complete_contract_index_only"
+          },
+          {
+            "line": 86,
+            "path": "tests/test_p3e_closure_audit.py",
+            "sha256": "af6c3d35a2ebfc9413aec8ae5df74b1b76522abf95c4dff82e6d79599b76a49f",
+            "test": "test_p3e_sva_and_cross_fixture_proofs_are_strictly_bounded"
+          }
+        ]
       },
       "kind": "cross_fixture_contract_surface",
       "original": {
@@ -39671,10 +39678,775 @@
         "sources": []
       },
       "p3_batch": "P3-E",
-      "public_action_contracts": {},
-      "rationale": "跨 fixture consumer 已完整归档，但其合同/Action 断言要在 P2/P4 由 73 Action 门禁裁决。",
+      "public_action_contracts": {
+        "actions": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/actions.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/actions.response.schema.json"
+        },
+        "apb.config.list": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/apb.config.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.config.list.response.schema.json"
+        },
+        "apb.config.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/apb.config.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.config.load.response.schema.json"
+        },
+        "apb.query": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/apb.query.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.query.response.schema.json"
+        },
+        "apb.statistics": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/apb.statistics.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.statistics.response.schema.json"
+        },
+        "apb.transaction.cursor": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/apb.transaction.cursor.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.transaction.cursor.response.schema.json"
+        },
+        "apb.transfer_window": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/apb.transfer_window.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.transfer_window.response.schema.json"
+        },
+        "axi.analysis": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.analysis.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.analysis.response.schema.json"
+        },
+        "axi.channel_stall": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.channel_stall.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.channel_stall.response.schema.json"
+        },
+        "axi.config.list": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.config.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.list.response.schema.json"
+        },
+        "axi.config.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.config.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.load.response.schema.json"
+        },
+        "axi.export": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.export.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.export.response.schema.json"
+        },
+        "axi.latency_outlier": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.latency_outlier.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.latency_outlier.response.schema.json"
+        },
+        "axi.outstanding_timeline": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.outstanding_timeline.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.outstanding_timeline.response.schema.json"
+        },
+        "axi.query": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.query.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.query.response.schema.json"
+        },
+        "axi.request_response_pair": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.request_response_pair.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.request_response_pair.response.schema.json"
+        },
+        "axi.statistics": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.statistics.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.statistics.response.schema.json"
+        },
+        "axi.transaction.cursor": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/axi.transaction.cursor.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.transaction.cursor.response.schema.json"
+        },
+        "batch": {
+          "completeness_fields": [
+            "analysis_complete",
+            "complete",
+            "response_truncated",
+            "returned_count",
+            "scan_complete",
+            "scan_status.analysis_complete",
+            "statements.complete",
+            "termination",
+            "termination_detail",
+            "total_count"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/batch.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/batch.response.schema.json"
+        },
+        "counter.statistics": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/counter.statistics.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/counter.statistics.response.schema.json"
+        },
+        "event.config.list": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/event.config.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.config.list.response.schema.json"
+        },
+        "event.config.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/event.config.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.config.load.response.schema.json"
+        },
+        "event.export": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/event.export.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.export.response.schema.json"
+        },
+        "event.find": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/event.find.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.find.response.schema.json"
+        },
+        "expr.eval_at": {
+          "completeness_fields": [
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/expr.eval_at.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/expr.eval_at.response.schema.json"
+        },
+        "expr.normalize": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/expr.normalize.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/expr.normalize.response.schema.json"
+        },
+        "list.add": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.add.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.add.response.schema.json"
+        },
+        "list.create": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.create.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.create.response.schema.json"
+        },
+        "list.delete": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.delete.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.delete.response.schema.json"
+        },
+        "list.export": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/list.export.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.export.response.schema.json"
+        },
+        "list.first_change": {
+          "completeness_fields": [
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/list.first_change.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.first_change.response.schema.json"
+        },
+        "list.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.load.response.schema.json"
+        },
+        "list.show": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.show.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.show.response.schema.json"
+        },
+        "list.validate": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/list.validate.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.validate.response.schema.json"
+        },
+        "nwave.rc.generate": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/nwave.rc.generate.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/nwave.rc.generate.response.schema.json"
+        },
+        "protocol.handshake.inspect": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/protocol.handshake.inspect.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/protocol.handshake.inspect.response.schema.json"
+        },
+        "schema": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/schema.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/schema.response.schema.json"
+        },
+        "scope.list": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/scope.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.list.response.schema.json"
+        },
+        "scope.roots": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/scope.roots.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.roots.response.schema.json"
+        },
+        "session.close": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/session.close.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.close.response.schema.json"
+        },
+        "session.doctor": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/session.doctor.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.doctor.response.schema.json"
+        },
+        "session.gc": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/session.gc.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.gc.response.schema.json"
+        },
+        "session.list": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/session.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.list.response.schema.json"
+        },
+        "session.open": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/session.open.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.open.response.schema.json"
+        },
+        "signal.anomaly.inspect": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.anomaly.inspect.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.anomaly.inspect.response.schema.json"
+        },
+        "signal.canonicalize": {
+          "completeness_fields": [
+            "analysis_complete",
+            "response_truncated",
+            "returned_count",
+            "scan_complete",
+            "total_count"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.canonicalize.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.canonicalize.response.schema.json"
+        },
+        "signal.changes": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.changes.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.changes.response.schema.json"
+        },
+        "signal.resolve": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.resolve.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.resolve.response.schema.json"
+        },
+        "signal.sampled_pulse.inspect": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.sampled_pulse.inspect.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.sampled_pulse.inspect.response.schema.json"
+        },
+        "signal.stability": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.stability.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.stability.response.schema.json"
+        },
+        "signal.statistics": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.statistics.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.statistics.response.schema.json"
+        },
+        "signal.xz_verify": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/signal.xz_verify.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.xz_verify.response.schema.json"
+        },
+        "stream.config.get": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.config.get.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.get.response.schema.json"
+        },
+        "stream.config.list": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.config.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.list.response.schema.json"
+        },
+        "stream.config.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.config.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.load.response.schema.json"
+        },
+        "stream.describe": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.describe.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.describe.response.schema.json"
+        },
+        "stream.export": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.export.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.export.response.schema.json"
+        },
+        "stream.query": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.query.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.query.response.schema.json"
+        },
+        "stream.validate": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/stream.validate.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.validate.response.schema.json"
+        },
+        "trace.active_driver": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.termination",
+            "summary.termination_detail",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver.response.schema.json"
+        },
+        "trace.active_driver_chain": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.termination",
+            "summary.termination_detail",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver_chain.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
+        },
+        "trace.driver": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/trace.driver.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.driver.response.schema.json"
+        },
+        "trace.load": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/trace.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.load.response.schema.json"
+        },
+        "trace.x_origin": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.termination",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/trace.x_origin.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.x_origin.response.schema.json"
+        },
+        "value.at": {
+          "completeness_fields": [
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/value.at.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/value.at.response.schema.json"
+        },
+        "verify.conditions": {
+          "completeness_fields": [
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/verify.conditions.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/verify.conditions.response.schema.json"
+        },
+        "waveform.cursor.delete": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.delete.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.delete.response.schema.json"
+        },
+        "waveform.cursor.get": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.get.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.get.response.schema.json"
+        },
+        "waveform.cursor.list": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.list.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.list.response.schema.json"
+        },
+        "waveform.cursor.set": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.set.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.set.response.schema.json"
+        },
+        "waveform.cursor.use": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.use.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.use.response.schema.json"
+        },
+        "window.verify": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/window.verify.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/window.verify.response.schema.json"
+        }
+      },
+      "rationale": "37 个 synthetic cross-fixture consumer 的 72 个公开 Action 已逐项绑定冻结合同；该分组没有独立 RTL、刺激或波形观察点，故只关闭额外独立观察点。各波形 fixture 仍由自身 runtime differential 裁决，session.kill 继续由 73 Action/P4 门禁覆盖。",
       "scenario_id": "cross_fixture.public_contract_consumers",
-      "status": "partial"
+      "status": "proven-unobservable",
+      "unobservable_proof": {
+        "catalog_actions_not_observed": [
+          "session.kill"
+        ],
+        "classification": "proven-unobservable",
+        "consumer_count": 37,
+        "contract_count": 72,
+        "fixture_id": "original.cross_fixture",
+        "observed_public_action_count": 72,
+        "observed_public_actions": [
+          "actions",
+          "apb.config.list",
+          "apb.config.load",
+          "apb.query",
+          "apb.statistics",
+          "apb.transaction.cursor",
+          "apb.transfer_window",
+          "axi.analysis",
+          "axi.channel_stall",
+          "axi.config.list",
+          "axi.config.load",
+          "axi.export",
+          "axi.latency_outlier",
+          "axi.outstanding_timeline",
+          "axi.query",
+          "axi.request_response_pair",
+          "axi.statistics",
+          "axi.transaction.cursor",
+          "batch",
+          "counter.statistics",
+          "event.config.list",
+          "event.config.load",
+          "event.export",
+          "event.find",
+          "expr.eval_at",
+          "expr.normalize",
+          "list.add",
+          "list.create",
+          "list.delete",
+          "list.export",
+          "list.first_change",
+          "list.load",
+          "list.show",
+          "list.validate",
+          "nwave.rc.generate",
+          "protocol.handshake.inspect",
+          "schema",
+          "scope.list",
+          "scope.roots",
+          "session.close",
+          "session.doctor",
+          "session.gc",
+          "session.list",
+          "session.open",
+          "signal.anomaly.inspect",
+          "signal.canonicalize",
+          "signal.changes",
+          "signal.resolve",
+          "signal.sampled_pulse.inspect",
+          "signal.stability",
+          "signal.statistics",
+          "signal.xz_verify",
+          "stream.config.get",
+          "stream.config.list",
+          "stream.config.load",
+          "stream.describe",
+          "stream.export",
+          "stream.query",
+          "stream.validate",
+          "trace.active_driver",
+          "trace.active_driver_chain",
+          "trace.driver",
+          "trace.load",
+          "trace.x_origin",
+          "value.at",
+          "verify.conditions",
+          "waveform.cursor.delete",
+          "waveform.cursor.get",
+          "waveform.cursor.list",
+          "waveform.cursor.set",
+          "waveform.cursor.use",
+          "window.verify"
+        ],
+        "path": "tests/data/rtl_wave_differential/p3e-closure.audit.json",
+        "proof_scope": "closes only the synthetic cross-fixture consumer index; each waveform fixture remains governed by its own runtime differential",
+        "remaining_distinct_public_observation_count": 0,
+        "remaining_unmapped_consumer_action_count": 0,
+        "sha256": "ae77be5ba790061f14e9819b67af7187a51520109c58bc58917add638b90b5b3"
+      }
     },
     {
       "current": {
@@ -46675,8 +47447,21 @@
       "current": {
         "candidate_fixture_ids": [],
         "candidate_sources": [],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
-        "test_evidence": []
+        "evidence_scope": "只关闭冻结 npi_fsdb_sva 私有 probe schema 和冻结 73 Action 的边界；不把通用 event/value/scope 能力宣称为 SVA 行为替代",
+        "test_evidence": [
+          {
+            "line": 67,
+            "path": "tests/test_p3e_boundary_audit.py",
+            "sha256": "8f23d55fde62bc0d2cafc2e628daefebc7041c763054383841b55456a99f3b6c",
+            "test": "test_sva_npi_boundary_is_private_and_bounded_by_frozen_schemas"
+          },
+          {
+            "line": 86,
+            "path": "tests/test_p3e_closure_audit.py",
+            "sha256": "af6c3d35a2ebfc9413aec8ae5df74b1b76522abf95c4dff82e6d79599b76a49f",
+            "test": "test_p3e_sva_and_cross_fixture_proofs_are_strictly_bounded"
+          }
+        ]
       },
       "kind": "fixture_semantic_surface",
       "original": {
@@ -46984,9 +47769,30 @@
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/value.at.response.schema.json"
         }
       },
-      "rationale": "当前没有同类 RTL/波形 fixture；相关公开语义必须在指定批次补齐或证明不可观察。",
+      "rationale": "冻结原版 consumer 只调用私有 NPI probe，73 个公开 Action/schema 不暴露 assertion identity/event、SVA AST 或 design-wave join；有限静态证明剩余 独立公开观察点为零，未来 schema 暴露将 fail closed。",
       "scenario_id": "fixture.npi_fsdb_sva",
-      "status": "missing"
+      "status": "proven-unobservable",
+      "unobservable_proof": {
+        "candidate_action_disposition": {
+          "event.find": "通用采样表达式事件，不暴露 assertion object/event kind",
+          "scope.list": "通用层级枚举，不暴露 SVA AST 或 NPI handle",
+          "signal.changes": "通用信号变化，不暴露 assertion attempt/result",
+          "value.at": "通用信号取值，不暴露 assertion attempt/result"
+        },
+        "classification": "proven-unobservable",
+        "consumer_count": 1,
+        "fixture_id": "xdebug.npi_fsdb_sva",
+        "observed_public_action_count": 0,
+        "path": "tests/data/rtl_wave_differential/p3e-closure.audit.json",
+        "private_probe_schema_versions": [
+          "npi-daidir-fsdb-sva-probe.v1",
+          "npi-fsdb-sva-probe.v1"
+        ],
+        "proof_scope": "only the frozen SVA/NPI private probe fields and the frozen 73-action public schemas; future schema exposure fails closed",
+        "public_exposure_count": 0,
+        "remaining_distinct_public_observation_count": 0,
+        "sha256": "ae77be5ba790061f14e9819b67af7187a51520109c58bc58917add638b90b5b3"
+      }
     },
     {
       "current": {
@@ -48120,15 +48926,161 @@
     },
     {
       "current": {
-        "candidate_fixture_ids": [],
-        "candidate_sources": [],
-        "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
+        "candidate_fixture_ids": [
+          "current.xif_event"
+        ],
+        "candidate_sources": [
+          {
+            "fixture_ids": [
+              "current.xif_event"
+            ],
+            "kind": "waveform_fst",
+            "line_anchor": 1,
+            "line_count": 24,
+            "path": "testdata/fixtures/xif_event/waves.fst",
+            "sha256": "244b042da3a9e6adbdcfe046f224cafcd56f9c7cb20e88bd1c5f62a5476bf4ff"
+          },
+          {
+            "construct_lines": {
+              "clock": [
+                21,
+                33,
+                34
+              ],
+              "delay": [
+                34,
+                41,
+                42,
+                44,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                60,
+                61,
+                62,
+                63,
+                64,
+                65,
+                66,
+                71,
+                72,
+                73,
+                74,
+                75,
+                83,
+                88,
+                90,
+                91,
+                93,
+                94,
+                96,
+                100
+              ],
+              "four_state_literal": [
+                33,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                59,
+                60,
+                61,
+                62,
+                63,
+                64,
+                65,
+                66,
+                70,
+                71,
+                72,
+                73,
+                74,
+                75,
+                79,
+                80,
+                81,
+                82,
+                84,
+                85,
+                86,
+                88,
+                90,
+                91,
+                93,
+                94,
+                96
+              ],
+              "initial": [
+                32,
+                37,
+                48,
+                58,
+                69,
+                78,
+                99
+              ],
+              "interface": [
+                13
+              ],
+              "module": [
+                20
+              ]
+            },
+            "fixture_ids": [
+              "current.xif_event"
+            ],
+            "kind": "rtl",
+            "line_anchor": 1,
+            "line_count": 102,
+            "path": "testdata/fixtures/xif_event/xif_event_top.sv",
+            "sha256": "b66df6f716aae265c79d886baf9260cb6bcbd5f9670fd5586e8a7b8ee19b3aac"
+          }
+        ],
+        "evidence_scope": "验收测试内容与公开可观察语义等价，不要求双侧源码或波形哈希相同；哈希只冻结身份和当前确定性重建",
         "test_evidence": [
           {
-            "line": 312,
-            "path": "tests/test_waveform.py",
-            "sha256": "475805b2d441bf578682277374d048beffd5bdc2c5e28fbf85f8cc0f2fbf3196",
-            "test": "test_value_at_preserves_event_kind"
+            "line": 126,
+            "path": "tests/test_p3e_xif_event_differential.py",
+            "sha256": "5188c8f655dc5672a7395e4f17d98dec05b08e3c7f78a88cd88f4e937d8c6baa",
+            "test": "test_xif_fixture_exists_and_is_locked"
+          },
+          {
+            "line": 165,
+            "path": "tests/test_p3e_xif_event_differential.py",
+            "sha256": "5188c8f655dc5672a7395e4f17d98dec05b08e3c7f78a88cd88f4e937d8c6baa",
+            "test": "test_xif_original_oracle_locks_all_e2_observations"
+          },
+          {
+            "line": 188,
+            "path": "tests/test_p3e_xif_event_differential.py",
+            "sha256": "5188c8f655dc5672a7395e4f17d98dec05b08e3c7f78a88cd88f4e937d8c6baa",
+            "test": "test_xif_all_32_original_observations_replay_on_raw_fst"
+          },
+          {
+            "line": 255,
+            "path": "tests/test_p3e_xif_event_differential.py",
+            "sha256": "5188c8f655dc5672a7395e4f17d98dec05b08e3c7f78a88cd88f4e937d8c6baa",
+            "test": "test_xif_event_find_xout_preserves_complete_public_evidence"
+          },
+          {
+            "line": 280,
+            "path": "tests/test_p3e_xif_event_differential.py",
+            "sha256": "5188c8f655dc5672a7395e4f17d98dec05b08e3c7f78a88cd88f4e937d8c6baa",
+            "test": "test_xif_field_shorthand_rejects_partial_integer_bounds"
           }
         ]
       },
@@ -48158,6 +49110,13 @@
         ],
         "fixture_id": "xdebug.xif_event",
         "fixture_source_dir": "xdebug/testdata/waveform/xif_agent_event",
+        "locked_public_oracle": {
+          "cache_reused": true,
+          "fixture_rebuilt": false,
+          "observation_count": 32,
+          "path": "tests/data/rtl_wave_differential/p3e-xif-event.public-oracle.json",
+          "sha256": "251255661924fe455eccd79ecc863f62304d0052b9bd242dca474d65fd52f35f"
+        },
         "observed_public_actions": [
           "actions",
           "apb.config.load",
@@ -48406,9 +49365,21 @@
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/value.at.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "六份原版 event 配置直接复制；依赖 UVM/XIF/VCS/FSDB 的 RTL 仅作最小 pin-level 开源镜像。冻结原版 FSDB 的 32 项公开观察已在当前原始 FST 上按时序、位值、X 态、流控、错误、XOUT 和 artifact 内容逐项通过。",
+      "runtime_audit": {
+        "cross_side_hash_equality_required": false,
+        "directly_reused_config_count": 6,
+        "observation_count": 32,
+        "p3_batch": "P3-E",
+        "path": "tests/data/rtl_wave_differential/p3e-closure.audit.json",
+        "public_content_equivalence_required": true,
+        "remaining_observable_gap_count": 0,
+        "required_observation_count": 12,
+        "sha256": "ae77be5ba790061f14e9819b67af7187a51520109c58bc58917add638b90b5b3",
+        "status": "semantic-equivalent"
+      },
       "scenario_id": "fixture.xif_event",
-      "status": "partial"
+      "status": "semantic-equivalent"
     }
   ],
   "schema_version": "xdebug.rtl-wave-semantic-matrix.v1",
@@ -48421,10 +49392,8 @@
     "original_hdl_count": 103,
     "scenario_count": 88,
     "status_counts": {
-      "missing": 1,
-      "partial": 2,
-      "proven-unobservable": 5,
-      "semantic-equivalent": 80
+      "proven-unobservable": 7,
+      "semantic-equivalent": 81
     },
     "unclassified_count": 0,
     "unqueued_gap_count": 0

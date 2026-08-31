@@ -1633,3 +1633,28 @@ analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
   外部用户并行修改使 porcelain hash 从 E1 的 `b2daea28...` 变为 `b926c168...`；本批读取的 XIF
   RTL/config/cache/runtime 哈希均与 E1/oracle 一致，且所有运行时输出位于当前仓库。该外部漂移将在
   E3 通过原版冻结内容校验后更新只读审计快照，绝不写外部仓库。
+
+### 2026-08-31：E3 关闭 SVA、cross-fixture 与 P3-E 矩阵
+
+- 新增可重复生成的 `p3e-closure.audit.json`。XIF 关闭条件固定为 32 项原版公开观察覆盖 E1 的 12 类
+  必需内容，六份配置明确为 byte-identical direct copy；原版 RTL 因 UVM/XIF/VCS/FSDB 依赖不能直接
+  作为开源可执行输入，当前只要求 pin-level 测试内容和公开语义等价，明确
+  `cross_side_hash_equality_required=false`。当前 FST 仍锁定为确定性原始输入，剩余公开缺口为 0。
+- `npi_fsdb_sva` 由 missing 更新为 proven-unobservable，但证明严格限制在冻结的一个私有 NPI consumer、
+  两份 private probe schema 和 73 份公开 schema：公开 Action 观察数、专属 token 暴露数和剩余独立
+  观察点均为 0。通用 `event.find/value.at/signal.changes/scope.list` 只记录 disposition，不被当作 SVA
+  功能替代；未来任何 schema 暴露都会使 closure/matrix fail closed。
+- cross-fixture 由 partial 更新为 proven-unobservable，只关闭 synthetic consumer index 的“额外独立
+  观察点”：37 consumer、72 observed Action、72 合同全部一一冻结，唯一未被该分组消费的
+  `session.kill` 留给 73 Action/P4 门禁。每个真实波形 fixture 仍必须由自身 runtime differential 证明，
+  cross 证明不能替代或放宽这些门禁。
+- 语义矩阵最终为 88 场景：81 semantic-equivalent、7 proven-unobservable，`partial=missing=unclassified`
+  均为 0，P3 queue 为空；仍完整反向覆盖 23 fixture、103 HDL、25 声明波形输出和 260 consumer。
+  XIF 场景保存 32 observations/12 requirements/6 direct configs 和“不要求双侧哈希相同”的裁定；SVA、
+  cross 场景保存有限 proof scope 及剩余观察点 0。
+- closure 增加 4 类 mutation，matrix 再增加 observable gap 重开 mutation；与 E1 边界、E2 差分、asset
+  和 matrix 门禁组合为 52/52。manifest→closure check→matrix write→manifest write→closure/matrix/
+  manifest check 已双稳定，当前资产统计为 603 assets、85 RTL、85 FST、1 VCD、91 current consumers。
+- 资产冻结器先逐文件验证原版冻结内容不变，再显式接受外部用户造成的只读 status 快照漂移；未写入
+  xverif/Wellen/Verilator。所有生成器输出、临时目录和测试会话均位于当前仓库，未重建外部 fixture/cache，
+  未使用 fallback。P3-A～E 至此全部关闭，下一批只执行 P4 全量门禁和最终差异报告。
