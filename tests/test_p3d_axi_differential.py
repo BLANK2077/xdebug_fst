@@ -1,12 +1,17 @@
 # test_p3d_axi_differential.py — P3-D3 AXI 六波形差分红灯与冻结证据
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from pathlib import Path
 import re
+from typing import Any
 
 import pytest
+
+from conftest import _base_env, open_session
+from runner import StdioLoopRunner
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +30,10 @@ AXI_ACTIONS = [
     "axi.statistics",
     "axi.transaction.cursor",
 ]
+ROW_FIELDS = {
+    "transactions", "findings", "outliers", "change_points",
+    "pending_transactions",
+}
 EXPECTED = {
     "xdebug.axi_vip": {
         "oracle": "p3d-axi-vip.public-oracle.json",
@@ -67,6 +76,102 @@ def load_oracle(fixture_id: str) -> dict:
     return json.loads(
         (DATA_ROOT / EXPECTED[fixture_id]["oracle"]).read_text(encoding="utf-8")
     )
+
+
+def scrub_repo_paths(value: Any) -> Any:
+    if isinstance(value, str):
+        try:
+            path = Path(value)
+            if path.is_absolute() and (
+                path == REPO_ROOT.resolve() or REPO_ROOT.resolve() in path.parents
+            ):
+                return "<repo-local-output>/" + path.name
+        except (OSError, ValueError):
+            pass
+        return value
+    if isinstance(value, list):
+        return [scrub_repo_paths(item) for item in value]
+    if isinstance(value, dict):
+        return {key: scrub_repo_paths(item) for key, item in value.items()}
+    return value
+
+
+def canonical_sha256(value: Any) -> str:
+    payload = json.dumps(
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def public_response(response: dict[str, Any]) -> dict[str, Any]:
+    selected: dict[str, Any] = {
+        "ok": response.get("ok"),
+        "summary": response.get("summary", {}),
+        "data": response.get("data", {}),
+    }
+    if response.get("ok") is False:
+        selected["error"] = response.get("error", {})
+    selected = scrub_repo_paths(selected)
+    data = selected.get("data")
+    if isinstance(data, dict):
+        for field in sorted(ROW_FIELDS & set(data)):
+            rows = data[field]
+            if isinstance(rows, list) and len(rows) > 64:
+                selected["data"][field] = {
+                    "canonical_sha256": canonical_sha256(rows),
+                    "count": len(rows),
+                    "anchors": [rows[0], rows[len(rows) // 2], rows[-1]],
+                }
+    return selected
+
+
+def artifact_records(prefix: Path) -> list[dict[str, Any]]:
+    records = []
+    for path in sorted(prefix.parent.glob(prefix.name + ".*")):
+        payload = path.read_bytes()
+        if path.suffix == ".json":
+            normalized = scrub_repo_paths(json.loads(payload.decode("utf-8")))
+            payload = (
+                json.dumps(normalized, ensure_ascii=False, indent=2, sort_keys=True)
+                + "\n"
+            ).encode("utf-8")
+        records.append({
+            "name": path.name,
+            "size": len(payload),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+        })
+    return records
+
+
+def load_hash_lock(path: Path) -> dict[str, str]:
+    rows = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        digest, name = line.split(maxsplit=1)
+        rows[name] = digest
+    return rows
+
+
+def start_budget_runner(
+    xfst_bin: Path, tmp_path: Path, *, soft_bytes: str, hard_bytes: str
+) -> StdioLoopRunner:
+    resolved = tmp_path.resolve()
+    assert REPO_ROOT.resolve() in resolved.parents
+    home, temp, cache = resolved / "home", resolved / "tmp", resolved / "cache"
+    socket = REPO_ROOT / ".tmp/s" / hashlib.sha256(
+        str(resolved).encode()
+    ).hexdigest()[:8]
+    for path in (home, temp, cache, socket):
+        path.mkdir(parents=True, exist_ok=True)
+    environment = _base_env(home, xfst_bin)
+    environment.update({
+        "TMPDIR": str(temp), "XDG_CACHE_HOME": str(cache),
+        "XVERIF_TEST_TMPDIR": str(socket),
+        "XDEBUG_ANALYSIS_CACHE_MAX_BYTES": soft_bytes,
+        "XDEBUG_ANALYSIS_CACHE_HARD_MAX_BYTES": hard_bytes,
+    })
+    runner = StdioLoopRunner(xfst_bin, cwd=REPO_ROOT, env=environment)
+    runner.start()
+    return runner
 
 
 @pytest.mark.parametrize("fixture_id", EXPECTED)
@@ -182,3 +287,133 @@ def test_current_axi_dedicated_fixture_exists_before_replay(
     )
     assert (fixture / "fixture.manifest.json").is_file()
     assert (fixture / "fixture.sha256").is_file()
+
+
+def test_current_xamba_axi_fixture_matches_locked_public_semantics(
+    loop_runner: StdioLoopRunner,
+    tmp_path: Path,
+) -> None:
+    oracle = load_oracle("xdebug.axi_xamba_vip")
+    run = oracle["runs"][0]
+    fixture = REPO_ROOT / "testdata/fixtures/axi_xamba_vip/waves.fst"
+    export_prefix = tmp_path / "xamba-export" / "axi0"
+    export_prefix.parent.mkdir(parents=True)
+
+    open_session(loop_runner, fixture)
+    try:
+        for locked in run["observations"]:
+            args = copy.deepcopy(locked["request"])
+            if locked["observation_id"] == "export.full":
+                args["output"]["path"] = str(export_prefix)
+            actual = loop_runner.request(locked["action"], args=args)
+            assert public_response(actual) == locked["response"], (
+                "P3-D3 XAMBA AXI 公开响应差异: "
+                f"{locked['observation_id']}"
+            )
+            if "xout" in locked:
+                actual_xout = loop_runner.request_xout(
+                    locked["action"], args=args
+                )
+                assert actual_xout == locked["xout"], (
+                    "P3-D3 XAMBA AXI XOUT 差异: "
+                    f"{locked['observation_id']}"
+                )
+            if "artifacts" in locked:
+                assert artifact_records(export_prefix) == locked["artifacts"]
+    finally:
+        if loop_runner.has_current_session:
+            closed = loop_runner.request("session.close", args={})
+            assert closed.get("ok"), closed
+
+
+def test_current_xamba_axi_fixture_locks_formula_tool_and_deterministic_fst() -> None:
+    fixture = REPO_ROOT / "testdata/fixtures/axi_xamba_vip"
+    lock = load_hash_lock(fixture / "fixture.sha256")
+    assert list(lock) == [
+        "xdebug_axi_xamba_fixture_top.sv", "tb_axi_xamba.cpp",
+        "fixture.manifest.json", "waves.fst",
+    ]
+    for name, digest in lock.items():
+        path = fixture / name
+        assert path.is_file() and not path.is_symlink()
+        assert file_sha256(path) == digest
+    manifest = json.loads(
+        (fixture / "fixture.manifest.json").read_text(encoding="utf-8")
+    )
+    dependency = json.loads(
+        (REPO_ROOT / "dependencies.lock.json").read_text(encoding="utf-8")
+    )["verilator"]
+    assert manifest["goal_id"] == GOAL_ID
+    assert manifest["source_contract"]["original_fixture_id"] == (
+        "xdebug.axi_xamba_vip"
+    )
+    assert manifest["source_contract"]["transaction_count"] == 64
+    assert manifest["source_contract"]["randomization"] is False
+    assert manifest["source_contract"]["external_cache_rebuilt"] is False
+    for key in ("version", "revision", "tree", "patchset_version"):
+        assert manifest["build_contract"][key] == dependency[key]
+    assert manifest["build_contract"]["rtl_sha256"] == lock[
+        "xdebug_axi_xamba_fixture_top.sv"
+    ]
+    assert manifest["build_contract"]["harness_sha256"] == lock[
+        "tb_axi_xamba.cpp"
+    ]
+    assert manifest["output_contract"] == {
+        "path": "waves.fst", "size": (fixture / "waves.fst").stat().st_size,
+        "sha256": lock["waves.fst"], "deterministic_build_directories": 2,
+        "external_cache_rebuilt": False,
+        "proprietary_artifact_committed": False,
+    }
+    assert "/home/" not in json.dumps(manifest, ensure_ascii=False)
+
+
+def test_current_xamba_axi_matches_locked_soft_budget_public_observations(
+    xfst_bin: Path, tmp_path: Path
+) -> None:
+    oracle = load_oracle("xdebug.axi_xamba_vip")
+    runner = start_budget_runner(
+        xfst_bin, tmp_path / "soft", soft_bytes="1", hard_bytes="2147483648"
+    )
+    try:
+        open_session(runner, REPO_ROOT / "testdata/fixtures/axi_xamba_vip/waves.fst")
+        for observation in oracle["cache_contract"]["soft_lru"][
+            "public_observations"
+        ]:
+            actual = runner.request(
+                observation["action"], args=copy.deepcopy(observation["request"])
+            )
+            assert public_response(actual) == observation["response"], (
+                "P3-D3 XAMBA AXI soft-budget 公开差异: "
+                f"{observation['observation_id']}"
+            )
+    finally:
+        if runner.has_current_session:
+            runner.request("session.close", args={})
+        runner.stop()
+
+
+def test_current_xamba_axi_exposes_locked_public_hard_limit_error(
+    xfst_bin: Path, tmp_path: Path
+) -> None:
+    oracle = load_oracle("xdebug.axi_xamba_vip")
+    observations = oracle["cache_contract"]["hard_limit"]["public_observations"]
+    runner = start_budget_runner(
+        xfst_bin, tmp_path / "hard", soft_bytes="1", hard_bytes="1"
+    )
+    try:
+        open_session(runner, REPO_ROOT / "testdata/fixtures/axi_xamba_vip/waves.fst")
+        for index, observation in enumerate(observations):
+            actual = public_response(runner.request(
+                observation["action"], args=copy.deepcopy(observation["request"])
+            ))
+            expected = copy.deepcopy(observation["response"])
+            if index == len(observations) - 1:
+                for response in (actual, expected):
+                    key = response["error"]["key_summary"]
+                    assert re.fullmatch(r"[0-9a-f]{16}", key)
+                    response["error"]["key_summary"] = "<opaque-cache-key>"
+            assert actual == expected
+    finally:
+        if runner.has_current_session:
+            runner.request("session.close", args={})
+        runner.stop()

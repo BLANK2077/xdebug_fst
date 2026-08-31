@@ -1452,3 +1452,22 @@ analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
 - 两次独立采集字节一致：SVT oracle SHA 为 `433f6197...`，XAMBA oracle SHA 为 `608222fc...`。
   原版冻结/全量/XOUT/export/cache 四项门禁通过；当前侧恰好两项业务红灯，分别为缺失
   `testdata/fixtures/axi_vip` 与 `testdata/fixtures/axi_xamba_vip`，没有环境、依赖、fallback 或 skip。
+
+### 2026-08-31：D3-2 XAMBA AXI 64 笔 fixture 转绿
+
+- 新增独立 `testdata/fixtures/axi_xamba_vip`，以仓库内 pin-level RTL/harness 重放冻结的 XAMBA
+  index/beat 公式，不编译 XAMBA/UVM/product filelist，也不读取、转换 FSDB。fixture 保留
+  `xdebug_axi_xamba_fixture_top.dut.probe_full_if` 层级和 64-bit address、128-bit data、4-bit ID
+  完整通道宽度；64 笔交易为 32 写/32 读、16 ID、1–4 beat，末次 handshake 为 3375ns。
+- 事务逐笔锁定 ID、beat、地址、data/strb、AW/AR/W wait、B/R response 和 RLAST 公式；当前 analyzer
+  同步补齐完整 beat、phase 时间、稳定排序、宽度完整性、stall/outstanding/latency、cursor、XOUT 与
+  原版 16 列 TSV/meta JSON 导出合同。`sample_point=before` 的 outstanding 初始零点与旧 `after`
+  合同分流，显式空区间保持 0 点，未用 XAMBA 行为破坏既有 AXI fixture。
+- `tools/regenerate_p3d_axi_xamba_fixture.sh` 只允许仓库内 work/output，并 fail-closed 校验 resolved
+  Verilator、GCC、刺激合同和预期 FST hash/size。两个全新目录生成的 FST 字节一致；提交目标 SHA 为
+  `b2e3b5cf...`（3,089 bytes），RTL/harness SHA 分别为 `58d30c05...`、`92763d2d...`。未重建外部
+  fixture cache，未提交 proprietary artifact。
+- 当前 XAMBA fixture 对冻结 17/17 JSON、7/7 XOUT 和三份 export artifact 均为零差异；soft-LRU
+  与公开 hard-limit 合同、fixture formula/tool/source/output hash 一并通过，focused gate 为 7/7。
+  相邻 protocol/CLI/APB/stream 回归 59/59、CTest 7/7 通过；SVT fixed/random/stress 五份波形仍按
+  D3-3 独立实施，不借用 XAMBA fixture 或结论。

@@ -1,0 +1,54 @@
+{
+  "schema_version": "xdebug-fst.fixture.axi-xamba-vip.v1",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "fixture_id": "current.axi_xamba_vip",
+  "source_contract": {
+    "original_fixture_id": "xdebug.axi_xamba_vip",
+    "producer_equivalence": "pin-level-semantic-mirror",
+    "proprietary_vip_used": false,
+    "fsdb_conversion_used": false,
+    "randomization": false,
+    "seed": 7,
+    "transaction_count": 64,
+    "write_count": 32,
+    "read_count": 32,
+    "error_response_count": 21,
+    "id_formula": "index % 16",
+    "beat_formula": "index % 4 + 1",
+    "response_formula": "index%7==0 ? 3 : index%5==0 ? 2 : 0",
+    "address_formula": "write:0x10000000+index*64; read:0x20000000+index*64",
+    "external_cache_rebuilt": false
+  },
+  "interface_contract": {
+    "top": "xdebug_axi_xamba_fixture_top",
+    "interface": "xdebug_axi_xamba_fixture_top.dut.probe_full_if",
+    "address_width": 64,
+    "data_width": 128,
+    "id_width": 4,
+    "clock_half_period": "5ns",
+    "first_handshake": "35ns",
+    "last_handshake": "3375ns"
+  },
+  "build_contract": {
+    "simulator": "verilator",
+    "version": "v5.050-109-gc3be3c805",
+    "revision": "c3be3c80501bec8d4c3b7f5256890332df62d410",
+    "tree": "8e247c8b90237517f84fbda98a594318b16ca998",
+    "fingerprint": "8b8b0886d5338b71500dd218e7af46bcd1c2a2dabb16492addeea82c85b14bb9",
+    "patchset_version": "xdebug-design-db-v4-deterministic-fst",
+    "gcc_version": "13.3.1",
+    "trace_format": "fst",
+    "trace_depth": 4,
+    "timing": true,
+    "rtl_sha256": "58d30c05df79e0a1ccba1f8f786e53bd2a53457c99ae2202f4296b0c40a1829b",
+    "harness_sha256": "92763d2d7ca98d5d778e91acbeb87e781abe6f3366c40829bfb927d4bf67e9b3"
+  },
+  "output_contract": {
+    "path": "waves.fst",
+    "size": 3089,
+    "sha256": "b2e3b5cf10d06db77aa814f94a204acda05fa057154e2a0f61cf16d995c7e140",
+    "deterministic_build_directories": 2,
+    "external_cache_rebuilt": false,
+    "proprietary_artifact_committed": false
+  }
+}
