@@ -1333,3 +1333,19 @@ export fallback 进入本批，禁止 skip/xfail/宽松字段白名单或只比�
 - 当前 XAMBA fixture 对冻结 34/34 基础观察、4/4 XOUT、soft-LRU 六条公开观察和 hard-limit 两条
   公开观察均零差异；fixture formula/tool/source/output hash 门禁同步通过。P3-D2 focused 当前为
   12/12；SVT 和 XAMBA 使用各自 RTL、FST、manifest、hash lock 与 oracle，互不借证。
+
+### 2026-08-31：D2-4 APB manifest/matrix/fail-closed 证据链关闭
+
+- 资产清单已发现并冻结 `current.apb_vip`、`current.apb_xamba_vip` 两套独立 fixture，以及两份
+  原版公开 oracle、采集器/生成器和差分测试；原版 stream differential 审计源码同时补齐明确的
+  fixture 归属，禁止出现无 fixture 身份的冻结资产。
+- 语义矩阵把 `fixture.apb_vip`、`fixture.apb_xamba_vip` 分别映射到对应当前 fixture，状态由
+  `partial` 更新为 `semantic-equivalent`。SVT 36 个观察/10 笔事务、XAMBA 34 个观察/64 笔事务
+  的差异数与剩余公开缺口均为 0，每套各锁定 4 项 XOUT。
+- 构建器 fail-closed 校验原版 source/FSDB/cache 身份、当前 fixture inventory/hash lock、逐笔完成
+  时间/方向/地址/数据/error、XAMBA index 公式、完整性字段、private cache probe 不可观察及公开
+  hard-limit 错误。变异测试明确拒绝 fixture 对调、丢事务、时间漂移、丢 error、公式漂移、伪完整
+  截断、private probe 泄漏和隐藏 hard limit。
+- 门禁结果：manifest write→matrix write→manifest write 达到双 check 稳定；APB closure、asset
+  manifest、semantic matrix 和 APB runtime focused 共 51 项通过。P3-D queue 只清除两项 APB，
+  `axi_vip`、`axi_xamba_vip` 仍保持 D3 `partial`，不得提前关闭。

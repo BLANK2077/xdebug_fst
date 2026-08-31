@@ -106,9 +106,9 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "scenario_count": 88,
         "status_counts": {
             "missing": 1,
-            "partial": 6,
+            "partial": 4,
             "proven-unobservable": 5,
-            "semantic-equivalent": 76,
+            "semantic-equivalent": 78,
         },
         "unclassified_count": 0,
         "unqueued_gap_count": 0,
@@ -167,6 +167,8 @@ def test_checked_matrix_has_exhaustive_reverse_indexes_and_gap_queue() -> None:
         "fixture.active_trace_runner",
         "fixture.stream_v1",
         "fixture.stream_differential_tool",
+        "fixture.apb_vip",
+        "fixture.apb_xamba_vip",
         "active.p0.declared_only_p0_4",
         *{f"active.p0.{index:02d}" for index in range(1, 7)},
         *{f"active.composite.{index:02d}" for index in range(1, 21)},
@@ -217,6 +219,26 @@ def test_p3d_stream_and_private_differential_tool_are_closed_separately() -> Non
         "proven-unobservable"
     assert proof["public_hard_limit_requires_current_gate"] is True
     assert proof["remaining_unmapped_public_observation_count"] == 0
+
+
+def test_p3d_apb_svt_and_xamba_are_closed_with_distinct_fixtures() -> None:
+    scenarios = {
+        item["scenario_id"]: item for item in load_matrix()["scenarios"]
+    }
+    expected = {
+        "fixture.apb_vip": ("current.apb_vip", 36, 10),
+        "fixture.apb_xamba_vip": ("current.apb_xamba_vip", 34, 64),
+    }
+    for scenario_id, (fixture_id, observations, transactions) in expected.items():
+        scenario = scenarios[scenario_id]
+        assert scenario["status"] == "semantic-equivalent"
+        assert scenario["current"]["candidate_fixture_ids"] == [fixture_id]
+        assert scenario["runtime_audit"]["current_fixture_id"] == fixture_id
+        assert scenario["runtime_audit"]["observation_count"] == observations
+        assert scenario["runtime_audit"]["transaction_count"] == transactions
+        assert scenario["runtime_audit"]["difference_count"] == 0
+        assert scenario["runtime_audit"]["xout_check_count"] == 4
+        assert scenario["runtime_audit"]["remaining_observable_gap_count"] == 0
 
 
 def test_matrix_evidence_is_relative_hashed_and_line_addressable() -> None:

@@ -424,6 +424,7 @@ def discover_original_assets(root: Path, fixtures: list[dict]) -> list[dict]:
             roles.append("registry")
         if path in ORIGINAL_AUDIT_SOURCE_PATHS:
             roles.append("audit_source")
+            matched_fixture_ids = ["xdebug.stream_differential_tool"]
         if path.startswith("xdebug/tests/"):
             if path.startswith("xdebug/tests/active_trace_chain/"):
                 roles.append("test_consumer")

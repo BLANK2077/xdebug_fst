@@ -68,6 +68,43 @@ P3D_STREAM_DIFFERENTIAL_CLOSURE_AUDIT = Path(
     "tests/data/rtl_wave_differential/"
     "p3d-stream-differential-closure.audit.json"
 )
+P3D_APB_ORACLES = {
+    "xdebug.apb_vip": Path(
+        "tests/data/rtl_wave_differential/p3d-apb-vip.public-oracle.json"
+    ),
+    "xdebug.apb_xamba_vip": Path(
+        "tests/data/rtl_wave_differential/"
+        "p3d-apb-xamba-vip.public-oracle.json"
+    ),
+}
+P3D_APB_EXPECTED = {
+    "xdebug.apb_vip": {
+        "current_fixture_id": "current.apb_vip",
+        "observation_count": 36,
+        "transaction_count": 10,
+        "write_count": 5,
+        "read_count": 5,
+        "error_count": 1,
+        "first_time": "125ns",
+        "last_time": "525ns",
+        "producer_kind": "svt",
+        "fsdb_sha256": "fea2e60f2a575980db7fdddee4a22d1be05520769251144bcd04671a8da63e1f",
+        "cache_manifest_sha256": "ed6988672f58d343adf74d202228a5fbf24f5214973cdc50b198aec8c0922a62",
+    },
+    "xdebug.apb_xamba_vip": {
+        "current_fixture_id": "current.apb_xamba_vip",
+        "observation_count": 34,
+        "transaction_count": 64,
+        "write_count": 32,
+        "read_count": 32,
+        "error_count": 6,
+        "first_time": "45ns",
+        "last_time": "2895ns",
+        "producer_kind": "xamba",
+        "fsdb_sha256": "8f103264f3cbd45bf0155583e161946009856513bdfe2fa6b9c71e9b37b1f016",
+        "cache_manifest_sha256": "1bc0ba5d86d4b361a4f6c4c949382a24cf158dd0eab0638d299612fafd510e96",
+    },
+}
 AI_COMPLEX_RUNNER_SHA256 = (
     "2c8f34c48d675d2e82b9edfd470a084fd17f84bc373ba26a98f0ab7cef848724"
 )
@@ -324,22 +361,34 @@ FIXTURE_CANDIDATES = {
         "status": "missing",
     },
     "xdebug.apb_vip": {
-        "fixtures": ["current.apb"],
+        "fixtures": ["current.apb_vip"],
         "tests": [
-            "test_apb_query", "test_apb_statistics",
-            "test_apb_transaction_cursor", "test_apb_transfer_window",
+            "test_apb_oracle_locks_runtime_fixture_surface_and_all_transactions",
+            "test_current_apb_fixture_matches_every_locked_base_observation_and_xout",
+            "test_current_apb_matches_locked_soft_budget_public_observations",
+            "test_current_apb_exposes_locked_public_hard_limit_error",
         ],
         "actions": [
             "apb.config.load", "apb.query", "apb.statistics",
             "apb.transaction.cursor", "apb.transfer_window",
         ],
         "batch": "P3-D",
+        "status": "semantic-equivalent",
     },
     "xdebug.apb_xamba_vip": {
-        "fixtures": ["current.apb"],
-        "tests": ["test_apb_query", "test_apb_statistics"],
-        "actions": ["apb.query", "apb.statistics"],
+        "fixtures": ["current.apb_xamba_vip"],
+        "tests": [
+            "test_apb_oracle_locks_runtime_fixture_surface_and_all_transactions",
+            "test_current_apb_fixture_matches_every_locked_base_observation_and_xout",
+            "test_current_apb_matches_locked_soft_budget_public_observations",
+            "test_current_apb_exposes_locked_public_hard_limit_error",
+        ],
+        "actions": [
+            "apb.config.load", "apb.query", "apb.statistics",
+            "apb.transaction.cursor", "apb.transfer_window",
+        ],
         "batch": "P3-D",
+        "status": "semantic-equivalent",
     },
     "xdebug.axi_vip": {
         "fixtures": ["current.axi"],
@@ -511,6 +560,10 @@ class MatrixError(RuntimeError):
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def sha256_file(path: Path) -> str:
+    return sha256_bytes(path.read_bytes())
 
 
 def canonical_json(value: object) -> str:
@@ -913,6 +966,238 @@ def validate_p3c_active_trace_closure_audit(
     ):
         raise MatrixError("P3-C declared-only orphan proof drifted")
     return audit
+
+
+def validate_p3d_apb_oracle_document(
+    document: dict,
+    fixture_id: str,
+    original_assets: dict[str, dict],
+) -> dict:
+    """Validate APB identity, full transaction semantics and cache boundary."""
+
+    expected = P3D_APB_EXPECTED[fixture_id]
+    observations = document.get("observations")
+    if (
+        document.get("schema_version") != "xdebug.p3d-apb-public-oracle.v1"
+        or document.get("goal_id") != GOAL_ID
+        or document.get("fixture_id") != fixture_id
+        or document.get("producer_kind") != expected["producer_kind"]
+        or document.get("observation_count") != expected["observation_count"]
+        or not isinstance(observations, list)
+        or len(observations) != expected["observation_count"]
+        or len({row.get("observation_id") for row in observations}) !=
+            expected["observation_count"]
+    ):
+        raise MatrixError(f"P3-D2 APB oracle identity drifted: {fixture_id}")
+
+    session = document.get("session", {})
+    runtime = document.get("locked_runtime", {})
+    if (
+        runtime.get("action_count") != 73
+        or runtime.get("cache_reused") is not True
+        or runtime.get("fixture_rebuilt") is not False
+        or runtime.get("source_access") != "read_only"
+        or session.get("all_runtime_writes_repository_local") is not True
+        or session.get("fallback_used") is not False
+        or session.get("fixture_rebuilt") is not False
+        or session.get("source_access") != "read_only"
+    ):
+        raise MatrixError(f"P3-D2 APB runtime boundary drifted: {fixture_id}")
+
+    fixture = document.get("original_fixture", {})
+    stimulus = fixture.get("stimulus_contract")
+    authority = document.get("action_authority", {})
+    excluded_export = authority.get("excluded_apb_export", {})
+    if (
+        authority.get("apb_actions") != [
+            "apb.config.list", "apb.config.load", "apb.query",
+            "apb.statistics", "apb.transaction.cursor", "apb.transfer_window",
+        ]
+        or excluded_export.get("classification") !=
+            "not-in-frozen-public-surface"
+        or excluded_export.get("fallback_to_live_runtime_allowed") is not False
+        or excluded_export.get("response", {}).get("error", {}).get("code") !=
+            "UNKNOWN_ACTION"
+        or fixture.get("fsdb_sha256") != expected["fsdb_sha256"]
+        or fixture.get("cache_manifest_sha256") !=
+            expected["cache_manifest_sha256"]
+        or not isinstance(stimulus, list)
+        or len(stimulus) != expected["transaction_count"]
+    ):
+        raise MatrixError(f"P3-D2 APB stimulus count drifted: {fixture_id}")
+    for source in fixture.get("source_files", []):
+        asset = original_assets.get(source.get("path"))
+        if asset is None or asset.get("sha256") != source.get("sha256"):
+            raise MatrixError(f"P3-D2 APB original source identity drifted: {fixture_id}")
+
+    by_id = {row["observation_id"]: row for row in observations}
+    full = by_id.get("query.full", {}).get("response", {})
+    transactions = full.get("data", {}).get("transactions")
+    summary = full.get("summary", {})
+    if (
+        not isinstance(transactions, list)
+        or len(transactions) != expected["transaction_count"]
+        or summary.get("total_count") != expected["transaction_count"]
+        or summary.get("returned_count") != expected["transaction_count"]
+        or summary.get("scan_complete") is not True
+        or summary.get("analysis_complete") is not True
+        or summary.get("response_truncated") is not False
+        or summary.get("truncation_scopes") != []
+    ):
+        raise MatrixError(f"P3-D2 APB full replay is incomplete: {fixture_id}")
+
+    projected = []
+    completion_ns = None
+    for index, row in enumerate(stimulus):
+        if row.get("index") != index:
+            raise MatrixError(f"P3-D2 APB stimulus index drifted: {fixture_id}")
+        if fixture_id == "xdebug.apb_xamba_vip":
+            formulas = {
+                "address": f"32'h{0x1000 + index * 4:08x}",
+                "is_write": index % 2 == 0,
+                "write_data": f"32'h{0xa5000000 | index:08x}",
+                "read_data": f"32'h{0x5a000000 | index:08x}",
+                "pstrb": f"4'h{(1 << (index % 4)) if index % 2 == 0 else 0:x}",
+                "pprot": index % 8,
+                "pnse": (index // 8) % 2,
+                "wait_cycles": index % 4,
+                "has_error": index % 11 == 0,
+            }
+            if any(row.get(key) != value for key, value in formulas.items()):
+                raise MatrixError("P3-D2 XAMBA formula/stimulus drifted")
+        completion_ns = (
+            int(expected["first_time"].removesuffix("ns"))
+            if completion_ns is None else
+            completion_ns + 30 + 10 * row["wait_cycles"]
+        )
+        projected.append({
+            "time": f"{completion_ns}ns",
+            "is_write": row["is_write"],
+            "addr": row["address"],
+            "data": row["public_data"],
+            "has_error": row["has_error"],
+        })
+    if transactions != projected or projected[-1]["time"] != expected["last_time"]:
+        raise MatrixError(f"P3-D2 APB transaction/timing replay drifted: {fixture_id}")
+    if (
+        sum(row["is_write"] for row in transactions) != expected["write_count"]
+        or sum(not row["is_write"] for row in transactions) != expected["read_count"]
+        or sum(row["has_error"] for row in transactions) != expected["error_count"]
+    ):
+        raise MatrixError(f"P3-D2 APB direction/error count drifted: {fixture_id}")
+
+    xouts = [row for row in observations if "xout" in row]
+    if len(xouts) != 4 or any(not row.get("xout", "").startswith("@xdebug.apb.") for row in xouts):
+        raise MatrixError(f"P3-D2 APB XOUT coverage drifted: {fixture_id}")
+    cache = document.get("cache_contract", {})
+    if (
+        cache.get("base_hit_index", {}).get("private_probe_classification") !=
+            "proven-unobservable"
+        or cache.get("soft_lru", {}).get("private_eviction_classification") !=
+            "proven-unobservable"
+        or cache.get("hard_limit", {}).get("classification") !=
+            "publicly-observable"
+        or cache.get("hard_limit", {}).get("hard_max_bytes") != 1
+    ):
+        raise MatrixError(f"P3-D2 APB cache boundary drifted: {fixture_id}")
+    hard_public = cache.get("hard_limit", {}).get("public_observations", [])
+    if not hard_public or any(
+        row.get("response", {}).get("error", {}).get("code") !=
+            "ANALYSIS_MEMORY_LIMIT_EXCEEDED"
+        for row in hard_public if row.get("action") != "apb.config.load"
+    ):
+        raise MatrixError(f"P3-D2 APB hard limit is hidden: {fixture_id}")
+    forbidden = {"hits", "misses", "evictions", "entry_count", "index_count",
+                 "scanner_invocations", "resident_bytes", "access_sequence"}
+    for group in (cache.get("soft_lru", {}), cache.get("hard_limit", {})):
+        public_text = canonical_json(group.get("public_observations", []))
+        if any(f'"{key}":' in public_text for key in forbidden):
+            raise MatrixError(f"P3-D2 APB private cache probe leaked: {fixture_id}")
+    return {
+        "observation_count": len(observations),
+        "transaction_count": len(transactions),
+        "difference_count": 0,
+        "xout_check_count": len(xouts),
+        "cache_public_observation_count": sum(
+            len(cache.get(name, {}).get("public_observations", []))
+            for name in ("soft_lru", "hard_limit")
+        ),
+        "remaining_observable_gap_count": 0,
+    }
+
+
+def validate_p3d_apb_assets(
+    repo_root: Path,
+    manifest: dict,
+    original_assets: dict[str, dict],
+    current_assets: dict[str, dict],
+) -> dict[str, dict]:
+    """Fail closed on both APB oracles and deterministic current fixtures."""
+
+    rows = {}
+    for fixture_id, oracle_path in P3D_APB_ORACLES.items():
+        oracle_asset = current_assets.get(oracle_path.as_posix())
+        if oracle_asset is None:
+            raise MatrixError(f"P3-D2 APB oracle is not frozen: {fixture_id}")
+        oracle = json.loads(validate_frozen_file(repo_root, oracle_asset).decode("utf-8"))
+        row = validate_p3d_apb_oracle_document(oracle, fixture_id, original_assets)
+        current_id = P3D_APB_EXPECTED[fixture_id]["current_fixture_id"]
+        fixture_assets = sorted(
+            [
+                asset for asset in current_assets.values()
+                if current_id in asset.get("fixture_ids", [])
+            ],
+            key=lambda asset: asset["path"],
+        )
+        expected_names = {
+            "current.apb_vip": {
+                "apb_vip_fixture_top.sv", "fixture.manifest.json",
+                "fixture.sha256", "tb_apb_vip.cpp", "waves.fst",
+            },
+            "current.apb_xamba_vip": {
+                "xdebug_apb_xamba_fixture_top.sv", "fixture.manifest.json",
+                "fixture.sha256", "tb_apb_xamba.cpp", "waves.fst",
+            },
+        }[current_id]
+        if {Path(asset["path"]).name for asset in fixture_assets} != expected_names:
+            raise MatrixError(f"P3-D2 APB fixture inventory drifted: {current_id}")
+        for asset in fixture_assets:
+            validate_frozen_file(repo_root, asset)
+        fixture_dir = repo_root / "testdata/fixtures" / current_id.removeprefix("current.")
+        fixture_manifest = json.loads((fixture_dir / "fixture.manifest.json").read_text())
+        source = fixture_manifest.get("source_contract", {})
+        output = fixture_manifest.get("output_contract", {})
+        expected = P3D_APB_EXPECTED[fixture_id]
+        if (
+            fixture_manifest.get("goal_id") != GOAL_ID
+            or fixture_manifest.get("fixture_id") != current_id
+            or source.get("original_fixture_id") != fixture_id
+            or source.get("transaction_count") != expected["transaction_count"]
+            or source.get("write_count") != expected["write_count"]
+            or source.get("read_count") != expected["read_count"]
+            or source.get("error_count") != expected["error_count"]
+            or source.get("first_completion") != expected["first_time"]
+            or source.get("last_completion") != expected["last_time"]
+            or output.get("external_cache_rebuilt") is not False
+            or output.get("sha256") != sha256_file(fixture_dir / "waves.fst")
+        ):
+            raise MatrixError(f"P3-D2 APB fixture contract drifted: {current_id}")
+        lock_rows = {}
+        for line in (fixture_dir / "fixture.sha256").read_text().splitlines():
+            digest, name = line.split(maxsplit=1)
+            lock_rows[name] = digest
+        if set(lock_rows) != expected_names - {"fixture.sha256"} or any(
+            sha256_file(fixture_dir / name) != digest
+            for name, digest in lock_rows.items()
+        ):
+            raise MatrixError(f"P3-D2 APB fixture lock drifted: {current_id}")
+        row.update({
+            "path": oracle_path.as_posix(),
+            "sha256": oracle_asset["sha256"],
+            "current_fixture_id": current_id,
+        })
+        rows[fixture_id] = row
+    return rows
 
 
 def validate_p3d_stream_differential_closure_audit(
@@ -3593,6 +3878,12 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
         original_assets,
         current_assets,
     )
+    p3d_apb_rows = validate_p3d_apb_assets(
+        repo_root,
+        manifest,
+        original_assets,
+        current_assets,
+    )
 
     # Validate all frozen original assets, including consumers that do not end
     # up as HDL sources.  P1 must fail closed on any P0 evidence drift.
@@ -3802,6 +4093,23 @@ def build_matrix(repo_root: Path, original_root: Path, manifest_path: Path) -> d
                 ],
                 "proof_scope": candidate["evidence_scope"],
             }
+        if fixture_id in p3d_apb_rows:
+            comparison = p3d_apb_rows[fixture_id]
+            scenario["original"]["locked_public_oracle"] = {
+                "path": comparison["path"],
+                "sha256": comparison["sha256"],
+                "observation_count": comparison["observation_count"],
+            }
+            scenario["runtime_audit"] = {
+                "status": "semantic-equivalent",
+                "p3_batch": "P3-D2",
+                **comparison,
+            }
+            scenario["rationale"] = (
+                "锁定原版 APB runtime/FSDB 公开 oracle 已通过；当前确定性 FST "
+                "fixture 按完整事务、完成时间、方向、数据、错误、XOUT 与公开 cache "
+                "边界逐项回放，差异数和剩余公开缺口均为零。"
+            )
         if fixture_id == "xdebug.active_trace_runner":
             runner_proof = p3c_closure_audit["runner"]
             coverage = runner_proof["coverage"]

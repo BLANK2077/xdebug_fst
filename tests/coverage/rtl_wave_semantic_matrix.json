@@ -9508,8 +9508,6 @@
   },
   "p3_queue": {
     "P3-D": [
-      "fixture.apb_vip",
-      "fixture.apb_xamba_vip",
       "fixture.axi_vip",
       "fixture.axi_xamba_vip"
     ],
@@ -42548,16 +42546,15 @@
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.apb"
+          "current.apb_vip"
         ],
         "candidate_sources": [
           {
             "construct_lines": {
-              "always": [
-                17
+              "always_ff": [
+                34
               ],
               "apb": [
-                5,
                 6,
                 7,
                 8,
@@ -42565,118 +42562,220 @@
                 10,
                 11,
                 12,
-                15,
-                16,
+                13,
                 20,
+                21,
                 22,
                 23,
                 24,
-                25,
-                33,
+                26,
+                27,
+                28,
+                36,
+                37,
+                38,
+                42,
+                43,
+                45,
+                46,
+                47,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                61,
+                77,
+                78,
+                79,
+                80,
+                81,
+                83,
+                84,
+                85,
+                105,
+                106,
+                107,
+                108,
+                109,
+                112,
+                113,
+                116,
+                117,
+                121,
+                122,
+                123,
+                124,
+                125
+              ],
+              "clock": [
+                18,
                 34,
+                70,
+                75,
+                89,
+                90,
+                95,
+                111,
+                113,
+                114,
+                115,
+                128,
+                141
+              ],
+              "delay": [
+                90
+              ],
+              "four_state_literal": [
+                37,
+                38,
+                42,
+                43,
+                46,
+                49,
+                51,
+                52,
+                53,
+                54,
+                89,
+                94,
+                96,
+                105,
+                106,
+                112,
+                113,
+                116,
+                117,
+                123,
+                124,
+                125,
+                127,
+                130,
+                131,
+                132,
+                133,
+                134,
+                135,
+                136,
+                137,
+                138,
+                139
+              ],
+              "if": [
                 35,
+                45,
+                47,
+                48,
+                53,
+                55,
+                56,
+                57,
+                58,
+                59
+              ],
+              "initial": [
+                88,
+                93,
+                120
+              ],
+              "interface": [
+                5
+              ],
+              "module": [
+                17,
+                69
+              ],
+              "nonblocking_assignment": [
                 36,
                 37,
                 38,
                 39,
                 40,
+                42,
                 43,
-                44,
-                45
+                46,
+                49,
+                51,
+                52,
+                54,
+                56,
+                57,
+                58,
+                59,
+                61
               ],
-              "clock": [
-                3,
-                17,
-                31,
-                43
-              ],
-              "continuous_assign": [
-                15,
-                16
-              ],
-              "four_state_literal": [
-                15,
-                16,
-                19,
-                20
-              ],
-              "if": [
-                18,
-                22,
-                24
-              ],
-              "module": [
-                2,
-                30
-              ],
-              "nonblocking_assignment": [
-                19,
-                20,
-                23,
-                25
+              "procedural_for": [
+                40
               ],
               "reset": [
-                4,
-                18,
-                32,
-                43
+                19,
+                34,
+                35,
+                76
+              ],
+              "task": [
+                99
               ]
             },
             "fixture_ids": [
-              "current.apb"
+              "current.apb_vip"
             ],
             "kind": "rtl",
-            "line_anchor": 2,
-            "line_count": 47,
-            "path": "testdata/fixtures/apb/apb_top.sv",
-            "sha256": "3b61997996f0db3b740565c7ec7cdf29ed56e2d3a8390f4fb65e0059d89d8ae8"
+            "line_anchor": 1,
+            "line_count": 144,
+            "path": "testdata/fixtures/apb_vip/apb_vip_fixture_top.sv",
+            "sha256": "7b17832d94a7394ef53c501db1f31768d96c87fc38cce09d684638c499efb931"
           },
           {
             "fixture_ids": [
-              "current.apb"
+              "current.apb_vip"
             ],
             "kind": "testbench",
-            "line_anchor": 1,
-            "line_count": 54,
-            "path": "testdata/fixtures/apb/tb_apb.cpp",
-            "sha256": "999ccb2bef189e63b7f2588be3be16b14a005e593b70783f09044188c0a2c391"
+            "line_anchor": 4,
+            "line_count": 48,
+            "path": "testdata/fixtures/apb_vip/tb_apb_vip.cpp",
+            "sha256": "a82b5b8fcd564342a489ea036ad948d83a29dbce3d61e342003ff634d41986c2"
           },
           {
             "fixture_ids": [
-              "current.apb"
+              "current.apb_vip"
             ],
             "kind": "waveform_fst",
             "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/apb/waves.fst",
-            "sha256": "76d5341497b5fc526b6fd49aa87cfa600e96fc86be2c695a66e52f2a344132c4"
+            "line_count": 36,
+            "path": "testdata/fixtures/apb_vip/waves.fst",
+            "sha256": "80a5b625464afb56df14f3fc112abf62b0b53d4006312d28c960323f2d613ee0"
           }
         ],
         "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
         "test_evidence": [
           {
-            "line": 140,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_apb_query"
+            "line": 224,
+            "path": "tests/test_p3d_apb_differential.py",
+            "sha256": "5cf8a5e9e4deff586dcd37dac61e225d2f1f949b4f1a8d6f597b7ec91c2c3681",
+            "test": "test_apb_oracle_locks_runtime_fixture_surface_and_all_transactions"
           },
           {
-            "line": 238,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_apb_statistics"
+            "line": 500,
+            "path": "tests/test_p3d_apb_differential.py",
+            "sha256": "5cf8a5e9e4deff586dcd37dac61e225d2f1f949b4f1a8d6f597b7ec91c2c3681",
+            "test": "test_current_apb_fixture_matches_every_locked_base_observation_and_xout"
           },
           {
-            "line": 312,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_apb_transaction_cursor"
+            "line": 674,
+            "path": "tests/test_p3d_apb_differential.py",
+            "sha256": "5cf8a5e9e4deff586dcd37dac61e225d2f1f949b4f1a8d6f597b7ec91c2c3681",
+            "test": "test_current_apb_matches_locked_soft_budget_public_observations"
           },
           {
-            "line": 336,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_apb_transfer_window"
+            "line": 706,
+            "path": "tests/test_p3d_apb_differential.py",
+            "sha256": "5cf8a5e9e4deff586dcd37dac61e225d2f1f949b4f1a8d6f597b7ec91c2c3681",
+            "test": "test_current_apb_exposes_locked_public_hard_limit_error"
           }
         ]
       },
@@ -42709,6 +42808,11 @@
         ],
         "fixture_id": "xdebug.apb_vip",
         "fixture_source_dir": "xdebug/testdata/waveform/apb_vip_real",
+        "locked_public_oracle": {
+          "observation_count": 36,
+          "path": "tests/data/rtl_wave_differential/p3d-apb-vip.public-oracle.json",
+          "sha256": "c99fd91efc9f9f2558b6e037ed677907f6f681fa1777c8015dbf1fd1fb16f96b"
+        },
         "observed_public_actions": [
           "actions",
           "apb.config.list",
@@ -43032,130 +43136,191 @@
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.transfer_window.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版 APB runtime/FSDB 公开 oracle 已通过；当前确定性 FST fixture 按完整事务、完成时间、方向、数据、错误、XOUT 与公开 cache 边界逐项回放，差异数和剩余公开缺口均为零。",
+      "runtime_audit": {
+        "cache_public_observation_count": 8,
+        "current_fixture_id": "current.apb_vip",
+        "difference_count": 0,
+        "observation_count": 36,
+        "p3_batch": "P3-D2",
+        "path": "tests/data/rtl_wave_differential/p3d-apb-vip.public-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "c99fd91efc9f9f2558b6e037ed677907f6f681fa1777c8015dbf1fd1fb16f96b",
+        "status": "semantic-equivalent",
+        "transaction_count": 10,
+        "xout_check_count": 4
+      },
       "scenario_id": "fixture.apb_vip",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
         "candidate_fixture_ids": [
-          "current.apb"
+          "current.apb_xamba_vip"
         ],
         "candidate_sources": [
           {
+            "fixture_ids": [
+              "current.apb_xamba_vip"
+            ],
+            "kind": "testbench",
+            "line_anchor": 4,
+            "line_count": 48,
+            "path": "testdata/fixtures/apb_xamba_vip/tb_apb_xamba.cpp",
+            "sha256": "a6488b17d0a44bf41dbd832baccbf37bba4bb90db7c929a2b80aab0f66aa4289"
+          },
+          {
+            "fixture_ids": [
+              "current.apb_xamba_vip"
+            ],
+            "kind": "waveform_fst",
+            "line_anchor": 1,
+            "line_count": 51,
+            "path": "testdata/fixtures/apb_xamba_vip/waves.fst",
+            "sha256": "52e3da4db15c6bad8b91c71991a690aab4d506dbfd53edd0ba8f72ee39979f36"
+          },
+          {
             "construct_lines": {
-              "always": [
-                17
-              ],
               "apb": [
-                5,
-                6,
-                7,
                 8,
                 9,
                 10,
                 11,
                 12,
+                13,
+                14,
                 15,
-                16,
-                20,
-                22,
-                23,
-                24,
-                25,
-                33,
-                34,
-                35,
-                36,
-                37,
-                38,
-                39,
-                40,
+                41,
+                42,
                 43,
                 44,
-                45
+                45,
+                46,
+                50,
+                51,
+                54,
+                57,
+                58,
+                62,
+                63,
+                64,
+                65,
+                66,
+                73,
+                74,
+                75,
+                76,
+                77,
+                78,
+                79,
+                80
               ],
               "clock": [
-                3,
-                17,
+                6,
+                25,
+                26,
                 31,
-                43
+                53,
+                55,
+                56,
+                59,
+                60,
+                85,
+                90
               ],
-              "continuous_assign": [
-                15,
-                16
+              "delay": [
+                26
               ],
               "four_state_literal": [
-                15,
-                16,
-                19,
-                20
+                25,
+                30,
+                32,
+                41,
+                42,
+                44,
+                45,
+                46,
+                47,
+                50,
+                51,
+                54,
+                57,
+                62,
+                63,
+                64,
+                65,
+                66,
+                67,
+                68,
+                69,
+                74,
+                75,
+                76,
+                79,
+                80,
+                83,
+                84
               ],
-              "if": [
-                18,
-                22,
-                24
+              "initial": [
+                24,
+                29,
+                72
+              ],
+              "interface": [
+                5
               ],
               "module": [
-                2,
-                30
+                21,
+                95
               ],
-              "nonblocking_assignment": [
-                19,
-                20,
-                23,
-                25
+              "procedural_for": [
+                87
               ],
               "reset": [
-                4,
-                18,
+                7,
+                30,
                 32,
-                43
+                84
+              ],
+              "task": [
+                35
               ]
             },
             "fixture_ids": [
-              "current.apb"
+              "current.apb_xamba_vip"
             ],
             "kind": "rtl",
-            "line_anchor": 2,
-            "line_count": 47,
-            "path": "testdata/fixtures/apb/apb_top.sv",
-            "sha256": "3b61997996f0db3b740565c7ec7cdf29ed56e2d3a8390f4fb65e0059d89d8ae8"
-          },
-          {
-            "fixture_ids": [
-              "current.apb"
-            ],
-            "kind": "testbench",
             "line_anchor": 1,
-            "line_count": 54,
-            "path": "testdata/fixtures/apb/tb_apb.cpp",
-            "sha256": "999ccb2bef189e63b7f2588be3be16b14a005e593b70783f09044188c0a2c391"
-          },
-          {
-            "fixture_ids": [
-              "current.apb"
-            ],
-            "kind": "waveform_fst",
-            "line_anchor": 1,
-            "line_count": 28,
-            "path": "testdata/fixtures/apb/waves.fst",
-            "sha256": "76d5341497b5fc526b6fd49aa87cfa600e96fc86be2c695a66e52f2a344132c4"
+            "line_count": 97,
+            "path": "testdata/fixtures/apb_xamba_vip/xdebug_apb_xamba_fixture_top.sv",
+            "sha256": "a7f5c173af4d80ae159375fc850a26002c569ae552f63a8516af861246a1e045"
           }
         ],
         "evidence_scope": "related capability only; exact stimulus/time/result remains gated by P2",
         "test_evidence": [
           {
-            "line": 140,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_apb_query"
+            "line": 224,
+            "path": "tests/test_p3d_apb_differential.py",
+            "sha256": "5cf8a5e9e4deff586dcd37dac61e225d2f1f949b4f1a8d6f597b7ec91c2c3681",
+            "test": "test_apb_oracle_locks_runtime_fixture_surface_and_all_transactions"
           },
           {
-            "line": 238,
-            "path": "tests/test_protocol.py",
-            "sha256": "2d5894d9e65b856f32e0a221a7dc5d587fa1f9d42892bec5eb34a796d250bd5a",
-            "test": "test_apb_statistics"
+            "line": 500,
+            "path": "tests/test_p3d_apb_differential.py",
+            "sha256": "5cf8a5e9e4deff586dcd37dac61e225d2f1f949b4f1a8d6f597b7ec91c2c3681",
+            "test": "test_current_apb_fixture_matches_every_locked_base_observation_and_xout"
+          },
+          {
+            "line": 674,
+            "path": "tests/test_p3d_apb_differential.py",
+            "sha256": "5cf8a5e9e4deff586dcd37dac61e225d2f1f949b4f1a8d6f597b7ec91c2c3681",
+            "test": "test_current_apb_matches_locked_soft_budget_public_observations"
+          },
+          {
+            "line": 706,
+            "path": "tests/test_p3d_apb_differential.py",
+            "sha256": "5cf8a5e9e4deff586dcd37dac61e225d2f1f949b4f1a8d6f597b7ec91c2c3681",
+            "test": "test_current_apb_exposes_locked_public_hard_limit_error"
           }
         ]
       },
@@ -43183,6 +43348,11 @@
         ],
         "fixture_id": "xdebug.apb_xamba_vip",
         "fixture_source_dir": "xdebug/testdata/waveform/apb_xamba_vip_real",
+        "locked_public_oracle": {
+          "observation_count": 34,
+          "path": "tests/data/rtl_wave_differential/p3d-apb-xamba-vip.public-oracle.json",
+          "sha256": "574c9890ff9df89d70a9ecdbeb0c56183621d8b076975e3df26537ee93975b0c"
+        },
         "observed_public_actions": [
           "apb.config.load",
           "apb.query",
@@ -43276,6 +43446,11 @@
       },
       "p3_batch": "P3-D",
       "public_action_contracts": {
+        "apb.config.load": {
+          "completeness_fields": [],
+          "request_example": "compat/xdebug-v1/examples/requests/apb.config.load.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.config.load.response.schema.json"
+        },
         "apb.query": {
           "completeness_fields": [
             "summary.analysis_complete",
@@ -43301,11 +43476,50 @@
           ],
           "request_example": "compat/xdebug-v1/examples/requests/apb.statistics.basic.json",
           "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.statistics.response.schema.json"
+        },
+        "apb.transaction.cursor": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/apb.transaction.cursor.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.transaction.cursor.response.schema.json"
+        },
+        "apb.transfer_window": {
+          "completeness_fields": [
+            "summary.analysis_complete",
+            "summary.response_truncated",
+            "summary.returned_count",
+            "summary.scan_complete",
+            "summary.total_count",
+            "summary.truncation_scopes",
+            "summary.value_width_complete"
+          ],
+          "request_example": "compat/xdebug-v1/examples/requests/apb.transfer_window.basic.json",
+          "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.transfer_window.response.schema.json"
         }
       },
-      "rationale": "当前仅有相关能力/fixture 证据，尚未用 P2 等价公开请求逐观察点比较。",
+      "rationale": "锁定原版 APB runtime/FSDB 公开 oracle 已通过；当前确定性 FST fixture 按完整事务、完成时间、方向、数据、错误、XOUT 与公开 cache 边界逐项回放，差异数和剩余公开缺口均为零。",
+      "runtime_audit": {
+        "cache_public_observation_count": 8,
+        "current_fixture_id": "current.apb_xamba_vip",
+        "difference_count": 0,
+        "observation_count": 34,
+        "p3_batch": "P3-D2",
+        "path": "tests/data/rtl_wave_differential/p3d-apb-xamba-vip.public-oracle.json",
+        "remaining_observable_gap_count": 0,
+        "sha256": "574c9890ff9df89d70a9ecdbeb0c56183621d8b076975e3df26537ee93975b0c",
+        "status": "semantic-equivalent",
+        "transaction_count": 64,
+        "xout_check_count": 4
+      },
       "scenario_id": "fixture.apb_xamba_vip",
-      "status": "partial"
+      "status": "semantic-equivalent"
     },
     {
       "current": {
@@ -48090,9 +48304,9 @@
     "scenario_count": 88,
     "status_counts": {
       "missing": 1,
-      "partial": 6,
+      "partial": 4,
       "proven-unobservable": 5,
-      "semantic-equivalent": 76
+      "semantic-equivalent": 78
     },
     "unclassified_count": 0,
     "unqueued_gap_count": 0
