@@ -7837,6 +7837,21 @@
         "current.cross_fixture"
       ],
       "kind": "test_consumer",
+      "path": "tests/data/rtl_wave_differential/p3e-boundary.audit.json",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "242750e22f7cb2fe76b661d4040e10db771fb2f4388f25d1ddac9174c5d1a1c0",
+      "side": "current",
+      "size_bytes": 87590
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
       "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
       "roles": [
         "test_consumer"
@@ -8414,6 +8429,21 @@
       "sha256": "5fef640d352a0e2707bb53ddd8406394e1b61a29ee3783c52967428a08be8f7b",
       "side": "current",
       "size_bytes": 7709
+    },
+    {
+      "exists": true,
+      "file_type": "file",
+      "fixture_ids": [
+        "current.cross_fixture"
+      ],
+      "kind": "test_consumer",
+      "path": "tests/test_p3e_boundary_audit.py",
+      "roles": [
+        "test_consumer"
+      ],
+      "sha256": "8f23d55fde62bc0d2cafc2e628daefebc7041c763054383841b55456a99f3b6c",
+      "side": "current",
+      "size_bytes": 6048
     },
     {
       "exists": true,
@@ -17166,10 +17196,10 @@
   "schema_version": "xdebug-rtl-wave-assets.v1",
   "summary": {
     "current": {
-      "asset_count": 584,
+      "asset_count": 586,
       "fst_count": 84,
       "rtl_count": 84,
-      "test_consumer_count": 85,
+      "test_consumer_count": 87,
       "vcd_count": 1
     },
     "missing_assets": [],

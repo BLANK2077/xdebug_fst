@@ -1,0 +1,2150 @@
+{
+  "authority": {
+    "catalog": {
+      "action_count": 73,
+      "actions": [
+        "actions",
+        "apb.config.list",
+        "apb.config.load",
+        "apb.query",
+        "apb.statistics",
+        "apb.transaction.cursor",
+        "apb.transfer_window",
+        "axi.analysis",
+        "axi.channel_stall",
+        "axi.config.list",
+        "axi.config.load",
+        "axi.export",
+        "axi.latency_outlier",
+        "axi.outstanding_timeline",
+        "axi.query",
+        "axi.request_response_pair",
+        "axi.statistics",
+        "axi.transaction.cursor",
+        "batch",
+        "counter.statistics",
+        "event.config.list",
+        "event.config.load",
+        "event.export",
+        "event.find",
+        "expr.eval_at",
+        "expr.normalize",
+        "list.add",
+        "list.create",
+        "list.delete",
+        "list.export",
+        "list.first_change",
+        "list.load",
+        "list.show",
+        "list.validate",
+        "nwave.rc.generate",
+        "protocol.handshake.inspect",
+        "schema",
+        "scope.list",
+        "scope.roots",
+        "session.close",
+        "session.doctor",
+        "session.gc",
+        "session.kill",
+        "session.list",
+        "session.open",
+        "signal.anomaly.inspect",
+        "signal.canonicalize",
+        "signal.changes",
+        "signal.resolve",
+        "signal.sampled_pulse.inspect",
+        "signal.stability",
+        "signal.statistics",
+        "signal.xz_verify",
+        "stream.config.get",
+        "stream.config.list",
+        "stream.config.load",
+        "stream.describe",
+        "stream.export",
+        "stream.query",
+        "stream.validate",
+        "trace.active_driver",
+        "trace.active_driver_chain",
+        "trace.driver",
+        "trace.load",
+        "trace.x_origin",
+        "value.at",
+        "verify.conditions",
+        "waveform.cursor.delete",
+        "waveform.cursor.get",
+        "waveform.cursor.list",
+        "waveform.cursor.set",
+        "waveform.cursor.use",
+        "window.verify"
+      ],
+      "path": "compat/xdebug-v1/catalog.response.json",
+      "sha256": "f902ae971cecd106928bd14770b780a3588419bc41a2af54d5537b764072c3bc"
+    },
+    "contract_count": 73,
+    "contracts": {
+      "actions": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/actions.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/actions.response.schema.json"
+      },
+      "apb.config.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.config.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.config.list.response.schema.json"
+      },
+      "apb.config.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.config.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.config.load.response.schema.json"
+      },
+      "apb.query": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.query.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.query.response.schema.json"
+      },
+      "apb.statistics": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.statistics.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.statistics.response.schema.json"
+      },
+      "apb.transaction.cursor": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.transaction.cursor.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.transaction.cursor.response.schema.json"
+      },
+      "apb.transfer_window": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.transfer_window.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.transfer_window.response.schema.json"
+      },
+      "axi.analysis": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.analysis.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.analysis.response.schema.json"
+      },
+      "axi.channel_stall": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.channel_stall.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.channel_stall.response.schema.json"
+      },
+      "axi.config.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.config.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.list.response.schema.json"
+      },
+      "axi.config.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.config.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.load.response.schema.json"
+      },
+      "axi.export": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.export.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.export.response.schema.json"
+      },
+      "axi.latency_outlier": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.latency_outlier.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.latency_outlier.response.schema.json"
+      },
+      "axi.outstanding_timeline": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.outstanding_timeline.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.outstanding_timeline.response.schema.json"
+      },
+      "axi.query": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.query.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.query.response.schema.json"
+      },
+      "axi.request_response_pair": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.request_response_pair.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.request_response_pair.response.schema.json"
+      },
+      "axi.statistics": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.statistics.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.statistics.response.schema.json"
+      },
+      "axi.transaction.cursor": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.transaction.cursor.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.transaction.cursor.response.schema.json"
+      },
+      "batch": {
+        "completeness_fields": [
+          "analysis_complete",
+          "complete",
+          "response_truncated",
+          "returned_count",
+          "scan_complete",
+          "scan_status.analysis_complete",
+          "statements.complete",
+          "termination",
+          "termination_detail",
+          "total_count"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/batch.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/batch.response.schema.json"
+      },
+      "counter.statistics": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/counter.statistics.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/counter.statistics.response.schema.json"
+      },
+      "event.config.list": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/event.config.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.config.list.response.schema.json"
+      },
+      "event.config.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/event.config.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.config.load.response.schema.json"
+      },
+      "event.export": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/event.export.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.export.response.schema.json"
+      },
+      "event.find": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/event.find.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.find.response.schema.json"
+      },
+      "expr.eval_at": {
+        "completeness_fields": [
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/expr.eval_at.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/expr.eval_at.response.schema.json"
+      },
+      "expr.normalize": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/expr.normalize.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/expr.normalize.response.schema.json"
+      },
+      "list.add": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.add.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.add.response.schema.json"
+      },
+      "list.create": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.create.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.create.response.schema.json"
+      },
+      "list.delete": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.delete.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.delete.response.schema.json"
+      },
+      "list.export": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/list.export.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.export.response.schema.json"
+      },
+      "list.first_change": {
+        "completeness_fields": [
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/list.first_change.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.first_change.response.schema.json"
+      },
+      "list.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.load.response.schema.json"
+      },
+      "list.show": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.show.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.show.response.schema.json"
+      },
+      "list.validate": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.validate.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.validate.response.schema.json"
+      },
+      "nwave.rc.generate": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/nwave.rc.generate.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/nwave.rc.generate.response.schema.json"
+      },
+      "protocol.handshake.inspect": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/protocol.handshake.inspect.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/protocol.handshake.inspect.response.schema.json"
+      },
+      "schema": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/schema.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/schema.response.schema.json"
+      },
+      "scope.list": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/scope.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.list.response.schema.json"
+      },
+      "scope.roots": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/scope.roots.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.roots.response.schema.json"
+      },
+      "session.close": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.close.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.close.response.schema.json"
+      },
+      "session.doctor": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.doctor.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.doctor.response.schema.json"
+      },
+      "session.gc": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.gc.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.gc.response.schema.json"
+      },
+      "session.kill": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.kill.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.kill.response.schema.json"
+      },
+      "session.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.list.response.schema.json"
+      },
+      "session.open": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.open.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.open.response.schema.json"
+      },
+      "signal.anomaly.inspect": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.anomaly.inspect.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.anomaly.inspect.response.schema.json"
+      },
+      "signal.canonicalize": {
+        "completeness_fields": [
+          "analysis_complete",
+          "response_truncated",
+          "returned_count",
+          "scan_complete",
+          "total_count"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.canonicalize.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.canonicalize.response.schema.json"
+      },
+      "signal.changes": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.changes.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.changes.response.schema.json"
+      },
+      "signal.resolve": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.resolve.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.resolve.response.schema.json"
+      },
+      "signal.sampled_pulse.inspect": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.sampled_pulse.inspect.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.sampled_pulse.inspect.response.schema.json"
+      },
+      "signal.stability": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.stability.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.stability.response.schema.json"
+      },
+      "signal.statistics": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.statistics.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.statistics.response.schema.json"
+      },
+      "signal.xz_verify": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.xz_verify.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.xz_verify.response.schema.json"
+      },
+      "stream.config.get": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.config.get.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.get.response.schema.json"
+      },
+      "stream.config.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.config.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.list.response.schema.json"
+      },
+      "stream.config.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.config.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.load.response.schema.json"
+      },
+      "stream.describe": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.describe.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.describe.response.schema.json"
+      },
+      "stream.export": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.export.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.export.response.schema.json"
+      },
+      "stream.query": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.query.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.query.response.schema.json"
+      },
+      "stream.validate": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.validate.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.validate.response.schema.json"
+      },
+      "trace.active_driver": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.termination",
+          "summary.termination_detail",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver.response.schema.json"
+      },
+      "trace.active_driver_chain": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.termination",
+          "summary.termination_detail",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver_chain.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
+      },
+      "trace.driver": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.driver.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.driver.response.schema.json"
+      },
+      "trace.load": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.load.response.schema.json"
+      },
+      "trace.x_origin": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.termination",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.x_origin.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.x_origin.response.schema.json"
+      },
+      "value.at": {
+        "completeness_fields": [
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/value.at.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/value.at.response.schema.json"
+      },
+      "verify.conditions": {
+        "completeness_fields": [
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/verify.conditions.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/verify.conditions.response.schema.json"
+      },
+      "waveform.cursor.delete": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.delete.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.delete.response.schema.json"
+      },
+      "waveform.cursor.get": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.get.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.get.response.schema.json"
+      },
+      "waveform.cursor.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.list.response.schema.json"
+      },
+      "waveform.cursor.set": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.set.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.set.response.schema.json"
+      },
+      "waveform.cursor.use": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.use.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.use.response.schema.json"
+      },
+      "window.verify": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/window.verify.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/window.verify.response.schema.json"
+      }
+    }
+  },
+  "cross_fixture": {
+    "catalog_actions_not_observed": [
+      "session.kill"
+    ],
+    "classification_target": "proven-unobservable",
+    "consumer_count": 37,
+    "consumer_paths": [
+      "xdebug/tests/contract/test_session_lifecycle_internal_requests.py",
+      "xdebug/tests/contract/test_time_output_contract.py",
+      "xdebug/tests/contract/test_unified_runtime_contract.py",
+      "xdebug/tests/native_xout/cases.py",
+      "xdebug/tests/native_xout/test_report_contract.py",
+      "xdebug/tests/static/test_available_values_contract.py",
+      "xdebug/tests/static/test_composite_parameter_effectiveness.py",
+      "xdebug/tests/static/test_non_sampling_response_contracts.py",
+      "xdebug/tests/static/test_publish_run_manifest.py",
+      "xdebug/tests/static/test_static_contracts.py",
+      "xdebug/tests/stream_differential/legacy_stream_oracle.cpp",
+      "xdebug/tests/stream_differential/legacy_stream_oracle.h",
+      "xdebug/tests/unit/test_action_log.cpp",
+      "xdebug/tests/unit/test_action_registry.cpp",
+      "xdebug/tests/unit/test_analysis_probe.cpp",
+      "xdebug/tests/unit/test_analysis_repository.cpp",
+      "xdebug/tests/unit/test_apb_manager.cpp",
+      "xdebug/tests/unit/test_atomic_artifact_publisher.cpp",
+      "xdebug/tests/unit/test_axi_transaction_tracker.cpp",
+      "xdebug/tests/unit/test_clock_sampling_event_manager.cpp",
+      "xdebug/tests/unit/test_core_types.cpp",
+      "xdebug/tests/unit/test_cursor_manager.cpp",
+      "xdebug/tests/unit/test_event_expr.cpp",
+      "xdebug/tests/unit/test_expression.cpp",
+      "xdebug/tests/unit/test_list_manager.cpp",
+      "xdebug/tests/unit/test_protocol_query_filter.cpp",
+      "xdebug/tests/unit/test_protocol_statistics_filter.cpp",
+      "xdebug/tests/unit/test_rc_generator.cpp",
+      "xdebug/tests/unit/test_request_contract.cpp",
+      "xdebug/tests/unit/test_reset_config.cpp",
+      "xdebug/tests/unit/test_session_catalog.cpp",
+      "xdebug/tests/unit/test_session_registry.cpp",
+      "xdebug/tests/unit/test_stream_base_analysis.cpp",
+      "xdebug/tests/unit/test_stream_manager.cpp",
+      "xdebug/tests/unit/test_typed_waveform_action_adapter.cpp",
+      "xdebug/tests/unit/test_value_collection.cpp",
+      "xdebug/tests/unit/test_versioned_json_store.cpp"
+    ],
+    "consumer_sha256": {
+      "xdebug/tests/contract/test_session_lifecycle_internal_requests.py": "c302d1b551089a7ccc33d2de6d86b55795ecfa1d449f0b7ef46155bae5656b7a",
+      "xdebug/tests/contract/test_time_output_contract.py": "0bc82a8daf9687a2db39fdd9e551bc373e30fccb69c18aa8de83c49b5324ad2a",
+      "xdebug/tests/contract/test_unified_runtime_contract.py": "5f6014908c060e35074efcb86bb6794d658bb855f0aae7a43b524f863f6d958b",
+      "xdebug/tests/native_xout/cases.py": "4bcfca94335045f93214dffb5ff89c1fb6a6b5970eef086e0378270481549142",
+      "xdebug/tests/native_xout/test_report_contract.py": "b657585b0d60e58c82230ce48a4475747b340aeec79ac4296b021a9123bdb5f1",
+      "xdebug/tests/static/test_available_values_contract.py": "d9d1773e694941eaadc52cce1ed2b7ba1b475d0f816fae951571ec97160b86d0",
+      "xdebug/tests/static/test_composite_parameter_effectiveness.py": "9ab3371b9d84ba170a1c5986dfe56a52ed78b2ef1c7fb996e1584e7da0fc8261",
+      "xdebug/tests/static/test_non_sampling_response_contracts.py": "e0f352bd1e267313d593531f314d102523fb3a8a2544e604229ab68c15962985",
+      "xdebug/tests/static/test_publish_run_manifest.py": "94729f468d751218bb0d59956b3d0c6c42c4d58d30d8b384d97508dd9e557c19",
+      "xdebug/tests/static/test_static_contracts.py": "c2f76c5001ae31921d2ee2fa79a3694c2722f23fd42a4ea50ee836a12628405a",
+      "xdebug/tests/stream_differential/legacy_stream_oracle.cpp": "6c8b05bcfe7ac03a2c82c75bb8b9da037973a7eb2cbfc3e4251ed41879a423e4",
+      "xdebug/tests/stream_differential/legacy_stream_oracle.h": "adf360f00b1bb4c3b7f0adf559e8fb2f08f54689537d9454af7dcb0d8a88cf2e",
+      "xdebug/tests/unit/test_action_log.cpp": "9e47df31e6ae612fd8e3a54bea75770a8ab61500d24f4a41066558b3ef9ff00f",
+      "xdebug/tests/unit/test_action_registry.cpp": "24df0b291a4c60bb7c48cb63da89d5e85289115814b36b469b1222ffa40ba12e",
+      "xdebug/tests/unit/test_analysis_probe.cpp": "4063acdefea577863b90ee7af316041f0c44fe719058709671a0ae50e298b60d",
+      "xdebug/tests/unit/test_analysis_repository.cpp": "a102543564f5004343bece8e5e445cb41a532a059b5507d8e1a5dbc570426390",
+      "xdebug/tests/unit/test_apb_manager.cpp": "f0b22fbf5d104514bf4c5755372bef8d0494f95f6fe57d8d2a37fef6550652a4",
+      "xdebug/tests/unit/test_atomic_artifact_publisher.cpp": "66341b3fb4f863fbf214b3869635895041a21e6e3515022a52f0181c28c10fcd",
+      "xdebug/tests/unit/test_axi_transaction_tracker.cpp": "2fc36662bc3935407ceefe0c432a7301c0b7d55ac0cea5d9f14bba674f2da72e",
+      "xdebug/tests/unit/test_clock_sampling_event_manager.cpp": "89a1090fbba6610f8cbad1660d33656f9594f22c0139444baf7cbca9b8550b9a",
+      "xdebug/tests/unit/test_core_types.cpp": "d5ae7cb27ad0d30abf7ba3f1c44564cffe4051cb5f7778dd3ed72776cc08546d",
+      "xdebug/tests/unit/test_cursor_manager.cpp": "f0270e25cd831cd085e1059b7dbf239165682f481b0b21f5310456229ff5ddbb",
+      "xdebug/tests/unit/test_event_expr.cpp": "082b2ba58aca7fbc0f77c9eaf68f2d815d5c053ccbff2939690b509d4fb033f4",
+      "xdebug/tests/unit/test_expression.cpp": "82e90323a74b5aa4978401f7c83e24a22a4aef907d386dca6a2d09ff74dc8452",
+      "xdebug/tests/unit/test_list_manager.cpp": "853bb1386609fdcc9fd700369e621f4b9951ba5fc0bb9d8b975e0b658d6fd451",
+      "xdebug/tests/unit/test_protocol_query_filter.cpp": "2fdac29ae10603a4a2b3edcd75b4ef2a7ec2dd4120e04db8dab0696f5d44bc43",
+      "xdebug/tests/unit/test_protocol_statistics_filter.cpp": "6af873144aec383e6762d639d9c1f50dc641e91c3ec09ad93f851cdd0bf49f5a",
+      "xdebug/tests/unit/test_rc_generator.cpp": "565057d68b72e294bd866489970a9aa778f463c73d908f3e341e5bc8cc07cbb9",
+      "xdebug/tests/unit/test_request_contract.cpp": "ebf94cb28c7548c2f8fd6f88385ce21462d70cfaf0549fa452b1c8f5d372a288",
+      "xdebug/tests/unit/test_reset_config.cpp": "b6dd971b0586278146e8fad7a8ba984fd2545c7a27cac3f1f15abf22fa8a205c",
+      "xdebug/tests/unit/test_session_catalog.cpp": "2747a8f6c61aaf05f9d442b492e5223ca64840b8436b74bb4edfe78c1daae7d9",
+      "xdebug/tests/unit/test_session_registry.cpp": "7728c176dab747e05c5617afda6f8165e77fd323ae564f99144e6f627b5a9b44",
+      "xdebug/tests/unit/test_stream_base_analysis.cpp": "98c77ea7aae8fcaec11968c13ab65c26943a2c3bb2193386caf3f4c46ac78416",
+      "xdebug/tests/unit/test_stream_manager.cpp": "b64261aeef00e69823761e88538d043baea7fd8d0f2dec509c03a9a138b2858c",
+      "xdebug/tests/unit/test_typed_waveform_action_adapter.cpp": "b9169df991521af4a9b763514e3d10447ceb74711acae0cb87c21803e150b7ec",
+      "xdebug/tests/unit/test_value_collection.cpp": "5750f6e6def0e8bc27d21baaf0fde06e684a033f9f341f12b0ce4389a061f5d8",
+      "xdebug/tests/unit/test_versioned_json_store.cpp": "f253667196a2fd5e2f141f2b7e770fcd59aba887606dbd4d744772df536ee1d3"
+    },
+    "contracts": {
+      "actions": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/actions.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/actions.response.schema.json"
+      },
+      "apb.config.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.config.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.config.list.response.schema.json"
+      },
+      "apb.config.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.config.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.config.load.response.schema.json"
+      },
+      "apb.query": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.query.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.query.response.schema.json"
+      },
+      "apb.statistics": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.statistics.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.statistics.response.schema.json"
+      },
+      "apb.transaction.cursor": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.transaction.cursor.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.transaction.cursor.response.schema.json"
+      },
+      "apb.transfer_window": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/apb.transfer_window.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/apb.transfer_window.response.schema.json"
+      },
+      "axi.analysis": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.analysis.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.analysis.response.schema.json"
+      },
+      "axi.channel_stall": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.channel_stall.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.channel_stall.response.schema.json"
+      },
+      "axi.config.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.config.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.list.response.schema.json"
+      },
+      "axi.config.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.config.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.config.load.response.schema.json"
+      },
+      "axi.export": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.export.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.export.response.schema.json"
+      },
+      "axi.latency_outlier": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.latency_outlier.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.latency_outlier.response.schema.json"
+      },
+      "axi.outstanding_timeline": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.outstanding_timeline.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.outstanding_timeline.response.schema.json"
+      },
+      "axi.query": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.query.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.query.response.schema.json"
+      },
+      "axi.request_response_pair": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.request_response_pair.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.request_response_pair.response.schema.json"
+      },
+      "axi.statistics": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.statistics.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.statistics.response.schema.json"
+      },
+      "axi.transaction.cursor": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/axi.transaction.cursor.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/axi.transaction.cursor.response.schema.json"
+      },
+      "batch": {
+        "completeness_fields": [
+          "analysis_complete",
+          "complete",
+          "response_truncated",
+          "returned_count",
+          "scan_complete",
+          "scan_status.analysis_complete",
+          "statements.complete",
+          "termination",
+          "termination_detail",
+          "total_count"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/batch.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/batch.response.schema.json"
+      },
+      "counter.statistics": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/counter.statistics.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/counter.statistics.response.schema.json"
+      },
+      "event.config.list": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/event.config.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.config.list.response.schema.json"
+      },
+      "event.config.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/event.config.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.config.load.response.schema.json"
+      },
+      "event.export": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/event.export.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.export.response.schema.json"
+      },
+      "event.find": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/event.find.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.find.response.schema.json"
+      },
+      "expr.eval_at": {
+        "completeness_fields": [
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/expr.eval_at.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/expr.eval_at.response.schema.json"
+      },
+      "expr.normalize": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/expr.normalize.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/expr.normalize.response.schema.json"
+      },
+      "list.add": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.add.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.add.response.schema.json"
+      },
+      "list.create": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.create.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.create.response.schema.json"
+      },
+      "list.delete": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.delete.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.delete.response.schema.json"
+      },
+      "list.export": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/list.export.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.export.response.schema.json"
+      },
+      "list.first_change": {
+        "completeness_fields": [
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/list.first_change.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.first_change.response.schema.json"
+      },
+      "list.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.load.response.schema.json"
+      },
+      "list.show": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.show.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.show.response.schema.json"
+      },
+      "list.validate": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/list.validate.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/list.validate.response.schema.json"
+      },
+      "nwave.rc.generate": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/nwave.rc.generate.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/nwave.rc.generate.response.schema.json"
+      },
+      "protocol.handshake.inspect": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/protocol.handshake.inspect.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/protocol.handshake.inspect.response.schema.json"
+      },
+      "schema": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/schema.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/schema.response.schema.json"
+      },
+      "scope.list": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/scope.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.list.response.schema.json"
+      },
+      "scope.roots": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/scope.roots.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/scope.roots.response.schema.json"
+      },
+      "session.close": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.close.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.close.response.schema.json"
+      },
+      "session.doctor": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.doctor.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.doctor.response.schema.json"
+      },
+      "session.gc": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.gc.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.gc.response.schema.json"
+      },
+      "session.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.list.response.schema.json"
+      },
+      "session.open": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/session.open.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/session.open.response.schema.json"
+      },
+      "signal.anomaly.inspect": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.anomaly.inspect.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.anomaly.inspect.response.schema.json"
+      },
+      "signal.canonicalize": {
+        "completeness_fields": [
+          "analysis_complete",
+          "response_truncated",
+          "returned_count",
+          "scan_complete",
+          "total_count"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.canonicalize.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.canonicalize.response.schema.json"
+      },
+      "signal.changes": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.changes.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.changes.response.schema.json"
+      },
+      "signal.resolve": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.resolve.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.resolve.response.schema.json"
+      },
+      "signal.sampled_pulse.inspect": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.sampled_pulse.inspect.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.sampled_pulse.inspect.response.schema.json"
+      },
+      "signal.stability": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.stability.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.stability.response.schema.json"
+      },
+      "signal.statistics": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.statistics.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.statistics.response.schema.json"
+      },
+      "signal.xz_verify": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/signal.xz_verify.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/signal.xz_verify.response.schema.json"
+      },
+      "stream.config.get": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.config.get.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.get.response.schema.json"
+      },
+      "stream.config.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.config.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.list.response.schema.json"
+      },
+      "stream.config.load": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.config.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.config.load.response.schema.json"
+      },
+      "stream.describe": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.describe.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.describe.response.schema.json"
+      },
+      "stream.export": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.export.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.export.response.schema.json"
+      },
+      "stream.query": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.query.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.query.response.schema.json"
+      },
+      "stream.validate": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/stream.validate.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/stream.validate.response.schema.json"
+      },
+      "trace.active_driver": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.termination",
+          "summary.termination_detail",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver.response.schema.json"
+      },
+      "trace.active_driver_chain": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.termination",
+          "summary.termination_detail",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.active_driver_chain.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.active_driver_chain.response.schema.json"
+      },
+      "trace.driver": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.driver.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.driver.response.schema.json"
+      },
+      "trace.load": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.load.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.load.response.schema.json"
+      },
+      "trace.x_origin": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.termination",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/trace.x_origin.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/trace.x_origin.response.schema.json"
+      },
+      "value.at": {
+        "completeness_fields": [
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/value.at.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/value.at.response.schema.json"
+      },
+      "verify.conditions": {
+        "completeness_fields": [
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/verify.conditions.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/verify.conditions.response.schema.json"
+      },
+      "waveform.cursor.delete": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.delete.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.delete.response.schema.json"
+      },
+      "waveform.cursor.get": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.get.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.get.response.schema.json"
+      },
+      "waveform.cursor.list": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.list.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.list.response.schema.json"
+      },
+      "waveform.cursor.set": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.set.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.set.response.schema.json"
+      },
+      "waveform.cursor.use": {
+        "completeness_fields": [],
+        "request_example": "compat/xdebug-v1/examples/requests/waveform.cursor.use.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/waveform.cursor.use.response.schema.json"
+      },
+      "window.verify": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/window.verify.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/window.verify.response.schema.json"
+      }
+    },
+    "fixture_id": "original.cross_fixture",
+    "observed_public_action_count": 72,
+    "observed_public_actions": [
+      "actions",
+      "apb.config.list",
+      "apb.config.load",
+      "apb.query",
+      "apb.statistics",
+      "apb.transaction.cursor",
+      "apb.transfer_window",
+      "axi.analysis",
+      "axi.channel_stall",
+      "axi.config.list",
+      "axi.config.load",
+      "axi.export",
+      "axi.latency_outlier",
+      "axi.outstanding_timeline",
+      "axi.query",
+      "axi.request_response_pair",
+      "axi.statistics",
+      "axi.transaction.cursor",
+      "batch",
+      "counter.statistics",
+      "event.config.list",
+      "event.config.load",
+      "event.export",
+      "event.find",
+      "expr.eval_at",
+      "expr.normalize",
+      "list.add",
+      "list.create",
+      "list.delete",
+      "list.export",
+      "list.first_change",
+      "list.load",
+      "list.show",
+      "list.validate",
+      "nwave.rc.generate",
+      "protocol.handshake.inspect",
+      "schema",
+      "scope.list",
+      "scope.roots",
+      "session.close",
+      "session.doctor",
+      "session.gc",
+      "session.list",
+      "session.open",
+      "signal.anomaly.inspect",
+      "signal.canonicalize",
+      "signal.changes",
+      "signal.resolve",
+      "signal.sampled_pulse.inspect",
+      "signal.stability",
+      "signal.statistics",
+      "signal.xz_verify",
+      "stream.config.get",
+      "stream.config.list",
+      "stream.config.load",
+      "stream.describe",
+      "stream.export",
+      "stream.query",
+      "stream.validate",
+      "trace.active_driver",
+      "trace.active_driver_chain",
+      "trace.driver",
+      "trace.load",
+      "trace.x_origin",
+      "value.at",
+      "verify.conditions",
+      "waveform.cursor.delete",
+      "waveform.cursor.get",
+      "waveform.cursor.list",
+      "waveform.cursor.set",
+      "waveform.cursor.use",
+      "window.verify"
+    ],
+    "proof_scope": "只关闭跨 fixture consumer 的公开合同索引；各波形 fixture 的运行时语义仍由所属 scenario 差分关闭。",
+    "remaining_unmapped_consumer_action_count": 0
+  },
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "schema_version": "xdebug.p3e-boundary-audit.v1",
+  "session": {
+    "all_writes_repository_local": true,
+    "eda_invoked": false,
+    "external_sources_read_only": true,
+    "fallback_used": false,
+    "fixture_rebuilt": false
+  },
+  "sva_npi": {
+    "candidate_action_disposition": {
+      "event.find": "通用采样表达式事件，不暴露 assertion object/event kind",
+      "scope.list": "通用层级枚举，不暴露 SVA AST 或 NPI handle",
+      "signal.changes": "通用信号变化，不暴露 assertion attempt/result",
+      "value.at": "通用信号取值，不暴露 assertion attempt/result"
+    },
+    "classification_target": "proven-unobservable",
+    "consumer_paths": [
+      "xdebug/tests/synthetic/test_npi_fsdb_sva.py"
+    ],
+    "consumer_sha256": "768dfd489565658114458e9c6cf403ab4bcc84299e6bad06699b0b0939a55c8a",
+    "fixture": {
+      "build_capabilities": [
+        "make",
+        "gxx",
+        "vcs",
+        "npi"
+      ],
+      "builder_argv": [
+        "make",
+        "fixture",
+        "RUN_DIR={resources}/out"
+      ],
+      "catalog_reference_lines": [
+        607,
+        613
+      ],
+      "id": "xdebug.npi_fsdb_sva",
+      "inputs": [
+        "Makefile",
+        "*.sv",
+        "*.cpp",
+        "*.tcl"
+      ],
+      "outputs": [
+        {
+          "kind": "file",
+          "min_bytes": 1024,
+          "name": "fsdb",
+          "path": "out/positive/waves.fsdb"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1024,
+          "name": "success_only_fsdb",
+          "path": "out/success_only/waves.fsdb"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1024,
+          "name": "control_fsdb",
+          "path": "out/control/waves.fsdb"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "positive_probe",
+          "path": "out/positive/probe.json"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "success_only_probe",
+          "path": "out/success_only/probe.json"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "control_probe",
+          "path": "out/control/probe.json"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "positive_log",
+          "path": "out/positive/sim.log"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "success_only_log",
+          "path": "out/success_only/sim.log"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "control_log",
+          "path": "out/control/sim.log"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "restrict_log",
+          "path": "out/restrict/compile.log"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1024,
+          "name": "probe",
+          "path": "out/bin/npi_fsdb_sva_probe"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1024,
+          "name": "join_fsdb",
+          "path": "out/join/waves.fsdb"
+        },
+        {
+          "kind": "dir",
+          "name": "join_daidir",
+          "path": "out/join/build/simv.daidir"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "join_probe_result",
+          "path": "out/join/probe.json"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "join_design_probe_result",
+          "path": "out/join/design_probe.json"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "positive_combined_probe_result",
+          "path": "out/positive/combined_probe.json"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1024,
+          "name": "join_probe",
+          "path": "out/bin/npi_daidir_fsdb_sva_probe"
+        }
+      ],
+      "probe_argv": [
+        [
+          "python3",
+          "{repo}/testinfra/leaf/probe_fixture.py",
+          "--resources",
+          "{resources}",
+          "--json-glob",
+          "out/*/probe.json",
+          "--text-glob",
+          "out/*/sim.log",
+          "--min-count",
+          "3"
+        ],
+        [
+          "python3",
+          "{repo}/testinfra/leaf/probe_fixture.py",
+          "--resources",
+          "{resources}",
+          "--executable-glob",
+          "out/bin/npi_fsdb_sva_probe"
+        ],
+        [
+          "python3",
+          "{repo}/testinfra/leaf/probe_fixture.py",
+          "--resources",
+          "{resources}",
+          "--xdebug",
+          "{repo}/tools/xdebug",
+          "--fsdb-glob",
+          "out/join/waves.fsdb",
+          "--daidir-glob",
+          "out/join/build/simv.daidir"
+        ],
+        [
+          "python3",
+          "{repo}/testinfra/leaf/probe_fixture.py",
+          "--resources",
+          "{resources}",
+          "--executable-glob",
+          "out/bin/npi_daidir_fsdb_sva_probe"
+        ]
+      ],
+      "source_dir": "xdebug/testdata/waveform/sva_fsdb_npi"
+    },
+    "fixture_id": "xdebug.npi_fsdb_sva",
+    "frozen_assets": [
+      {
+        "kind": "build_or_stimulus",
+        "path": "xdebug/testdata/waveform/sva_fsdb_npi/Makefile",
+        "sha256": "0bc6838979080ddd294e5c591b540aa45c15ae7eb5a8d07ef50673ee839e733b"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/sva_fsdb_npi/npi_daidir_fsdb_sva_probe.cpp",
+        "sha256": "4f402e65ac1e50ccd07570d655196fd86854cf97b8d1dd9bd1d864c3d02c94fe"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/sva_fsdb_npi/npi_fsdb_sva_probe.cpp",
+        "sha256": "34b57ac595e95f47a6779b733ff2282a363a6f05b38ab596670eb3f1263095a0"
+      },
+      {
+        "kind": "rtl",
+        "path": "xdebug/testdata/waveform/sva_fsdb_npi/restrict_compile_probe.sv",
+        "sha256": "c3a09ee9f7707f83baf056378e054505fc9782d813b193db41c213cb3fa4d89f"
+      },
+      {
+        "kind": "rtl",
+        "path": "xdebug/testdata/waveform/sva_fsdb_npi/sva_daidir_join_fixture.sv",
+        "sha256": "010d6fb7cade9ec913eeb255c921ac761d845224458f046acab7df587959364b"
+      },
+      {
+        "kind": "rtl",
+        "path": "xdebug/testdata/waveform/sva_fsdb_npi/sva_fsdb_fixture.sv",
+        "sha256": "89fdbae811dc04e2a16c1775dc052db14a2c58b1c4c33ca48e7d270f2683d3e1"
+      },
+      {
+        "kind": "build_or_stimulus",
+        "path": "xdebug/testdata/waveform/sva_fsdb_npi/wave_control.tcl",
+        "sha256": "cc90b8f9e99fcc013e9c2affb694f6c5f6bfa345ca86dd27597609f089e9b951"
+      },
+      {
+        "kind": "build_or_stimulus",
+        "path": "xdebug/testdata/waveform/sva_fsdb_npi/wave_join.tcl",
+        "sha256": "e9a5d8cca5cf5f02711bf812e59550a4916014712dc657428717b87ec30ad4b3"
+      },
+      {
+        "kind": "build_or_stimulus",
+        "path": "xdebug/testdata/waveform/sva_fsdb_npi/wave_sva.tcl",
+        "sha256": "83cbace1f050dafd94609867e62711d956829afa587fc2aca7068487a96e8972"
+      },
+      {
+        "kind": "test_consumer",
+        "path": "xdebug/tests/synthetic/test_npi_fsdb_sva.py",
+        "sha256": "768dfd489565658114458e9c6cf403ab4bcc84299e6bad06699b0b0939a55c8a"
+      }
+    ],
+    "observed_public_actions": [],
+    "private_event_values": [
+      "failure",
+      "incomplete",
+      "match",
+      "success"
+    ],
+    "private_field_groups": {
+      "assertion_event": [
+        "begin_time_raw",
+        "duration_ok",
+        "end_time_raw",
+        "native_value_format",
+        "sequence_number",
+        "sequence_number_ok",
+        "time_ok",
+        "time_raw",
+        "value_format_ok",
+        "value_ok"
+      ],
+      "assertion_identity": [
+        "assertion_type",
+        "canonical_path",
+        "derived_path",
+        "full_name",
+        "object_type"
+      ],
+      "design_ast": [
+        "clocking_event",
+        "decompile",
+        "disable_condition",
+        "expression_tree",
+        "fail_statement",
+        "file",
+        "line",
+        "property",
+        "property_declaration",
+        "property_expression",
+        "references",
+        "sequence_declarations"
+      ],
+      "join_diagnostics": [
+        "ambiguous_join_count",
+        "design_assertion_count",
+        "design_indices",
+        "exact_join_count",
+        "join_policy",
+        "local_name_candidates",
+        "unmatched_join_count",
+        "wave_assertion_count"
+      ]
+    },
+    "private_probe_schema_versions": [
+      "npi-daidir-fsdb-sva-probe.v1",
+      "npi-fsdb-sva-probe.v1"
+    ],
+    "proof_scope": "仅裁定冻结 NPI probe 的 assertion handle/AST/join/专属事件字段；普通 RTL 信号与通用 waveform Action 不在该不可观察结论内。",
+    "public_exposure_count": 0,
+    "public_schema_token_hits": {
+      "assertion": [],
+      "decompile": [],
+      "design_assertions": [],
+      "join_policy": [],
+      "property_declaration": [],
+      "sequence_declarations": [],
+      "sva": [],
+      "wave_assertions": []
+    },
+    "remaining_distinct_public_observation_count": 0
+  },
+  "xif_event": {
+    "classification_target": "semantic-equivalent",
+    "consumer_paths": [
+      "xdebug/tests/native_xout/test_native_xout_all.py",
+      "xdebug/tests/synthetic/test_xif_event.py"
+    ],
+    "consumer_sha256": {
+      "xdebug/tests/native_xout/test_native_xout_all.py": "5a5e2a7e88dd4113bc0597593add009d7049ac04583cbff42c75dc26d12dee69",
+      "xdebug/tests/synthetic/test_xif_event.py": "48c9cf3785020769a8b47fc037371ee1880c7032fd1aa4f11e8be5b2a62af4ae"
+    },
+    "current_pre_e2_evidence": [
+      "tests/test_waveform.py::test_value_at_preserves_event_kind"
+    ],
+    "fixture": {
+      "build_capabilities": [
+        "make",
+        "vcs",
+        "npi",
+        "vendored_xif"
+      ],
+      "builder_argv": [
+        "make",
+        "run",
+        "OUT={resources}/out"
+      ],
+      "catalog_reference_lines": [
+        621,
+        627,
+        825
+      ],
+      "id": "xdebug.xif_event",
+      "inputs": [
+        "Makefile",
+        "filelist.f",
+        "tb/**/*.sv",
+        "scripts/*.py",
+        "*.json"
+      ],
+      "outputs": [
+        {
+          "kind": "file",
+          "min_bytes": 1024,
+          "name": "fsdb",
+          "path": "out/waves/xif_event_multi_if_test.fsdb"
+        },
+        {
+          "kind": "dir",
+          "name": "daidir",
+          "path": "out/simv.daidir"
+        },
+        {
+          "kind": "file",
+          "min_bytes": 1,
+          "name": "simulation_log",
+          "path": "out/logs/xif_event_multi_if_test.log"
+        }
+      ],
+      "probe_argv": [
+        [
+          "python3",
+          "{repo}/testinfra/leaf/probe_fixture.py",
+          "--resources",
+          "{resources}",
+          "--xdebug",
+          "{repo}/tools/xdebug",
+          "--fsdb-glob",
+          "out/waves/xif_event_multi_if_test.fsdb",
+          "--daidir-glob",
+          "out/simv.daidir",
+          "--text-glob",
+          "out/logs/xif_event_multi_if_test.log",
+          "--uvm-zero"
+        ]
+      ],
+      "source_dir": "xdebug/testdata/waveform/xif_agent_event"
+    },
+    "fixture_id": "xdebug.xif_event",
+    "frozen_assets": [
+      {
+        "kind": "build_or_stimulus",
+        "path": "xdebug/testdata/waveform/xif_agent_event/Makefile",
+        "sha256": "7fd3f9527ac9a26c737aec94b2961c306d485a650f577570c5f92a2e37b0ee64"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/event_bp.json",
+        "sha256": "c3d9fe78dd8d30e5ed532a52f7252a3421c5e58df713cbce0c9b0d7625894544"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/event_none.json",
+        "sha256": "cc3074723613229fefc41ce64fa5c66e282b1d82a704f06705076a219f0a5fe9"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/event_pair_master.json",
+        "sha256": "75be3b016bbc73a099cfdf13fab90c17dcb9ed0949cc0720fc3a1cc0c97e4b7e"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/event_pair_slave.json",
+        "sha256": "bece75a8066e6af4a1b49ca5c9a925fb1e4b69e453079b9e36d15a0f0c46e6b3"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/event_rdy.json",
+        "sha256": "c8e81605a397103822e7bbe73818d740e242c57456d25eba9d9c23b0007c7e84"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/event_xz.json",
+        "sha256": "4b059282b9d31f72dcfda0c190d375276a14ab2a330cfd626fd85cb3a495955a"
+      },
+      {
+        "kind": "build_or_stimulus",
+        "path": "xdebug/testdata/waveform/xif_agent_event/filelist.f",
+        "sha256": "4d04b53e0192d9a3f71521ede67d5cbd37e21ccb2d1c98fdb89b287c2e9c6291"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/if0.event.json",
+        "sha256": "2de4ad0636c6d07592f09cef6db0b0d6857213ba81c19b0c32940bafb3095164"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/if_master.event.json",
+        "sha256": "5e7a0eeda7b5e6b88dd3e048db3e6f53f9bce463d05e0d27a8e1016c97bf8718"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/if_slave.event.json",
+        "sha256": "ac2f47dbf0078b2d25cd9abe0473eba36c772b640329a4984610bef27f7ed2ff"
+      },
+      {
+        "kind": "fixture_support",
+        "path": "xdebug/testdata/waveform/xif_agent_event/scripts/check_event_waves.py",
+        "sha256": "0264027d695e7cd4454056e04e375a53c37e3b133db7a64efe5727944c73f65e"
+      },
+      {
+        "kind": "rtl",
+        "path": "xdebug/testdata/waveform/xif_agent_event/tb/xif_event_pkg.sv",
+        "sha256": "9249ebd3caff15c07909a5bbf790dab675ae4100a3d2168b5e64a46d41425326"
+      },
+      {
+        "kind": "rtl",
+        "path": "xdebug/testdata/waveform/xif_agent_event/tb/xif_event_top.sv",
+        "sha256": "0e21eb1315727aa125febe0f559a232ec3694577a5802b78552d1f86a987715a"
+      },
+      {
+        "kind": "build_or_stimulus",
+        "path": "xdebug/testdata/waveform/xif_agent_event/wave.tcl",
+        "sha256": "4f623e6042c3898a2d28fe0c26f6e7ccc30448674ab49e8cbcf3ef255beed1b8"
+      },
+      {
+        "kind": "test_consumer",
+        "path": "xdebug/tests/native_xout/test_native_xout_all.py",
+        "sha256": "5a5e2a7e88dd4113bc0597593add009d7049ac04583cbff42c75dc26d12dee69"
+      },
+      {
+        "kind": "test_consumer",
+        "path": "xdebug/tests/synthetic/test_xif_event.py",
+        "sha256": "48c9cf3785020769a8b47fc037371ee1880c7032fd1aa4f11e8be5b2a62af4ae"
+      }
+    ],
+    "observed_public_actions": [
+      "actions",
+      "apb.config.load",
+      "axi.config.load",
+      "event.config.load",
+      "event.find",
+      "list.create",
+      "schema",
+      "session.close",
+      "session.open",
+      "stream.config.load",
+      "value.at",
+      "waveform.cursor.set"
+    ],
+    "pre_e2_remaining_observation_count": 12,
+    "public_action_contracts": {
+      "event.export": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/event.export.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.export.response.schema.json"
+      },
+      "event.find": {
+        "completeness_fields": [
+          "summary.analysis_complete",
+          "summary.response_truncated",
+          "summary.returned_count",
+          "summary.scan_complete",
+          "summary.total_count",
+          "summary.truncation_scopes",
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/event.find.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/event.find.response.schema.json"
+      },
+      "value.at": {
+        "completeness_fields": [
+          "summary.value_width_complete"
+        ],
+        "request_example": "compat/xdebug-v1/examples/requests/value.at.basic.json",
+        "response_schema": "compat/xdebug-v1/schemas/v1/actions/value.at.response.schema.json"
+      }
+    },
+    "required_observations": [
+      "direct_packed_struct_fields",
+      "rdy_flow_control",
+      "bp_flow_control",
+      "none_flow_control",
+      "paired_master_slave",
+      "xz_unknown_expression",
+      "relational_expression",
+      "event_find_line_limit",
+      "event_find_flat_xout",
+      "event_export_full_set",
+      "unknown_alias_error",
+      "value_at_struct_member"
+    ]
+  }
+}

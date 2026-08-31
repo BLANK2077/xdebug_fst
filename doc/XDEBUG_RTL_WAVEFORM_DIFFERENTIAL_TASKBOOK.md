@@ -1577,3 +1577,26 @@ analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
 - manifest write→matrix write→manifest write 已达到双 check 稳定。D3 最终 closure/asset/matrix/runtime
   组合门禁 55/55，通过前述相邻回归 59/59 和 CTest 7/7；两项 AXI 已从 P3-D queue 清除，P3-E
   `npi_fsdb_sva`、`xif_event` 与 cross-fixture consumer 仍保持 gap，不提前关闭 Goal。
+
+### 2026-08-31：E1 冻结 SVA/XIF/cross-fixture 裁定边界
+
+- 新增 `p3e-boundary.audit.json` 和可重复生成器。审计逐字节复核 P0 冻结的全部原版资产，锁定
+  73/73 Action、73 份 request/response 合同、四份 SVA FSDB 声明、两种 NPI probe schema、原版
+  consumer 与 XIF RTL/config；证据不含绝对路径，生成器拒绝仓库外输出。
+- 原版 `npi_fsdb_sva` consumer 的公开 Action 观察数为 0。assertion identity/event、property/sequence
+  AST、decompile/source line、design-wave join diagnostics 和 success/failure/match/incomplete 均被逐字段
+  归入冻结 NPI 私有面；73 份公开 response schema 对 assertion/SVA/join 专属 token 的命中数均为 0。
+  本批只建立 `proven-unobservable` 目标和未来漂移门禁，矩阵仍保持 `missing`，等待 E3 关闭。
+- XIF red 边界明确列出 12 项待补观察：packed struct member、RDY/BP/NONE、paired master/slave、X/Z、
+  relational expression、line limit、flat XOUT、全量 export、unknown alias error 和 `value.at`。当前仅有
+  typed event 单测不能关闭这些观察，故矩阵继续保持 `partial`，未用能力相近测试提前标绿。
+- cross-fixture 共冻结 37 个 consumer、72 个 observed public Action 和对应 72 份合同；冻结 catalog
+  唯一未被该 consumer 集合引用的是 `session.kill`。该结论只说明合同索引完整，不替代任一波形
+  fixture 的运行时差分，矩阵继续保持 `partial`。
+- 四类 mutation 分别证明缺 schema、私有字段误标公开、cross Action 缺失、XIF 观察缺失都会 fail-closed。
+  focused + manifest + matrix 为 36/36；生成器 write→check、矩阵 check、diff-check 均通过。没有运行
+  EDA，没有重建 fixture/cache，没有 fallback。当前仓库 Python 为 `.xverif-python` 3.12.13；terminal
+  已正确注入 `XFST_CONDA_ENV/XDEBUG_ORIGINAL_ROOT/WELLEN_HOME/VERILATOR_HOME`，但 HOME/TMP/cache
+  仍按 Goal 在每个可能写入的命令中显式定向到仓库 `.tmp`。
+- 批后外部状态与 D3 批后一致：xverif HEAD `511009948...`、porcelain hash `b2daea28...`；Wellen
+  HEAD `afab0abd...`、Verilator HEAD `bf01d667...`，后二者 porcelain 均为空哈希。外部零写入。
