@@ -66,6 +66,9 @@ EXPECTED = {
         },
     },
 }
+SVT_CURRENT_RUNS = (
+    "fixed_delay", "random_seed_7", "random_seed_19", "random_seed_73",
+)
 
 
 def file_sha256(path: Path) -> str:
@@ -417,3 +420,114 @@ def test_current_xamba_axi_exposes_locked_public_hard_limit_error(
         if runner.has_current_session:
             runner.request("session.close", args={})
         runner.stop()
+
+
+@pytest.mark.parametrize("run_name", SVT_CURRENT_RUNS)
+def test_current_svt_axi_profile_matches_locked_public_semantics(
+    loop_runner: StdioLoopRunner,
+    tmp_path: Path,
+    run_name: str,
+) -> None:
+    oracle = load_oracle("xdebug.axi_vip")
+    run = next(item for item in oracle["runs"] if item["name"] == run_name)
+    fixture = REPO_ROOT / f"testdata/fixtures/axi_vip/{run_name}/waves.fst"
+    export_prefix = tmp_path / run_name / "axi0"
+    export_prefix.parent.mkdir(parents=True)
+
+    open_session(loop_runner, fixture)
+    try:
+        for locked in run["observations"]:
+            args = copy.deepcopy(locked["request"])
+            if locked["observation_id"] == "export.full":
+                args["output"]["path"] = str(export_prefix)
+            actual = loop_runner.request(locked["action"], args=args)
+            assert public_response(actual) == locked["response"], (
+                f"P3-D3 SVT AXI {run_name} 公开响应差异: "
+                f"{locked['observation_id']}"
+            )
+            if "xout" in locked:
+                assert loop_runner.request_xout(
+                    locked["action"], args=args
+                ) == locked["xout"]
+            if "artifacts" in locked:
+                assert artifact_records(export_prefix) == locked["artifacts"]
+    finally:
+        if loop_runner.has_current_session:
+            closed = loop_runner.request("session.close", args={})
+            assert closed.get("ok"), closed
+
+
+def test_current_svt_axi_profiles_lock_events_tool_and_fst() -> None:
+    fixture = REPO_ROOT / "testdata/fixtures/axi_vip"
+    lock = load_hash_lock(fixture / "fixture.sha256")
+    expected_names = [
+        "tb_axi_svt.cpp",
+        "fixed_delay.events.tsv",
+        "random_seed_7.events.tsv",
+        "random_seed_19.events.tsv",
+        "random_seed_73.events.tsv",
+        "fixture.manifest.json",
+        "fixed_delay/waves.fst",
+        "random_seed_7/waves.fst",
+        "random_seed_19/waves.fst",
+        "random_seed_73/waves.fst",
+    ]
+    assert list(lock) == expected_names
+    for name, digest in lock.items():
+        path = fixture / name
+        assert path.is_file() and not path.is_symlink()
+        assert file_sha256(path) == digest
+
+    manifest = json.loads(
+        (fixture / "fixture.manifest.json").read_text(encoding="utf-8")
+    )
+    dependency = json.loads(
+        (REPO_ROOT / "build/dependencies.resolved.json").read_text(
+            encoding="utf-8"
+        )
+    )["verilator"]
+    assert manifest["goal_id"] == GOAL_ID
+    assert manifest["source_contract"] == {
+        "original_fixture_id": "xdebug.axi_vip",
+        "producer_equivalence": "frozen-pin-level-handshake-mirror",
+        "proprietary_vip_used": False,
+        "fsdb_conversion_used": False,
+        "export_feedback_used": False,
+        "external_cache_rebuilt": False,
+        "event_source": "repository-local-normalized-tsv",
+        "first_write_payload_source": "locked-public-oracle",
+    }
+    for key in ("version", "revision", "tree", "fingerprint", "patchset_version"):
+        assert manifest["build_contract"][key] == dependency[key]
+    assert file_sha256(REPO_ROOT / "tools/generate_p3d_axi_svt_mirror.py") == (
+        manifest["build_contract"]["generator_sha256"]
+    )
+    assert lock["tb_axi_svt.cpp"] == manifest["build_contract"][
+        "harness_sha256"
+    ]
+    assert manifest["output_contract"] == {
+        "deterministic_build_directories": 2,
+        "repository_local_only": True,
+        "external_cache_rebuilt": False,
+        "proprietary_artifact_committed": False,
+    }
+
+    oracle = load_oracle("xdebug.axi_vip")
+    oracle_runs = {run["name"]: run for run in oracle["runs"]}
+    for run_name in SVT_CURRENT_RUNS:
+        run = manifest["runs"][run_name]
+        events = fixture / f"{run_name}.events.tsv"
+        wave = fixture / run_name / "waves.fst"
+        assert lock[f"{run_name}.events.tsv"] == run["events_sha256"]
+        assert lock[f"{run_name}/waves.fst"] == run["fst_sha256"]
+        assert wave.stat().st_size == run["fst_size"]
+        assert run["handshake_count"] == oracle_runs[run_name][
+            "handshake_line_count"
+        ]
+        assert run["transaction_count"] == 2 * oracle_runs[run_name][
+            "expected_direction_count"
+        ]
+        assert len(events.read_text(encoding="utf-8").splitlines()) == (
+            run["handshake_count"] + 1
+        )
+    assert "/home/" not in json.dumps(manifest, ensure_ascii=False)

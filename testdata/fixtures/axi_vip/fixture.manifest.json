@@ -1,0 +1,92 @@
+{
+  "schema_version": "xdebug-fst.fixture.axi-svt-vip.v1",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "fixture_id": "current.axi_vip",
+  "source_contract": {
+    "original_fixture_id": "xdebug.axi_vip",
+    "producer_equivalence": "frozen-pin-level-handshake-mirror",
+    "proprietary_vip_used": false,
+    "fsdb_conversion_used": false,
+    "export_feedback_used": false,
+    "external_cache_rebuilt": false,
+    "event_source": "repository-local-normalized-tsv",
+    "first_write_payload_source": "locked-public-oracle"
+  },
+  "interface_contract": {
+    "top": "axi_vip_fixture_top",
+    "interface": "axi_vip_fixture_top.axi_vip_if.master_if[0]",
+    "address_width": 64,
+    "data_width": 1024,
+    "strobe_width": 128,
+    "id_width": 8,
+    "len_width": 10,
+    "clock_period": "10ns",
+    "reset_first_active_sample": "205ns"
+  },
+  "build_contract": {
+    "simulator": "verilator",
+    "version": "v5.050-109-gc3be3c805",
+    "revision": "c3be3c80501bec8d4c3b7f5256890332df62d410",
+    "tree": "8e247c8b90237517f84fbda98a594318b16ca998",
+    "fingerprint": "8b8b0886d5338b71500dd218e7af46bcd1c2a2dabb16492addeea82c85b14bb9",
+    "patchset_version": "xdebug-design-db-v4-deterministic-fst",
+    "gcc_version": "13.3.1",
+    "trace_format": "fst",
+    "trace_depth": 4,
+    "timing": true,
+    "generator_sha256": "8e6b72e3ec8ec702a97811b6ea157cab454d0dbd9f87d29cd5115b800610709f",
+    "harness_sha256": "fbb82f1b9219f73bb3147417728e5cccd5f31a6529a4eafce9144f6a7755fca3"
+  },
+  "output_contract": {
+    "deterministic_build_directories": 2,
+    "repository_local_only": true,
+    "external_cache_rebuilt": false,
+    "proprietary_artifact_committed": false
+  },
+  "runs": {
+    "fixed_delay": {
+      "seed": 7,
+      "transaction_count": 64,
+      "handshake_count": 528,
+      "handshake_source_sha256": "23be697da2934298b03586440aa94b773d497625814fd953236377a5ff97d16c",
+      "events_sha256": "a9b1c998d5309ff81fc7df02c02596fcbc9a6d8d4c865c309a4d7517505d2926",
+      "last_handshake": "16425ns",
+      "wave_end": "26425ns",
+      "fst_size": 3115,
+      "fst_sha256": "756b8e203c13ffd3a10e63648b70ff7edf0c7bcff42579e28492cc90a78a5830"
+    },
+    "random_seed_7": {
+      "seed": 7,
+      "transaction_count": 512,
+      "handshake_count": 3971,
+      "handshake_source_sha256": "afc6001c8a4863626f8059973e7e0e37a4e4f2076f04e1115c629109cbe3c7a2",
+      "events_sha256": "85bd6be4788b3a928e3db5a487fb13c73dc029f452d57ff05210565d059c1447",
+      "last_handshake": "83345ns",
+      "wave_end": "93345ns",
+      "fst_size": 16431,
+      "fst_sha256": "2799e98472e0232b260fdcb52ce7b560214c06f1365dac7efada50f152c51fad"
+    },
+    "random_seed_19": {
+      "seed": 19,
+      "transaction_count": 512,
+      "handshake_count": 4114,
+      "handshake_source_sha256": "52ac70c3eee9c685f5bc34903102d92466906f60aa76484ba04a1cb5bbffdae3",
+      "events_sha256": "6b8e7d2082425a883447763c779ae5ce7f6e06cdc338d44b082c4277ae17c19d",
+      "last_handshake": "115595ns",
+      "wave_end": "125595ns",
+      "fst_size": 17256,
+      "fst_sha256": "218f8cc7fba1059a7c488f6a3f6c94d2946e15838a5e87bdf6f6142e185f76dc"
+    },
+    "random_seed_73": {
+      "seed": 73,
+      "transaction_count": 512,
+      "handshake_count": 3948,
+      "handshake_source_sha256": "02777d03cb05ab3641cb8ddac08184ea3df4b7deb649011787e8260f5a9b4655",
+      "events_sha256": "d0712ee71ab484e84d0a39eccd1d490c5b058c5ff25edb2f5989c223a840dfbe",
+      "last_handshake": "110615ns",
+      "wave_end": "120615ns",
+      "fst_size": 17323,
+      "fst_sha256": "0423c3b34c0a7b1e35d03e28d9855a524b747888d07ed1c469005a6eeabfe9c8"
+    }
+  }
+}

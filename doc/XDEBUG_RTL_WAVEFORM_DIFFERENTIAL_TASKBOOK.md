@@ -1471,3 +1471,26 @@ analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
   与公开 hard-limit 合同、fixture formula/tool/source/output hash 一并通过，focused gate 为 7/7。
   相邻 protocol/CLI/APB/stream 回归 59/59、CTest 7/7 通过；SVT fixed/random/stress 五份波形仍按
   D3-3 独立实施，不借用 XAMBA fixture 或结论。
+
+### 2026-08-31：D3-3a SVT AXI fixed 与三个 random profile 转绿
+
+- 新增 `testdata/fixtures/axi_vip` 多运行 pin-level mirror，分别冻结 fixed-delay 528 条、seed 7
+  3971 条、seed 19 4114 条、seed 73 3948 条 channel handshake。四份波形均保留
+  `axi_vip_fixture_top.axi_vip_if.master_if[0]` 层级和 64-bit address、1024-bit data、128-bit
+  strobe、8-bit ID、10-bit len 宽度；事件来自仓库内规范 TSV，首个详细写 beat payload 来自已锁定
+  公开 oracle，不编译 SVT/VCS/NPI、不读取或转换 FSDB，也不反馈当前侧 export 结果生成刺激。
+- fixed-delay 关闭 64 笔，三个 random profile 各关闭 512 笔。当前 analyzer 修正连续 VALID 每次
+  handshake 后的区间起点、按 WLAST burst 和 AW 接收顺序绑定写数据（含 W-before-AW）、原版
+  request/response address-order 与不稳定同键排序合同、零净变化 outstanding 点、跨五通道首活动时间、
+  latency 全读结果不输出空 `phase_order` 列，以及 export 的真实 total/per-ID 最大 outstanding；这些
+  差异均由冻结公开观察触发，并由 XAMBA 与相邻协议回归约束。
+- 四份提交 FST SHA/size 分别为 fixed `756b8e20...`/3,115 bytes、seed 7 `2799e984...`/16,431
+  bytes、seed 19 `218f8cc7...`/17,256 bytes、seed 73 `0423c3b3...`/17,323 bytes。
+  `tools/regenerate_p3d_axi_svt_fixture.sh` 拒绝仓库外 work-dir，重定向 HOME/TMP/XDG cache，并锁定
+  resolved Verilator revision/tree/fingerprint/patchset、generator/harness/event hash。初始目录和全新
+  `.tmp/d2` 两次构建的四份 FST 均逐字节一致；manifest 明确记录
+  `deterministic_build_directories=2`、零外部 cache rebuild 和零 proprietary artifact。
+- 四个 profile 对冻结 68/68 JSON、28/28 XOUT 和 12/12 export artifact 均零差异；连同 XAMBA 的
+  focused gate 为 12/12，相邻 protocol/CLI/APB/stream 为 59/59，CTest 为 7/7。D3-3 仍未关闭：
+  stress 的 51,472 条 handshake、6,400 笔事务、16 ID、outstanding depth=4 和全量 export 必须在
+  D3-3b 单独实现并过门禁，当前四档证据不得代替 stress。

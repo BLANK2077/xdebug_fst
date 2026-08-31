@@ -355,6 +355,10 @@ static void scan_channel_handshakes(
             ev.valid_begin_time = valid_begin_time;
             ev.kind = "handshake";
             events.push_back(ev);
+            // A channel may transfer a new payload on the immediately next
+            // edge without dropping VALID.  Each accepted payload starts a
+            // new valid interval, matching the original pin monitor.
+            valid_active = false;
         }
     }
 }
@@ -455,7 +459,8 @@ static void augment_r_events(IWaveformBackend& wf,
 }
 
 // Match AW+W+B into write transactions and AR+R into read transactions.
-// Uses FIFO ordering for W beats (each W beat assigned to oldest pending write).
+// AXI4 has no WID: complete WLAST-delimited bursts bind to AW requests in
+// acceptance order, including bursts whose first W handshake precedes AW.
 // B responses matched to writes by id.
 static void assemble_axi_transactions(
     const std::vector<AxiHandshakeEvent>& aw_events,
@@ -466,49 +471,39 @@ static void assemble_axi_transactions(
     std::vector<AxiTransaction>& transactions)
 {
     // --- Write transactions ---
-    // Build merged timeline: (time, type, index)
-    enum class WEKind { AW, W, B };
-    struct WEvent { uint64_t time; WEKind kind; size_t idx; };
-    std::vector<WEvent> wevents;
-    for (size_t i = 0; i < aw_events.size(); i++)
-        wevents.push_back({aw_events[i].time, WEKind::AW, i});
-    for (size_t i = 0; i < w_events.size(); i++)
-        wevents.push_back({w_events[i].time, WEKind::W, i});
-    // Note: B events are matched by id, not processed in timeline order
-    std::sort(wevents.begin(), wevents.end(),
-        [](const WEvent& a, const WEvent& b) { return a.time < b.time; });
-
-    // FIFO queue for pending writes (awaiting W beats)
     struct PendingWrite {
         size_t aw_idx;
         std::vector<std::string> data_beats;
         std::vector<AxiHandshakeEvent> data_events;
-        bool data_done = false; // WLAST received
     };
     std::deque<PendingWrite> pending_w;
-    // Completed data-phase writes, keyed by id for B matching
     std::map<std::string, std::deque<PendingWrite>> data_done_by_id;
 
-    for (auto& we : wevents) {
-        if (we.kind == WEKind::AW) {
-            pending_w.push_back({we.idx, {}, {}, false});
-        } else if (we.kind == WEKind::W) {
-            if (!pending_w.empty()) {
-                auto& pw = pending_w.front();
-                pw.data_beats.push_back(w_events[we.idx].data);
-                pw.data_events.push_back(w_events[we.idx]);
-                if (w_events[we.idx].last) {
-                    pw.data_done = true;
-                    // Move to data-done map, keyed by AW's id
-                    const std::string& awid = aw_events[pw.aw_idx].id;
-                    data_done_by_id[awid].push_back(std::move(pw));
-                    pending_w.pop_front();
-                }
-            }
+    std::vector<std::vector<AxiHandshakeEvent>> w_bursts;
+    std::vector<AxiHandshakeEvent> current_w_burst;
+    for (const auto& event : w_events) {
+        current_w_burst.push_back(event);
+        if (event.last) {
+            w_bursts.push_back(std::move(current_w_burst));
+            current_w_burst.clear();
         }
     }
-    // Any remaining pending writes are incomplete (no WLAST seen)
-    // They stay in pending_w; we'll add them as incomplete below.
+    const size_t paired_bursts = std::min(aw_events.size(),w_bursts.size());
+    for (size_t index = 0; index < paired_bursts; ++index) {
+        PendingWrite write{index,{},{}};
+        write.data_events = std::move(w_bursts[index]);
+        for (const auto& event : write.data_events)
+            write.data_beats.push_back(event.data);
+        data_done_by_id[aw_events[index].id].push_back(std::move(write));
+    }
+    for (size_t index = paired_bursts; index < aw_events.size(); ++index)
+        pending_w.push_back({index,{},{}});
+    if (!current_w_burst.empty() && paired_bursts < aw_events.size()) {
+        auto& write = pending_w.front();
+        write.data_events = std::move(current_w_burst);
+        for (const auto& event : write.data_events)
+            write.data_beats.push_back(event.data);
+    }
 
     // Match B events to data-done writes by id, then add unmatched as incomplete
     std::vector<bool> b_used(b_events.size(), false);
@@ -824,6 +819,14 @@ static size_t axi_expected_beat_count(const AxiTransaction& txn) {
     return value + 1;
 }
 
+static std::string axi_write_phase_order(const AxiTransaction& txn) {
+    if (!txn.is_write || txn.data_events.empty()) return "unknown";
+    const uint64_t first_w = txn.data_events.front().time;
+    if (first_w < txn.start_time) return "w_before_aw";
+    if (first_w == txn.start_time) return "same_cycle";
+    return "aw_before_w";
+}
+
 static Json axi_txn_json(const AxiTransaction& txn, IWaveformBackend& wf,
                          TimeRenderUnit unit, ValueRenderFormat format,
                          bool matched = false, bool include_data = false) {
@@ -844,7 +847,7 @@ static Json axi_txn_json(const AxiTransaction& txn, IWaveformBackend& wf,
         {"response",{{"channel",txn.is_write ? "b" : "r"},
             {"handshake_time",wf.format_time(txn.end_time,unit)},
             {"resp",render_bits(txn.resp,format)}}}};
-    if (txn.is_write) j["phase_order"] = "aw_before_w";
+    if (txn.is_write) j["phase_order"] = axi_write_phase_order(txn);
     uint64_t length = 0;
     bool known_length = !txn.length.empty() && txn.length.size() <= 64;
     for (char bit : txn.length) {
@@ -1048,13 +1051,20 @@ static std::string render_axi_latency_outlier_xout(const Json& response) {
     const Json data = response.value("data",Json::object());
     const Json rows_json = data.value("outliers",Json::array());
     if (rows_json.is_array() && !rows_json.empty()) {
+        const bool include_phase_order = std::any_of(
+            rows_json.begin(),rows_json.end(),[](const Json& transaction) {
+                return transaction.contains("phase_order");
+            });
         std::vector<std::vector<std::string>> rows;
         for (const auto& txn : rows_json) {
             const Json address = txn.value("address",Json::object());
             const Json payload = txn.value("data",Json::object());
             const Json response_data = txn.value("response",Json::object());
-            rows.push_back({axi_xout_scalar(txn,"direction"),
-                axi_xout_scalar(txn,"phase_order"),axi_xout_scalar(txn,"latency"),
+            std::vector<std::string> row{axi_xout_scalar(txn,"direction")};
+            if (include_phase_order)
+                row.push_back(axi_xout_scalar(txn,"phase_order"));
+            const std::vector<std::string> suffix{
+                axi_xout_scalar(txn,"latency"),
                 axi_xout_scalar(txn,"response_dependency_violation"),
                 axi_xout_scalar(address,"channel"),axi_xout_scalar(address,"valid_begin_time"),
                 axi_xout_scalar(address,"handshake_time"),axi_xout_scalar(address,"addr"),
@@ -1067,16 +1077,22 @@ static std::string render_axi_latency_outlier_xout(const Json& response) {
                 axi_xout_scalar(payload,"expected_beat_count"),
                 axi_xout_scalar(response_data,"channel"),
                 axi_xout_scalar(response_data,"handshake_time"),
-                axi_xout_scalar(response_data,"resp"),axi_xout_scalar(txn,"match_time")});
+                axi_xout_scalar(response_data,"resp"),axi_xout_scalar(txn,"match_time")};
+            row.insert(row.end(),suffix.begin(),suffix.end());
+            rows.push_back(std::move(row));
         }
         out.emit_section("outliers");
-        out.emit_table({"direction","phase_order","latency",
+        std::vector<std::string> headers{"direction"};
+        if (include_phase_order) headers.push_back("phase_order");
+        const std::vector<std::string> suffix_headers{"latency",
             "response_dependency_violation","address.channel",
             "address.valid_begin_time","address.handshake_time","address.addr",
             "address.id","address.len","address.size","address.burst",
             "data.channel","data.valid_begin_time","data.first_handshake_time",
             "data.last_handshake_time","data.beat_count","data.expected_beat_count",
-            "response.channel","response.handshake_time","response.resp","match_time"},rows);
+            "response.channel","response.handshake_time","response.resp","match_time"};
+        headers.insert(headers.end(),suffix_headers.begin(),suffix_headers.end());
+        out.emit_table(headers,rows);
         for (const char* key : {"method","classification","top_n","threshold"})
             if (data.contains(key)) out.emit_kv(key,data.at(key));
     }
@@ -1541,6 +1557,8 @@ struct AxiAnalysisHandler : public EngineActionHandler {
         const std::string analysis = args.value("analysis","latency");
         const std::string direction = args.value("direction","all");
         std::vector<uint64_t> read_lat, write_lat;
+        std::map<std::string,size_t> write_phase_counts{
+            {"aw_before_w",0},{"same_cycle",0},{"w_before_aw",0},{"unknown",0}};
         size_t incomplete_read = 0, incomplete_write = 0;
         const AxiTransaction* slowest = nullptr; uint64_t slowest_latency = 0;
         for (const auto& txn : result.transactions) {
@@ -1548,6 +1566,7 @@ struct AxiAnalysisHandler : public EngineActionHandler {
             if (!txn.complete) { txn.is_write ? ++incomplete_write : ++incomplete_read; continue; }
             const uint64_t latency = txn.end_time >= txn.start_time ? txn.end_time - txn.start_time : 0;
             (txn.is_write ? write_lat : read_lat).push_back(latency);
+            if (txn.is_write) ++write_phase_counts[axi_write_phase_order(txn)];
             if (!slowest || latency > slowest_latency) { slowest = &txn; slowest_latency = latency; }
         }
         const auto clock_edges = selected_clock_edges(*wf,sm,t_begin,t_end);
@@ -1589,7 +1608,7 @@ struct AxiAnalysisHandler : public EngineActionHandler {
                     {"expected_beat_count",known_length ? Json(expected+1) : Json(nullptr)},
                     {"observed_beat_count",txn.data_beats.size()},
                     {"data_complete",false}};
-                if (txn.is_write) item["phase_order"] = "aw_before_w";
+                if (txn.is_write) item["phase_order"] = axi_write_phase_order(txn);
                 pending.push_back(std::move(item));
             }
             Json summary = common_summary();
@@ -1684,8 +1703,7 @@ struct AxiAnalysisHandler : public EngineActionHandler {
         Json latency{{"read",stats(read_lat,true)},{"write",stats(write_lat,true)},
             {"definitions",{{"read","AR handshake to RLAST handshake"},
                 {"write","AW handshake to B handshake"}}},
-            {"write_phase_order_counts",{{"aw_before_w",write_lat.size()},
-                {"same_cycle",0},{"w_before_aw",0},{"unknown",0}}}};
+            {"write_phase_order_counts",write_phase_counts}};
         Json data{{"latency",latency}};
         if (slowest) data["slowest"] = axi_txn_json(*slowest,*wf,unit,format);
         return {{"ok",true},{"summary",summary},{"data",data}};
@@ -1764,7 +1782,7 @@ struct AxiExportHandler : public EngineActionHandler {
                 << wf->format_time(first_data,unit) << separator
                 << wf->format_time(last_data,unit) << separator
                 << wf->format_time(txn.end_time - txn.start_time,unit) << separator
-                << (txn.is_write ? "aw_before_w" : "") << separator
+                << (txn.is_write ? axi_write_phase_order(txn) : "") << separator
                 << "false" << separator << render_unwidth_hex(txn.id) << separator
                 << render_unwidth_hex(txn.address) << separator
                 << render_unwidth_hex(txn.length) << separator
@@ -1788,9 +1806,46 @@ struct AxiExportHandler : public EngineActionHandler {
             for (const auto& item : counts) array.push_back(item.first);
             return array;
         };
+        std::map<std::string,int> current_write_by_id, current_read_by_id;
+        std::map<std::string,int> max_write_by_id, max_read_by_id;
+        int current_write = 0, current_read = 0;
+        int max_total_write = 0, max_total_read = 0;
+        struct OutstandingEvent {
+            uint64_t time;
+            bool start;
+            bool write;
+            std::string id;
+        };
+        std::vector<OutstandingEvent> outstanding_events;
+        for (const auto& txn : result.transactions) {
+            if (!txn.complete) continue;
+            const std::string id = render_unwidth_hex(txn.id);
+            outstanding_events.push_back({txn.start_time,true,txn.is_write,id});
+            outstanding_events.push_back({txn.end_time,false,txn.is_write,id});
+        }
+        std::stable_sort(outstanding_events.begin(),outstanding_events.end(),
+            [](const OutstandingEvent& left, const OutstandingEvent& right) {
+                if (left.time != right.time) return left.time < right.time;
+                return left.start > right.start;
+            });
+        for (const auto& event : outstanding_events) {
+            int& current = event.write ? current_write : current_read;
+            auto& current_by_id = event.write ? current_write_by_id : current_read_by_id;
+            auto& maximum_by_id = event.write ? max_write_by_id : max_read_by_id;
+            if (event.start) {
+                ++current;
+                maximum_by_id[event.id] = std::max(maximum_by_id[event.id],
+                                                    ++current_by_id[event.id]);
+                if (event.write) max_total_write = std::max(max_total_write,current);
+                else max_total_read = std::max(max_total_read,current);
+            } else {
+                if (current > 0) --current;
+                if (current_by_id[event.id] > 0) --current_by_id[event.id];
+            }
+        }
         auto max_by_id = [](const std::map<std::string,int>& counts) {
             Json object = Json::object();
-            for (const auto& item : counts) object[item.first] = 1;
+            for (const auto& item : counts) object[item.first] = item.second;
             return object;
         };
         const size_t sample_count = selected_clock_edges(*wf,sm,t_begin,t_end).size();
@@ -1808,10 +1863,10 @@ struct AxiExportHandler : public EngineActionHandler {
             {"unique_read_ids",ids_json(read_count_by_id)},
             {"write_count_by_id",counts_json(write_count_by_id)},
             {"read_count_by_id",counts_json(read_count_by_id)},
-            {"max_write_outstanding_by_id",max_by_id(write_count_by_id)},
-            {"max_read_outstanding_by_id",max_by_id(read_count_by_id)},
-            {"max_total_write_outstanding",write_count ? 1 : 0},
-            {"max_total_read_outstanding",read_count ? 1 : 0},
+            {"max_write_outstanding_by_id",max_by_id(max_write_by_id)},
+            {"max_read_outstanding_by_id",max_by_id(max_read_by_id)},
+            {"max_total_write_outstanding",max_total_write},
+            {"max_total_read_outstanding",max_total_read},
             {"burst_histogram",counts_json(burst_histogram)},
             {"beat_count_mismatch_count",0},{"incomplete_write_count",incomplete_write},
             {"incomplete_read_count",incomplete_read},{"buffered_w_beat_count",0},
@@ -2129,12 +2184,33 @@ struct AxiChannelStallHandler : public EngineActionHandler {
         if (!parse_render(args, unit, format, cfg_err)) return cfg_err;
         const auto clock_edges = selected_clock_edges(*wf,sm,t_begin,t_end);
         uint64_t first_activity = t_end;
-        auto record_first = [&](const std::vector<AxiHandshakeEvent>& events) {
-            if (!events.empty()) first_activity = std::min(first_activity,events.front().time);
-        };
-        record_first(protocol_scan.aw_events); record_first(protocol_scan.w_events);
-        record_first(protocol_scan.b_events); record_first(protocol_scan.ar_events);
-        record_first(protocol_scan.r_events);
+        std::vector<std::pair<uint32_t,uint32_t>> activity_channels{
+            {protocol_scan.ref_awvalid,protocol_scan.ref_awready},
+            {protocol_scan.ref_wvalid,protocol_scan.ref_wready},
+            {protocol_scan.ref_bvalid,protocol_scan.ref_bready},
+            {protocol_scan.ref_arvalid,protocol_scan.ref_arready},
+            {protocol_scan.ref_rvalid,protocol_scan.ref_rready}};
+        const auto activity_point = axi_point(sm);
+        std::vector<std::pair<std::string,std::string>> previous_values(
+            activity_channels.size());
+        bool have_activity_baseline = false;
+        for (uint32_t ti : clock_edges) {
+            bool changed = false;
+            for (size_t index = 0; index < activity_channels.size(); ++index) {
+                const auto [valid_ref,ready_ref] = activity_channels[index];
+                const std::pair<std::string,std::string> current{
+                    read_signal_at(*wf,valid_ref,ti,activity_point),
+                    read_signal_at(*wf,ready_ref,ti,activity_point)};
+                if (have_activity_baseline && current != previous_values[index])
+                    changed = true;
+                previous_values[index] = current;
+            }
+            if (have_activity_baseline && changed) {
+                first_activity = wf->time_at(ti);
+                break;
+            }
+            have_activity_baseline = true;
+        }
         size_t transfer_count = 0;
         if (selected_channel == "aw") transfer_count = protocol_scan.aw_events.size();
         if (selected_channel == "w") transfer_count = protocol_scan.w_events.size();
@@ -2307,6 +2383,12 @@ struct AxiOutstandingTimelineHandler : public EngineActionHandler {
             if (txn.complete)
                 (txn.is_write ? deltas[txn.end_time].write : deltas[txn.end_time].read)--;
         }
+        for (auto iterator = deltas.begin(); iterator != deltas.end();) {
+            if (iterator->second.read == 0 && iterator->second.write == 0)
+                iterator = deltas.erase(iterator);
+            else
+                ++iterator;
+        }
         int read = 0, write = 0, peak_read = 0, peak_write = 0;
         uint64_t peak_read_time = t_begin, peak_write_time = t_begin;
         uint64_t first_nonzero = t_begin; bool has_nonzero = false;
@@ -2404,8 +2486,20 @@ struct AxiRequestResponsePairHandler : public EngineActionHandler {
         const std::string direction = args.value("direction","all");
         const size_t limit = args.value("line_limit",1000u);
         size_t total = 0, incomplete_write = 0, incomplete_read = 0;
+        std::vector<const AxiTransaction*> ordered;
+        ordered.reserve(result.transactions.size());
+        for (const auto& txn : result.transactions) ordered.push_back(&txn);
+        // Match the original range-query projection: canonical transactions
+        // enter in address/sequence order, then the context list is sorted by
+        // match_time only.  Equal-time ordering is therefore the deterministic
+        // std::sort tie permutation, not an invented direction preference.
+        std::sort(ordered.begin(),ordered.end(),
+            [](const AxiTransaction* left, const AxiTransaction* right) {
+                return left->start_time < right->start_time;
+            });
         Json transactions = Json::array();
-        for (const auto& txn : result.transactions) {
+        for (const AxiTransaction* txn_pointer : ordered) {
+            const auto& txn = *txn_pointer;
             if (direction != "all" && ((direction == "write") != txn.is_write)) continue;
             if (!txn.complete) { txn.is_write ? ++incomplete_write : ++incomplete_read; continue; }
             ++total;
