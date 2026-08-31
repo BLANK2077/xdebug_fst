@@ -1349,3 +1349,91 @@ export fallback 进入本批，禁止 skip/xfail/宽松字段白名单或只比�
 - 门禁结果：manifest write→matrix write→manifest write 达到双 check 稳定；APB closure、asset
   manifest、semantic matrix 和 APB runtime focused 共 51 项通过。P3-D queue 只清除两项 APB，
   `axi_vip`、`axi_xamba_vip` 仍保持 D3 `partial`，不得提前关闭。
+
+## P3-D3：AXI native/XAMBA 分批实施计划
+
+### D3-0：冻结两个 producer 与六个波形运行面
+
+- `xdebug.axi_vip` 是 SVT AXI fixture，不能只用默认 stress 波形代表全部资产。它声明五个确定性运行：
+  stress（seed=7，16 ID × 每 ID 200 写和 200 读，共 6400 笔）、fixed-delay（4 ID × 8，共
+  64 笔），以及 seed=7/19/73 三个 random profile（各 8 ID × 32，共 512 笔）。五份 FSDB、sim-log
+  与 handshake JSONL 必须分别锁定；seed、burst、ID、AW/W phase order、response delay/stall 分布是
+  不可互相替代的公开刺激维度。
+- `xdebug.axi_xamba_vip` 是独立 XAMBA UVM VIP fixture：seed=7，64 笔交替写/读，32 写/32 读，
+  16 个 ID，1–4 beat INCR burst；地址、ID、burst len、AW/AR wait、W wait、data/strb、response
+  以及 RLAST 均由 index/beat 公式确定。product filelist、run manifest、resolved sources 和 daidir
+  只提供 producer provenance，不构成当前侧可移植输入。
+- 只读 cache 按 fixture fingerprint、冻结 source/manifest hash、完整声明 output 和 probe 成功记录选择，
+  禁止按目录时间猜测 generation。若没有唯一兼容 generation，停止并向用户申请；不运行 prepare，
+  不重建 SVT/XAMBA/VCS cache，也不使用其他 seed/profile 或 live runtime fallback。
+
+门禁：六份 FSDB 与对应 log/handshake oracle、两套 manifest/source、73 Action runtime/schema/NPI、
+cache manifest 和资源 SHA 全部冻结；所有原版/EDA 输入只读，HOME/TMP/cache/socket/artifact 只写当前
+仓库，采集前后外部三个仓库状态快照一致。
+
+### D3-1：冻结十一项 AXI 公开 surface 与有效红灯
+
+- 冻结 surface 为 `axi.config.list/load`、`axi.query`、`axi.analysis`、`axi.statistics`、
+  `axi.transaction.cursor`、`axi.channel_stall`、`axi.latency_outlier`、`axi.outstanding_timeline`、
+  `axi.request_response_pair` 和 `axi.export`，共十一项；逐项锁定 request/response schema 与 XOUT。
+- 每份运行至少覆盖 count/full/index/last、write/read/ID/address/resp 过滤、完整 transaction phase 时间、
+  burst/beat、AW-before-W/W-before-AW/same-cycle、pending/outstanding、stall、latency、cursor 边界和非法
+  请求。6400 笔 stress 不允许只保存 preview：可将完整 canonical transaction/phase 流按分块计数与
+  SHA 锁定，同时保留首尾/跨 ID/三类 phase order 的可读观察；任何摘要必须能由冻结全量流重算。
+- `axi.export` 同时比较公开响应、XOUT 和写入 artifact 的字节 SHA/行数/完整性；cache base/hit/index、
+  soft-LRU 与 hard-limit 继续区分私有 probe 和公开错误。原版五 profile 及 XAMBA 各自 oracle 不得
+  串用，先提交原版全绿、当前因专属 fixture 缺失而业务红灯的测试。
+
+门禁：两次独立采集规范 JSON/导出 artifact 字节一致；所有 observation ID 唯一；全量事务 digest
+可由 handshake oracle 与公开响应双向重算；红灯必须落在 stimulus/time/result 差异，环境或依赖失败
+不算有效红灯；禁止 skip/xfail、截断冒充完整、只比计数或复用现有弱 `current.axi` 关闭场景。
+
+### D3-2：XAMBA 64 笔专属 current fixture 转绿
+
+- 先实现边界较小的 `current.axi_xamba_vip`：用当前仓库锁定 Verilator 和 pin-level AXI RTL/harness
+  重放原版 package 的 64 笔 index/beat 公式，不编译 XAMBA/UVM/product filelist，不读取或转换 FSDB。
+- FST 必须保留原版公开层级与完整 AXI 通道宽度，逐 channel handshake time 重放 AW/W/B/AR/R，
+  并让当前 analyzer 对 64 笔 transaction、全部 beat、response/error、pair/pending/cursor/XOUT/export
+  与 cache 边界零差异。两个全新仓库内 work-dir 生成的 FST 和 export artifact 必须字节一致。
+
+门禁：64/64 transaction、32/32 方向、1–4 beat、16 ID、公式、phase order、response 与末拍 RLAST
+全部通过；fixture manifest/hash lock/tool identity 完整；零 FSDB conversion、零 proprietary artifact、
+零外部 cache rebuild；native 五 profile 保持红灯，不借用 XAMBA 结论。
+
+### D3-3：SVT 五 profile 专属 current fixture 逐档转绿
+
+- 建立 `current.axi_vip` 多运行 fixture，按 fixed-delay、random seed 7、seed 19、seed 73、stress 顺序
+  分档实现和验收。每档独立 FST/manifest lock，后一档不能覆盖前一档证据；尽可能复用已编译的当前
+  Verilator 增量目标，但不得重建任何既有 fixture cache。
+- fixed-delay 先关闭 64 笔基本 phase/pair/latency；三个 random profile 关闭 seed 导致的地址、burst、
+  phase order 与 delay 分布；stress 最后关闭 6400 笔、16 ID、outstanding depth=4、长响应 delay 和
+  大结果截断/导出边界。若原版随机值不能仅由稳定源码公式在当前 simulator 重放，则以冻结握手流
+  生成仓库内确定性 pin-level stimulus，但必须记录这是公开总线刺激移植，不宣称 SVT RNG/VIP 等价。
+
+门禁：五档分别 zero-diff、双目录确定性、完整事务 digest 与 artifact 校验；每档提交后执行 AXI
+focused 及 APB/stream 相邻回归。只有五档全部通过，`fixture.axi_vip` 才允许改为
+`semantic-equivalent`。
+
+### D3-4：manifest/matrix/fail-closed 关闭
+
+- manifest 冻结两套 current fixture、六份 current FST、两套原版 oracle/collector、export artifact
+  合同和全部测试；matrix 将 native/XAMBA 分别映射到自身 current fixture，并列出每个 profile 的
+  observation/transaction/digest/XOUT/export/cache 差异数。
+- validator 至少拒绝 fixture/profile/seed 串用、缺 transaction/beat、ID 或 burst len 漂移、AW/W
+  phase order 与 handshake time 漂移、response/RLAST 丢失、截断伪完整、export 内容不一致、private
+  cache probe 泄漏、hard limit 隐藏、fallback/rebuild/绝对路径和剩余 gap。
+- write→check 达到稳定后只清除两项 AXI queue；P3-E SVA/XIF event 仍保持 `missing`/`partial`，不得
+  提前关闭 Goal。
+
+计划提交批次：
+
+1. `文档：展开 P3-D3 AXI 六波形差分计划`；
+2. `测试：冻结 P3-D3 AXI native 与 XAMBA 公开语义红灯`；
+3. `实现：补齐 P3-D3 XAMBA AXI 64 笔 fixture`；
+4. `实现：补齐 P3-D3 SVT AXI fixed 与三 seed fixture`；
+5. `实现：补齐 P3-D3 SVT AXI stress 全量 fixture`；
+6. `测试：关闭 P3-D3 AXI manifest 与矩阵证据链`。
+
+最终 D3 门禁：六套 original/current focused、十一项 Action JSON/XOUT、export artifact、cache 边界、
+AXI/APB/stream 相邻回归、manifest/matrix 双 check、外部只读审计和 `git diff --check`；实现触及
+analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
