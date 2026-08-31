@@ -1,0 +1,62 @@
+{
+  "schema_version": "xdebug-fst.fixture.apb-vip.v1",
+  "goal_id": "01a050fa-b864-7ce2-af88-56083d84ea21",
+  "fixture_id": "current.apb_vip",
+  "source_contract": {
+    "original_fixture_id": "xdebug.apb_vip",
+    "producer_equivalence": "pin-level-semantic-mirror",
+    "proprietary_vip_used": false,
+    "fsdb_conversion_used": false,
+    "seed": 11,
+    "randomization": false,
+    "transaction_count": 10,
+    "write_count": 5,
+    "read_count": 5,
+    "error_count": 1,
+    "timescale": "1ns/1ps",
+    "clock_half_period": "5ns",
+    "reset_release": "95ns",
+    "first_completion": "125ns",
+    "last_completion": "525ns",
+    "waveform_end": "545ns",
+    "original_sequence_sha256": "7ddc94661d4fb062d5ce6956de4368ed9a715a75dcbd907f69aff7d7e5c6d16a",
+    "original_dut_sha256": "40de7c2d9e8508c98fbbf5c856bbba605d1d8e00cd337eaf72a98bb1da7965d6",
+    "original_top_sha256": "3235afba27ce07b231b6096c33197648dfe04b7c47e6eb5ceb153dbc786f2763"
+  },
+  "interface_contract": {
+    "top": "apb_vip_fixture_top",
+    "interface": "apb_vip_fixture_top.apb_if",
+    "clock": "apb_vip_fixture_top.clk",
+    "reset": "apb_vip_fixture_top.rst_n",
+    "edge": "posedge",
+    "sample_point": "before",
+    "address_width": 32,
+    "data_width": 32,
+    "optional_signals": [
+      "pready",
+      "pslverr"
+    ]
+  },
+  "build_contract": {
+    "simulator": "verilator",
+    "version": "v5.050-109-gc3be3c805",
+    "revision": "c3be3c80501bec8d4c3b7f5256890332df62d410",
+    "tree": "8e247c8b90237517f84fbda98a594318b16ca998",
+    "fingerprint": "8b8b0886d5338b71500dd218e7af46bcd1c2a2dabb16492addeea82c85b14bb9",
+    "patchset_version": "xdebug-design-db-v4-deterministic-fst",
+    "gcc_version": "13.3.1",
+    "trace_format": "fst",
+    "trace_depth": 4,
+    "timing": true,
+    "rtl_sha256": "7b17832d94a7394ef53c501db1f31768d96c87fc38cce09d684638c499efb931",
+    "harness_sha256": "a82b5b8fcd564342a489ea036ad948d83a29dbce3d61e342003ff634d41986c2"
+  },
+  "output_contract": {
+    "path": "waves.fst",
+    "size": 1157,
+    "sha256": "80a5b625464afb56df14f3fc112abf62b0b53d4006312d28c960323f2d613ee0",
+    "deterministic_build_directories": 2,
+    "external_cache_rebuilt": false,
+    "proprietary_artifact_committed": false
+  }
+}

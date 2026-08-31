@@ -6,13 +6,18 @@
 #include "core/value/logic_value.h"
 #include "waveform/clock_sampling.h"
 #include "api/json_types.h"
+#include "protocol/text_response_builder.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdint>
+#include <cstdlib>
 #include <fstream>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -60,6 +65,311 @@ Json error_response(const std::string& code, const std::string& message) {
     return {{"ok", false}, {"error", {{"code", code}, {"message", message}}}};
 }
 
+Json rich_error_response(const std::string& code, const std::string& message,
+                         const Json& details = Json::object()) {
+    Json error{{"code", code}, {"message", message},
+               {"recoverable", true}, {"error_layer", "handler"}};
+    for (auto item = details.begin(); item != details.end(); ++item)
+        error[item.key()] = item.value();
+    return {{"ok", false}, {"error", std::move(error)}};
+}
+
+Json action_example(const std::string& action, const Json& args) {
+    return {{"api_version", "xdebug.v1"}, {"action", action},
+            {"target", {{"session_id", "case_a"}}}, {"args", args}};
+}
+
+Json apb_query_example() {
+    return action_example("apb.query", {{"name", "apb0"},
+        {"direction", "all"}, {"query", {{"line_limit", 8}}}});
+}
+
+Json apb_config_load_example() {
+    return action_example("apb.config.load", {{"name", "apb0"},
+        {"config", {{"clock", "top.u.clk"},
+            {"reset", {{"signal", "top.u.rst_n"},
+                       {"polarity", "active_low"}}},
+            {"paddr", "top.u.paddr"}, {"psel", "top.u.psel"},
+            {"penable", "top.u.penable"}, {"pready", "top.u.pready"},
+            {"pslverr", "top.u.pslverr"}, {"pwrite", "top.u.pwrite"},
+            {"pwdata", "top.u.pwdata"}, {"prdata", "top.u.prdata"}}}});
+}
+
+Json apb_window_example() {
+    return action_example("apb.transfer_window", {{"name", "if0"},
+        {"time_range", {{"begin", "0ns"}, {"end", "100ns"}}}});
+}
+
+Json config_not_found_response(const std::string& action,
+                               const std::string& name) {
+    Json example = action == "apb.query" ? apb_query_example()
+                                          : action_example(action, {{"name", "apb0"}});
+    return rich_error_response("CONFIG_NOT_FOUND",
+        "apb config not found: " + name,
+        {{"invalid_arg", "args.name"},
+         {"expected", "name of a previously loaded apb config"},
+         {"missing_name", name}, {"missing_resource", "apb config"},
+         {"correct_example", std::move(example)},
+         {"example_note", "Example only; choose an existing config name or load this config before using it."},
+         {"next_actions", Json::array({
+             "Call apb.config.list to inspect loaded configs.",
+             "Call apb.config.load before this action."})}});
+}
+
+void set_value_width_complete(Json& summary) {
+    summary["value_width_complete"] = true;
+    summary["width_diagnostics"] = Json::array();
+}
+
+bool parse_analysis_cache_budget(const char* name, uint64_t default_value,
+                                 bool allow_zero, uint64_t& value,
+                                 std::string& message) {
+    const char* raw = std::getenv(name);
+    if (raw == nullptr) {
+        value = default_value;
+        return true;
+    }
+    if (*raw == '\0') {
+        message = std::string(name) + " must be a non-empty unsigned integer";
+        return false;
+    }
+    uint64_t parsed = 0;
+    for (const unsigned char* cursor =
+             reinterpret_cast<const unsigned char*>(raw);
+         *cursor != '\0'; ++cursor) {
+        if (!std::isdigit(*cursor)) {
+            message = std::string(name) +
+                " must contain only unsigned decimal digits";
+            return false;
+        }
+        const uint64_t digit = *cursor - '0';
+        if (parsed > (std::numeric_limits<uint64_t>::max() - digit) / 10) {
+            message = std::string(name) + " exceeds uint64 range";
+            return false;
+        }
+        parsed = parsed * 10 + digit;
+    }
+    if (!allow_zero && parsed == 0) {
+        message = std::string(name) + " must be positive";
+        return false;
+    }
+    value = parsed;
+    return true;
+}
+
+std::string apb_cache_key_summary(const ApbConfig& config) {
+    const std::string material = config.name + "\n" + config.clock + "\n" +
+        config.edge + "\n" + config.sample_point + "\n" + config.reset +
+        "\n" + config.paddr + "\n" + config.psel + "\n" +
+        config.penable + "\n" + config.pwrite + "\n" + config.pwdata +
+        "\n" + config.prdata + "\n" + config.pready + "\n" +
+        config.pslverr;
+    uint64_t hash = 1469598103934665603ULL;
+    for (unsigned char byte : material) {
+        hash ^= static_cast<uint64_t>(byte);
+        hash *= 1099511628211ULL;
+    }
+    std::ostringstream text;
+    text << std::hex << std::setw(16) << std::setfill('0') << hash;
+    return text.str();
+}
+
+Json apb_analysis_budget_error(const ApbConfig& config) {
+    uint64_t soft_max_bytes = 0, hard_max_bytes = 0;
+    std::string message;
+    if (!parse_analysis_cache_budget(
+            "XDEBUG_ANALYSIS_CACHE_MAX_BYTES", 1073741824ULL, true,
+            soft_max_bytes, message) ||
+        !parse_analysis_cache_budget(
+            "XDEBUG_ANALYSIS_CACHE_HARD_MAX_BYTES", 2147483648ULL, false,
+            hard_max_bytes, message)) {
+        return rich_error_response("INVALID_ENVIRONMENT", message,
+                                   {{"recoverable", false}});
+    }
+    if (soft_max_bytes > hard_max_bytes) {
+        return rich_error_response("INVALID_ENVIRONMENT",
+            "XDEBUG_ANALYSIS_CACHE_MAX_BYTES must not exceed XDEBUG_ANALYSIS_CACHE_HARD_MAX_BYTES",
+            {{"recoverable", false}});
+    }
+    if (hard_max_bytes >= sizeof(ApbTransaction)) return Json::object();
+    return rich_error_response("ANALYSIS_MEMORY_LIMIT_EXCEEDED",
+        "analysis cache build exceeds the configured hard memory limit",
+        {{"current_estimated_bytes", 0}, {"hard_max_bytes", hard_max_bytes},
+         {"protocol", "apb"}, {"key_summary", apb_cache_key_summary(config)},
+         {"next_actions", Json::array({
+             "For stream analysis, explicitly retry with cache_scope=range or a smaller time_range.",
+             "If range analysis still exceeds the limit, use x-npi for one-off offline analysis."})}});
+}
+
+bool xout_scalar(const Json& value) {
+    return is_xout_scalar_json(value);
+}
+
+void render_tabular_value(TextResponseBuilder& out, const std::string& key,
+                          const Json& value) {
+    if (xout_scalar(value)) {
+        out.emit_kv(key, value);
+    } else if (value.is_array() && value.empty()) {
+        out.emit_kv(key, "[empty]");
+    } else if (value.is_array()) {
+        out.emit_section(key);
+        if (!value.empty() && value.front().is_object()) {
+            out.emit_json_table(value, static_cast<int>(value.size()));
+        } else {
+            for (const Json& item : value)
+                out.emit_row({json_to_xout_value(item)});
+        }
+    } else if (value.is_object()) {
+        bool emitted_direct = false;
+        for (auto item = value.begin(); item != value.end(); ++item) {
+            if (!xout_scalar(item.value()) &&
+                !(item.value().is_array() && item.value().empty())) continue;
+            if (!emitted_direct) out.emit_section(key);
+            if (xout_scalar(item.value())) out.emit_kv(item.key(), item.value());
+            else out.emit_kv(item.key(), "[empty]");
+            emitted_direct = true;
+        }
+        for (auto item = value.begin(); item != value.end(); ++item) {
+            if (xout_scalar(item.value()) ||
+                (item.value().is_array() && item.value().empty())) continue;
+            render_tabular_value(out, key + "." + item.key(), item.value());
+        }
+    }
+}
+
+std::string render_apb_query_xout(const Json& response) {
+    TextResponseBuilder out("xdebug");
+    out.emit_header("apb.query");
+    const Json summary = response.value("summary", Json::object());
+    if (!summary.empty()) {
+        out.emit_section("summary");
+        for (const char* key : {"name", "direction", "query_mode", "found",
+                 "scan_complete", "analysis_complete", "response_truncated",
+                 "total_count", "returned_count"}) {
+            if (summary.contains(key)) out.emit_kv(key, summary.at(key));
+        }
+        for (const char* key : {"truncation_scopes", "value_width_complete",
+                                "width_diagnostics"}) {
+            if (summary.contains(key))
+                render_tabular_value(out, key, summary.at(key));
+        }
+    }
+    const Json data = response.value("data", Json::object());
+    if (data.contains("filter"))
+        render_tabular_value(out, "filter", data.at("filter"));
+    if (data.contains("transaction"))
+        render_tabular_value(out, "transaction", data.at("transaction"));
+    if (data.contains("transactions") && data.at("transactions").is_array() &&
+        !data.at("transactions").empty()) {
+        std::vector<std::vector<std::string>> rows;
+        for (const Json& transaction : data.at("transactions")) {
+            rows.push_back({transaction.value("time", std::string()),
+                transaction.value("addr", std::string()),
+                transaction.value("data", std::string()),
+                json_to_xout_value(transaction.value("is_write", Json())),
+                json_to_xout_value(transaction.value("has_error", Json()))});
+        }
+        out.emit_section("transactions");
+        out.emit_table({"time", "addr", "data", "is_write", "has_error"},
+                       rows);
+    }
+    return out.str();
+}
+
+std::string render_apb_statistics_xout(const Json& response) {
+    TextResponseBuilder out("xdebug");
+    out.emit_header("apb.statistics");
+    const Json summary = response.value("summary", Json::object());
+    out.emit_section("summary");
+    for (const char* key : {"name", "scanned_transaction_count",
+             "matched_transaction_count", "matched_read_count",
+             "matched_write_count", "unresolved_transaction_count",
+             "filter_applied", "analysis_quality", "full_scan_count",
+             "scan_complete", "analysis_complete", "response_truncated",
+             "total_count", "returned_count", "truncation_scopes",
+             "value_width_complete", "width_diagnostics"}) {
+        if (summary.contains(key)) out.emit_kv(key, summary.at(key));
+    }
+
+    const Json data = response.value("data", Json::object());
+    const Json filter = data.value("filter", Json::object());
+    out.emit_section("filter");
+    out.emit_kv("direction", filter.value("direction", std::string("all")));
+    if (filter.contains("address")) {
+        const Json& address = filter.at("address");
+        const std::string mode = address.value("mode", std::string());
+        out.emit_kv("address_mode", mode);
+        if (mode == "exact") {
+            std::string values = "[";
+            for (size_t index = 0; index < address.at("values").size(); ++index) {
+                if (index) values += ", ";
+                values += address.at("values").at(index).get<std::string>();
+            }
+            out.emit_kv("address_values", values + "]");
+        } else if (mode == "range") {
+            out.emit_kv("address_begin", address.value("begin", std::string()));
+            out.emit_kv("address_end", address.value("end", std::string()));
+        } else if (mode == "mask") {
+            out.emit_kv("address_value", address.value("value", std::string()));
+            out.emit_kv("address_mask", address.value("mask", std::string()));
+        }
+    }
+    out.emit_section("notes");
+    out.emit_kv("unresolved_transaction_count",
+        "因被引用的 address/ID 含 X/Z 或不可解析，导致无法判断是否匹配过滤条件的已完成事务数。");
+    return out.str();
+}
+
+std::string render_apb_window_xout(const Json& response) {
+    TextResponseBuilder out("xdebug");
+    out.emit_header("apb.transfer_window");
+    const Json summary = response.value("summary", Json::object());
+    out.emit_section("summary");
+    for (const char* key : {"name", "begin", "end", "scan_complete",
+             "analysis_complete", "response_truncated", "total_count",
+             "returned_count", "value_width_complete"}) {
+        if (summary.contains(key)) out.emit_kv(key, summary.at(key));
+    }
+    const Json transactions = response.value("data", Json::object())
+        .value("transactions", Json::array());
+    if (!transactions.empty()) {
+        std::vector<std::vector<std::string>> rows;
+        for (const Json& transaction : transactions) {
+            rows.push_back({transaction.value("time", std::string()),
+                transaction.value("type", std::string()),
+                transaction.value("addr", std::string()),
+                transaction.value("data", std::string()),
+                json_to_xout_value(transaction.value("has_error", Json()))});
+        }
+        out.emit_section("transactions");
+        out.emit_table({"time", "type", "addr", "data", "has_error"}, rows);
+    }
+    return out.str();
+}
+
+std::string render_apb_cursor_xout(const Json& response) {
+    TextResponseBuilder out("xdebug");
+    out.emit_header("apb.transaction.cursor");
+    const Json summary = response.value("summary", Json::object());
+    out.emit_section("summary");
+    for (const char* key : {"name", "op", "direction", "found", "index",
+             "index_base", "at_begin", "at_end", "scan_complete",
+             "analysis_complete", "response_truncated", "total_count",
+             "returned_count", "value_width_complete"}) {
+        if (summary.contains(key)) out.emit_kv(key, summary.at(key));
+    }
+    const Json data = response.value("data", Json::object());
+    if (data.contains("transaction")) {
+        const Json& transaction = data.at("transaction");
+        out.emit_section("transaction");
+        for (const char* key : {"time", "addr", "data", "is_write",
+                                "has_error"}) {
+            if (transaction.contains(key)) out.emit_kv(key, transaction.at(key));
+        }
+    }
+    return out.str();
+}
+
 Json config_json(const ApbConfig& config) {
     Json result{{"name", config.name}, {"sampling_mode", "clock_edge"},
         {"clock", config.clock}, {"edge", config.edge},
@@ -92,7 +402,7 @@ bool parse_config(const std::string& name, const Json& source,
     config.reset = source.at("reset").at("signal");
     config.reset_polarity = source.at("reset").at("polarity");
     if (config.edge == "negedge" && !config.sample_point.empty()) {
-        message = "negedge APB config must omit sample_point";
+        message = "APB config sample_point is only valid with edge:posedge or edge:dual";
         return false;
     }
     if (config.edge != "negedge" && config.sample_point.empty())
@@ -196,6 +506,8 @@ ApbScan scan_transactions(IWaveformBackend& wf, const ApbConfig& config,
     ApbScan result;
     const auto point = config_point(config);
     uint32_t previous_ti = std::numeric_limits<uint32_t>::max();
+    size_t selected_edge_ordinal = 0;
+    size_t last_accept_edge_ordinal = std::numeric_limits<size_t>::max();
     for (uint32_t ti : wf.time_indices_of(refs.clock)) {
         if (ti == previous_ti) continue;
         previous_ti = ti;
@@ -210,6 +522,7 @@ ApbScan scan_transactions(IWaveformBackend& wf, const ApbConfig& config,
         const bool falling = is_falling_edge(before_clock.value.text,
                                               raw_clock.value.text);
         if (!selected_edge(config.edge, rising, falling)) continue;
+        const size_t current_edge_ordinal = selected_edge_ordinal++;
 
         IWaveformBackend::WaveformValue reset, psel, penable, pwrite;
         IWaveformBackend::WaveformValue paddr, pwdata, prdata, pready, pslverr;
@@ -262,6 +575,16 @@ ApbScan scan_transactions(IWaveformBackend& wf, const ApbConfig& config,
         txn.addr_width = refs.addr_width;
         txn.data = txn.is_write ? pwdata.text : prdata.text;
         txn.data_width = txn.is_write ? refs.write_width : refs.read_width;
+        const bool duplicate_access_tail =
+            last_accept_edge_ordinal != std::numeric_limits<size_t>::max() &&
+            last_accept_edge_ordinal + 1 == current_edge_ordinal &&
+            !result.transactions.empty() &&
+            result.transactions.back().is_write == txn.is_write &&
+            result.transactions.back().has_error == txn.has_error &&
+            result.transactions.back().addr == txn.addr &&
+            result.transactions.back().data == txn.data;
+        last_accept_edge_ordinal = current_edge_ordinal;
+        if (duplicate_access_tail) continue;
         result.transactions.push_back(std::move(txn));
     }
     return result;
@@ -375,13 +698,19 @@ bool parse_render(const Json& args, IWaveformBackend& wf,
 
 bool require_config_and_scan(const std::string& name, IWaveformBackend& wf,
                              const ApbConfig*& config, ApbScan& scan,
-                             Json& error) {
+                             Json& error,
+                             const std::string& action = "apb.query") {
     config = find_config(name);
     if (!config) {
-        error = error_response("CONFIG_NOT_FOUND",
-            "APB config not found: " + name);
+        error = config_not_found_response(action, name);
         return false;
     }
+    Json budget_error = apb_analysis_budget_error(*config);
+    if (!budget_error.empty()) {
+        error = std::move(budget_error);
+        return false;
+    }
+    error = Json();
     scan = scan_transactions(wf, *config, error);
     return error.is_null();
 }
@@ -390,7 +719,8 @@ Json recommended_actions() {
     return Json::array({
         {{"action", "value.at"},
          {"purpose", "按一个或多个指定时间读取单信号、命名信号列表或接口配置维护的值。"}},
-        {{"action", "apb.query"}, {"purpose", "查询 APB transfer。"}},
+        {{"action", "apb.query"},
+         {"purpose", "按方向以及 exact、range 或 mask 地址条件查询已完成 APB transfer。"}},
         {{"action", "apb.transaction.cursor"},
          {"purpose", "在 APB transfer 间移动游标。"}},
         {{"action", "apb.statistics"},
@@ -425,8 +755,7 @@ struct ApbConfigListHandler : public EngineActionHandler {
         if (args.contains("name")) {
             const std::string name = args.at("name");
             const ApbConfig* config = find_config(name);
-            if (!config) return error_response("CONFIG_NOT_FOUND",
-                "APB config not found: " + name);
+            if (!config) return config_not_found_response(action_name(), name);
             return {{"ok", true}, {"summary", {{"name", name}, {"status", "found"}}},
                     {"data", {{"config", config_json(*config)}}}};
         }
@@ -459,7 +788,11 @@ struct ApbConfigLoadHandler : public EngineActionHandler {
         ApbConfig config;
         std::string message;
         if (!parse_config(args.at("name"), source, config, message))
-            return error_response("INVALID_FIELD", message);
+            return rich_error_response("INVALID_ARGUMENT", message,
+                {{"invalid_arg", "args.config"},
+                 {"expected", "strict APB config with only canonical fields and non-empty signal paths"},
+                 {"correct_example", apb_config_load_example()},
+                 {"example_note", "Example only; replace placeholders with active signal paths, names, and time values."}});
         auto* wf = engine_globals().waveform.get();
         uint32_t reset_ref = 0;
         IWaveformBackend::SignalInfo reset_info;
@@ -520,6 +853,7 @@ struct ApbQueryHandler : public EngineActionHandler {
                 transaction_json(*matches[offset], *wf, unit, format);
             merge(summary, completeness_summary(scan.complete, false,
                                                  matches.size(), found ? 1 : 0));
+            if (found || !address.is_null()) set_value_width_complete(summary);
         } else if (line_limit > 0) {
             const size_t begin = index > 0 ? static_cast<size_t>(index - 1) : 0;
             Json transactions = Json::array();
@@ -531,6 +865,8 @@ struct ApbQueryHandler : public EngineActionHandler {
             const bool truncated = begin + transactions.size() < matches.size();
             merge(summary, completeness_summary(scan.complete, truncated,
                 matches.size(), transactions.size()));
+            if (!transactions.empty() || !address.is_null())
+                set_value_width_complete(summary);
             data["transactions"] = std::move(transactions);
         } else {
             summary["query_mode"] = "count";
@@ -538,6 +874,10 @@ struct ApbQueryHandler : public EngineActionHandler {
                                                  matches.size(), 0));
         }
         return {{"ok", true}, {"summary", summary}, {"data", data}};
+    }
+
+    std::string render_xout(const Json& response) const override {
+        return render_apb_query_xout(response);
     }
 };
 
@@ -551,7 +891,8 @@ struct ApbStatisticsHandler : public EngineActionHandler {
         const ApbConfig* config = nullptr;
         ApbScan scan;
         Json error;
-        if (!require_config_and_scan(args.at("name"), *wf, config, scan, error))
+        if (!require_config_and_scan(args.at("name"), *wf, config, scan, error,
+                                     action_name()))
             return error;
         const Json input_filter = args.value("filter", Json::object());
         const std::string direction = input_filter.value("direction", "all");
@@ -578,9 +919,15 @@ struct ApbStatisticsHandler : public EngineActionHandler {
             {"full_scan_count", 1}};
         merge(summary, completeness_summary(scan.complete, false,
                                             matched, matched));
+        if (!address.is_null()) set_value_width_complete(summary);
         return {{"ok", true}, {"summary", summary}, {"data", {
             {"filter", filter}, {"notes", {{"unresolved_transaction_count",
                 "因被引用的 address/ID 含 X/Z 或不可解析，导致无法判断是否匹配过滤条件的已完成事务数。"}}}}}};
+    }
+
+
+    std::string render_xout(const Json& response) const override {
+        return render_apb_statistics_xout(response);
     }
 };
 
@@ -594,7 +941,8 @@ struct ApbTransactionCursorHandler : public EngineActionHandler {
         const ApbConfig* config = nullptr;
         ApbScan scan;
         Json error;
-        if (!require_config_and_scan(args.at("name"), *wf, config, scan, error))
+        if (!require_config_and_scan(args.at("name"), *wf, config, scan, error,
+                                     action_name()))
             return error;
         TimeRenderUnit unit;
         ValueRenderFormat format;
@@ -625,10 +973,15 @@ struct ApbTransactionCursorHandler : public EngineActionHandler {
             {"at_end", found && position + 1 == matches.size()}};
         merge(summary, completeness_summary(scan.complete, false,
                                             matches.size(), found ? 1 : 0));
+        if (found) set_value_width_complete(summary);
         Json data = Json::object();
         if (found) data["transaction"] =
             transaction_json(*matches[position], *wf, unit, format);
         return {{"ok", true}, {"summary", summary}, {"data", data}};
+    }
+
+    std::string render_xout(const Json& response) const override {
+        return render_apb_cursor_xout(response);
     }
 };
 
@@ -642,7 +995,8 @@ struct ApbTransferWindowHandler : public EngineActionHandler {
         const ApbConfig* config = nullptr;
         ApbScan scan;
         Json error;
-        if (!require_config_and_scan(args.at("name"), *wf, config, scan, error))
+        if (!require_config_and_scan(args.at("name"), *wf, config, scan, error,
+                                     action_name()))
             return error;
         TimeRenderUnit unit;
         ValueRenderFormat format;
@@ -657,7 +1011,11 @@ struct ApbTransferWindowHandler : public EngineActionHandler {
             !wf->parse_time(range.at("end"), end, message, true))
             return error_response("INVALID_TIME", message);
         if (begin > end)
-            return error_response("TIME_RANGE_INVALID", "end is before begin");
+            return rich_error_response("TIME_RANGE_INVALID",
+                "args.time_range.end is before args.time_range.begin",
+                {{"invalid_arg", "args.time_range.end"},
+                 {"expected", "time_range.end must be greater than or equal to time_range.begin"},
+                 {"correct_example", apb_window_example()}});
         const size_t limit = args.value("line_limit", 1000u);
         size_t total = 0;
         Json transactions = Json::array();
@@ -674,8 +1032,13 @@ struct ApbTransferWindowHandler : public EngineActionHandler {
             {"end", wf->format_time(end, unit)}};
         merge(summary, completeness_summary(scan.complete, truncated,
                                             total, transactions.size()));
+        if (!transactions.empty()) set_value_width_complete(summary);
         return {{"ok", true}, {"summary", summary},
                 {"data", {{"transactions", transactions}}}};
+    }
+
+    std::string render_xout(const Json& response) const override {
+        return render_apb_window_xout(response);
     }
 };
 

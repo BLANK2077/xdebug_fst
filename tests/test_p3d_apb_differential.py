@@ -10,7 +10,7 @@ from typing import Any
 
 import pytest
 
-from conftest import open_session
+from conftest import _base_env, open_session
 from runner import StdioLoopRunner
 
 
@@ -158,6 +158,43 @@ def sha256(path: Path) -> str:
         while chunk := stream.read(1024 * 1024):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def load_hash_lock(path: Path) -> dict[str, str]:
+    rows: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        digest, name = line.split(maxsplit=1)
+        rows[name] = digest
+    return rows
+
+
+def start_budget_runner(
+    xfst_bin: Path,
+    tmp_path: Path,
+    *,
+    soft_bytes: str,
+    hard_bytes: str,
+) -> StdioLoopRunner:
+    resolved = tmp_path.resolve()
+    assert REPO_ROOT.resolve() in resolved.parents
+    home = resolved / "home"
+    temp = resolved / "tmp"
+    cache = resolved / "cache"
+    socket_id = hashlib.sha256(str(resolved).encode()).hexdigest()[:8]
+    socket = REPO_ROOT / ".tmp/s" / socket_id
+    for path in (home, temp, cache, socket):
+        path.mkdir(parents=True, exist_ok=True)
+    environment = _base_env(home, xfst_bin)
+    environment.update({
+        "TMPDIR": str(temp),
+        "XDG_CACHE_HOME": str(cache),
+        "XVERIF_TEST_TMPDIR": str(socket),
+        "XDEBUG_ANALYSIS_CACHE_MAX_BYTES": soft_bytes,
+        "XDEBUG_ANALYSIS_CACHE_HARD_MAX_BYTES": hard_bytes,
+    })
+    runner = StdioLoopRunner(xfst_bin, cwd=REPO_ROOT, env=environment)
+    runner.start()
+    return runner
 
 
 def load_oracle(fixture_id: str) -> dict[str, Any]:
@@ -499,3 +536,125 @@ def test_current_apb_fixture_matches_every_locked_base_observation_and_xout(
         if loop_runner.has_current_session:
             closed = loop_runner.request("session.close", args={})
             assert closed.get("ok"), closed
+
+
+def test_current_svt_apb_fixture_locks_source_tool_and_deterministic_fst() -> None:
+    fixture = REPO_ROOT / "testdata/fixtures/apb_vip"
+    lock = load_hash_lock(fixture / "fixture.sha256")
+    assert list(lock) == [
+        "apb_vip_fixture_top.sv",
+        "tb_apb_vip.cpp",
+        "fixture.manifest.json",
+        "waves.fst",
+    ]
+    for name, digest in lock.items():
+        path = fixture / name
+        assert path.is_file() and not path.is_symlink()
+        assert sha256(path) == digest
+
+    manifest = json.loads(
+        (fixture / "fixture.manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["schema_version"] == "xdebug-fst.fixture.apb-vip.v1"
+    assert manifest["goal_id"] == GOAL_ID
+    assert manifest["fixture_id"] == "current.apb_vip"
+    source = manifest["source_contract"]
+    assert source["original_fixture_id"] == "xdebug.apb_vip"
+    assert source["producer_equivalence"] == "pin-level-semantic-mirror"
+    assert source["proprietary_vip_used"] is False
+    assert source["fsdb_conversion_used"] is False
+    assert source["seed"] == 11
+    assert source["randomization"] is False
+    assert (source["transaction_count"], source["write_count"],
+            source["read_count"], source["error_count"]) == (10, 5, 5, 1)
+
+    dependency = json.loads(
+        (REPO_ROOT / "dependencies.lock.json").read_text(
+            encoding="utf-8"
+        )
+    )["verilator"]
+    build = manifest["build_contract"]
+    for key in ("version", "revision", "tree", "patchset_version"):
+        assert build[key] == dependency[key]
+    assert build["fingerprint"] == (
+        "8b8b0886d5338b71500dd218e7af46bcd1c2a2dabb16492addeea82c85b14bb9"
+    )
+    assert build["gcc_version"] == "13.3.1"
+    assert build["trace_format"] == "fst"
+    assert build["trace_depth"] == 4
+    assert build["timing"] is True
+    assert build["rtl_sha256"] == lock["apb_vip_fixture_top.sv"]
+    assert build["harness_sha256"] == lock["tb_apb_vip.cpp"]
+
+    output = manifest["output_contract"]
+    assert output == {
+        "path": "waves.fst",
+        "size": (fixture / "waves.fst").stat().st_size,
+        "sha256": lock["waves.fst"],
+        "deterministic_build_directories": 2,
+        "external_cache_rebuilt": False,
+        "proprietary_artifact_committed": False,
+    }
+    regenerator = REPO_ROOT / "tools/regenerate_p3d_apb_vip_fixture.sh"
+    assert regenerator.is_file() and not regenerator.is_symlink()
+    assert "/home/" not in json.dumps(manifest, ensure_ascii=False)
+
+
+def test_current_svt_apb_matches_locked_soft_budget_public_observations(
+    xfst_bin: Path,
+    tmp_path: Path,
+) -> None:
+    oracle = load_oracle("xdebug.apb_vip")
+    runner = start_budget_runner(
+        xfst_bin, tmp_path / "soft", soft_bytes="1",
+        hard_bytes="2147483648",
+    )
+    try:
+        open_session(runner, REPO_ROOT / "testdata/fixtures/apb_vip/waves.fst")
+        for observation in oracle["cache_contract"]["soft_lru"][
+            "public_observations"
+        ]:
+            actual = runner.request(
+                observation["action"], args=copy.deepcopy(observation["request"])
+            )
+            assert public_response(actual) == observation["response"], (
+                f"P3-D2 APB soft-budget 公开差异: {observation['observation_id']}"
+            )
+    finally:
+        if runner.has_current_session:
+            runner.request("session.close", args={})
+        runner.stop()
+
+
+def test_current_svt_apb_exposes_locked_public_hard_limit_error(
+    xfst_bin: Path,
+    tmp_path: Path,
+) -> None:
+    oracle = load_oracle("xdebug.apb_vip")
+    observations = oracle["cache_contract"]["hard_limit"][
+        "public_observations"
+    ]
+    runner = start_budget_runner(
+        xfst_bin, tmp_path / "hard", soft_bytes="1", hard_bytes="1"
+    )
+    try:
+        open_session(runner, REPO_ROOT / "testdata/fixtures/apb_vip/waves.fst")
+        loaded = runner.request(
+            observations[0]["action"],
+            args=copy.deepcopy(observations[0]["request"]),
+        )
+        assert public_response(loaded) == observations[0]["response"]
+        actual = public_response(runner.request(
+            observations[1]["action"],
+            args=copy.deepcopy(observations[1]["request"]),
+        ))
+        expected = copy.deepcopy(observations[1]["response"])
+        for response in (actual, expected):
+            key = response["error"]["key_summary"]
+            assert re.fullmatch(r"[0-9a-f]{16}", key)
+            response["error"]["key_summary"] = "<opaque-cache-key>"
+        assert actual == expected
+    finally:
+        if runner.has_current_session:
+            runner.request("session.close", args={})
+        runner.stop()

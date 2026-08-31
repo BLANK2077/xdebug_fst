@@ -1296,3 +1296,23 @@ export fallback 进入本批，禁止 skip/xfail/宽松字段白名单或只比�
   精确停在 `testdata/fixtures/apb_vip/apb_vip_fixture_top.sv` 与
   `testdata/fixtures/apb_xamba_vip/xdebug_apb_xamba_fixture_top.sv` 尚不存在，属于业务红灯，不是
   环境、UDS、NPI、schema 或 oracle 失败。
+
+### 2026-08-31：D2-2 SVT APB 10 笔 fixture 与公开语义转绿
+
+- 新增 `testdata/fixtures/apb_vip` 专属 pin-level semantic mirror，保留原版
+  `apb_vip_fixture_top.apb_if` 的公开层级和 32-bit APB 信号宽度；RTL/harness 不含 SVT/VCS/NPI
+  依赖，不读取或转换 FSDB。10 笔 completion 固定为 125/165/215/275/315/345/385/435/495/525ns，
+  5 写/5 读、partial strobe 回读和末笔 `PSLVERR` 均与冻结 oracle 一致。
+- `tools/regenerate_p3d_apb_vip_fixture.sh` 只允许仓库内 work-dir，锁定 resolved Verilator
+  revision/tree/fingerprint/patchset、GCC 13.3.1、trace depth=4 和 source contract。两个全新目录
+  `.tmp/regen-svt-a/work`、`.tmp/regen-svt-b/work` 独立生成的 FST 与提交目标均为
+  `80a5b625...`（1,157 bytes）；未重建任何原版或既有 fixture cache。
+- 当前 APB action 补齐冻结原版的宽度完整性字段、query/statistics/window/cursor XOUT 顺序与表格、
+  `CONFIG_NOT_FOUND`/非法 negedge sample-point/反向时间范围富诊断，以及公开 hard-limit
+  `ANALYSIS_MEMORY_LIMIT_EXCEEDED` 合同。`key_summary` 仍只按已冻结规则允许 16-hex opaque 差异。
+- soft=1/hard=2GiB 门禁发现 `sample_point=after` 会在同一 access 的 ready 拉高与下一拍拉低边界重复
+  计数；analyzer 现按 APB 必经 setup/access 规则拒绝相邻同签名 access tail，未修改 oracle。
+  `apb_before` 游标在 `apb_after` 分析后仍从 index=2 恢复到 index=3，公开 soft-LRU 行为保持一致。
+- focused gate 为 8/8：两套原版 oracle/authority 静态门禁、SVT 36/36 JSON 与 4/4 XOUT、fixture
+  hash/tool/source contract、soft-LRU 六条公开观察和 hard-limit 两条公开观察全部通过。D2-2 仅关闭
+  SVT 子项；XAMBA 64 笔 fixture 仍按 D2-3 独立实施，不借用本 fixture 或结论。
