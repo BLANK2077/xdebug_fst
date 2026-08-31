@@ -3,7 +3,7 @@
 ## 一、任务身份与最终目标
 
 - Goal：`01a050fa-b864-7ce2-af88-56083d84ea21`
-- 状态：active
+- 状态：P4 验收完成；本批提交后同步 Goal 为 complete
 - 当前仓库：`xdebug_fst`
 - Goal 起点：`fix/per-session-registry-flock`，
   `302d0c2b40eff1547d7479c6838b6866c8ab7c7f`
@@ -1658,3 +1658,28 @@ analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
 - 资产冻结器先逐文件验证原版冻结内容不变，再显式接受外部用户造成的只读 status 快照漂移；未写入
   xverif/Wellen/Verilator。所有生成器输出、临时目录和测试会话均位于当前仓库，未重建外部 fixture/cache，
   未使用 fallback。P3-A～E 至此全部关闭，下一批只执行 P4 全量门禁和最终差异报告。
+
+### 2026-08-31：P4 全量门禁与最终报告
+
+- 修正两处历史集成断言：P3-B 现精确锁定最终 81 个 semantic-equivalent、7 个
+  proven-unobservable 和空 P3 queue；Phase5 现锁定 P3-C 完整 public oracle，同时保留早期 partial
+  subset audit 作为嵌套历史证据。修改前全量 pytest 稳定报告 2 个断言失败，修改后定向 2/2 通过。
+- 73 Action 新轨迹发现 `batch` 的 limit/truncation 已被 P3-D 真实传播证据覆盖，但 applicability 仍
+  标 N/A。删除这两个过期 N/A 后 action audit 为 73/73；审计器另将明确返回 `UNKNOWN_ACTION` 的负向
+  请求单列为 expected rejected，并把真正的 unknown action 纳入 `--require-complete` 失败条件。
+- 最终全量 pytest 790/790，2069 条新轨迹得到 `complete_action_count=73`、`unknown_actions=[]`；
+  普通 CTest 7/7。测试树没有 skip/xfail。manifest、matrix、P3-E closure 均 write/check 双稳定，
+  `git diff --check` 通过。
+- 独立仓库内 sanitizer 构建使用固定 GCC 13.3.1：ASan 在
+  `detect_leaks=1:halt_on_error=1` 下串行 CTest 7/7；UBSan 在
+  `halt_on_error=1:print_stacktrace=1` 下串行 CTest 7/7。离线 Cargo 缓存只读复制到仓库 `.tmp`，
+  UBSan 直接复用仓库内已锁定 Verilator 工具缓存；没有写外部 HOME 或重建测试 fixture。
+- 一次全量回归在 sanitizer 构建后的系统负载窗口中让 AXI stress OSD 命中内部 UDS 30 秒读超时；
+  同一五 profile 定向复现 5/5 通过，系统空闲后的全新全量回归 790/790 通过。未调整 timeout、fixture、
+  oracle 或断言，未把环境失败当语义通过。
+- 最终矩阵继续为 88 场景、81 等价、7 有界不可观察，所有 gap 计数为 0；原版 23 fixture、103 HDL、
+  25 声明波形输出、260 consumer 全覆盖。最终报告为
+  [`XDEBUG_RTL_WAVEFORM_DIFFERENTIAL_FINAL_REPORT.md`](XDEBUG_RTL_WAVEFORM_DIFFERENTIAL_FINAL_REPORT.md)。
+- 最终外部只读状态：xverif `511009948...`，Wellen `afab0abd...`，Verilator `bf01d667...`；后二者
+  clean，xverif 既有 dirty/untracked 由冻结资产检查接受，三仓均无本任务写入。没有新增 FSDB、daidir、
+  simv、VPD/WLF/UCDB、专有库或日志；只修改当前仓库。

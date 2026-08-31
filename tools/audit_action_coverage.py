@@ -28,6 +28,24 @@ DIMENSIONS = (
 def row_is_complete(row: dict[str, Any]) -> bool:
     return not row["missing"] and not row.get("overlap", [])
 
+
+def is_expected_unknown_action_rejection(event: dict[str, Any]) -> bool:
+    response = event.get("response")
+    error = response.get("error") if isinstance(response, dict) else None
+    return bool(
+        isinstance(error, dict)
+        and error.get("code") == "UNKNOWN_ACTION"
+        and response.get("ok") is False
+    )
+
+
+def report_is_complete(report: dict[str, Any], action_count: int) -> bool:
+    return (
+        report["complete_action_count"] == action_count
+        and not report["unknown_actions"]
+    )
+
+
 RESOURCE_ERROR_CODES = {
     "CONFIG_NOT_FOUND",
     "DESIGN_BUNDLE_INVALID",
@@ -370,6 +388,7 @@ def main() -> int:
     }
     event_counts: dict[str, int] = defaultdict(int)
     unknown_actions: set[str] = set()
+    expected_rejected_actions: set[str] = set()
     for line_number, line in enumerate(
         trace_path.read_text(encoding="utf-8").splitlines(), start=1
     ):
@@ -379,7 +398,10 @@ def main() -> int:
         action = event.get("action")
         if action not in evidence:
             if action is not None:
-                unknown_actions.add(str(action))
+                if is_expected_unknown_action_rejection(event):
+                    expected_rejected_actions.add(str(action))
+                else:
+                    unknown_actions.add(str(action))
             continue
         event_counts[action] += 1
         node = str(event.get("test_node") or f"trace-line-{line_number}")
@@ -437,6 +459,7 @@ def main() -> int:
         "not_applicable_counts": not_applicable_counts,
         "complete_action_count": sum(row_is_complete(row) for row in rows),
         "actions": rows,
+        "expected_rejected_actions": sorted(expected_rejected_actions),
         "classification_notice": (
             "Observed trace evidence is conservative audit input, not final "
             "semantic parity proof; missing evidence remains a TODO."
@@ -479,7 +502,7 @@ def main() -> int:
     if not args.output_json and not args.output_markdown:
         print(rendered_json, end="")
 
-    complete = report["complete_action_count"] == len(actions)
+    complete = report_is_complete(report, len(actions))
     return 0 if complete or not args.require_complete else 1
 
 

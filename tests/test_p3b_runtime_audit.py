@@ -314,11 +314,13 @@ def test_p3b_audit_is_integrated_into_the_semantic_matrix() -> None:
             "remaining_observable_gap_count": 0,
         }
 
-    # Exact global counts are locked by test_rtl_wave_semantic_matrix; this
-    # P3-B gate must remain valid as later batches legitimately close gaps.
+    # P4 final gate: every observable gap must have been closed, while the
+    # bounded private-NPI cases remain explicitly proven unobservable.
     status_counts = matrix["summary"]["status_counts"]
-    assert set(status_counts) == {
-        "missing", "partial", "proven-unobservable", "semantic-equivalent",
+    assert status_counts == {
+        "proven-unobservable": 7,
+        "semantic-equivalent": 81,
     }
     assert sum(status_counts.values()) == matrix["summary"]["scenario_count"]
+    assert matrix["p3_queue"] == {}
     assert "P3-B" not in matrix["p3_queue"]

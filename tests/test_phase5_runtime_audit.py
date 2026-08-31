@@ -169,7 +169,16 @@ def test_phase5_runtime_audit_is_linked_from_every_matrix_scene() -> None:
     for row in phase5:
         evidence = row["runtime_audit"]
         assert evidence["path"] == \
-            "tests/data/rtl_wave_differential/phase5.runtime-audit.json"
+            "tests/data/rtl_wave_differential/p3c-phase5.public-oracle.json"
         assert evidence["scenario_id"] == row["scenario_id"]
-        assert evidence["status"] == row["status"] == "partial"
+        assert evidence["status"] == row["status"] == "semantic-equivalent"
         assert evidence["p3_batch"] == row["p3_batch"] == "P3-C"
+        assert evidence["full_response_equivalent"] is True
+        assert evidence["remaining_observable_gap_count"] == 0
+        assert evidence["historical_subset_audit"] == {
+            "path": "tests/data/rtl_wave_differential/phase5.runtime-audit.json",
+            "sha256": (
+                "be45c6e2b664b8c33b8f338c207dda3d1d0b6c212d65b2a6ef6d2a18e20a62f8"
+            ),
+            "status": "partial",
+        }

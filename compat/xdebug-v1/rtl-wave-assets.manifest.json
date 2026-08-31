@@ -7601,9 +7601,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "39908214e39d6730740d0498f1985f8c23d6314e2f294a7c338aa59b25cf438c",
+      "sha256": "56435b470f899065a6b6fcfd992750fa1c249012e80c9b4c22b374329e09bdd2",
       "side": "current",
-      "size_bytes": 70356
+      "size_bytes": 69805
     },
     {
       "exists": true,
@@ -7631,7 +7631,7 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "e30caf1f2ca3e9226037d83b31a6d8c1133586fd6cc658ca7cd7c9697b3dd7f0",
+      "sha256": "f25bef32293b2b7fec1a018c9e5112d93835a7e927f39211f2c21d6b264e4652",
       "side": "current",
       "size_bytes": 1571280
     },
@@ -8141,9 +8141,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "6ee81b27d1e66adf3db2485c8fc2eb8d2b0b253cac5e805021b653d18851c786",
+      "sha256": "cea1d3bc2b2f8cf5da66de5362a479849327e26d24c9b06bff1b6f4a6db15485",
       "side": "current",
-      "size_bytes": 14757
+      "size_bytes": 15538
     },
     {
       "exists": true,
@@ -8441,9 +8441,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "63081765a905fd4185baf54ee93221069f210516d353f1d8ad1cbe9c2258f36b",
+      "sha256": "fcb728e4d6a615f3ef180d2ef4772c4ce0766f0babec130e6e123c645acdc2ac",
       "side": "current",
-      "size_bytes": 12536
+      "size_bytes": 12554
     },
     {
       "exists": true,
@@ -8726,9 +8726,9 @@
       "roles": [
         "test_consumer"
       ],
-      "sha256": "32d9d435cd28789e9f439a8295ae059324ae9d2db4233a2a62ecb5d0f4687630",
+      "sha256": "e5201162fd9f7dab3f5111497888a404ea94be6af795d079554e4e7aa3d68309",
       "side": "current",
-      "size_bytes": 6803
+      "size_bytes": 7245
     },
     {
       "exists": true,

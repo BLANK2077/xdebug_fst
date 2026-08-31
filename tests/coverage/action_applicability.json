@@ -218,12 +218,6 @@
       "evidence": "tools/check_truncation_applicability.py"
     },
     {
-      "action": "batch",
-      "dimension": "truncation",
-      "reason": "The exhaustive frozen original success schema cannot encode canonical truncation; child responses are audited under their own actions.",
-      "evidence": "tools/check_truncation_applicability.py"
-    },
-    {
       "action": "event.config.load",
       "dimension": "truncation",
       "reason": "The exhaustive frozen original success schema cannot encode canonical truncation.",
@@ -471,12 +465,6 @@
     },
     {
       "action": "axi.transaction.cursor",
-      "dimension": "limits",
-      "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
-      "evidence": "tools/check_limit_applicability.py"
-    },
-    {
-      "action": "batch",
       "dimension": "limits",
       "reason": "The frozen request schema exposes no action result-cardinality limit; timeout_ms, when present, is only a frontend watchdog.",
       "evidence": "tools/check_limit_applicability.py"

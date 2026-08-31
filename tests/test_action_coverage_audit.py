@@ -5,7 +5,9 @@ from tools.audit_action_coverage import (
     has_completeness,
     has_truncation,
     has_xz,
+    is_expected_unknown_action_rejection,
     load_not_applicable,
+    report_is_complete,
     row_is_complete,
 )
 
@@ -18,6 +20,32 @@ def test_complete_row_rejects_missing_and_applicability_overlap() -> None:
     assert not row_is_complete({"missing": ["xz"], "overlap": []})
     assert not row_is_complete({
         "missing": [], "overlap": ["empty_result"],
+    })
+
+
+def test_complete_report_rejects_unknown_implementation_actions() -> None:
+    assert report_is_complete({
+        "complete_action_count": 73,
+        "unknown_actions": [],
+    }, 73)
+    assert not report_is_complete({
+        "complete_action_count": 73,
+        "unknown_actions": ["unexpected.action"],
+    }, 73)
+
+
+def test_unknown_action_negative_request_is_classified_only_when_rejected() -> None:
+    assert is_expected_unknown_action_rejection({
+        "response": {
+            "ok": False,
+            "error": {"code": "UNKNOWN_ACTION"},
+        },
+    })
+    assert not is_expected_unknown_action_rejection({
+        "response": {
+            "ok": True,
+            "data": {"unexpected": True},
+        },
     })
 
 
@@ -270,7 +298,7 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     }
     truncation_actions = {
         "actions", "apb.config.list", "apb.config.load",
-        "axi.config.list", "axi.config.load", "batch",
+        "axi.config.list", "axi.config.load",
         "event.config.load", "expr.eval_at", "expr.normalize",
         "list.add", "list.create", "list.delete", "list.first_change",
         "list.load", "list.show", "list.validate", "nwave.rc.generate",
@@ -288,7 +316,7 @@ def test_action_applicability_manifest_is_explicit_and_valid() -> None:
     limit_not_applicable_actions = {
         "actions", "apb.config.list", "apb.config.load", "apb.statistics",
         "apb.transaction.cursor", "axi.config.list", "axi.config.load",
-        "axi.export", "axi.statistics", "axi.transaction.cursor", "batch",
+        "axi.export", "axi.statistics", "axi.transaction.cursor",
         "event.config.load", "expr.eval_at", "list.add", "list.create",
         "list.delete", "list.first_change", "list.load", "list.show",
         "list.validate", "nwave.rc.generate", "schema", "scope.roots",

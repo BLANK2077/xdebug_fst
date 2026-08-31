@@ -45828,7 +45828,7 @@
           {
             "line": 235,
             "path": "tests/test_p3b_runtime_audit.py",
-            "sha256": "63081765a905fd4185baf54ee93221069f210516d353f1d8ad1cbe9c2258f36b",
+            "sha256": "fcb728e4d6a615f3ef180d2ef4772c4ce0766f0babec130e6e123c645acdc2ac",
             "test": "test_design_hierarchy_unobservable_proof_matches_locked_schema"
           }
         ]
@@ -45948,7 +45948,7 @@
           {
             "line": 267,
             "path": "tests/test_p3b_runtime_audit.py",
-            "sha256": "63081765a905fd4185baf54ee93221069f210516d353f1d8ad1cbe9c2258f36b",
+            "sha256": "fcb728e4d6a615f3ef180d2ef4772c4ce0766f0babec130e6e123c645acdc2ac",
             "test": "test_design_p3_unobservable_proof_is_hash_anchored"
           }
         ]
