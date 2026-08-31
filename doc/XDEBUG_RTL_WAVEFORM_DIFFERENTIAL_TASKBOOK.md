@@ -1437,3 +1437,18 @@ focused 及 APB/stream 相邻回归。只有五档全部通过，`fixture.axi_vi
 最终 D3 门禁：六套 original/current focused、十一项 Action JSON/XOUT、export artifact、cache 边界、
 AXI/APB/stream 相邻回归、manifest/matrix 双 check、外部只读审计和 `git diff --check`；实现触及
 analyzer/cache/exporter 时追加 CTest 与 sanitizer 定向门禁。
+
+### 2026-08-31：D3-1 六波形原版 oracle 与有效红灯
+
+- 通过原版 `FixtureStore.fingerprint/resolve` 只读验证唯一当前 generation：SVT AXI 为
+  `b7a0d81a...-prepare-56r6ooao`，XAMBA AXI 为 `fbca4652...-prepare-0papt1js`；选择依据是
+  source/builder/probe/tool identity fingerprint 与 `current.json`，未按 mtime 猜测，未运行 prepare。
+- 新增 `tools/collect_p3d_axi_public_oracle.py`，冻结 73 Action runtime 下十一项 AXI schema/surface，
+  每个波形 17 个基础观察、7 项 XOUT、完整 pair 与三份 export artifact，以及 soft-LRU/private 和
+  hard-limit/public cache 边界。所有 runtime HOME/TMP/cache/socket/export 都写在当前仓库。
+- SVT oracle 覆盖 stress 6400、fixed-delay 64、seed 7/19/73 各 512 笔，共 8000 笔公开事务；
+  handshake JSONL 合计 64033 行。XAMBA oracle 覆盖 64 笔、256 行 channel handshake。stress export
+  明确锁定 6400 行，不以 preview 或 count 代替全量。
+- 两次独立采集字节一致：SVT oracle SHA 为 `433f6197...`，XAMBA oracle SHA 为 `608222fc...`。
+  原版冻结/全量/XOUT/export/cache 四项门禁通过；当前侧恰好两项业务红灯，分别为缺失
+  `testdata/fixtures/axi_vip` 与 `testdata/fixtures/axi_xamba_vip`，没有环境、依赖、fallback 或 skip。
