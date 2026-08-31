@@ -245,7 +245,55 @@ limits/truncation/completeness 以及固定/随机 seed。协议配置先按 sch
 公开 Action 可观察的行为必须有 FST 回归；不可观察的 SVA/NPI 专属信息必须逐字段引用冻结
 schema 证明并建立静态门禁。P1/P2 新发现项只能加入本批或修订计划，不能静默忽略。
 
-计划提交族：`测试：裁定并补齐其余原版波形场景`。
+本批严格拆成三个可独立回滚的提交，前一提交的门禁全绿后才能进入下一提交：
+
+#### E1：冻结裁定边界与 red 证据
+
+- 逐字段审计 `xdebug.npi_fsdb_sva` 原版 consumer、四份声明 FSDB、probe schema 和冻结 73 Action
+  request/response schema。将 assertion handle/type、property/sequence AST、decompile、source line、
+  NPI join diagnostics 和 success/failure/match/incomplete 事件标成 NPI 私有字段；同时证明公开 Action
+  catalog 没有 assertion/SVA/NPI object 或 join 查询入口，禁止用“当前不能读 FSDB”作为证明。
+- 冻结 `xdebug.xif_event` 的原版 RTL/config、公开请求集合、JSON/XOUT/artifact 响应和完整性字段；
+  red 测试必须先证明当前仅有 typed-event 单元测试不能覆盖 direct packed-struct、RDY/BP/NONE、
+  paired master/slave、X/Z、表达式比较、line limit 与 export 全量语义。
+- 归档 `original.cross_fixture` 的全部 consumer 和 observed public action 集合，并把它与冻结
+  73/73 catalog、request example、response schema 建立双向一致性检查；既不把 consumer 数量当作
+  Action 覆盖，也不要求每个无波形 consumer 重放 EDA。
+- 门禁：审计生成器只读原版与冻结 compat；证据去敏且路径/hash/计数 fail-closed；至少覆盖 schema
+  缺项、私有字段被误标公开、Action 集合缺失/多出、XIF 观察缺失四类 mutation；外部状态哈希不变。
+- 计划提交：`测试：冻结 P3-E SVA XIF 与跨夹具裁定边界`。
+
+#### E2：补齐 XIF event 原生 FST 差分
+
+- 在当前仓库建立最小 pin-level XIF event 镜像，保留原版层级名、packed struct 成员宽度、clock/reset、
+  五接口刺激、RDY/BP/NONE 流控、paired master/slave 响应和 X/Z 时间点；不得编译或复制专有
+  UVM/XIF agent，不得把 FSDB 转换为 FST，不得从当前 action/export 回灌刺激。
+- 只从 E1 冻结的原版公开 oracle 与原版 RTL/config 提取规范事件；生成器固定版本、输入 hash、时间尺度
+  和结束时间，并在两个全新仓库内目录重建得到逐字节一致的小型 FST。
+- 对 `event.config.load`、`event.find`、`event.export`、`value.at` 逐项比较 JSON；另锁定 `event.find`
+  canonical JSON、flat XOUT、line limit、完整性/截断字段、未知 alias 失败，以及 direct struct/XZ
+  观察。所有 observation 和 export artifact 必须集合相等、顺序保真、零 difference。
+- 门禁：先运行 red 缺口测试，再运行 XIF focused 差分与 mutation、确定性双构建、相邻
+  event/list/value/session/CLI 回归及 CTest；不得 skip/xfail/fallback，不重建无关 fixture cache。
+- 计划提交：`测试：补齐 P3-E XIF event 原生 FST 差分`。
+
+#### E3：关闭 SVA、cross-fixture 与 P3-E 矩阵
+
+- 生成 SVA/NPI 有界不可观察审计：逐个锁定私有 probe 字段、冻结 consumer 断言、73 Action schema
+  搜索结果、`direct_helper_public_actions=0` 和公开观察处置；静态测试禁止未来新增 assertion/SVA/NPI
+  Action 后仍沿用该结论。若发现任何公开可观察入口，本计划立即修订并回到 E2 型 FST 差分。
+- cross-fixture 门禁要求原版 observed action 集合为 73 catalog 的严格子集、每项均有冻结 request/schema/
+  completeness 合同、73 catalog 无遗漏且所有 consumer 被 manifest 反向索引；结论仅关闭合同表面，
+  不替代各 fixture 的语义差分。
+- 更新 manifest/matrix：XIF 为 `semantic-equivalent`，SVA/NPI 为 `proven-unobservable`，cross-fixture
+  为 `proven-unobservable`；三项都必须给出具体测试、证据范围、remaining observable gap=0。
+- 门禁：manifest write→matrix write→manifest write 双 check 稳定；P3-E queue 为空；全矩阵
+  `partial=missing=unclassified=unqueued_gap=0`；P3-E closure/asset/matrix/mutation、相邻协议与 CTest
+  全绿；批前后外部三仓 status/HEAD/内容哈希不变。
+- 计划提交：`测试：关闭 P3-E 其余波形场景证据链`。
+
+执行记录继续追加在本文“进度记录”；计划、fixture 或门禁如有变化，必须先修改本文并单独说明，
+不得边实现边静默降级。
 
 ### P4：全量门禁和最终报告
 
