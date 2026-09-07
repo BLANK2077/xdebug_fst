@@ -16,6 +16,7 @@ import tempfile
 import tomllib
 import urllib.parse
 from audit_release_sources import vendor_inventory
+from check_no_local_paths import FORBIDDEN_CONTENT
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -93,6 +94,13 @@ def main():
             notices = Path(temporary) / 'usr/share/licenses'
             if notices.exists():
                 shutil.copytree(notices, license_dir / key, dirs_exist_ok=True)
+            documents = Path(temporary) / 'usr/share/doc'
+            if documents.exists():
+                for notice in documents.rglob('*'):
+                    if notice.is_file() and notice.name.upper().startswith(('LICENSE', 'LICENCE', 'COPYING', 'NOTICE', 'COPYRIGHT', 'AUTHORS')):
+                        destination = license_dir / key / notice.relative_to(documents)
+                        destination.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(notice, destination)
         rpm_evidence.append({'name': key, **spec})
     for name in ('atomic', 'lz4'):
         (stage / 'lib' / ('lib' + name + '.so')).symlink_to('lib' + name + '.so.1')
@@ -145,6 +153,7 @@ exec "$root/tools/verilator/bin/verilator" "$@"
     for file in ('README.md', 'docs/RELEASE_GUIDE.md'):
         if (ROOT / file).exists():
             shutil.copy2(ROOT / file, stage / Path(file).name)
+    elf_inventory = []
     for source in sorted(stage.rglob('*')):
         if not source.is_file() or source.is_symlink():
             continue
@@ -157,6 +166,21 @@ exec "$root/tools/verilator/bin/verilator" "$@"
         if '(NEEDED)' in dynamic:
             relative = os.path.relpath(stage / 'lib', source.parent)
             run([args.patchelf, '--set-rpath', '$ORIGIN/' + relative, source])
+            required = re.findall(r'Name: GLIBC_(\d+(?:\.\d+)+)', text(['readelf', '--version-info', source]))
+            maximum = max((tuple(map(int, v.split('.'))) for v in required), default=(0,))
+            if maximum > tuple(map(int, lock['runtime_glibc_min'].split('.'))):
+                raise ValueError('ELF requires newer glibc than the declared baseline: ' + str(source.relative_to(stage)))
+            elf_inventory.append({'path': str(source.relative_to(stage)), 'glibc_required_max': '.'.join(map(str, maximum)),
+                                  'rpath': text([args.patchelf, '--print-rpath', source])})
+    for source in sorted(stage.rglob('*')):
+        if source.is_symlink():
+            if not source.resolve().is_relative_to(stage):
+                raise ValueError('Installed symlink escapes package: ' + str(source.relative_to(stage)))
+        elif source.is_file():
+            content = source.read_bytes()
+            if any(pattern.search(content) for pattern, _ in FORBIDDEN_CONTENT):
+                raise ValueError('Installed file contains developer-home path: ' + str(source.relative_to(stage)))
+    (stage / 'share/xdebug-fst/elf-inventory.json').write_text(json.dumps(elf_inventory, indent=2) + '\n')
     environment = json.loads((build / 'build-environment.json').read_text())
     # Published provenance contains versions and executable identities, never developer prefixes.
     for check in environment['checks']:
@@ -216,7 +240,7 @@ exec "$root/tools/verilator/bin/verilator" "$@"
     # SPDX inventory includes the entire vendored workspace, including non-runtime targets.
     packages = []
     for info in verified_vendor:
-        packages.append({'name': info['name'], 'SPDXID': 'SPDXRef-crate-' + info['name'] + '-' + info['version'],
+        packages.append({'name': info['name'], 'SPDXID': 'SPDXRef-crate-' + re.sub(r'[^A-Za-z0-9.-]', '-', info['name'] + '-' + info['version']),
                          'versionInfo': info['version'], 'downloadLocation': 'https://crates.io/crates/' + info['name'] + '/' + info['version'],
                          'licenseDeclared': info['license'], 'licenseConcluded': 'NOASSERTION',
                          'checksums': [{'algorithm': 'SHA256', 'checksumValue': info['checksum']}],

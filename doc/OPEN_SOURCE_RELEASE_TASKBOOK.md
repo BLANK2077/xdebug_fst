@@ -75,3 +75,5 @@
 - `.tmp/license-review.json`：120 个 crate 校验通过；扫描 2694 个历史 blob，364 个 vendor/保密标记候选，无定义的凭据形状命中。个人权属确认仍为公开阻断，详见同目录 RELEASE_LICENSE_REVIEW.md。
 - 新增统一 verify_release 入口及手动 CI 三构建矩阵。CI 尚未在 GitHub 执行；独立冷构建和 sanitizer 正在本机执行。
 - `.tmp/release-osd-tests.log`：OSD 优化后 43 项 AXI differential、P3-E 离线审计、矩阵定向测试全部通过；原超时和冻结响应保持不变。
+- 发布门禁入口实测修复 pytest 自定义参数的 conftest 发现（显式 tests 路径），并将 Action trace 只传给全量 pytest，避免前序 CTest 占用同一路径。
+- 包内 ELF 检查新增 glibc 上限、开发者路径和逃逸 symlink 拒绝；补齐 RPM doc 目录中的 LZ4 许可。旧 Verilator 缓存暴露 Make 不跟踪 DEFENV 编译参数问题：recipe stamp 升级时只重新编译嵌入默认路径的 V3Options.cpp，不清理 fixture 或整个缓存。

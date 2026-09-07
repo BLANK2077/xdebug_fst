@@ -151,7 +151,7 @@ cmake -E copy_if_different "${CARGO_TARGET_DIR}/release/libwellenx_capi.so" "${B
 
 readonly DEPENDENCY_FINGERPRINT="$("${PYTHON}" -c 'import json,sys; print(json.load(open(sys.argv[1]))["verilator"]["fingerprint"])' "${BUILD_DIR}/dependencies.resolved.json")"
 readonly VERILATOR_STAMP="${BUILD_DIR}/tools/verilator/.xdebug-build-stamp"
-readonly VERILATOR_BUILD_ID="${DEPENDENCY_FINGERPRINT}:gcc-13.3.1:min-install-v3-relocatable"
+readonly VERILATOR_BUILD_ID="${DEPENDENCY_FINGERPRINT}:gcc-13.3.1:min-install-v4-relocatable"
 if [[ ! -f "${VERILATOR_STAMP}" || "$(<"${VERILATOR_STAMP}")" != "${VERILATOR_BUILD_ID}" || ! -x "${BUILD_DIR}/tools/verilator/bin/verilator" || ! -x "${BUILD_DIR}/tools/verilator/share/verilator/bin/verilator_includer" ]]; then
     (
         cd "${VERILATOR_SOURCE}"
@@ -159,6 +159,9 @@ if [[ ! -f "${VERILATOR_STAMP}" || "$(<"${VERILATOR_STAMP}")" != "${VERILATOR_BU
         ./configure --prefix="${BUILD_DIR}/tools/verilator"
         # 统一产物只需要优化版 compiler、入口脚本及运行数据，不构建 debug、
         # coverage 和 man page，避免把非运行时工具纳入一次构建的依赖闭包。
+        # Make does not track command-line DEFENV changes. Only this source
+        # embeds configured defaults; rebuild it when the recipe stamp changes.
+        touch src/V3Options.cpp
         make -C src -j"${JOBS}" VERILATOR_ROOT=/xdebug-fst-verilator opt
         make installdata
         install -d "${BUILD_DIR}/tools/verilator/bin"
