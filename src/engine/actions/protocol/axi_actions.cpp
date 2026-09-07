@@ -285,56 +285,24 @@ static std::vector<uint32_t> selected_clock_edges(IWaveformBackend& wf,
     return selected;
 }
 
-// Collect handshake events on a valid/ready pair within time range.
-// When valid=1 AND ready=1, record an event at that time.
-// Scan a channel for handshake events, sampled at clock edges.
-// ref_clk: 0 (kInvalidSignalRef) disables clock-edge gating (fallback).
-// multi_beat: true for W/R channels where every clock cycle with valid&&ready
-// is a new data beat; false for AW/AR/B (single-beat) where a handshake is
-// counted only on the entry edge (valid or ready rising while the other is high).
+// Collect each channel at the shared active clock edges. Clock transitions
+// and reset are sampled once per scan, with identical before/raw/after rules.
 static void scan_channel_handshakes(
     IWaveformBackend& wf,
     uint32_t ref_valid, uint32_t ref_ready,
     const std::string& channel,
-    uint64_t t_begin, uint64_t t_end,
     std::vector<AxiHandshakeEvent>& events,
-    uint32_t ref_clk, uint32_t ref_reset,
     const AxiSignalMap& config,
+    const std::vector<uint32_t>& active_edges,
     bool& scan_complete)
 {
     if (ref_valid == IWaveformBackend::kInvalidSignalRef ||
         ref_ready == IWaveformBackend::kInvalidSignalRef) return;
-    if (ref_clk != IWaveformBackend::kInvalidSignalRef &&
-        !wf.is_loaded(ref_clk)) {
-        wf.load_signals({ref_clk});
-    }
-
     const auto point = axi_point(config);
     bool valid_active = false;
     uint64_t valid_begin_time = 0;
-    uint32_t previous = std::numeric_limits<uint32_t>::max();
-    for (uint32_t ti : wf.time_indices_of(ref_clk)) {
-        if (ti == previous) continue;
-        previous = ti;
+    for (uint32_t ti : active_edges) {
         const uint64_t time = wf.time_at(ti);
-        if (time < t_begin || time > t_end) continue;
-        const std::string before = read_signal_at(wf,ref_clk,ti,
-            IWaveformBackend::ObservationPoint::Before);
-        const std::string raw = read_signal_at(wf,ref_clk,ti,
-            IWaveformBackend::ObservationPoint::Raw);
-        const bool rising = is_rising_edge(before,raw);
-        const bool falling = is_falling_edge(before,raw);
-        if (!((config.edge == "dual" && (rising || falling)) ||
-              (config.edge == "posedge" && rising) ||
-              (config.edge == "negedge" && falling))) continue;
-        const std::string reset = read_signal_at(wf,ref_reset,ti,point);
-        if (!known_binary(reset)) {
-            scan_complete = false;
-            continue;
-        }
-        const bool reset_asserted = config.reset_polarity == "active_low"
-            ? !known_high(reset) : known_high(reset);
-        if (reset_asserted) continue;
         const std::string valid = read_signal_at(wf,ref_valid,ti,point);
         const std::string ready = read_signal_at(wf,ref_ready,ti,point);
         if (!known_binary(valid) || !known_binary(ready)) {
@@ -759,21 +727,28 @@ static AxiScanResult scan_axi(IWaveformBackend& wf, const AxiSignalMap& sm,
     uint32_t ref_reset = find_sig(sm.aresetn,"reset");
     if (!out_err.is_null()) return result;
     wf.load_signals({ref_clk,ref_reset});
-    scan_channel_handshakes(wf, ref_awvalid, ref_awready, "aw", t_begin, t_end,
-                            result.aw_events, ref_clk, ref_reset, sm,
-                            result.complete);
-    scan_channel_handshakes(wf, ref_wvalid, ref_wready, "w", t_begin, t_end,
-                            result.w_events, ref_clk, ref_reset, sm,
-                            result.complete);
-    scan_channel_handshakes(wf, ref_bvalid, ref_bready, "b", t_begin, t_end,
-                            result.b_events, ref_clk, ref_reset, sm,
-                            result.complete);
-    scan_channel_handshakes(wf, ref_arvalid, ref_arready, "ar", t_begin, t_end,
-                            result.ar_events, ref_clk, ref_reset, sm,
-                            result.complete);
-    scan_channel_handshakes(wf, ref_rvalid, ref_rready, "r", t_begin, t_end,
-                            result.r_events, ref_clk, ref_reset, sm,
-                            result.complete);
+    std::vector<uint32_t> active_edges;
+    const auto point = axi_point(sm);
+    for (uint32_t ti : selected_clock_edges(wf, sm, t_begin, t_end)) {
+        const std::string reset = read_signal_at(wf, ref_reset, ti, point);
+        if (!known_binary(reset)) {
+            result.complete = false;
+            continue;
+        }
+        const bool asserted = sm.reset_polarity == "active_low"
+            ? !known_high(reset) : known_high(reset);
+        if (!asserted) active_edges.push_back(ti);
+    }
+    scan_channel_handshakes(wf, ref_awvalid, ref_awready, "aw",
+                            result.aw_events, sm, active_edges, result.complete);
+    scan_channel_handshakes(wf, ref_wvalid, ref_wready, "w",
+                            result.w_events, sm, active_edges, result.complete);
+    scan_channel_handshakes(wf, ref_bvalid, ref_bready, "b",
+                            result.b_events, sm, active_edges, result.complete);
+    scan_channel_handshakes(wf, ref_arvalid, ref_arready, "ar",
+                            result.ar_events, sm, active_edges, result.complete);
+    scan_channel_handshakes(wf, ref_rvalid, ref_rready, "r",
+                            result.r_events, sm, active_edges, result.complete);
 
     // Augment with data payloads
     augment_aw_events(wf, sm, result.aw_events);

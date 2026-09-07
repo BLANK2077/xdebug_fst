@@ -503,8 +503,20 @@ def test_current_svt_axi_profiles_lock_events_tool_and_fst(xfst_bin: Path) -> No
         "event_source": "repository-local-normalized-tsv",
         "first_write_payload_source": "locked-public-oracle",
     }
-    for key in ("version", "revision", "tree", "fingerprint", "patchset_version"):
+    # The historical fingerprint includes the original checkout directory.
+    # Its immutable value is sealed by fixture.sha256; portable identity is
+    # the upstream commit/tree plus the exact patch, not that cache key.
+    assert manifest["build_contract"]["fingerprint"] == (
+        "8b8b0886d5338b71500dd218e7af46bcd1c2a2dabb16492addeea82c85b14bb9"
+    )
+    for key in ("version", "revision", "tree", "patchset_version"):
         assert manifest["build_contract"][key] == dependency[key]
+    lock_spec = json.loads((REPO_ROOT / "dependencies.lock.json").read_text())["verilator"]
+    assert dependency["patch_sha256"] == lock_spec["patch_sha256"]
+    cache_identity = {"lock": lock_spec, "verilator_home": dependency["home"]}
+    assert dependency["fingerprint"] == hashlib.sha256(
+        json.dumps(cache_identity, sort_keys=True).encode()
+    ).hexdigest()
     assert file_sha256(REPO_ROOT / "tools/generate_p3d_axi_svt_mirror.py") == (
         manifest["build_contract"]["generator_sha256"]
     )

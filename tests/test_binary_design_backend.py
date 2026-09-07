@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import struct
 import subprocess
 import sys
@@ -17,11 +18,22 @@ def convert(repo_root: Path, source_bundle: Path, output_bundle: Path) -> Path:
     output_bundle.mkdir()
     output = output_bundle / "design.xddb"
     source = source_bundle / "libVgcd_xorigin__DesignDb.so"
+    environment = dict(os.environ)
+    runtime = environment.get("XDEBUG_TEST_ASAN_RUNTIME")
+    if runtime:
+        # This child loads the instrumented fixture through ctypes; preload
+        # ASan before CPython. The native engine gets no LSan suppression.
+        environment["LD_PRELOAD"] = runtime
+        environment["PYTHONMALLOC"] = "malloc"
+        environment["LSAN_OPTIONS"] = (
+            "suppressions=" + str(repo_root / "tests/asan-python.supp")
+            + ":print_suppressions=1"
+        )
     completed = subprocess.run(
         [sys.executable, str(repo_root / "tools" / "convert_xdd_so_to_binary.py"),
          "--write-manifest", str(source), str(output)],
         text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        timeout=30, check=False,
+        timeout=30, check=False, env=environment,
     )
     assert completed.returncode == 0, completed.stderr
     return output

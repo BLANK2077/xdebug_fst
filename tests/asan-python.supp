@@ -1,0 +1,5 @@
+# Only for the Python ctypes conversion subprocess, never the xdebug engine.
+# CPython 3.12.13 reports process-exit Unicode allocations even when importing
+# only argparse/ctypes/json/pathlib/struct, without loading any XDD library.
+# Native allocations and every other leak stack remain checked.
+leak:PyUnicode_New

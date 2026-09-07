@@ -83,3 +83,7 @@
 - 冷打包暴露选定 binutils/readelf 缺 libdebuginfod；新增精确 elfutils-debuginfod-client 0.190 RPM 及 readelf 2.40 build 检查。编译器核心版本和归档不变，重新安装独立完整 compiler prefix，复用已验证的 Python/Rust/CMake 和构建缓存。
 - ASan CTest 首轮 4 个独立测试因没有 sanitizer runtime 的 RPATH 无法启动；已为所有 sanitizer CMake target 统一构建 RPATH。完整工具环境补齐 GCC 13 的 ASan/UBSan devel、libasan8 13.3.1、EL8 libubsan 8.5.0，修正 GNU ld script 路径；新前缀的两个 sanitizer 编译/运行探针已通过。
 - 统一门禁从实际 CMakeCache 选择严格 sanitizer 设置，避免普通/UBSan 继承 ASan 的 RSS 特例；增加源码 HEAD 与二进制 revision 一致性检查。最终候选将在固定提交上重新执行该入口。
+- 最终包三平台安装与长波形已通过；SPDX 官方 2.3 JSON schema 校验通过，131 个组件引用完整。两次独立构建 907 个普通文件中 906 个一致，全部 ELF .text 一致；主程序的 .dynamic/.dynstr/GNU build ID 不同，未声称逐字节可复现。
+- 冷环境最后一项测试涉及历史路径相关 cache fingerprint：保留冻结 producer 指纹的精确检查，分别验证当前 commit/tree/patch 与本环境 cache fingerprint，不要求换机器仍有同一个本地缓存路径。
+- ASan 下 AXI 查询发现 5 个通道重复采样相同时钟/reset，已共享活跃边沿列表；保持 X/Z、reset、边沿、valid interval 和冻结结果。压力定向验证继续完成中。
+- ASan Python 转换子进程需预加载 runtime；纯 Python 标准库导入即可复现 Unicode 退出分配。仅该子进程抑制 PyUnicode_New 栈，native 主程序不抑制；10 项转换测试通过，37 字节故意 native 泄漏仍被检出。相关证据在 `.tmp/asan-python-baseline.log`、`.tmp/asan-converter-tests.log` 和 `.tmp/asan-leak-boundary/result.json`。

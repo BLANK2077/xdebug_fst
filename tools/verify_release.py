@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -26,10 +27,20 @@ def main():
     cache = (build / 'CMakeCache.txt').read_text()
     environment.pop('ASAN_OPTIONS', None)
     environment.pop('UBSAN_OPTIONS', None)
+    environment.pop('LSAN_OPTIONS', None)
+    environment.pop('XDEBUG_TEST_ASAN_RUNTIME', None)
     sanitizer = 'none'
     if 'XDEBUG_ENABLE_ASAN:BOOL=ON' in cache:
         sanitizer = 'address'
         environment['ASAN_OPTIONS'] = 'detect_leaks=1:halt_on_error=1'
+        toolchain = re.search(r'^XDEBUG_TOOLCHAIN_ROOT:[^=]+=(.+)$', cache, re.M)
+        if not toolchain:
+            raise ValueError('ASan build lacks explicit toolchain identity')
+        runtime = Path(toolchain.group(1)) / 'lib64/libasan.so.8'
+        if not runtime.is_file():
+            raise ValueError('Selected ASan runtime is missing')
+        environment['XDEBUG_TEST_ASAN_RUNTIME'] = str(runtime)
+
     if 'XDEBUG_ENABLE_UBSAN:BOOL=ON' in cache:
         if sanitizer != 'none':
             raise ValueError('ASan and UBSan must use independent builds')
@@ -59,7 +70,7 @@ def main():
         with (output / (name + '.log')).open('w') as log:
             result = subprocess.run(command, cwd=ROOT, env=gate_environment, stdout=log, stderr=subprocess.STDOUT)
         rows.append({'gate': name, 'command': command, 'exit_code': result.returncode, 'elapsed_seconds': time.monotonic() - started})
-        (output / 'result.json').write_text(json.dumps({'ok': all(r['exit_code'] == 0 for r in rows), 'version': version, 'sanitizer': sanitizer, 'gates': rows}, indent=2) + '\n')
+        (output / 'result.json').write_text(json.dumps({'ok': all(r['exit_code'] == 0 for r in rows), 'version': version, 'sanitizer': sanitizer, 'helper_lsan_suppression': 'Python ctypes child only: PyUnicode_New; native engine has none' if sanitizer == 'address' else None, 'gates': rows}, indent=2) + '\n')
         print(name + ': ' + str(result.returncode), flush=True)
         if result.returncode:
             return result.returncode

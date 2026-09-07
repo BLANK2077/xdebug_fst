@@ -117,3 +117,5 @@ ASan 和 UBSan 使用各自构建目录运行同一入口。手动触发 `.githu
 个人维护者的许可核查及公开前待确认项见 `doc/RELEASE_LICENSE_REVIEW.md`。构建通过和 Draft 附件上传不表示权属已批准。
 
 完整 EL8 构建工具包含 `readelf 2.40`。所选 binutils 的 readelf 依赖锁定的 `elfutils-debuginfod-client 0.190`，环境脚本默认安装；只准备 simulator 编译器的 component 子集不等同于完整打包环境。EL8 的 elfutils/libcurl 依赖来自完整 RPM 锁，不能因 readelf 无法启动改用其他工具版本。
+
+ASan 的 Python ctypes 转换子进程会预加载所选 `libasan.so.8`，保持 fixture 共享库的插桩。CPython 3.12.13 在仅导入标准库、不加载 XDD 时也报告 Unicode 退出分配，因此仅该子进程使用 `tests/asan-python.supp` 中的 `PyUnicode_New` 栈抑制。主程序和 CTest 不使用 LSan 抑制，仍启用 `detect_leaks=1:halt_on_error=1`。本轮以 37 字节故意 native 泄漏验证了抑制边界：转换进程仍非零退出并报告该 native 泄漏。不得将此规则扩大到全部 Python 栈或 native 库。
