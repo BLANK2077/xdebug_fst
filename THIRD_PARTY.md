@@ -14,16 +14,16 @@
 | GCC libstdc++ / libgcc | GCC 8.5.0 runtime / GCC 13.3.1 nonshared、GPL-3.0-or-later WITH GCC-exception-3.1 | 核对实际库来源；随附 GPL、Runtime Library Exception 和精确对应源码，缺对应材料不得标为公开可发布 |
 | fixture、RTL、oracle、协议重放 | tracked 测试文件及冻结 provenance manifest | 独立来源审查；不因格式为 FST/JSON 或使用开源 producer 而推定已获授权 |
 
-## 待关闭的公开发布事项
+## 正式发布审查记录
 
 本文件是技术审查记录，不是第三方权利人的授权书。
 
-- **GCC 对应源码**：已改用锁定的 AlmaLinux RPM，核对 SHA256 并附 GCC 8/GCC 13 源码 RPM；最终候选需通过同一打包校验。
-- **测试资产来源**：必须逐类核查 VIP/XAMBA/SVT 派生重放与冻结输出的原始合同边界；现有原版 MIT 文件不足以自动覆盖 vendor 材料。
+- **GCC 对应源码**：已改用锁定的 AlmaLinux RPM，核对 SHA256 并附 GCC 8/GCC 13 源码 RPM；正式版本继续执行同一打包校验。
+- **测试资产来源**：维护者于 2026-09-07 确认自建 XAMBA VIP，并授权本仓库正式发布及公开。当前 fixture 清单声明不使用专有 VIP；SVT 命名的历史对照保留真实 provenance，不改写为 XAMBA 来源。该记录不扩展到第三方专有源码的授权。
 - **历史**：公开 Git 历史前审查专有产物与内部信息；不能只检查当前文件名。
 - **Rust 全闭包**：licenses/rust-dependencies.json 按当前锁文件与本地 crate manifest 生成，许可证扫描不能代替全文和异常条款审查；发布打包必须校验 checksum 和许可文件。
 
-没有公开审批结论的候选仅可保留在当前 private 仓库 Draft Release，不更改仓库可见性，不称为已获全面合规认证。
+维护者已授权发布 0.1.0，并在推送后公开仓库。机械扫描与维护者授权分别记录；本文件不声称提供全面合规认证。
 
 ## 上游依据
 
@@ -33,4 +33,4 @@
 
 最终以锁定版本随附的完整许可文本及适用合同为准。不得将 Synopsys NPI/FSDB/VIP 安装内容、头文件、库、手册或许可凭据纳入本工具包。
 
-本轮个人开发者审查与待确认项详见 `doc/RELEASE_LICENSE_REVIEW.md`。
+本轮个人开发者审查与授权记录详见 `doc/RELEASE_LICENSE_REVIEW.md`。

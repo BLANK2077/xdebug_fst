@@ -150,9 +150,11 @@ exec "$root/tools/verilator/bin/verilator" "$@"
     helpers.mkdir()
     for name in ('check_environment.py', 'smoke_installed.py'):
         shutil.copy2(ROOT / 'tools' / name, helpers / name)
-    for file in ('README.md', 'docs/RELEASE_GUIDE.md'):
+    for file in ('README.md', 'README.zh-CN.md', 'docs/RELEASE_GUIDE.md', 'LICENSE', 'THIRD_PARTY.md', 'CONTRIBUTING.md'):
         if (ROOT / file).exists():
-            shutil.copy2(ROOT / file, stage / Path(file).name)
+            destination = stage / file
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / file, destination)
     elf_inventory = []
     for source in sorted(stage.rglob('*')):
         if not source.is_file() or source.is_symlink():
