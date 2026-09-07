@@ -5,6 +5,7 @@ readonly REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 BUILD_DIR="${REPO_ROOT}/build"
 BUILD_TYPE="RelWithDebInfo"
 SANITIZER=""
+PYTHON="${XDEBUG_PYTHON:-python3}"
 JOBS="${XDEBUG_BUILD_JOBS:-$(getconf _NPROCESSORS_ONLN)}"
 
 usage() {
@@ -50,11 +51,12 @@ done
 [[ "${WELLEN_HOME}" = /* ]] || { echo "WELLEN_HOME 必须是绝对路径" >&2; exit 2; }
 [[ "${VERILATOR_HOME}" = /* ]] || { echo "VERILATOR_HOME 必须是绝对路径" >&2; exit 2; }
 
-if [[ ! -d "${REPO_ROOT}/../.toolchains/gcc-13" ]]; then
-    echo "缺少私有工具链 ${REPO_ROOT}/../.toolchains/gcc-13；禁止回退到系统 GCC" >&2
+TOOLCHAIN_INPUT="${XDEBUG_TOOLCHAIN_ROOT:-${REPO_ROOT}/../.toolchains/gcc-13}"
+if [[ "${TOOLCHAIN_INPUT}" != /* || ! -d "${TOOLCHAIN_INPUT}" ]]; then
+    echo "缺少绝对路径私有工具链 ${TOOLCHAIN_INPUT}；禁止回退到系统 GCC" >&2
     exit 2
 fi
-readonly TOOLCHAIN_ROOT="$(cd "${REPO_ROOT}/../.toolchains/gcc-13" && pwd -P)"
+readonly TOOLCHAIN_ROOT="$(cd "${TOOLCHAIN_INPUT}" && pwd -P)"
 readonly PRIVATE_CC="${TOOLCHAIN_ROOT}/bin/gcc"
 readonly PRIVATE_CXX="${TOOLCHAIN_ROOT}/bin/g++"
 readonly PRIVATE_LIB="${TOOLCHAIN_ROOT}/lib64"
@@ -130,7 +132,10 @@ verify_home_unchanged() {
 }
 trap verify_home_unchanged EXIT
 
-python3 "${REPO_ROOT}/tools/prepare_dependencies.py" \
+"${PYTHON}" "${REPO_ROOT}/tools/check_environment.py" build --toolchain "${TOOLCHAIN_ROOT}" \
+    --output "${BUILD_DIR}/build-environment.json"
+
+"${PYTHON}" "${REPO_ROOT}/tools/prepare_dependencies.py" \
     --repo-root "${REPO_ROOT}" --build-dir "${BUILD_DIR}"
 
 readonly WELLEN_SOURCE="${BUILD_DIR}/_deps/wellen-src"
@@ -143,7 +148,7 @@ cargo build --release --locked --offline \
 cmake -E copy_if_different "${CARGO_TARGET_DIR}/release/libwellen_capi.so" "${BUILD_DIR}/lib/"
 cmake -E copy_if_different "${CARGO_TARGET_DIR}/release/libwellenx_capi.so" "${BUILD_DIR}/lib/"
 
-readonly DEPENDENCY_FINGERPRINT="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["verilator"]["fingerprint"])' "${BUILD_DIR}/dependencies.resolved.json")"
+readonly DEPENDENCY_FINGERPRINT="$("${PYTHON}" -c 'import json,sys; print(json.load(open(sys.argv[1]))["verilator"]["fingerprint"])' "${BUILD_DIR}/dependencies.resolved.json")"
 readonly VERILATOR_STAMP="${BUILD_DIR}/tools/verilator/.xdebug-build-stamp"
 readonly VERILATOR_BUILD_ID="${DEPENDENCY_FINGERPRINT}:gcc-13.3.1:min-install-v2"
 if [[ ! -f "${VERILATOR_STAMP}" || "$(<"${VERILATOR_STAMP}")" != "${VERILATOR_BUILD_ID}" || ! -x "${BUILD_DIR}/tools/verilator/bin/verilator" || ! -x "${BUILD_DIR}/tools/verilator/share/verilator/bin/verilator_includer" ]]; then
@@ -167,7 +172,7 @@ if [[ ! -f "${VERILATOR_STAMP}" || "$(<"${VERILATOR_STAMP}")" != "${VERILATOR_BU
     printf '%s\n' "${VERILATOR_BUILD_ID}" >"${VERILATOR_STAMP}"
 fi
 
-python3 -c 'import json,sys; json.dump({"cc":sys.argv[1],"cxx":sys.argv[2],"version":"13.3.1","root":sys.argv[3]},open(sys.argv[4],"w"),indent=2,sort_keys=True); open(sys.argv[4],"a").write("\n")' \
+"${PYTHON}" -c 'import json,sys; json.dump({"cc":sys.argv[1],"cxx":sys.argv[2],"version":"13.3.1","root":sys.argv[3]},open(sys.argv[4],"w"),indent=2,sort_keys=True); open(sys.argv[4],"a").write("\n")' \
     "${PRIVATE_CC}" "${PRIVATE_CXX}" "${TOOLCHAIN_ROOT}" "${BUILD_DIR}/toolchain.resolved.json"
 
 CMAKE_ARGS=(
@@ -178,6 +183,8 @@ CMAKE_ARGS=(
     -DCMAKE_CXX_COMPILER="${PRIVATE_CXX}"
     -DXDEBUG_TOOLCHAIN_ROOT="${TOOLCHAIN_ROOT}"
     -DXDEBUG_DEPENDENCY_ROOT="${BUILD_DIR}/_deps"
+    -DPython3_EXECUTABLE="$(command -v "${PYTHON}")"
+    -DXDEBUG_RELEASE_VERSION="${XDEBUG_RELEASE_VERSION:-0.1.0}"
 )
 if [[ "${SANITIZER}" = "asan" ]]; then
     CMAKE_ARGS+=( -DXDEBUG_ENABLE_ASAN=ON -DXDEBUG_ENABLE_UBSAN=OFF )

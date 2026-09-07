@@ -5,7 +5,7 @@ set -euo pipefail
 
 readonly XDEBUG_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 readonly XDEBUG_FIXTURE_BUILD_DIR="${XDEBUG_BUILD_DIR:-${XDEBUG_REPO_ROOT}/build}"
-readonly XDEBUG_FIXTURE_TOOLCHAIN="${XDEBUG_REPO_ROOT}/../.toolchains/gcc-13"
+readonly XDEBUG_FIXTURE_TOOLCHAIN="${XDEBUG_TOOLCHAIN_ROOT:-${XDEBUG_REPO_ROOT}/../.toolchains/gcc-13}"
 readonly VERILATOR_BIN="${XDEBUG_FIXTURE_BUILD_DIR}/tools/verilator/bin/verilator"
 readonly VERILATOR_INCLUDE="${XDEBUG_FIXTURE_BUILD_DIR}/_deps/verilator-src/include"
 readonly GCC_BIN="${XDEBUG_FIXTURE_TOOLCHAIN}/bin/gcc"

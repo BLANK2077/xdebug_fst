@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "target": "x86_64-unknown-linux-gnu",
+  "build_platform": "el8",
+  "runtime_glibc_min": "2.28",
+  "tools": {
+    "gcc": {
+      "version": "13.3.1",
+      "command": [
+        "gcc",
+        "-dumpfullversion"
+      ],
+      "roles": [
+        "build",
+        "simulate"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "archives"
+    },
+    "g++": {
+      "version": "13.3.1",
+      "command": [
+        "g++",
+        "-dumpfullversion"
+      ],
+      "roles": [
+        "build",
+        "simulate"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "archives"
+    },
+    "rustc": {
+      "version": "1.97.1",
+      "command": [
+        "rustc",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "archives"
+    },
+    "cargo": {
+      "version": "1.97.1",
+      "command": [
+        "cargo",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "archives"
+    },
+    "python": {
+      "version": "3.12.13",
+      "command": [
+        "python3",
+        "--version"
+      ],
+      "roles": [
+        "build",
+        "simulate"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "system package inventory"
+    },
+    "cmake": {
+      "version": "4.4.2",
+      "command": [
+        "cmake",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "system package inventory"
+    },
+    "make": {
+      "version": "4.2.1",
+      "command": [
+        "make",
+        "--version"
+      ],
+      "roles": [
+        "build",
+        "simulate"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "system package inventory"
+    },
+    "autoconf": {
+      "version": "2.69",
+      "command": [
+        "autoconf",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "system package inventory"
+    },
+    "flex": {
+      "version": "2.6.1",
+      "command": [
+        "flex",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "system package inventory"
+    },
+    "bison": {
+      "version": "3.0.4",
+      "command": [
+        "bison",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "system package inventory"
+    },
+    "perl": {
+      "version": "5.26.3",
+      "command": [
+        "perl",
+        "-e",
+        "printf \"%vd\\n\", $^V"
+      ],
+      "roles": [
+        "build",
+        "simulate"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "system package inventory"
+    },
+    "pkg-config": {
+      "version": "1.4.2",
+      "command": [
+        "pkg-config",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "system package inventory"
+    },
+    "git": {
+      "version": "2.43.7",
+      "command": [
+        "git",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "policy": "exact-build; minimum-simulate except gcc/g++ exact",
+      "source": "system package inventory"
+    }
+  },
+  "archives": {
+    "rust": {
+      "version": "1.97.1",
+      "url": "https://static.rust-lang.org/dist/rust-1.97.1-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "88f28fa9af20594179f85d6df67078dfd6fa93e2f6da5e1e9b0ac4997988ca4f",
+      "kind": "rust-installer"
+    }
+  },
+  "system_packages": {
+    "glibc-devel": [
+      "glibc-devel-2.28-251.el8_10.25.x86_64",
+      "glibc-devel-2.28-251.el8_10.25.i686"
+    ],
+    "zlib-devel": [
+      "zlib-devel-1.2.11-25.el8.x86_64"
+    ],
+    "make": [
+      "make-4.2.1-11.el8.x86_64"
+    ],
+    "autoconf": [
+      "autoconf-2.69-29.el8_10.1.noarch"
+    ],
+    "flex": [
+      "flex-2.6.1-9.el8.x86_64"
+    ],
+    "bison": [
+      "bison-3.0.4-10.el8.x86_64"
+    ],
+    "perl": [
+      "perl-5.26.3-423.el8_10.x86_64"
+    ],
+    "pkgconf": [
+      "pkgconf-1.4.2-1.el8.x86_64"
+    ],
+    "git": [
+      "git-2.43.7-1.el8_10.x86_64"
+    ],
+    "gcc-toolset-13-gcc": [
+      "gcc-toolset-13-gcc-13.3.1-2.2.el8_10.x86_64"
+    ],
+    "gcc-toolset-13-gcc-c++": [
+      "gcc-toolset-13-gcc-c++-13.3.1-2.2.el8_10.x86_64"
+    ]
+  },
+  "container": {
+    "image": "docker.io/library/almalinux:8.10",
+    "digest": "sha256:9f355ae942d6a6c0561f0771dc053a2cfae9580fc45fa4252756db7c7e80c09f",
+    "status": "pulled; build validation pending"
+  }
+}
