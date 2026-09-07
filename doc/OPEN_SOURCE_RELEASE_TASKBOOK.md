@@ -40,12 +40,13 @@
 | 阶段 | 状态 | 证据/阻断 |
 | --- | --- | --- |
 | 0 任务书 | 完成 | 7cebed3；Goal 已建立，基线 69f5a5c |
-| 1 许可审查 | 进行中 | 719df0d；用户确认个人开发；120 个 Rust 锁定组件许可已获取，GCC/LZ4 对应源码已下载；测试资产/历史公开边界待核查 |
-| 2 环境定义 | 进行中 | 6ee6285；GCC 13.3.1、Rust/Cargo 1.97.1、Python 3.12.13、CMake 4.4.2 已核实；RPM 离线安装成功，87 项定向测试及 4 项环境测试通过 |
-| 3 打包 | 进行中 | 已生成两次 install staging；补齐 schema/catalog、运行库和 Verilator 路径。实际仿真发现 LZ4/atomic 链接依赖，正在修复 |
-| 4 版本文档 | 进行中 | 新 help/version 和真实 metadata 编译及定向测试通过；文档待补 |
-| 5 验收 | 待执行 | 三平台能力需检查可用 runner |
-| 6 Draft Release | 待执行 | private 仓库；标签须绑定验收提交 |
+| 1 许可审查 | 技术审查完成；公开权属待确认 | 120 个 Rust 包逐文件校验；对应源码和许可齐备；2741 个历史 blob 已筛选，374 个来源核查候选，详见 RELEASE_LICENSE_REVIEW.md |
+| 2 环境定义 | 完成 | 精确工具版本、官方归档 SHA256、完整 EL8 RPM 锁、独立前缀及在线/离线入口均已验证；包含 readelf 和 sanitizer 运行闭包 |
+| 3 打包 | 完成 | Linux x86_64 完整运行包、本项目源码、对应第三方源码、SPDX 及 SHA256；9 个 Release 附件已下载核验 |
+| 4 版本文档 | 完成 | 真实版本/提交身份、help、安装/构建/离线指南、RTL→FST/DesignDB→查询示例，三平台实际验证 |
+| 5 验收 | 完成（本地/容器） | 普通/ASan/UBSan 各 794 pytest、7 CTest、73 Action；0 skip；三平台、长波形、源码归档和双构建对比通过；远端 CI 尚未执行 |
+| 6 Draft Release | 完成 | 0.1.0-rc.1 标签绑定 56458f4391d8e531d0fcd9a143fb385d1608f048；private Draft，9 个附件哈希一致 |
+
 
 所有测试记录实际命令、退出码和报告路径；没有执行的门禁不得标记通过。无法取得外部环境/审批时，继续完成独立工作并如实记录阻断。
 
@@ -87,3 +88,22 @@
 - 冷环境最后一项测试涉及历史路径相关 cache fingerprint：保留冻结 producer 指纹的精确检查，分别验证当前 commit/tree/patch 与本环境 cache fingerprint，不要求换机器仍有同一个本地缓存路径。
 - ASan 下 AXI 查询发现 5 个通道重复采样相同时钟/reset，已共享活跃边沿列表；保持 X/Z、reset、边沿、valid interval 和冻结结果。压力定向验证继续完成中。
 - ASan Python 转换子进程需预加载 runtime；纯 Python 标准库导入即可复现 Unicode 退出分配。仅该子进程抑制 PyUnicode_New 栈，native 主程序不抑制；10 项转换测试通过，37 字节故意 native 泄漏仍被检出。相关证据在 `.tmp/asan-python-baseline.log`、`.tmp/asan-converter-tests.log` 和 `.tmp/asan-leak-boundary/result.json`。
+
+### 最终交付与验收
+
+候选源码提交：`56458f4391d8e531d0fcd9a143fb385d1608f048`。本任务书的收尾提交仅更新账本，不移动候选标签，也不改变已验收附件。
+
+[GitHub private Draft Release](https://github.com/BLANK2077/xdebug_fst/releases/tag/untagged-4209ab97530438e9720e) 已创建，保留 prerelease/draft 状态。仓库仍为 private，未创建 PR、未修改远端默认分支。
+
+- `.tmp/rc-checkout/.tmp/gates-candidate/result.json`、`.tmp/gates-asan-pinned/result.json`、`.tmp/gates-ubsan-pinned/result.json`：全部门禁通过，三个报告的二进制 revision 均等于候选提交；各 794 pytest、7 CTest、73 Action，0 skip。CTest 与 pytest 均使用锁定的 Python 3.12.13。
+- `.tmp/candidate-{el8,ubuntu22,ubuntu24}/report.json`：从实际候选归档解压，安装目录只读、网络关闭、带 init，7 类调用和 count=1 断言通过。
+- `.tmp/candidate-long-wave/run/report.json`：25 万/100 万时间点和 32 信号档位通过，峰值 RSS 161828 KiB；尾段 10 次转换、11 条记录及完整性断言通过，保持单请求 60 秒与 RSS 1 GiB 预算。
+- `.tmp/source-archive-build.log`：源码归档在没有 .git 的断网容器中构建成功，复用已准备依赖和现有构建目录；真实 SOURCE_REVISION 与候选一致。
+- `.tmp/candidate-reproducibility.json`：两个独立构建目录的 907 个普通文件中 906 个逐字节相同，全部 ELF .text 相同；主程序 .dynamic、.dynstr 和 GNU build ID 存在差异，如实保留，未声称逐字节可复现。
+- `.tmp/license-review-candidate.json`：120 个 Rust 包校验通过，扫描 2741 个历史 blob，374 个 vendor/保密词来源核查候选，无脚本定义的凭据形状命中。权属/合同事项仍由个人维护者确认；未将其标为公开批准。
+- `.tmp/release-output/candidate/`：完整运行包约 10 MiB、本项目源码约 3.6 MiB、第三方对应源码约 269 MiB，另有环境记录、131 组件 SPDX、验收 JSON/证据归档、双构建对比及 SHA256。SPDX 经官方 2.3 JSON schema 校验；原始本地日志保留，发行证据中的本机路径与 hostname 已归一化。
+- `.tmp/github-download-verification.json`：从 GitHub 下载全部 9 个附件，逐个与本地已测试候选比较 SHA256，全部一致；下载目录 `.tmp/github-release-download/` 中 SHA256SUMS 的 8 项检查全部通过。
+
+ASan 的 Python 辅助进程例外仅为已记录的 PyUnicode_New 栈，native 主程序不使用 LSan 抑制。37 字节故意 native 泄漏探针仍失败并报告泄漏。先前一次非锁定 Python CTest 环境中的启动超时没有计入通过证据，修正到 3.12.13 后同一门禁通过，未放宽 timeout。
+
+技术交付至此完成。公开发布仍须由个人维护者关闭来源/合同事项；GitHub Actions 已提供手动工作流，本次没有声称其已在远端运行。所有冻结 waveform/oracle 保持不变，原缓存未清理，临时证据未整体加入 Git。
