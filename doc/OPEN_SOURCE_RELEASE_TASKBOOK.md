@@ -74,3 +74,4 @@
 - `.tmp/lw2/report.json`：阶段包长波形三个档位通过，峰值 RSS 163272 KiB，最大单请求约 446 ms。最终候选仍需运行。
 - `.tmp/license-review.json`：120 个 crate 校验通过；扫描 2694 个历史 blob，364 个 vendor/保密标记候选，无定义的凭据形状命中。个人权属确认仍为公开阻断，详见同目录 RELEASE_LICENSE_REVIEW.md。
 - 新增统一 verify_release 入口及手动 CI 三构建矩阵。CI 尚未在 GitHub 执行；独立冷构建和 sanitizer 正在本机执行。
+- `.tmp/release-osd-tests.log`：OSD 优化后 43 项 AXI differential、P3-E 离线审计、矩阵定向测试全部通过；原超时和冻结响应保持不变。

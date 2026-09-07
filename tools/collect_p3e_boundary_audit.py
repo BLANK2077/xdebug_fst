@@ -140,17 +140,21 @@ def _schema_token_hits(repo_root: Path, actions: list[str]) -> dict[str, list[st
     return hits
 
 
-def _construct_audit(repo_root: Path, original_root: Path, manifest_path: Path) -> dict:
+def _construct_audit(repo_root: Path, original_root: Path | None, manifest_path: Path,
+                     *, frozen_consumers: dict | None = None) -> dict:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if manifest.get("goal_id") != GOAL_ID:
         raise MatrixError("P3-E audit manifest belongs to a different Goal")
     original_assets = asset_lookup(manifest, "original")
-    for asset in original_assets.values():
-        validate_frozen_file(original_root, asset)
+    if frozen_consumers is None:
+        if original_root is None:
+            raise MatrixError('Live audit requires an explicit original source root')
+        for asset in original_assets.values():
+            validate_frozen_file(original_root, asset)
 
     actions = public_actions(repo_root)
     contracts = {action: action_contract(repo_root, action) for action in actions}
-    consumers = consumer_catalog(original_root, original_assets, set(actions))
+    consumers = frozen_consumers if frozen_consumers is not None else consumer_catalog(original_root, original_assets, set(actions))
     sva_paths = fixture_consumers(consumers, SVA_FIXTURE)
     xif_paths = fixture_consumers(consumers, XIF_FIXTURE)
     cross_paths = fixture_consumers(consumers, CROSS_FIXTURE)
@@ -255,6 +259,34 @@ def _construct_audit(repo_root: Path, original_root: Path, manifest_path: Path) 
 def build_audit(repo_root: Path, original_root: Path, manifest_path: Path) -> dict:
     document = _construct_audit(repo_root, original_root, manifest_path)
     return validate_audit(document, repo_root, original_root, manifest_path)
+
+
+def build_frozen_audit(repo_root: Path, manifest_path: Path) -> dict:
+    """Recompile the public audit from sealed evidence, never from an ambient checkout.
+
+    This is a distinct offline operation. build_audit remains a strict live collector.
+    The original consumer catalog was already frozen by the completed parity task.
+    """
+    matrix_path = repo_root / 'tests/coverage/rtl_wave_semantic_matrix.json'
+    matrix = json.loads(matrix_path.read_text())
+    consumers = matrix['original_consumers']
+    fingerprint = hashlib.sha256(json.dumps(consumers, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    if fingerprint != '6f42866f413c188d512ccb16c38be808ca7633dc1385a9a554efab8f92c3701e':
+        raise MatrixError('Frozen consumer index content drifted')
+    assets = asset_lookup(json.loads(manifest_path.read_text()), 'original')
+    required = {path for path, asset in assets.items() if 'test_consumer' in asset['roles']}
+    if set(consumers) != required:
+        raise MatrixError('Frozen consumer index coverage drifted')
+    for path, consumer in consumers.items():
+        if consumer['sha256'] != assets[path]['sha256'] or consumer['fixture_ids'] != assets[path]['fixture_ids']:
+            raise MatrixError('Frozen consumer source identity drifted: ' + path)
+    return _construct_audit(repo_root, None, manifest_path, frozen_consumers=consumers)
+
+
+def validate_frozen_audit(document: dict, repo_root: Path, manifest_path: Path) -> dict:
+    if document != build_frozen_audit(repo_root, manifest_path):
+        raise MatrixError('P3-E frozen boundary audit content drifted')
+    return document
 
 
 def validate_audit(

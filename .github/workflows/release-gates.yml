@@ -1,0 +1,37 @@
+name: Locked release gates
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [none, asan, ubsan]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Build locked EL8 bootstrap
+        run: docker build -f tools/Containerfile.el8 -t xdebug-el8 .
+      - name: Prepare explicit network dependencies
+        run: |
+          mkdir -p "$RUNNER_TEMP/xdebug-env" "$RUNNER_TEMP/xdebug-build" "$RUNNER_TEMP/xdebug-reports"
+          docker run --rm --init -v "$PWD:/src" -v "$RUNNER_TEMP/xdebug-env:/env" -v "$RUNNER_TEMP/xdebug-build:/build" -v "$RUNNER_TEMP/xdebug-reports:/reports" xdebug-el8 bash -c 'git config --global --add safe.directory /src; bash /src/tools/ci_release.sh prepare'
+      - name: Build offline
+        env:
+          SANITIZER: ${{ matrix.sanitizer }}
+        run: |
+          docker run --rm --init --network=none -e SANITIZER -v "$PWD:/src" -v "$RUNNER_TEMP/xdebug-env:/env" -v "$RUNNER_TEMP/xdebug-build:/build" -v "$RUNNER_TEMP/xdebug-reports:/reports" xdebug-el8 bash -c 'git config --global --add safe.directory /src; bash /src/tools/ci_release.sh build'
+      - name: Verify offline
+        run: |
+          docker run --rm --init --network=none -v "$PWD:/src" -v "$RUNNER_TEMP/xdebug-env:/env" -v "$RUNNER_TEMP/xdebug-build:/build" -v "$RUNNER_TEMP/xdebug-reports:/reports" xdebug-el8 bash -c 'git config --global --add safe.directory /src; bash /src/tools/ci_release.sh verify'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: release-gates-${{ matrix.sanitizer }}
+          path: ${{ runner.temp }}/xdebug-reports
+          if-no-files-found: error

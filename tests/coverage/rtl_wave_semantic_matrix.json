@@ -39545,9 +39545,9 @@
         "evidence_scope": "P3-E 只关闭 synthetic consumer index 的额外独立观察点；不替代任何 fixture runtime differential",
         "test_evidence": [
           {
-            "line": 131,
+            "line": 125,
             "path": "tests/test_p3e_boundary_audit.py",
-            "sha256": "8f23d55fde62bc0d2cafc2e628daefebc7041c763054383841b55456a99f3b6c",
+            "sha256": "aef7c95d5def01b0316a19908176d9f536213802f2ee802f666dbbfcf610d48b",
             "test": "test_cross_fixture_surface_is_a_complete_contract_index_only"
           },
           {
@@ -47450,9 +47450,9 @@
         "evidence_scope": "只关闭冻结 npi_fsdb_sva 私有 probe schema 和冻结 73 Action 的边界；不把通用 event/value/scope 能力宣称为 SVA 行为替代",
         "test_evidence": [
           {
-            "line": 67,
+            "line": 61,
             "path": "tests/test_p3e_boundary_audit.py",
-            "sha256": "8f23d55fde62bc0d2cafc2e628daefebc7041c763054383841b55456a99f3b6c",
+            "sha256": "aef7c95d5def01b0316a19908176d9f536213802f2ee802f666dbbfcf610d48b",
             "test": "test_sva_npi_boundary_is_private_and_bounded_by_frozen_schemas"
           },
           {

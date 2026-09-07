@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -68,6 +69,14 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    if config.option.basetemp is None:
+        temporary = REPO_ROOT / '.tmp'
+        temporary.mkdir(exist_ok=True)
+        # A newly allocated directory prevents pytest from deleting any existing cache.
+        config.option.basetemp = tempfile.mkdtemp(prefix='p', dir=temporary)
+
+
 def pytest_sessionstart(session: pytest.Session) -> None:
     raw_trace_path = os.environ.get("XDEBUG_ACTION_COVERAGE_LOG")
     if not raw_trace_path:
@@ -111,8 +120,11 @@ def _base_env(test_home: Path | None = None, xfst_bin: Path | None = None) -> di
 
 
 @pytest.fixture(scope="session")
-def test_home(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    return tmp_path_factory.mktemp("xdebug-home")
+def test_home() -> Path:
+    temporary = REPO_ROOT / '.tmp'
+    temporary.mkdir(exist_ok=True)
+    # UDS has a fixed path limit; keep control state out of verbose pytest node paths.
+    return Path(tempfile.mkdtemp(prefix='h', dir=temporary))
 
 
 @pytest.fixture(scope="session")

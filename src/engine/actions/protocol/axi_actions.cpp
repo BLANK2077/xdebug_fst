@@ -1621,19 +1621,36 @@ struct AxiAnalysisHandler : public EngineActionHandler {
             std::vector<uint64_t> read_depth, write_depth;
             const uint32_t reset_ref = wf->find_signal(sm.aresetn);
             const auto point = axi_point(sm);
+            // Sweep transaction boundaries once; rescanning every transaction at
+            // every clock edge is quadratic on long, high-outstanding traces.
+            struct DepthEvent { uint64_t time; int read; int write; };
+            std::vector<DepthEvent> events;
+            events.reserve(result.transactions.size() * 2);
+            for (const auto& txn : result.transactions) {
+                if (direction != "all" && ((direction == "write") != txn.is_write)) continue;
+                if (txn.complete && txn.end_time <= txn.start_time) continue;
+                events.push_back({txn.start_time, txn.is_write ? 0 : 1, txn.is_write ? 1 : 0});
+                if (txn.complete)
+                    events.push_back({txn.end_time, txn.is_write ? 0 : -1, txn.is_write ? -1 : 0});
+            }
+            std::sort(events.begin(), events.end(), [](const DepthEvent& a, const DepthEvent& b) {
+                return a.time < b.time;
+            });
+            size_t event_index = 0;
+            int64_t active_read = 0, active_write = 0;
             for (uint32_t ti : clock_edges) {
                 const std::string reset = read_signal_at(*wf,reset_ref,ti,point);
                 if (!known_binary(reset) ||
                     (sm.reset_polarity == "active_low"
                         ? !known_high(reset) : known_high(reset))) continue;
                 const uint64_t time = wf->time_at(ti);
-                uint64_t read = 0, write = 0;
-                for (const auto& txn : result.transactions) {
-                    if (direction != "all" && ((direction == "write") != txn.is_write)) continue;
-                    if (txn.start_time <= time && (!txn.complete || txn.end_time > time))
-                        txn.is_write ? ++write : ++read;
+                while (event_index < events.size() && events[event_index].time <= time) {
+                    active_read += events[event_index].read;
+                    active_write += events[event_index].write;
+                    ++event_index;
                 }
-                read_depth.push_back(read); write_depth.push_back(write);
+                read_depth.push_back(static_cast<uint64_t>(active_read));
+                write_depth.push_back(static_cast<uint64_t>(active_write));
             }
             auto depth_stats = [](const std::vector<uint64_t>& values) {
                 uint64_t min = values.empty() ? 0 : *std::min_element(values.begin(),values.end());
