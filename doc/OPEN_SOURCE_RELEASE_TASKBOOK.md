@@ -39,12 +39,21 @@
 
 | 阶段 | 状态 | 证据/阻断 |
 | --- | --- | --- |
-| 0 任务书 | 已写入 | 基线 69f5a5c；仅既有 .tmp 未跟踪 |
-| 1 许可审查 | 待执行 | 权属/合同审批须真实证据 |
-| 2 环境定义 | 待执行 | 待读实际工具版本及下载来源 |
-| 3 打包 | 待执行 | 原安装仅主程序且绝对 RPATH |
-| 4 版本文档 | 待执行 | 原 metadata 硬编码原版 revision |
+| 0 任务书 | 完成 | 7cebed3；Goal 已建立，基线 69f5a5c |
+| 1 许可审查 | 进行中 | 719df0d；用户确认个人开发；120 个 Rust 锁定组件许可已获取，GCC/LZ4 对应源码已下载；测试资产/历史公开边界待核查 |
+| 2 环境定义 | 进行中 | 6ee6285；GCC 13.3.1、Rust/Cargo 1.97.1、Python 3.12.13、CMake 4.4.2 已核实；RPM 离线安装成功，87 项定向测试及 4 项环境测试通过 |
+| 3 打包 | 进行中 | 已生成两次 install staging；补齐 schema/catalog、运行库和 Verilator 路径。实际仿真发现 LZ4/atomic 链接依赖，正在修复 |
+| 4 版本文档 | 进行中 | 新 help/version 和真实 metadata 编译及定向测试通过；文档待补 |
 | 5 验收 | 待执行 | 三平台能力需检查可用 runner |
 | 6 Draft Release | 待执行 | private 仓库；标签须绑定验收提交 |
 
 所有测试记录实际命令、退出码和报告路径；没有执行的门禁不得标记通过。无法取得外部环境/审批时，继续完成独立工作并如实记录阻断。
+
+### 当前验证记录
+
+- `.tmp/release-targeted-tests.log`：87 项 catalog/request/build 定向测试通过。
+- `.tmp/release-env-tests.log`：4 项显式工具链/离线损坏包/CLI 身份测试通过。
+- `.tmp/release-build-fix.log`：普通构建完成；新增统一 data_path 解决 catalog 与 schema 安装路径。
+- `.tmp/prepare-gcc.log`：公开锁定 RPM 安装到独立前缀成功，gcc/g++ 自报告 13.3.1。
+- 三个容器基础镜像已按 digest 拉取；容器构建第一次因宿主回环代理不可达失败，第二次以 host network 修正同一环境网络，未更换镜像或工具链。
+- Cargo vendor 已覆盖全部锁定目标；无 license 字段未知的 crate。历史/合同审查尚未因此自动通过。

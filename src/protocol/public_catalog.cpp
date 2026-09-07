@@ -1,6 +1,7 @@
 #include "protocol/public_catalog.h"
 
 #include "protocol/public_action_registry.h"
+#include "core/common/data_path.h"
 
 #include <algorithm>
 #include <cctype>
@@ -56,7 +57,7 @@ bool matches(const ActionSpec& spec, const Json& filter) {
 }
 
 std::string data_path(const std::string& relative) {
-    return std::string(XDEBUG_FST_SOURCE_DIR) + "/compat/xdebug-v1/" + relative;
+    return xdebug_core::installed_data_path(relative);
 }
 
 bool read_json(const std::string& relative, Json& value) {

@@ -1,6 +1,7 @@
 #include "core/schema/runtime_schema_validator.h"
 
 #include "common/env_config.h"
+#include "core/common/data_path.h"
 #include "core/diagnostic_error.h"
 #include "core/schema/internal_request_contract.h"
 
@@ -15,6 +16,8 @@
 #include <stdexcept>
 #include <sys/stat.h>
 #include <vector>
+#include <filesystem>
+#include <unistd.h>
 
 namespace xdebug_core {
 
@@ -109,27 +112,7 @@ std::string response_schema_ref_for_action(
 }
 
 std::string repo_file_path(const std::string& rel) {
-    std::string root = env_raw_string("XDEBUG_FST_DATA_ROOT");
-    if (!root.empty()) {
-        std::string p = root + "/" + rel;
-        if (file_exists(p)) return p;
-    }
-#ifdef XDEBUG_FST_SOURCE_DIR
-    {
-        std::string p = std::string(XDEBUG_FST_SOURCE_DIR) +
-                        "/compat/xdebug-v1/" + rel;
-        if (file_exists(p)) return p;
-    }
-#endif
-    std::string home = env_raw_string("XVERIF_HOME");
-    if (!home.empty()) {
-        std::string p = home + "/xdebug/" + rel;
-        if (file_exists(p)) return p;
-    }
-    std::string p = "xdebug/" + rel;
-    if (file_exists(p)) return p;
-    if (file_exists(rel)) return rel;
-    return p;
+    return installed_data_path(rel);
 }
 
 bool read_plain_json(const std::string& path, PlainJson& out, std::string& error) {

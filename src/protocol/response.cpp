@@ -1,4 +1,5 @@
 #include "protocol/response.h"
+#include "build_version.h"
 
 #include "core/diagnostic_error.h"
 
@@ -6,11 +7,11 @@ namespace xdebug_fst {
 
 Json tool_metadata() {
     return {
-        {"name", "xdebug"},
-        {"version", "0.1.0"},
-        {"build_id", "8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c"},
-        {"git_revision", "8eecf71271cc"},
-        {"schema_revision", "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c"}
+        {"name", "xdebug-fst"},
+        {"version", XDEBUG_RELEASE_VERSION},
+        {"build_id", XDEBUG_RELEASE_VERSION "-" XDEBUG_GIT_REVISION},
+        {"git_revision", XDEBUG_GIT_REVISION},
+        {"schema_revision", XDEBUG_SCHEMA_REVISION}
     };
 }
 

@@ -66,12 +66,15 @@ def test_actions_uses_canonical_response_envelope(cli_runner: CliRunner) -> None
     assert response["api_version"] == "xdebug.v1"
     assert response["request_id"] == "catalog-1"
     assert response["action"] == "actions"
+    import subprocess
+    version = json.loads(subprocess.check_output(
+        [cli_runner.command[0], "--version", "--json"], text=True))
     assert response["tool"] == {
-        "name": "xdebug",
-        "version": "0.1.0",
-        "build_id": "8eecf71271cc-c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
-        "git_revision": "8eecf71271cc",
-        "schema_revision": "c45099040abf3dbe194d3ba27c207d7637b39ba9f9d662fad3d9d50dda99fb2c",
+        "name": "xdebug-fst",
+        "version": version["version"],
+        "build_id": version["version"] + "-" + version["git_revision"],
+        "git_revision": version["git_revision"],
+        "schema_revision": version["schema_revision"],
     }
     assert response["session"] is None
     assert response["error"] is None

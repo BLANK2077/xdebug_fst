@@ -1,6 +1,19 @@
 cmake_minimum_required(VERSION 3.16)
 project(xdebug-fst VERSION 0.1.0 LANGUAGES CXX C)
 
+set(XDEBUG_RELEASE_VERSION "${PROJECT_VERSION}" CACHE STRING "Product release version")
+execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE XDEBUG_GIT_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+if(NOT XDEBUG_GIT_REVISION)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/SOURCE_REVISION")
+        file(READ "${CMAKE_SOURCE_DIR}/SOURCE_REVISION" XDEBUG_GIT_REVISION)
+        string(STRIP "${XDEBUG_GIT_REVISION}" XDEBUG_GIT_REVISION)
+    else()
+        message(FATAL_ERROR "Source revision unavailable: use Git checkout or release source archive")
+    endif()
+endif()
+configure_file(cmake/build_version.h.in generated/build_version.h @ONLY)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -102,6 +115,7 @@ set(JSON_SCHEMA_VALIDATOR_SOURCES
 add_executable(xdebug-fst ${SOURCES} ${JSON_SCHEMA_VALIDATOR_SOURCES})
 
 target_include_directories(xdebug-fst PRIVATE
+    ${CMAKE_BINARY_DIR}/generated
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/core
     ${CMAKE_SOURCE_DIR}/third_party
@@ -110,9 +124,10 @@ target_include_directories(xdebug-fst PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/json-schema-validator/src
 )
 
-target_compile_definitions(xdebug-fst PRIVATE
-    XDEBUG_FST_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
-)
+# Build and installed executables use the same relative data layout.
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/share/xdebug-fst")
+file(COPY "${CMAKE_SOURCE_DIR}/compat/xdebug-v1/"
+    DESTINATION "${CMAKE_BINARY_DIR}/share/xdebug-fst")
 
 target_link_libraries(xdebug-fst PRIVATE
     "${WELLEN_CAPI_LIBRARY}"
@@ -124,10 +139,17 @@ target_link_libraries(xdebug-fst PRIVATE
 
 set_target_properties(xdebug-fst PROPERTIES
     BUILD_RPATH "${WELLEN_CAPI_LIB_DIR};${WELLENX_CAPI_LIB_DIR};${XDEBUG_TOOLCHAIN_ROOT}/lib64"
-    INSTALL_RPATH_USE_LINK_PATH TRUE)
+    INSTALL_RPATH "$ORIGIN/../lib"
+    INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 # ── Install ──
 install(TARGETS xdebug-fst DESTINATION bin)
+install(FILES "${WELLEN_CAPI_LIBRARY}" "${WELLENX_CAPI_LIBRARY}" DESTINATION lib)
+install(DIRECTORY "${CMAKE_BINARY_DIR}/share/xdebug-fst/" DESTINATION share/xdebug-fst)
+install(DIRECTORY "${CMAKE_BINARY_DIR}/tools/verilator/" DESTINATION tools/verilator
+    USE_SOURCE_PERMISSIONS PATTERN ".xdebug-build-stamp" EXCLUDE)
+install(FILES LICENSE THIRD_PARTY.md DESTINATION share/licenses/xdebug-fst)
+install(DIRECTORY licenses/ DESTINATION share/licenses/xdebug-fst)
 
 include(CTest)
 if(BUILD_TESTING)
