@@ -115,3 +115,5 @@ ASan 和 UBSan 使用各自构建目录运行同一入口。手动触发 `.githu
 长波形门禁：`tools/benchmark_long_wave.py --prefix INSTALL --toolchain GCC_PREFIX --output NEW_DIRECTORY`。它新建专用计数器测试，不重建仓库 fixture；检查 25 万/100 万时间点及 32 信号档位的最终值、尾段变化完整性、请求时间和 RSS。默认单请求 60 秒、RSS 1 GiB；该规模不代表任意 GB 级 SoC 容量承诺。容器需 `--init`，安装目录可只读，工作目录使用短绝对路径。
 
 个人维护者的许可核查及公开前待确认项见 `doc/RELEASE_LICENSE_REVIEW.md`。构建通过和 Draft 附件上传不表示权属已批准。
+
+完整 EL8 构建工具包含 `readelf 2.40`。所选 binutils 的 readelf 依赖锁定的 `elfutils-debuginfod-client 0.190`，环境脚本默认安装；只准备 simulator 编译器的 component 子集不等同于完整打包环境。EL8 的 elfutils/libcurl 依赖来自完整 RPM 锁，不能因 readelf 无法启动改用其他工具版本。

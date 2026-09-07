@@ -188,6 +188,17 @@
         "build"
       ],
       "source": "archives"
+    },
+    "readelf": {
+      "version": "2.40",
+      "command": [
+        "readelf",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "source": "archives/binutils"
     }
   },
   "archives": {
@@ -304,6 +315,12 @@
       "sha256": "1f9a8f360df63ed2408452eb33d5d291285d3ba4c4c11ea80c3ab845bd4a1c3c",
       "kind": "bootstrap-tool-rpm",
       "version": "2.7.6"
+    },
+    "gcc-debuginfod": {
+      "url": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/elfutils-debuginfod-client-0.190-2.el8.alma.1.x86_64.rpm",
+      "sha256": "5ce6e3b29c9f072ee7a7e94d5804883e699e2e6629adf4bcf11342e68777c527",
+      "kind": "toolchain-runtime-rpm",
+      "version": "0.190"
     }
   },
   "system_packages": {

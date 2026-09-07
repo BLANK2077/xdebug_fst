@@ -459,7 +459,7 @@ def test_current_svt_axi_profile_matches_locked_public_semantics(
             assert closed.get("ok"), closed
 
 
-def test_current_svt_axi_profiles_lock_events_tool_and_fst() -> None:
+def test_current_svt_axi_profiles_lock_events_tool_and_fst(xfst_bin: Path) -> None:
     fixture = REPO_ROOT / "testdata/fixtures/axi_vip"
     lock = load_hash_lock(fixture / "fixture.sha256")
     expected_names = [
@@ -488,7 +488,7 @@ def test_current_svt_axi_profiles_lock_events_tool_and_fst() -> None:
         (fixture / "fixture.manifest.json").read_text(encoding="utf-8")
     )
     dependency = json.loads(
-        (REPO_ROOT / "build/dependencies.resolved.json").read_text(
+        (xfst_bin.parent / "dependencies.resolved.json").read_text(
             encoding="utf-8"
         )
     )["verilator"]

@@ -77,3 +77,7 @@
 - `.tmp/release-osd-tests.log`：OSD 优化后 43 项 AXI differential、P3-E 离线审计、矩阵定向测试全部通过；原超时和冻结响应保持不变。
 - 发布门禁入口实测修复 pytest 自定义参数的 conftest 发现（显式 tests 路径），并将 Action trace 只传给全量 pytest，避免前序 CTest 占用同一路径。
 - 包内 ELF 检查新增 glibc 上限、开发者路径和逃逸 symlink 拒绝；补齐 RPM doc 目录中的 LZ4 许可。旧 Verilator 缓存暴露 Make 不跟踪 DEFENV 编译参数问题：recipe stamp 升级时只重新编译嵌入默认路径的 V3Options.cpp，不清理 fixture 或整个缓存。
+- `.tmp/release-final-pytest.xml`：普通构建 794/794、0 skip；`.tmp/release-action-coverage.json`：2069 条 trace，73/73 Action 的 10 个适用维度完整。
+- `.tmp/gates-ubsan/result.json`：统一 UBSan 门禁全部通过（794 pytest、7 CTest、73 Action），halt_on_error=1，无 ASAN RSS 放宽环境变量。
+- 两次独立断网完整构建均成功。干净检出验证 793/794，一项测试硬编码 build/；已改用被测二进制的构建目录，并同步 current 证据哈希。未重建冻结 fixture。
+- 冷打包暴露选定 binutils/readelf 缺 libdebuginfod；新增精确 elfutils-debuginfod-client 0.190 RPM 及 readelf 2.40 build 检查。编译器核心版本和归档不变，重新安装独立完整 compiler prefix，复用已验证的 Python/Rust/CMake 和构建缓存。
