@@ -38,7 +38,8 @@ def check(mode, lock_path=ROOT / 'toolchains.lock.json', toolchain=None):
         elif name == 'python':
             command[0] = sys.executable
         resolved = shutil.which(command[0])
-        row = {'tool': name, 'expected': spec['version'], 'ok': False}
+        expected = spec.get('simulate_min_version', spec['version']) if mode == 'simulate' else spec['version']
+        row = {'tool': name, 'expected': expected, 'ok': False}
         try:
             if not resolved:
                 raise ValueError('executable missing: ' + command[0])
@@ -50,7 +51,7 @@ def check(mode, lock_path=ROOT / 'toolchains.lock.json', toolchain=None):
             actual = match.group()
             exact = mode == 'build' or name in ('gcc', 'g++')
             row.update(actual=actual, path=str(Path(resolved).resolve()),
-                       ok=actual == spec['version'] if exact else version_tuple(actual) >= version_tuple(spec['version']))
+                       ok=actual == expected if exact else version_tuple(actual) >= version_tuple(expected))
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
             row['error'] = str(exc)
         checks.append(row)

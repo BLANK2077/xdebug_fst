@@ -11,7 +11,7 @@ import sys
 
 
 def producer_environment(repo_root: Path) -> dict[str, str]:
-    toolchain = repo_root.parent / ".toolchains" / "gcc-13"
+    toolchain = Path(os.environ.get("XDEBUG_TOOLCHAIN_ROOT", str(repo_root.parent / ".toolchains" / "gcc-13")))
     gcc = toolchain / "bin" / "gcc"
     gxx = toolchain / "bin" / "g++"
     assert gcc.is_file() and gxx.is_file()

@@ -57,3 +57,12 @@
 - `.tmp/prepare-gcc.log`：公开锁定 RPM 安装到独立前缀成功，gcc/g++ 自报告 13.3.1。
 - 三个容器基础镜像已按 digest 拉取；容器构建第一次因宿主回环代理不可达失败，第二次以 host network 修正同一环境网络，未更换镜像或工具链。
 - Cargo vendor 已覆盖全部锁定目标；无 license 字段未知的 crate。历史/合同审查尚未因此自动通过。
+
+### 安装与环境阶段补充
+
+- `.tmp/release-smoke-host.json`：本机从 staging 完成 RTL→FST/DesignDB→session 查询和关闭。
+- `.tmp/platform-el8/smoke.json`、`.tmp/platform-ubuntu22/smoke.json`、`.tmp/platform-ubuntu24/smoke.json`：三平台只读挂载安装包、断网、带 init，7 类公开调用和 count=1 断言通过。当前为阶段 staging，最终 RC 仍需同门禁。
+- Ubuntu 实测补齐编译器 MPFR 3.1.6/Jansson 2.14 依赖及 multiarch 路径，修正 GCC linker script 的发行版固定路径，未替换 GCC 13.3.1。
+- 容器 PID 1 无 reaper 时 close 保留证据并失败；平台测试及文档明确使用 --init，没有放宽产品退出检查。
+- `environment/el8-packages.lock` 冻结完整引导 RPM 集合；基础镜像 digest 和官方仓库地址写入工具链清单。
+- `.tmp/environment-el8-install-v2.log`：在断网 EL8 容器从锁定归档安装 GCC/Rust/CMake，并源码编译 Python 3.12.13；安装流程继续验证中。

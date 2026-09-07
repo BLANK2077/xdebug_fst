@@ -1,0 +1,6 @@
+*
+!tools/
+!tools/Containerfile.el8
+!tools/Containerfile.ubuntu
+!environment/
+!environment/el8-packages.lock

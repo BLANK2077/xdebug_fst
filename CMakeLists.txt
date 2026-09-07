@@ -16,6 +16,7 @@ configure_file(cmake/build_version.h.in generated/build_version.h @ONLY)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_compile_options("-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
 
 set(XDEBUG_DEPENDENCY_ROOT "${CMAKE_BINARY_DIR}/_deps" CACHE PATH
     "Prepared dependency shadow source root")

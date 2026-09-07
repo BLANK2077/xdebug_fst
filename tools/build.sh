@@ -142,6 +142,7 @@ readonly WELLEN_SOURCE="${BUILD_DIR}/_deps/wellen-src"
 readonly VERILATOR_SOURCE="${BUILD_DIR}/_deps/verilator-src"
 mkdir -p "${BUILD_DIR}/lib" "${BUILD_DIR}/tools/verilator"
 
+RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=${REPO_ROOT}=. --remap-path-prefix=${CARGO_HOME:-${HOME}/.cargo}=/cargo" \
 cargo build --release --locked --offline \
     --manifest-path "${WELLEN_SOURCE}/Cargo.toml" \
     -p wellen-capi -p wellenx-capi
@@ -150,7 +151,7 @@ cmake -E copy_if_different "${CARGO_TARGET_DIR}/release/libwellenx_capi.so" "${B
 
 readonly DEPENDENCY_FINGERPRINT="$("${PYTHON}" -c 'import json,sys; print(json.load(open(sys.argv[1]))["verilator"]["fingerprint"])' "${BUILD_DIR}/dependencies.resolved.json")"
 readonly VERILATOR_STAMP="${BUILD_DIR}/tools/verilator/.xdebug-build-stamp"
-readonly VERILATOR_BUILD_ID="${DEPENDENCY_FINGERPRINT}:gcc-13.3.1:min-install-v2"
+readonly VERILATOR_BUILD_ID="${DEPENDENCY_FINGERPRINT}:gcc-13.3.1:min-install-v3-relocatable"
 if [[ ! -f "${VERILATOR_STAMP}" || "$(<"${VERILATOR_STAMP}")" != "${VERILATOR_BUILD_ID}" || ! -x "${BUILD_DIR}/tools/verilator/bin/verilator" || ! -x "${BUILD_DIR}/tools/verilator/share/verilator/bin/verilator_includer" ]]; then
     (
         cd "${VERILATOR_SOURCE}"
@@ -158,7 +159,7 @@ if [[ ! -f "${VERILATOR_STAMP}" || "$(<"${VERILATOR_STAMP}")" != "${VERILATOR_BU
         ./configure --prefix="${BUILD_DIR}/tools/verilator"
         # 统一产物只需要优化版 compiler、入口脚本及运行数据，不构建 debug、
         # coverage 和 man page，避免把非运行时工具纳入一次构建的依赖闭包。
-        make -C src -j"${JOBS}" opt
+        make -C src -j"${JOBS}" VERILATOR_ROOT=/xdebug-fst-verilator opt
         make installdata
         install -d "${BUILD_DIR}/tools/verilator/bin"
         install -d "${BUILD_DIR}/tools/verilator/share/verilator/bin"

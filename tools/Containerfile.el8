@@ -1,0 +1,11 @@
+FROM docker.io/library/almalinux@sha256:9f355ae942d6a6c0561f0771dc053a2cfae9580fc45fa4252756db7c7e80c09f
+# Use the declared official repository directly, never a dynamically selected mirror.
+RUN sed -i 's/^mirrorlist=/#mirrorlist=/; s/^# baseurl=/baseurl=/; s/^#baseurl=/baseurl=/' /etc/yum.repos.d/almalinux*.repo
+# The entire OS/bootstrap package closure is pinned. Product tools are installed
+# separately from toolchains.lock.json; no floating system compiler is selected.
+COPY environment/el8-packages.lock /tmp/el8-packages.lock
+RUN sed '/^gpg-pubkey-/d' /tmp/el8-packages.lock | xargs -r dnf install -y && \
+    rpm -qa --qf '%{NAME}-%{EPOCHNUM}:%{VERSION}-%{RELEASE}.%{ARCH}\n' | sort > /tmp/installed.lock && \
+    diff -u /tmp/el8-packages.lock /tmp/installed.lock && dnf clean all
+WORKDIR /workspace
+CMD ["/bin/bash"]

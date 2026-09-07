@@ -65,7 +65,8 @@
         "simulate"
       ],
       "policy": "exact-build; minimum-simulate except gcc/g++ exact",
-      "source": "system package inventory"
+      "source": "system package inventory",
+      "simulate_min_version": "3.10.12"
     },
     "cmake": {
       "version": "4.4.2",
@@ -165,6 +166,17 @@
       ],
       "policy": "exact-build; minimum-simulate except gcc/g++ exact",
       "source": "system package inventory"
+    },
+    "patchelf": {
+      "version": "0.19.1",
+      "command": [
+        "patchelf",
+        "--version"
+      ],
+      "roles": [
+        "package"
+      ],
+      "source": "archives.patchelf"
     }
   },
   "archives": {
@@ -173,6 +185,108 @@
       "url": "https://static.rust-lang.org/dist/rust-1.97.1-x86_64-unknown-linux-gnu.tar.xz",
       "sha256": "88f28fa9af20594179f85d6df67078dfd6fa93e2f6da5e1e9b0ac4997988ca4f",
       "kind": "rust-installer"
+    },
+    "gcc": {
+      "url": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/gcc-toolset-13-gcc-13.3.1-2.2.el8_10.x86_64.rpm",
+      "sha256": "b6680896f26484930f5195af66539746196e32fdc3eb1e9c343c82be40fd3b36",
+      "kind": "rpm",
+      "version": "13.3.1"
+    },
+    "g++": {
+      "url": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/gcc-toolset-13-gcc-c%2B%2B-13.3.1-2.2.el8_10.x86_64.rpm",
+      "sha256": "cba19230d63e1c6f220ab9b61f941ab20dfd2c9e81aed82545961cbe83ecf523",
+      "kind": "rpm",
+      "version": "13.3.1"
+    },
+    "gcc-headers": {
+      "url": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/gcc-toolset-13-libstdc%2B%2B-devel-13.3.1-2.2.el8_10.x86_64.rpm",
+      "sha256": "5d0a8e7231f2d970943b6faf44c64cb1130af1f041e85966a3d9e383c6c3943f",
+      "kind": "rpm",
+      "version": "13.3.1"
+    },
+    "binutils": {
+      "url": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/gcc-toolset-13-binutils-2.40-21.el8.x86_64.rpm",
+      "sha256": "cad37a92c03fb7876fc2c36e34c77c3159447f32c294e6e2a842374e9011c5e7",
+      "kind": "rpm",
+      "version": "2.40"
+    },
+    "gcc13-source": {
+      "url": "https://repo.almalinux.org/vault/8.10/AppStream/Source/Packages/gcc-toolset-13-gcc-13.3.1-2.2.el8_10.src.rpm",
+      "sha256": "44debb7f026582d68638b1b310540f627ac2f34f284d35c71830e509fdd274b7",
+      "kind": "source-rpm",
+      "version": "13.3.1"
+    },
+    "gcc8-source": {
+      "url": "https://repo.almalinux.org/vault/8.10/BaseOS/Source/Packages/gcc-8.5.0-28.el8_10.alma.1.src.rpm",
+      "sha256": "c94dbbd2cd6d5d01a5a6822ea18f8ce34942c25a80e17b4682d547d5e652dbd0",
+      "kind": "source-rpm",
+      "version": "8.5.0"
+    },
+    "libgcc": {
+      "url": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/libgcc-8.5.0-28.el8_10.alma.1.x86_64.rpm",
+      "sha256": "629a08266f7c1397c00d7c32c0ac6d110fe56e993dcf94024559aa28a570f18d",
+      "kind": "runtime-rpm",
+      "version": "8.5.0-28.el8_10.alma.1"
+    },
+    "libstdc++": {
+      "url": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/libstdc%2B%2B-8.5.0-28.el8_10.alma.1.x86_64.rpm",
+      "sha256": "0302b9006d719a31dd51aeaf31fec03d70aad5c318674537bd80c49f9174b066",
+      "kind": "runtime-rpm",
+      "version": "8.5.0-28.el8_10.alma.1"
+    },
+    "libatomic": {
+      "url": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/libatomic-8.5.0-28.el8_10.alma.1.x86_64.rpm",
+      "sha256": "0a7b32bf851cec37d09a705a5890ba1d79fe8b4b102f1d6261399c79d7c4d915",
+      "kind": "runtime-rpm",
+      "version": "8.5.0-28.el8_10.alma.1"
+    },
+    "patchelf": {
+      "url": "https://files.pythonhosted.org/packages/e7/03/afd9bdd2ba5f96997196109f25dadbe5141bc6e70dffd85f3f84cc85d69c/patchelf-0.19.1.0-py3-none-manylinux1_x86_64.manylinux_2_5_x86_64.musllinux_1_1_x86_64.whl",
+      "sha256": "a8f6331ccf40c345507279f755f4a38c2cb00b9efda746fd43c17713cce0aba4",
+      "kind": "patchelf-wheel",
+      "version": "0.19.1.0"
+    },
+    "python": {
+      "url": "https://www.python.org/ftp/python/3.12.13/Python-3.12.13.tar.xz",
+      "sha256": "c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684",
+      "version": "3.12.13",
+      "kind": "python-source"
+    },
+    "cmake": {
+      "url": "https://files.pythonhosted.org/packages/5d/b7/b8d0b15f57b37ac5b9e374169471f045da3a715b7f0f3af681011415d972/cmake-4.4.2-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "sha256": "27b024e903ef985b37183d754a5c61230b56b41fe0971cd44b71b80c787ec594",
+      "version": "4.4.2",
+      "kind": "cmake-wheel"
+    },
+    "lz4": {
+      "url": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/lz4-libs-1.8.3-5.el8_10.x86_64.rpm",
+      "sha256": "8a32e133982ffaf85b727a1f9a1e88c3a28b70d02345c03a412d2124cb9f99ca",
+      "kind": "runtime-rpm",
+      "version": "1.8.3"
+    },
+    "lz4-source": {
+      "url": "https://repo.almalinux.org/vault/8.10/BaseOS/Source/Packages/lz4-1.8.3-5.el8_10.src.rpm",
+      "sha256": "8e1470ec26583e1ac7f3503057170be9149b8727d957f18a79bc8489aa981301",
+      "kind": "source-rpm",
+      "version": "1.8.3"
+    },
+    "gcc-atomic": {
+      "url": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/gcc-toolset-13-libatomic-devel-13.3.1-2.2.el8_10.x86_64.rpm",
+      "sha256": "acdbed03b7c94ef1dadae3e725ec14bf51394db5f145a1ad6652d87192fb3051",
+      "kind": "rpm",
+      "version": "13.3.1"
+    },
+    "gcc-mpfr": {
+      "url": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/mpfr-3.1.6-1.el8.x86_64.rpm",
+      "sha256": "d1eff9daef4ccbd399303ec893ebe4575900661b45d7c1a9113a18836f6472f4",
+      "kind": "toolchain-runtime-rpm",
+      "version": "3.1.6"
+    },
+    "gcc-jansson": {
+      "url": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/jansson-2.14-1.el8.x86_64.rpm",
+      "sha256": "43473522bff88d30d1adc8776cb26b9bd1b3bf4ecd1a00ae9f659c7c0e68f81d",
+      "kind": "toolchain-runtime-rpm",
+      "version": "2.14"
     }
   },
   "system_packages": {
@@ -214,6 +328,12 @@
   "container": {
     "image": "docker.io/library/almalinux:8.10",
     "digest": "sha256:9f355ae942d6a6c0561f0771dc053a2cfae9580fc45fa4252756db7c7e80c09f",
-    "status": "pulled; build validation pending"
+    "status": "bootstrap built; exact package closure captured; isolated toolchain build in progress",
+    "os_packages_lock": "environment/el8-packages.lock",
+    "os_packages_sha256": "edefb7b8ad50c9412d60246c9c66a96d7acf3aed39073c3f154f9f7bbc6eb116",
+    "repositories": [
+      "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/",
+      "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/"
+    ]
   }
 }
