@@ -40,6 +40,8 @@ def main():
             else:
                 raise ValueError('Locked Git object missing for ' + name + '; supply --bundle-dir or explicit --download')
             subprocess.run(['git', '-C', str(repo), 'fetch', '--no-tags', source, spec['revision']], check=True)
+        if subprocess.run(['git', '-C', str(repo), 'rev-parse', '--verify', 'HEAD'], capture_output=True).returncode:
+            subprocess.run(['git', '-C', str(repo), 'checkout', '--detach', spec['revision']], check=True)
         env[spec['repository_env']] = str(repo)
     subprocess.run([sys.executable, str(ROOT / 'tools/prepare_dependencies.py'), '--repo-root', str(ROOT), '--build-dir', str(args.build_dir.resolve())], env=env, check=True)
     if args.vendor:

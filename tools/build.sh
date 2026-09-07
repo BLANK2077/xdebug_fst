@@ -142,8 +142,8 @@ readonly WELLEN_SOURCE="${BUILD_DIR}/_deps/wellen-src"
 readonly VERILATOR_SOURCE="${BUILD_DIR}/_deps/verilator-src"
 mkdir -p "${BUILD_DIR}/lib" "${BUILD_DIR}/tools/verilator"
 
-RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=${REPO_ROOT}=. --remap-path-prefix=${CARGO_HOME:-${HOME}/.cargo}=/cargo" \
-cargo build --release --locked --offline \
+RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=${REPO_ROOT}=. --remap-path-prefix=${BUILD_DIR}=/build --remap-path-prefix=${CARGO_HOME:-${HOME}/.cargo}=/cargo" \
+cargo build --release --locked --offline --jobs "${JOBS}" \
     --manifest-path "${WELLEN_SOURCE}/Cargo.toml" \
     -p wellen-capi -p wellenx-capi
 cmake -E copy_if_different "${CARGO_TARGET_DIR}/release/libwellen_capi.so" "${BUILD_DIR}/lib/"

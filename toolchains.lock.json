@@ -177,6 +177,17 @@
         "package"
       ],
       "source": "archives.patchelf"
+    },
+    "patch": {
+      "version": "2.7.6",
+      "command": [
+        "patch",
+        "--version"
+      ],
+      "roles": [
+        "build"
+      ],
+      "source": "archives"
     }
   },
   "archives": {
@@ -287,6 +298,12 @@
       "sha256": "43473522bff88d30d1adc8776cb26b9bd1b3bf4ecd1a00ae9f659c7c0e68f81d",
       "kind": "toolchain-runtime-rpm",
       "version": "2.14"
+    },
+    "patch": {
+      "url": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/patch-2.7.6-11.el8.x86_64.rpm",
+      "sha256": "1f9a8f360df63ed2408452eb33d5d291285d3ba4c4c11ea80c3ab845bd4a1c3c",
+      "kind": "bootstrap-tool-rpm",
+      "version": "2.7.6"
     }
   },
   "system_packages": {
@@ -330,7 +347,7 @@
     "digest": "sha256:9f355ae942d6a6c0561f0771dc053a2cfae9580fc45fa4252756db7c7e80c09f",
     "status": "bootstrap built; exact package closure captured; isolated toolchain build in progress",
     "os_packages_lock": "environment/el8-packages.lock",
-    "os_packages_sha256": "edefb7b8ad50c9412d60246c9c66a96d7acf3aed39073c3f154f9f7bbc6eb116",
+    "os_packages_sha256": "dce4fae4adf92abf186aae8a1fdfe5d56db94a824ce489b3b0c124907563c648",
     "repositories": [
       "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/",
       "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/"

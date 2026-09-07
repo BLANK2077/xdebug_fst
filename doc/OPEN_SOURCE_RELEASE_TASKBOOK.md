@@ -66,3 +66,11 @@
 - 容器 PID 1 无 reaper 时 close 保留证据并失败；平台测试及文档明确使用 --init，没有放宽产品退出检查。
 - `environment/el8-packages.lock` 冻结完整引导 RPM 集合；基础镜像 digest 和官方仓库地址写入工具链清单。
 - `.tmp/environment-el8-install-v2.log`：在断网 EL8 容器从锁定归档安装 GCC/Rust/CMake，并源码编译 Python 3.12.13；安装流程继续验证中。
+
+### 完整回归与冷环境发现
+
+- EL8 完整 NEVRA 锁镜像成功，image ID `7a15f3b2fbdd8dcedc1afd11ba011c5423fba42cbce701aa8b694c11477ad126`。独立环境源码编译 Python 3.12.13 成功；冷依赖准备补齐 patch 2.7.6 和新 Git 仓库 detached HEAD。
+- 初轮全量回归 774 通过、20 失败；修复测试临时目录和显式离线审计入口后，剩 2 项：AXI stress OSD 二次复杂度超时、当前测试证据哈希因源码变更需刷新。已改事件扫描；只更新矩阵中 current 测试的 hash/line，不修改 original consumers、oracle 或协议 schema。
+- `.tmp/lw2/report.json`：阶段包长波形三个档位通过，峰值 RSS 163272 KiB，最大单请求约 446 ms。最终候选仍需运行。
+- `.tmp/license-review.json`：120 个 crate 校验通过；扫描 2694 个历史 blob，364 个 vendor/保密标记候选，无定义的凭据形状命中。个人权属确认仍为公开阻断，详见同目录 RELEASE_LICENSE_REVIEW.md。
+- 新增统一 verify_release 入口及手动 CI 三构建矩阵。CI 尚未在 GitHub 执行；独立冷构建和 sanitizer 正在本机执行。

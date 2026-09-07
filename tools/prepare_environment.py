@@ -53,7 +53,7 @@ def main():
     p.add_argument('--component', action='append', help='Locked archive key; repeat to select multiple')
     args = p.parse_args()
     lock = json.loads(args.lock.read_text())
-    kinds = ('rpm', 'toolchain-runtime-rpm', 'patchelf-wheel', 'rust-installer', 'cmake-wheel', 'python-source')
+    kinds = ('bootstrap-tool-rpm', 'rpm', 'toolchain-runtime-rpm', 'patchelf-wheel', 'rust-installer', 'cmake-wheel', 'python-source')
     keys = args.component or [k for k, s in lock['archives'].items() if s['kind'] in kinds]
     if any(k not in lock['archives'] for k in keys):
         p.error('Unknown component; see toolchains.lock.json archives')
@@ -68,7 +68,20 @@ def main():
         args.prefix.mkdir(parents=True)
         for key, archive in archives:
             spec = lock['archives'][key]
-            if spec['kind'] == 'rust-installer':
+            if spec['kind'] == 'bootstrap-tool-rpm':
+                with tempfile.TemporaryDirectory(dir=args.cache) as temporary:
+                    rpm = subprocess.Popen(['rpm2cpio', str(archive.resolve())], stdout=subprocess.PIPE)
+                    unpack = subprocess.run(['cpio', '-idm', '--quiet', '--no-absolute-filenames'], stdin=rpm.stdout, cwd=temporary)
+                    rpm.stdout.close()
+                    if rpm.wait() or unpack.returncode:
+                        raise ValueError('Bootstrap tool RPM extraction failed')
+                    directory = args.prefix / 'release-tools/bin'
+                    directory.mkdir(parents=True, exist_ok=True)
+                    for subdir in ('bin', 'usr/bin'):
+                        source = Path(temporary) / subdir
+                        if source.exists():
+                            shutil.copytree(source, directory, dirs_exist_ok=True, symlinks=True)
+            elif spec['kind'] == 'rust-installer':
                 with tempfile.TemporaryDirectory(dir=args.cache) as temporary:
                     with tarfile.open(archive) as tar:
                         tar.extractall(temporary, filter='data')

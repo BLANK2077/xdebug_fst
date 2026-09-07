@@ -15,3 +15,8 @@ testdata/fixtures/*/obj_dir/sim_*
 testdata/fixtures/matches/obj_dir/*
 !testdata/fixtures/matches/obj_dir/libVmatches_top__DesignDb.so
 !testdata/fixtures/matches/obj_dir/xdebug-design-db.json
+
+# Explicit local release preparation prefixes
+.release-env/
+.release-cache/
+.release-deps/
