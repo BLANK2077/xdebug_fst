@@ -321,6 +321,30 @@
       "sha256": "5ce6e3b29c9f072ee7a7e94d5804883e699e2e6629adf4bcf11342e68777c527",
       "kind": "toolchain-runtime-rpm",
       "version": "0.190"
+    },
+    "gcc-asan-devel": {
+      "url": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/gcc-toolset-13-libasan-devel-13.3.1-2.2.el8_10.x86_64.rpm",
+      "sha256": "bfba574b6967457687331c5aeb44c7d62eeeb4c4486ef288e779a5e4fcb0be99",
+      "kind": "rpm",
+      "version": "13.3.1"
+    },
+    "gcc-ubsan-devel": {
+      "url": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/gcc-toolset-13-libubsan-devel-13.3.1-2.2.el8_10.x86_64.rpm",
+      "sha256": "ef26e9f05d6a4c6dbd7deec61fb3891e9407e7aa950b2dc744e40de2ff1f2e48",
+      "kind": "rpm",
+      "version": "13.3.1"
+    },
+    "gcc-asan-runtime": {
+      "url": "https://repo.almalinux.org/almalinux/8/AppStream/x86_64/os/Packages/libasan8-13.3.1-2.2.el8_10.x86_64.rpm",
+      "sha256": "a6393f777e752c8a779204fed9ab3e584346ed78b0abad71ad78ac01d71e4652",
+      "kind": "toolchain-runtime-rpm",
+      "version": "13.3.1"
+    },
+    "gcc-ubsan-runtime": {
+      "url": "https://repo.almalinux.org/almalinux/8/BaseOS/x86_64/os/Packages/libubsan-8.5.0-28.el8_10.alma.1.x86_64.rpm",
+      "sha256": "53d605384da087c006172c8458f26afbac3827acdcde48154ffeb42328256191",
+      "kind": "toolchain-runtime-rpm",
+      "version": "8.5.0"
     }
   },
   "system_packages": {

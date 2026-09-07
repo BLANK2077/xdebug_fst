@@ -21,6 +21,26 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     environment = dict(os.environ, PYTEST_DISABLE_PLUGIN_AUTOLOAD='1')
     environment.pop('XDEBUG_ACTION_COVERAGE_LOG', None)
+    # Select strict sanitizer settings from the actual build, so ordinary and
+    # UBSan runs cannot accidentally receive ASan-specific RSS allowances.
+    cache = (build / 'CMakeCache.txt').read_text()
+    environment.pop('ASAN_OPTIONS', None)
+    environment.pop('UBSAN_OPTIONS', None)
+    sanitizer = 'none'
+    if 'XDEBUG_ENABLE_ASAN:BOOL=ON' in cache:
+        sanitizer = 'address'
+        environment['ASAN_OPTIONS'] = 'detect_leaks=1:halt_on_error=1'
+    if 'XDEBUG_ENABLE_UBSAN:BOOL=ON' in cache:
+        if sanitizer != 'none':
+            raise ValueError('ASan and UBSan must use independent builds')
+        sanitizer = 'undefined'
+        environment['UBSAN_OPTIONS'] = 'halt_on_error=1:print_stacktrace=1'
+    version = json.loads(subprocess.check_output([str(build / 'xdebug-fst'), '--version', '--json'], env=environment, text=True))
+    revision_file = ROOT / 'SOURCE_REVISION'
+    revision = revision_file.read_text().strip() if revision_file.exists() else subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    if version['git_revision'] != revision:
+        raise ValueError('Binary revision differs from the tested source; reconfigure and rebuild first')
+
     commands = [
         ('baseline', [sys.executable, str(ROOT / 'tools/check_compat_baseline.py')]),
         ('paths', [sys.executable, str(ROOT / 'tools/check_no_local_paths.py')]),
@@ -39,7 +59,7 @@ def main():
         with (output / (name + '.log')).open('w') as log:
             result = subprocess.run(command, cwd=ROOT, env=gate_environment, stdout=log, stderr=subprocess.STDOUT)
         rows.append({'gate': name, 'command': command, 'exit_code': result.returncode, 'elapsed_seconds': time.monotonic() - started})
-        (output / 'result.json').write_text(json.dumps({'ok': all(r['exit_code'] == 0 for r in rows), 'gates': rows}, indent=2) + '\n')
+        (output / 'result.json').write_text(json.dumps({'ok': all(r['exit_code'] == 0 for r in rows), 'version': version, 'sanitizer': sanitizer, 'gates': rows}, indent=2) + '\n')
         print(name + ': ' + str(result.returncode), flush=True)
         if result.returncode:
             return result.returncode

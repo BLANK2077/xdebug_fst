@@ -86,6 +86,8 @@ if(XDEBUG_ENABLE_ASAN OR XDEBUG_ENABLE_UBSAN)
             "xdebug-fst sanitizer gates require GNU or Clang C/C++ compilers")
     endif()
 
+    # Standalone CTest executables also need the selected sanitizer runtime.
+    list(APPEND CMAKE_BUILD_RPATH "${XDEBUG_TOOLCHAIN_ROOT}/lib64")
     add_compile_options(-fno-omit-frame-pointer)
     if(XDEBUG_ENABLE_ASAN)
         add_compile_options(-fsanitize=address)

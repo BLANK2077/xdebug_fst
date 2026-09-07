@@ -174,6 +174,19 @@ def main():
                 script.write_text(script.read_text().replace('/lib64/libgcc_s.so.1', 'libgcc_s.so.1'))
             for script in compiler.glob('lib/gcc/*/*/libatomic.so'):
                 script.write_text(script.read_text().replace('/usr/lib64/libatomic.so.1', 'libatomic.so.1'))
+        for name, soname in (('asan', 'libasan.so.8'), ('ubsan', 'libubsan.so.1')):
+            for script in compiler.glob('lib/gcc/*/*/lib' + name + '.so'):
+                script.write_text(script.read_text().replace('/usr/lib64/' + soname, soname))
+        if (compiler / 'lib64/libasan.so.8').exists() and (compiler / 'lib64/libubsan.so.1').exists():
+            with tempfile.TemporaryDirectory(dir=args.cache) as temporary:
+                source = Path(temporary) / 'probe.cpp'
+                source.write_text('int main() { return 0; }\n')
+                for sanitizer in ('address', 'undefined'):
+                    executable = Path(temporary) / sanitizer
+                    subprocess.run([str(compiler / 'bin/g++'), '-fsanitize=' + sanitizer,
+                                    '-L' + str(compiler / 'lib64'), '-Wl,-rpath,' + str(compiler / 'lib64'),
+                                    str(source), '-o', str(executable)], check=True)
+                    subprocess.run([str(executable)], check=True)
         lines = ['# Generated environment; source this file explicitly.']
         if (prefix / 'gcc-13').exists():
             lines += ['export XDEBUG_TOOLCHAIN_ROOT=' + shlex.quote(str(prefix / 'gcc-13'))]

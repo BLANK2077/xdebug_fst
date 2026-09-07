@@ -25,8 +25,6 @@ case "${1:?prepare|build|verify}" in
       esac
       bash tools/build.sh --build-dir /build --jobs 2 "${flags[@]}"
     else
-      export ASAN_OPTIONS=detect_leaks=1:halt_on_error=1
-      export UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
       python3 tools/verify_release.py --build-dir /build --output /reports/gates
     fi
     ;;

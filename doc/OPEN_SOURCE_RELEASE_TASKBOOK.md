@@ -81,3 +81,5 @@
 - `.tmp/gates-ubsan/result.json`：统一 UBSan 门禁全部通过（794 pytest、7 CTest、73 Action），halt_on_error=1，无 ASAN RSS 放宽环境变量。
 - 两次独立断网完整构建均成功。干净检出验证 793/794，一项测试硬编码 build/；已改用被测二进制的构建目录，并同步 current 证据哈希。未重建冻结 fixture。
 - 冷打包暴露选定 binutils/readelf 缺 libdebuginfod；新增精确 elfutils-debuginfod-client 0.190 RPM 及 readelf 2.40 build 检查。编译器核心版本和归档不变，重新安装独立完整 compiler prefix，复用已验证的 Python/Rust/CMake 和构建缓存。
+- ASan CTest 首轮 4 个独立测试因没有 sanitizer runtime 的 RPATH 无法启动；已为所有 sanitizer CMake target 统一构建 RPATH。完整工具环境补齐 GCC 13 的 ASan/UBSan devel、libasan8 13.3.1、EL8 libubsan 8.5.0，修正 GNU ld script 路径；新前缀的两个 sanitizer 编译/运行探针已通过。
+- 统一门禁从实际 CMakeCache 选择严格 sanitizer 设置，避免普通/UBSan 继承 ASan 的 RSS 特例；增加源码 HEAD 与二进制 revision 一致性检查。最终候选将在固定提交上重新执行该入口。
