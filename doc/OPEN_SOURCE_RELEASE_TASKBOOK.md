@@ -123,8 +123,29 @@ ASan 的 Python 辅助进程例外仅为已记录的 PyUnicode_New 栈，native 
 
 ### 正式发布进度
 
-- 计划：已记录；实施开始。当前远端仍 private，RC 仍为 draft/prerelease。
+- 计划：已完成；以下验收记录对应正式 0.1.0。原 RC 标签与草稿保留。
 - 双语文档与来源记录：已完成；打包保留 docs/ 路径并携带双语 README、根许可与贡献说明，避免安装包首页链接断裂。
-- 正式构建与全部验收：待完成。
+- 正式构建与全部验收：已完成，详见下方正式验收记录。
 - Release 页面按维护者补充要求只写下载、校验、解压、启动等使用方法；详细环境、许可及测试信息放 README 和附件。
-- 推送、正式 Release、公开及匿名核验：待完成。
+- 推送、正式 Release、公开及匿名核验：已完成。
+
+
+### 0.1.0 正式交付与验收
+
+正式源码及标签提交：`c8cbc65f85168754d687fd9f7e723409ac20832a`。后续收尾提交只更新本任务书和许可审查状态，不移动标签或更换已验收附件。
+
+- [公开仓库](https://github.com/BLANK2077/xdebug_fst)；默认分支保持 `feature/full-xdebug-parity`，与工作分支通过普通快进推送更新，无 PR、无强推。完整源码及英文 README 已先推送，之后完成正式 Release 和 public 设置。
+- [正式 Release 0.1.0](https://github.com/BLANK2077/xdebug_fst/releases/tag/0.1.0)：非 draft、非 prerelease、Latest；9 个附件。正文仅保留下载、校验、解压、启动和快速使用链接。
+- `.tmp/rc-checkout/.tmp/gates-stable/result.json`、`.tmp/gates-asan-stable/result.json`、`.tmp/gates-ubsan-stable/result.json`：各 794 pytest、7 CTest、73 Action，0 失败、0 skip，实际版本均为 0.1.0 / c8cbc65。pytest 用时分别约 298、957、319 秒。ASan 主程序严格检查，Python 辅助进程保留既有 PyUnicode_New 栈例外；附件注明其额外边界探针是此前 RC 证据，未冒充本次新探针。
+- `.tmp/stable-{el8,ubuntu22,ubuntu24}/report.json`：实际正式二进制归档在三平台、只读安装目录、断网、带 init 下验证通过。包内 patched Verilator 编译示例并生成 FST/DesignDB，7 类调用及 count=1 断言通过。中英文 README 互链及首页本地链接全部有效。
+- `.tmp/stable-long-wave/run/report.json`：三个既有长波形档位通过，最大 RSS 162224 KiB；单请求低于 60 秒预算，尾段 10 次转换、11 条记录与完整性检查通过。不重建 tracked fixture。
+- `.tmp/stable-source-build.log`：正式源码归档无 .git、断网构建成功，真实 SOURCE_REVISION 一致。复用独立 build2 目录、工具链、依赖和 1375 个未变更源码文件的时间戳。
+- `.tmp/stable-reproducibility.json`：两个独立构建目录均已更新至正式提交；911 个普通文件中 910 个逐字节相同，全部 ELF .text 一致。主程序仅 .dynamic/.dynstr/GNU build ID 不同，不声称逐字节可复现；比较通过只读 ELF 解析进行。
+- `.tmp/license-review-stable.json`：120 个 Cargo 包机械校验通过，2749 个历史 blob 中 379 个来源标记候选，无定义的凭据形状命中。机械脚本保持 public_release_approved=false，其含义是工具不代替个人授权；正式 validation.json 单独记录维护者明确授权。SPDX 官方 2.3 schema 与 131 个组件引用校验通过。
+- `.tmp/release-output/stable/`：二进制包、项目源码、第三方对应源码、环境记录、SPDX、验收报告/证据、双构建对比和 SHA256 全部生成。完整对应源码含 Verilator/Wellen Git bundle、patch、Cargo vendor 以及 GCC/LZ4 源码 RPM。
+- `.tmp/github-stable-download-verification.json`：GitHub 全部 9 个附件重新下载并与本地逐项比较，SHA256 全部一致。
+- `.tmp/public-stable-verification.json`：不使用 Authorization 或 Cookie 的匿名请求确认仓库 public、Release 为 Latest 正式版、双语 README 与提交内容相同、首页和 Release 页面可访问。匿名下载二进制及 SHA256SUMS 并再次核验成功。
+
+二进制归档 SHA256：`b890c6b2992cb4f3d6105a1b657d4f0456c7e2707793e2a56add0d177d188133`。
+
+所有必需本地/容器门禁完成；本次没有声称 GitHub Actions 已远端执行。已有 fixture/cache 保留，临时产物和本地证据未整体加入 Git。正式发布任务完成。
