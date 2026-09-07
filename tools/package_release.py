@@ -15,6 +15,7 @@ import tarfile
 import tempfile
 import tomllib
 import urllib.parse
+from audit_release_sources import vendor_inventory
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -54,6 +55,7 @@ def main():
     p.add_argument('--vendor', type=Path, required=True)
     p.add_argument('--install-only', action='store_true', help='Create staging for tests, without final source/archives')
     args = p.parse_args()
+    verified_vendor = vendor_inventory(args.vendor)
     build, output = args.build_dir.resolve(), args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     version = json.loads(text([build / 'xdebug-fst', '--version', '--json']))
@@ -129,7 +131,7 @@ exec "$root/tools/verilator/bin/verilator" "$@"
         directory = manifest.parent
         destination = license_dir / 'rust' / directory.name
         for notice in directory.rglob('*'):
-            if notice.is_file() and notice.name.upper().startswith(('LICENSE', 'LICENCE', 'COPYING', 'NOTICE', 'COPYRIGHT')):
+            if notice.is_file() and notice.name.upper().startswith(('LICENSE', 'LICENCE', 'COPYING', 'NOTICE', 'COPYRIGHT', 'AUTHORS')):
                 target = destination / notice.relative_to(directory)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(notice, target)
@@ -162,7 +164,10 @@ exec "$root/tools/verilator/bin/verilator" "$@"
             check['executable'] = Path(check.pop('path')).name
     environment.update(version=version, runtime_packages=rpm_evidence,
                        dependency_lock_sha256=digest(ROOT / 'dependencies.lock.json'),
-                       source_date_epoch=epoch)
+                       source_date_epoch=epoch,
+                       build_os_packages_lock_sha256=digest(ROOT / 'environment/el8-packages.lock'),
+                       build_recipe_sha256=digest(ROOT / 'tools/build.sh'),
+                       verification_scope='See separate release acceptance reports; packaging is not an approval')
     (stage / 'share/xdebug-fst/build-environment.json').write_text(json.dumps(environment, indent=2) + '\n')
     if args.install_only:
         print(stage)
@@ -210,17 +215,38 @@ exec "$root/tools/verilator/bin/verilator" "$@"
     shutil.copy2(stage / 'share/xdebug-fst/build-environment.json', output / 'build-environment.json')
     # SPDX inventory includes the entire vendored workspace, including non-runtime targets.
     packages = []
-    for manifest in sorted(args.vendor.glob('*/Cargo.toml')):
-        info = tomllib.loads(manifest.read_text())['package']
+    for info in verified_vendor:
         packages.append({'name': info['name'], 'SPDXID': 'SPDXRef-crate-' + info['name'] + '-' + info['version'],
                          'versionInfo': info['version'], 'downloadLocation': 'https://crates.io/crates/' + info['name'] + '/' + info['version'],
-                         'licenseDeclared': info.get('license', 'NOASSERTION'), 'licenseConcluded': 'NOASSERTION',
+                         'licenseDeclared': info['license'], 'licenseConcluded': 'NOASSERTION',
+                         'checksums': [{'algorithm': 'SHA256', 'checksumValue': info['checksum']}],
+                         'copyrightText': 'NOASSERTION', 'filesAnalyzed': False,
+                         'comment': 'Locked source distribution inventory; includes build, test and non-Linux targets.'})
+    components = [
+        ('main', 'xdebug-fst', version['version'], 'BSD-3-Clause', 'https://github.com/BLANK2077/xdebug_fst'),
+        ('wellen', 'Wellen', dependency_lock['wellen']['revision'], 'BSD-3-Clause', dependency_lock['wellen']['official_url']),
+        ('verilator', 'Verilator', dependency_lock['verilator']['revision'], 'LGPL-3.0-only OR Artistic-2.0', dependency_lock['verilator']['official_url']),
+        ('json', 'nlohmann-json', '3.11.2', 'MIT', 'https://github.com/nlohmann/json'),
+        ('json-validator', 'json-schema-validator', 'NOASSERTION', 'MIT', 'https://github.com/pboettch/json-schema-validator'),
+        ('schema', 'xdebug-v1-frozen-baseline', version['schema_revision'], 'MIT', 'NOASSERTION'),
+    ]
+    for key in ('libgcc', 'libstdc++', 'libatomic', 'lz4', 'gcc13-source'):
+        spec = lock['archives'][key]
+        components.append((key.replace('+', 'p'), key, spec['version'], 'BSD-2-Clause' if key == 'lz4' else 'GPL-3.0-or-later WITH GCC-exception-3.1' if key != 'gcc13-source' else 'GPL-3.0-or-later', spec['url']))
+    for ident, name, component_version, license_id, url in components:
+        packages.append({'name': name, 'SPDXID': 'SPDXRef-' + ident, 'versionInfo': component_version,
+                         'downloadLocation': url, 'licenseDeclared': license_id, 'licenseConcluded': 'NOASSERTION',
                          'copyrightText': 'NOASSERTION', 'filesAnalyzed': False})
     sbom = {'spdxVersion': 'SPDX-2.3', 'dataLicense': 'CC0-1.0', 'SPDXID': 'SPDXRef-DOCUMENT',
             'name': 'xdebug-fst-' + version['version'],
             'documentNamespace': 'https://github.com/BLANK2077/xdebug_fst/sbom/' + rev,
             'creationInfo': {'creators': ['Tool: xdebug-fst-package-release'], 'created': __import__('datetime').datetime.fromtimestamp(epoch, __import__('datetime').timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')},
-            'packages': packages}
+            'packages': packages,
+            'relationships': [{'spdxElementId': 'SPDXRef-DOCUMENT', 'relationshipType': 'DESCRIBES', 'relatedSpdxElement': 'SPDXRef-main'}] +
+                             [{'spdxElementId': 'SPDXRef-main', 'relationshipType': 'OTHER', 'relatedSpdxElement': item['SPDXID'],
+                               'comment': 'Component included in binary or corresponding-source distribution; not an assertion of static linkage.'}
+                              for item in packages if item['SPDXID'] != 'SPDXRef-main']}
+
     (output / 'sbom.spdx.json').write_text(json.dumps(sbom, indent=2) + '\n')
     (output / 'SHA256SUMS').write_text(''.join(digest(f) + '  ' + f.name + '\n' for f in sorted(output.iterdir()) if f.is_file() and f.name != 'SHA256SUMS'))
     print(output)

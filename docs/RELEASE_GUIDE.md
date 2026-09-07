@@ -100,3 +100,18 @@ ASan、UBSan 使用独立构建目录。现有 fixture 不变时不重新生成�
 RC 只上传到当前 private 仓库的 Draft Release，标签显式绑定验收提交；不自动公开仓库、创建 PR 或发布正式版本。附件包括工具包、自有源码、第三方对应源码、SHA256、SPDX、环境记录及验收摘要。上传后重新下载核对 SHA256。
 
 许可证扫描、公开来源审查和实际合同授权分别记录。未知来源/义务必须保留为公开发布阻断，不能用技术测试通过替代授权。未运行的平台、测试或性能场景不得出现在“通过”列表中。
+
+## 统一验收入口
+
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 tools/verify_release.py \
+  --build-dir /absolute/build --output /absolute/new-report-directory
+```
+
+入口依次检查冻结 baseline、本机路径泄漏、CTest、完整 pytest 及 73 Action 适用性覆盖，保留每步命令、退出码、日志和 JUnit。报告目录必须为新目录。pytest 自动分配仓库内新的临时目录；session HOME 使用短路径，以遵守 Unix socket 路径长度限制，不删除已有 fixture/cache。
+
+ASan 和 UBSan 使用各自构建目录运行同一入口。手动触发 `.github/workflows/release-gates.yml` 会在锁定 EL8 中建立普通/ASan/UBSan 三个独立任务；联网依赖准备和断网构建、验证分别执行。远端 CI 未执行时，不用本地结果代替远端通过状态。
+
+长波形门禁：`tools/benchmark_long_wave.py --prefix INSTALL --toolchain GCC_PREFIX --output NEW_DIRECTORY`。它新建专用计数器测试，不重建仓库 fixture；检查 25 万/100 万时间点及 32 信号档位的最终值、尾段变化完整性、请求时间和 RSS。默认单请求 60 秒、RSS 1 GiB；该规模不代表任意 GB 级 SoC 容量承诺。容器需 `--init`，安装目录可只读，工作目录使用短绝对路径。
+
+个人维护者的许可核查及公开前待确认项见 `doc/RELEASE_LICENSE_REVIEW.md`。构建通过和 Draft 附件上传不表示权属已批准。
